@@ -1,0 +1,722 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRS — Coming Soon Pattern</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CRS DESIGN TOKENS
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:          #181818;
+  --surface-1:   #1E1E1E;
+  --surface-2:   #242424;
+  --surface-3:   #2A2A2A;
+
+  --border:        #242424;
+  --border-hover:  #333333;
+  --border-active: #3D3D3D;
+
+  --accent:       #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-soft:  #60A5FA;
+  --accent-glow:  rgba(59,130,246,0.13);
+  --accent-tint:  rgba(59,130,246,0.08);
+
+  --text-primary:  #E0E0E0;
+  --text-secondary:#A6A6A6;
+  --text-muted:    #6B6B6B;
+  --text-disabled: #565656;
+
+  --success-soft:#4ADE80;
+
+  --tag-coming-bg:#1A1025;
+  --tag-coming-border:#3D2D6E;
+  --tag-coming-text:#C084FC;
+
+  --tag-roadmap-bg:#111827;
+  --tag-roadmap-border:#1F2D45;
+  --tag-roadmap-text:#60A5FA;
+
+  --r-badge:4px; --r-button:6px; --r-card:10px; --r-pill:999px;
+
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+
+  --ease:160ms cubic-bezier(.4,0,.2,1);
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body {
+  background:var(--bg);
+  color:var(--text-primary);
+  font-family:var(--font-sans);
+  font-size:13px;
+  -webkit-font-smoothing:antialiased;
+  min-height:100vh;
+}
+button { font-family:inherit; cursor:pointer; background:none; border:none; color:inherit; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHELL — mimics the App page layout
+═══════════════════════════════════════════════════════════════ */
+.app { display:flex; min-height:100vh; }
+
+/* Sidebar — minimal mock to match the screenshot */
+.sidebar {
+  width:220px; flex-shrink:0;
+  background:var(--bg);
+  border-right:1px solid var(--border);
+  position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column;
+  padding:14px 10px;
+}
+.sidebar-brand {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:4px 10px 16px;
+  border-bottom:1px solid var(--border);
+  margin-bottom:10px;
+}
+.sidebar-brand-logo { font-size:24px; font-weight:800; color:var(--text-muted); letter-spacing:-0.06em; }
+.sidebar-brand-toggle {
+  width:24px; height:24px;
+  color:var(--text-muted);
+  display:flex; align-items:center; justify-content:center;
+  border-radius:4px;
+  transition:all var(--ease);
+}
+.sidebar-brand-toggle:hover { background:var(--surface-2); color:var(--text-primary); }
+
+.sidebar-items { display:flex; flex-direction:column; gap:1px; flex:1; }
+.sidebar-item {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 11px;
+  border-radius:6px;
+  font-size:12.5px; font-weight:500;
+  color:var(--text-primary);
+  cursor:pointer;
+  transition:all var(--ease);
+  border:1px solid transparent;
+  text-align:left;
+}
+.sidebar-item:hover { background:var(--surface-2); }
+.sidebar-item.active {
+  background:var(--surface-2);
+  color:var(--accent);
+  border-color:var(--border-hover);
+  font-weight:600;
+}
+.sidebar-item svg { width:15px; height:15px; color:var(--text-secondary); flex-shrink:0; }
+.sidebar-item.active svg { color:var(--accent); }
+
+.sidebar-user {
+  display:flex; align-items:center; gap:9px;
+  padding:8px 10px;
+  border-radius:8px;
+  background:var(--surface-1);
+  border:1px solid var(--surface-3);
+  margin-top:8px;
+}
+.sidebar-user-av {
+  width:28px; height:28px; border-radius:50%;
+  background:linear-gradient(135deg, #8B5CF6, #3B82F6);
+  flex-shrink:0; position:relative;
+}
+.sidebar-user-av::after {
+  content:''; position:absolute; bottom:-1px; right:-1px;
+  width:8px; height:8px; border-radius:50%;
+  background:var(--success-soft);
+  border:2px solid var(--surface-1);
+}
+.sidebar-user-chev { margin-left:auto; color:var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════════════ */
+.main { flex:1; min-width:0; display:flex; flex-direction:column; }
+
+/* Page header */
+.page-header {
+  display:flex; align-items:center; gap:12px;
+  padding:18px 32px;
+  border-bottom:1px solid var(--border);
+}
+.page-header-icon {
+  width:28px; height:28px;
+  border-radius:7px;
+  background:var(--surface-2);
+  border:1px solid var(--border-hover);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-primary);
+  flex-shrink:0;
+}
+.page-header-title {
+  font-size:22px; font-weight:700;
+  color:var(--text-primary);
+  letter-spacing:-0.03em;
+  line-height:1.1;
+}
+
+/* Tab bar */
+.tabs-bar {
+  display:flex;
+  border-bottom:1px solid var(--border);
+  padding:0 32px;
+  gap:0;
+}
+.tab {
+  height:44px; padding:0 16px;
+  font-size:13px; font-weight:500;
+  color:var(--text-muted);
+  background:none; border:none;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  cursor:pointer;
+  transition:color var(--ease), border-color var(--ease);
+  white-space:nowrap;
+  display:inline-flex; align-items:center; gap:6px;
+}
+.tab:hover { color:var(--text-secondary); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:700; }
+.tab-status-dot {
+  width:5px; height:5px; border-radius:50%;
+  flex-shrink:0;
+}
+.tab-status-dot.live { background:var(--success-soft); }
+.tab-status-dot.soon { background:var(--tag-coming-text); }
+.tab-status-dot.roadmap { background:var(--tag-roadmap-text); }
+
+/* ═══════════════════════════════════════════════════════════════
+   COMING SOON / ROADMAP — the core reusable pattern
+═══════════════════════════════════════════════════════════════ */
+.coming-soon {
+  flex:1;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:0;
+  padding:40px 32px;
+  overflow:hidden;
+}
+
+/* Background grid — matches your UI Kit empty state pattern */
+.coming-soon::before {
+  content:'';
+  position:absolute;
+  inset:0;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size:56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, transparent 85%);
+  mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, transparent 85%);
+  pointer-events:none;
+}
+
+.coming-soon-content {
+  position:relative;
+  text-align:center;
+  max-width:440px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* Ghost word watermark */
+.ghost-word {
+  font-size:120px;
+  font-weight:800;
+  color:#fff;
+  opacity:0.035;
+  letter-spacing:-0.05em;
+  line-height:1;
+  margin-bottom:-40px;
+  pointer-events:none;
+  user-select:none;
+  position:relative;
+  white-space:nowrap;
+}
+
+.coming-soon-title {
+  font-size:26px;
+  font-weight:700;
+  color:var(--text-primary);
+  letter-spacing:-0.03em;
+  margin-bottom:14px;
+  line-height:1.2;
+  position:relative;
+}
+.coming-soon-desc {
+  font-size:14px;
+  color:var(--text-muted);
+  line-height:1.65;
+  margin-bottom:24px;
+  position:relative;
+}
+.coming-soon-badge {
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  font-size:11px;
+  font-weight:700;
+  letter-spacing:0.05em;
+  padding:6px 14px;
+  border-radius:var(--r-pill);
+  border:1px solid;
+  position:relative;
+}
+.coming-soon-badge.soon {
+  background:var(--tag-coming-bg);
+  border-color:var(--tag-coming-border);
+  color:var(--tag-coming-text);
+}
+.coming-soon-badge.roadmap {
+  background:var(--tag-roadmap-bg);
+  border-color:var(--tag-roadmap-border);
+  color:var(--tag-roadmap-text);
+}
+.coming-soon-badge .dot {
+  width:5px; height:5px; border-radius:50%;
+  background:currentColor;
+}
+
+/* Optional secondary row — ETA or notify button */
+.coming-soon-meta {
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:18px;
+  position:relative;
+}
+.coming-soon-eta {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  font-size:11.5px;
+  color:var(--text-muted);
+  font-family:var(--font-mono);
+  padding:5px 10px;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-radius:5px;
+}
+.coming-soon-notify {
+  height:32px;
+  padding:0 14px;
+  font-size:12px;
+  font-weight:600;
+  color:var(--text-secondary);
+  background:transparent;
+  border:1px solid var(--border-hover);
+  border-radius:var(--r-button);
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  transition:all var(--ease);
+}
+.coming-soon-notify:hover {
+  color:var(--text-primary);
+  border-color:var(--border-active);
+  background:var(--surface-1);
+}
+
+/* Demo controls */
+.demo-controls {
+  position:fixed;
+  bottom:20px; right:20px;
+  background:var(--surface-1);
+  border:1px solid var(--surface-3);
+  border-radius:8px;
+  padding:12px 14px;
+  display:flex;
+  gap:8px;
+  align-items:center;
+  box-shadow:0 8px 24px rgba(0,0,0,0.4);
+  z-index:50;
+}
+.demo-label {
+  font-size:10px; font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+}
+.demo-btn {
+  height:28px; padding:0 10px;
+  font-size:11.5px; font-weight:600;
+  color:var(--text-secondary);
+  background:transparent;
+  border:1px solid var(--border-hover);
+  border-radius:5px;
+  transition:all var(--ease);
+}
+.demo-btn:hover { color:var(--text-primary); border-color:var(--border-active); background:var(--surface-2); }
+.demo-btn.on-soon { color:var(--tag-coming-text); border-color:var(--tag-coming-border); background:var(--tag-coming-bg); }
+.demo-btn.on-roadmap { color:var(--tag-roadmap-text); border-color:var(--tag-roadmap-border); background:var(--tag-roadmap-bg); }
+
+/* Toast */
+.toast-host {
+  position:fixed;
+  bottom:80px; right:20px;
+  z-index:100;
+  display:flex; flex-direction:column; gap:8px;
+}
+.toast {
+  padding:11px 14px;
+  background:var(--surface-1);
+  border:1px solid var(--surface-3);
+  border-radius:var(--r-button);
+  box-shadow:0 12px 40px rgba(0,0,0,0.55);
+  font-size:12.5px;
+  color:var(--text-primary);
+  display:flex; align-items:center; gap:10px;
+  min-width:220px;
+  animation:toastIn 220ms cubic-bezier(.2,0,.2,1) both;
+}
+.toast-dot { width:6px; height:6px; border-radius:50%; background:var(--success-soft); }
+@keyframes toastIn {
+  from { opacity:0; transform:translateY(12px); }
+  to { opacity:1; transform:translateY(0); }
+}
+
+/* Responsive */
+@media (max-width:900px) {
+  .sidebar { width:200px; }
+  .page-header, .tabs-bar { padding-left:20px; padding-right:20px; }
+  .ghost-word { font-size:80px; }
+  .coming-soon-title { font-size:22px; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ═══════════════ SIDEBAR ═══════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-brand-logo">cr$</div>
+      <button class="sidebar-brand-toggle" title="Collapse">
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <rect x="2" y="3" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M6 3v10" stroke="currentColor" stroke-width="1.3"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="sidebar-items" id="sidebarItems"></div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-av"></div>
+      <svg class="sidebar-user-chev" width="11" height="11" viewBox="0 0 10 10" fill="none">
+        <path d="M2.5 4l2.5 2.5L7.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ═══════════════ MAIN ═══════════════ -->
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-header-icon" id="pageIcon"></div>
+      <h1 class="page-header-title" id="pageTitle">Settings</h1>
+    </div>
+
+    <div class="tabs-bar" id="tabsBar"></div>
+
+    <!-- The reusable pattern: Coming Soon / Roadmap state -->
+    <div class="coming-soon">
+      <div class="coming-soon-content">
+        <div class="ghost-word" id="ghostWord">Later</div>
+        <div class="coming-soon-title" id="contentTitle">General</div>
+        <div class="coming-soon-desc" id="contentDesc">
+          Manage your organisation's core settings including property name, timezone, currency, date format and system-wide preferences
+        </div>
+        <div class="coming-soon-badge roadmap" id="contentBadge">
+          <span class="dot"></span>
+          <span id="badgeLabel">On Roadmap</span>
+        </div>
+        <div class="coming-soon-meta" id="contentMeta" style="display:none;">
+          <div class="coming-soon-eta" id="contentEta">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <rect x="1.5" y="2.5" width="9" height="8" rx="1" stroke="currentColor" stroke-width="1.2"/>
+              <path d="M1.5 5h9M4 1.5v2M8 1.5v2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+            <span id="contentEtaText">In development</span>
+          </div>
+          <button class="coming-soon-notify" onclick="notifyMe()">
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
+              <path d="M3 5a3 3 0 0 1 6 0v2l1 1.5H2L3 7V5Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
+              <path d="M5 9.5a1 1 0 0 0 2 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+            Notify me
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<!-- Demo controls -->
+<div class="demo-controls">
+  <span class="demo-label">Demo</span>
+  <button class="demo-btn" data-demo="general" onclick="loadDemo('general')">General (Roadmap)</button>
+  <button class="demo-btn" data-demo="casino" onclick="loadDemo('casino')">Casino Setup (Soon)</button>
+  <button class="demo-btn" data-demo="scheduling" onclick="loadDemo('scheduling')">Scheduling (Roadmap)</button>
+  <button class="demo-btn" data-demo="dashboard" onclick="loadDemo('dashboard')">Dashboard (Soon)</button>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ICONS
+═══════════════════════════════════════════════════════════════ */
+const ICONS = {
+  reports:    '<svg viewBox="0 0 16 16" fill="none"><path d="M9.5 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9.5 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9.5 2v3.5H13" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  employees:  '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 13.5a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  guests:     '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6.5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M4 13a4.5 4.5 0 0 1 8 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  users:      '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 13.5a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  tasks:      '<svg viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.3 8l1.7 1.7L10.7 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  info:       '<svg viewBox="0 0 16 16" fill="none"><path d="M2.5 3a1 1 0 0 1 1-1h3L8 3.5 9.5 2h3a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 3.5v10" stroke="currentColor" stroke-width="1.3"/></svg>',
+  cctv:       '<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="4.5" width="9" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M11 6.5l3-1.2v4.4l-3-1.2" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.5 10v2.5M6.5 12.5H4M6.5 12.5h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  settings:   '<svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M13 9a5 5 0 0 0 0-2l1-.8-1-1.8-1.3.4a5 5 0 0 0-1.7-1L9.7 2.5H8.3L8 3.8a5 5 0 0 0-1.7 1L5 4.4l-1 1.8L5 7a5 5 0 0 0 0 2l-1 .8 1 1.8 1.3-.4a5 5 0 0 0 1.7 1l.3 1.3h1.4l.3-1.3a5 5 0 0 0 1.7-1l1.3.4 1-1.8L13 9Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  calendar:   '<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="3.5" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5 2v3M11 2v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  dashboard:  '<svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="2" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>'
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR MOCK (matches your screenshot)
+═══════════════════════════════════════════════════════════════ */
+const SIDEBAR_ITEMS = [
+  { id:'reports',   label:'Reports',       icon:ICONS.reports },
+  { id:'employees', label:'Employees',     icon:ICONS.employees },
+  { id:'guests',    label:'Guests',        icon:ICONS.guests },
+  { id:'users',     label:'Users',         icon:ICONS.users },
+  { id:'tasks',     label:'Task Manager',  icon:ICONS.tasks },
+  { id:'info',      label:'Info Board',    icon:ICONS.info },
+  { id:'cctv',      label:'CCTV Audits',   icon:ICONS.cctv },
+  { id:'settings',  label:'Settings',      icon:ICONS.settings, active:true }
+];
+
+function renderSidebar() {
+  const host = document.getElementById('sidebarItems');
+  host.innerHTML = SIDEBAR_ITEMS.map(it => `
+    <button class="sidebar-item ${it.active?'active':''}" data-item="${it.id}">
+      ${it.icon}
+      <span>${it.label}</span>
+    </button>
+  `).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DEMO SCENARIOS
+   Each demo shows the Coming Soon / Roadmap reusable in a
+   different real-world context.
+═══════════════════════════════════════════════════════════════ */
+const DEMOS = {
+  general: {
+    pageTitle: 'Settings',
+    pageIcon: ICONS.settings,
+    tabs: [
+      { id:'general',  label:'General',            status:'roadmap', active:true,
+        ghost:'Later', title:'General',
+        desc:'Manage your organisation\'s core settings including property name, timezone, currency, date format and system-wide preferences',
+        badge:'On Roadmap', badgeType:'roadmap' },
+      { id:'casino',   label:'Casino Setup',       status:'soon' },
+      { id:'fiscal',   label:'Fiscal Week',        status:'live' },
+      { id:'notif',    label:'Notifications',      status:'roadmap' },
+      { id:'reports',  label:'Report Configuration', status:'live' },
+      { id:'roles',    label:'Roles & Permissions', status:'live' },
+      { id:'security', label:'Security',           status:'roadmap' }
+    ]
+  },
+  casino: {
+    pageTitle: 'Settings',
+    pageIcon: ICONS.settings,
+    tabs: [
+      { id:'general',  label:'General',            status:'roadmap' },
+      { id:'casino',   label:'Casino Setup',       status:'soon', active:true,
+        ghost:'Soon', title:'Casino Setup',
+        desc:'Configure your property details — timezone, currency, locale, letterhead, number formats, gaming date cycles and fiscal week rules',
+        badge:'Coming Soon', badgeType:'soon',
+        eta:'In active development' },
+      { id:'fiscal',   label:'Fiscal Week',        status:'live' },
+      { id:'notif',    label:'Notifications',      status:'roadmap' },
+      { id:'reports',  label:'Report Configuration', status:'live' },
+      { id:'roles',    label:'Roles & Permissions', status:'live' },
+      { id:'security', label:'Security',           status:'roadmap' }
+    ]
+  },
+  scheduling: {
+    pageTitle: 'Shift Scheduling',
+    pageIcon: ICONS.calendar,
+    tabs: null,
+    content: {
+      ghost:'Soon',
+      title:'Shift Scheduling',
+      desc:'Replace your scheduling spreadsheets with patterns that match how casinos actually work — 5/2, 4/2, rotating 2/2 day/night shifts. Shift swap and day-off requests route to department heads for approval',
+      badge:'On Roadmap',
+      badgeType:'roadmap'
+    }
+  },
+  dashboard: {
+    pageTitle: 'Dashboard',
+    pageIcon: ICONS.dashboard,
+    tabs: null,
+    content: {
+      ghost:'Later',
+      title:'Dashboard',
+      desc:'A unified home screen showing your casino at a glance — recent reports, open tasks, active guests, and items needing attention across every module',
+      badge:'Coming Soon',
+      badgeType:'soon',
+      eta:'Q2 2026'
+    }
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   RENDER
+═══════════════════════════════════════════════════════════════ */
+let currentDemo = 'general';
+
+function loadDemo(demoId) {
+  currentDemo = demoId;
+  const demo = DEMOS[demoId];
+  if (!demo) return;
+
+  /* Update demo button state */
+  document.querySelectorAll('.demo-btn').forEach(b => {
+    b.classList.remove('on-soon', 'on-roadmap');
+    if (b.dataset.demo === demoId) {
+      const d = DEMOS[demoId];
+      const activeTab = d.tabs ? d.tabs.find(t => t.active) : null;
+      const badgeType = activeTab ? activeTab.badgeType : (d.content ? d.content.badgeType : null);
+      if (badgeType === 'soon') b.classList.add('on-soon');
+      else if (badgeType === 'roadmap') b.classList.add('on-roadmap');
+    }
+  });
+
+  /* Page header */
+  document.getElementById('pageTitle').textContent = demo.pageTitle;
+  document.getElementById('pageIcon').innerHTML = demo.pageIcon;
+
+  /* Tabs */
+  const tabsBar = document.getElementById('tabsBar');
+  if (demo.tabs) {
+    tabsBar.style.display = 'flex';
+    tabsBar.innerHTML = demo.tabs.map(t => `
+      <button class="tab ${t.active?'active':''}" data-tab="${t.id}">
+        <span class="tab-status-dot ${t.status}"></span>
+        <span>${t.label}</span>
+      </button>
+    `).join('');
+    tabsBar.querySelectorAll('.tab').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const tabId = btn.dataset.tab;
+        const tab = demo.tabs.find(t => t.id === tabId);
+        if (!tab) return;
+        demo.tabs.forEach(t => t.active = (t.id === tabId));
+        renderTabs(demo);
+        renderContent(tab.status === 'live' ? { kind:'live', title:tab.label } : tab);
+      });
+    });
+  } else {
+    tabsBar.style.display = 'none';
+  }
+
+  /* Content */
+  const activeContent = demo.tabs ? demo.tabs.find(t => t.active) : demo.content;
+  renderContent(activeContent);
+}
+
+function renderTabs(demo) {
+  const tabsBar = document.getElementById('tabsBar');
+  tabsBar.innerHTML = demo.tabs.map(t => `
+    <button class="tab ${t.active?'active':''}" data-tab="${t.id}">
+      <span class="tab-status-dot ${t.status}"></span>
+      <span>${t.label}</span>
+    </button>
+  `).join('');
+  tabsBar.querySelectorAll('.tab').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const tabId = btn.dataset.tab;
+      const tab = demo.tabs.find(t => t.id === tabId);
+      if (!tab) return;
+      demo.tabs.forEach(t => t.active = (t.id === tabId));
+      renderTabs(demo);
+      renderContent(tab.status === 'live' ? { kind:'live', title:tab.label } : tab);
+    });
+  });
+}
+
+function renderContent(content) {
+  if (!content) return;
+
+  if (content.kind === 'live') {
+    /* Simple live placeholder */
+    document.getElementById('ghostWord').textContent = 'Live';
+    document.getElementById('ghostWord').style.color = 'var(--success-soft)';
+    document.getElementById('ghostWord').style.opacity = '0.06';
+    document.getElementById('contentTitle').textContent = content.title;
+    document.getElementById('contentDesc').textContent = 'This tab is live. In the real app, its content would render here.';
+    const badge = document.getElementById('contentBadge');
+    badge.className = 'coming-soon-badge';
+    badge.style.color = 'var(--success-soft)';
+    badge.style.borderColor = 'rgba(34,197,94,0.25)';
+    badge.style.background = 'rgba(34,197,94,0.08)';
+    document.getElementById('badgeLabel').textContent = 'Live';
+    document.getElementById('contentMeta').style.display = 'none';
+    return;
+  }
+
+  /* Reset style overrides */
+  document.getElementById('ghostWord').style.color = '';
+  document.getElementById('ghostWord').style.opacity = '';
+  const badge = document.getElementById('contentBadge');
+  badge.style.color = '';
+  badge.style.borderColor = '';
+  badge.style.background = '';
+
+  document.getElementById('ghostWord').textContent = content.ghost || 'Later';
+  document.getElementById('contentTitle').textContent = content.title;
+  document.getElementById('contentDesc').textContent = content.desc;
+  badge.className = 'coming-soon-badge ' + (content.badgeType || 'roadmap');
+  document.getElementById('badgeLabel').textContent = content.badge;
+
+  if (content.eta) {
+    document.getElementById('contentMeta').style.display = 'flex';
+    document.getElementById('contentEtaText').textContent = content.eta;
+  } else {
+    document.getElementById('contentMeta').style.display = 'none';
+  }
+}
+
+/* Toast */
+function toast(msg) {
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  host.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 200ms'; }, 2400);
+  setTimeout(() => el.remove(), 2700);
+}
+
+function notifyMe() {
+  const title = document.getElementById('contentTitle').textContent;
+  toast(`We'll let you know when ${title} launches`);
+}
+
+/* Init */
+renderSidebar();
+loadDemo('general');
+</script>
+
+</body>
+</html>

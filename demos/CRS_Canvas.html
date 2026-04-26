@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRS — Canvas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CRS DESIGN TOKENS (from UI Kit)
+═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Surfaces */
+  --bg:          #181818;
+  --surface-1:   #1E1E1E;
+  --surface-2:   #242424;
+  --surface-3:   #2A2A2A;
+
+  /* Borders */
+  --border:        #242424;
+  --border-hover:  #333333;
+  --border-active: #3D3D3D;
+
+  /* Accent */
+  --accent:       #3B82F6;
+  --accent-hover: #2563EB;
+  --accent-active:#1D4ED8;
+  --accent-glow:  rgba(59,130,246,0.13);
+  --accent-tint:  rgba(59,130,246,0.08);
+  --accent-soft:  #60A5FA;
+
+  /* Text */
+  --text-primary:  #E0E0E0;
+  --text-secondary:#A6A6A6;
+  --text-muted:    #6B6B6B;
+  --text-disabled: #565656;
+
+  /* Semantic */
+  --success:#22C55E; --success-soft:#4ADE80;
+  --error:  #EF4444;
+
+  /* Status badge tokens */
+  --tag-coming-bg:#1A1025;
+  --tag-coming-border:#3D2D6E;
+  --tag-coming-text:#C084FC;
+
+  --tag-roadmap-bg:#111827;
+  --tag-roadmap-border:#1F2D45;
+  --tag-roadmap-text:#60A5FA;
+
+  /* Radii */
+  --r-badge:4px; --r-input:6px; --r-button:6px; --r-card:10px; --r-modal:12px; --r-pill:999px;
+
+  /* Shadows */
+  --shadow-modal:    0 24px 60px rgba(0,0,0,0.60);
+  --shadow-dropdown: 0 12px 40px rgba(0,0,0,0.55);
+
+  /* Type */
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+
+  /* Motion */
+  --ease:160ms cubic-bezier(.4,0,.2,1);
+  --ease-enter:200ms cubic-bezier(.2,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE RESET
+═══════════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+button { font-family: inherit; cursor: pointer; background: none; border: none; color: inherit; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SHELL
+═══════════════════════════════════════════════════════════════ */
+.app { display: flex; min-height: 100vh; }
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+.sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 14px 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.sidebar::-webkit-scrollbar { width: 6px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--surface-3); border-radius: 3px; }
+.sidebar::-webkit-scrollbar-thumb:hover { background: var(--border-active); }
+
+/* Brand */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 10px 16px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 10px;
+}
+.brand-logo {
+  width: 28px; height: 28px;
+  background: var(--accent);
+  border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 13px; color: #fff;
+  letter-spacing: -0.02em;
+}
+.brand-name { font-size: 15px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.04em; line-height: 1; }
+.brand-sub  { font-size: 9.5px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.1em; text-transform: uppercase; margin-top: 4px; }
+
+/* Sections */
+.nav-section { margin-top: 4px; }
+.nav-section-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 10px 10px 8px;
+  font-size: 10.5px; font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em; text-transform: uppercase;
+  border-radius: 4px;
+  transition: color var(--ease);
+  user-select: none;
+}
+.nav-section-head:hover { color: var(--text-secondary); }
+.nav-section-title { display: flex; align-items: center; gap: 8px; }
+.nav-chev {
+  width: 10px; height: 10px;
+  color: var(--text-disabled);
+  transition: transform var(--ease);
+  display: inline-block;
+}
+.nav-section.collapsed .nav-chev { transform: rotate(-90deg); }
+.nav-section-count {
+  font-size: 10px; font-weight: 600;
+  color: var(--text-disabled);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hover);
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  letter-spacing: 0;
+}
+
+.nav-section-items {
+  display: flex; flex-direction: column; gap: 1px;
+  overflow: hidden;
+  transition: max-height 240ms cubic-bezier(.4,0,.2,1);
+}
+.nav-section.collapsed .nav-section-items { max-height: 0 !important; }
+
+/* Nav item */
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all var(--ease);
+  border: 1px solid transparent;
+  width: 100%; text-align: left;
+  position: relative;
+}
+.nav-item:hover { background: var(--surface-2); }
+.nav-item.active {
+  background: var(--surface-2);
+  color: var(--accent);
+  border-color: var(--border-hover);
+  font-weight: 600;
+}
+.nav-item svg.nav-icon {
+  width: 15px; height: 15px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: color var(--ease);
+}
+.nav-item.active svg.nav-icon { color: var(--accent); }
+
+.nav-item-label {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* All items look clickable — non-live ones open their status page in the main area */
+
+/* Status badges — inline with nav item */
+.nav-badge {
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border-radius: 3px;
+  border: 1px solid;
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+  line-height: 1;
+}
+.nav-badge.soon {
+  background: var(--tag-coming-bg);
+  border-color: var(--tag-coming-border);
+  color: var(--tag-coming-text);
+}
+.nav-badge.roadmap {
+  background: var(--tag-roadmap-bg);
+  border-color: var(--tag-roadmap-border);
+  color: var(--tag-roadmap-text);
+}
+
+/* Sidebar user chip */
+.sidebar-spacer { flex: 1; min-height: 16px; }
+.sidebar-user {
+  display: flex; align-items: center; gap: 9px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-3);
+  margin-top: 8px;
+  cursor: pointer;
+  transition: border-color var(--ease);
+}
+.sidebar-user:hover { border-color: var(--border-active); }
+.sidebar-user-av {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: #8B5CF6;
+  color: #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 600; font-size: 10.5px;
+  flex-shrink: 0;
+  position: relative;
+}
+.sidebar-user-av::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--success-soft);
+  border: 2px solid var(--surface-1);
+}
+.sidebar-user-name { font-size: 12px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.005em; flex: 1; }
+.sidebar-user-chev { color: var(--text-muted); flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN
+═══════════════════════════════════════════════════════════════ */
+.main {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+
+/* Top bar */
+.topbar {
+  display: flex; align-items: center; gap: 14px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg);
+  height: 52px;
+  flex-shrink: 0;
+}
+.topbar-title {
+  font-size: 13px; font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+.topbar-status {
+  font-size: 11px;
+  color: var(--text-muted);
+  padding: 3px 8px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font-mono);
+}
+.topbar-spacer { flex: 1; }
+.topbar-search {
+  position: relative;
+  width: 260px;
+}
+.topbar-search input {
+  width: 100%; height: 30px;
+  background: transparent;
+  border: 1px solid var(--surface-3);
+  border-radius: 6px;
+  padding: 0 10px 0 30px;
+  font: 12px var(--font-sans);
+  color: var(--text-primary);
+  outline: none;
+  transition: all var(--ease);
+}
+.topbar-search input::placeholder { color: var(--text-muted); }
+.topbar-search input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.topbar-search svg {
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+.topbar-icon-btn {
+  width: 32px; height: 32px;
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--text-secondary);
+  transition: all var(--ease);
+  position: relative;
+}
+.topbar-icon-btn:hover { background: var(--surface-2); color: var(--text-primary); }
+.topbar-icon-btn .dot {
+  position: absolute;
+  top: 7px; right: 7px;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 1.5px solid var(--bg);
+}
+
+/* Main content area */
+.main-content {
+  flex: 1;
+  padding: 48px 64px;
+  max-width: 1200px;
+  width: 100%;
+}
+
+.page-eyebrow {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+  line-height: 1.1;
+}
+.page-desc {
+  font-size: 14px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 640px;
+  margin-bottom: 32px;
+}
+
+/* Welcome placeholder */
+.welcome-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 8px;
+}
+.welcome-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: 18px 20px;
+}
+.welcome-card-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.welcome-card-label .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+}
+.welcome-card-label .dot.live { background: var(--success-soft); }
+.welcome-card-label .dot.soon { background: var(--tag-coming-text); }
+.welcome-card-label .dot.roadmap { background: var(--tag-roadmap-text); }
+.welcome-card-val {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.welcome-card-sub {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.section-hint {
+  margin-top: 48px;
+  padding: 18px 20px;
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.section-hint-icon {
+  flex-shrink: 0;
+  width: 28px; height: 28px;
+  background: var(--accent-tint);
+  border: 1px solid rgba(59,130,246,0.25);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--accent-soft);
+}
+.section-hint-text {
+  font-size: 13px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+.section-hint-text strong { color: var(--accent-soft); font-weight: 600; }
+.section-hint-text code {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--accent-soft);
+  background: var(--surface-2);
+  border: 1px solid var(--border-hover);
+  border-radius: 3px;
+  padding: 1px 6px;
+  margin: 0 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMING SOON / ROADMAP PAGE (non-live items, rendered in main area)
+   Fills the entire main area viewport below the topbar.
+═══════════════════════════════════════════════════════════════ */
+.coming-soon-page {
+  position: fixed;
+  top: 52px;        /* topbar height */
+  left: 240px;      /* sidebar width */
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+/* Background grid — matches your UI Kit empty state pattern */
+.coming-soon-bg {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(to right, rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, transparent 85%);
+  mask-image: radial-gradient(ellipse 60% 70% at 50% 50%, #000 0%, rgba(0,0,0,0.55) 55%, transparent 85%);
+  pointer-events: none;
+}
+
+.coming-soon-content {
+  position: relative;
+  text-align: center;
+  max-width: 460px;
+  padding: 0 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+/* Ghost word centered behind title — position-based alignment for symmetry */
+.cs-ghost {
+  font-size: 120px;
+  font-weight: 800;
+  color: #fff;
+  opacity: 0.04;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  margin-bottom: -28px;
+  pointer-events: none;
+  user-select: none;
+  white-space: nowrap;
+  display: block;
+  text-align: center;
+}
+
+.cs-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.03em;
+  margin-bottom: 14px;
+  line-height: 1.2;
+  position: relative;
+}
+.cs-desc {
+  font-size: 14px;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 24px;
+  max-width: 380px;
+}
+.cs-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 6px 14px;
+  border-radius: var(--r-pill);
+  border: 1px solid;
+}
+.cs-badge.soon {
+  background: var(--tag-coming-bg);
+  border-color: var(--tag-coming-border);
+  color: var(--tag-coming-text);
+}
+.cs-badge.roadmap {
+  background: var(--tag-roadmap-bg);
+  border-color: var(--tag-roadmap-border);
+  color: var(--tag-roadmap-text);
+}
+.cs-badge .dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: currentColor;
+}
+
+/* Responsive — narrow screens collapse sidebar width */
+@media (max-width: 900px) {
+  .coming-soon-page { left: 220px; }
+}
+
+
+/* Toast */
+.toast-host {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: 200;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.toast {
+  padding: 11px 14px;
+  background: var(--surface-1);
+  border: 1px solid var(--surface-3);
+  border-radius: var(--r-button);
+  box-shadow: var(--shadow-dropdown);
+  font-size: 12.5px;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 10px;
+  min-width: 220px;
+  animation: toastIn 220ms cubic-bezier(.2,0,.2,1) both;
+}
+.toast-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--success-soft); }
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 900px) {
+  .sidebar { width: 220px; }
+  .main-content { padding: 24px 22px; }
+  .welcome-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ════════════════ SIDEBAR ════════════════ -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">C</div>
+      <div>
+        <div class="brand-name">CRS</div>
+        <div class="brand-sub">Suite</div>
+      </div>
+    </div>
+
+    <div id="navSections"></div>
+
+    <div class="sidebar-spacer"></div>
+
+    <div class="sidebar-user">
+      <div class="sidebar-user-av">VK</div>
+      <span class="sidebar-user-name">Vladlen</span>
+      <svg class="sidebar-user-chev" width="10" height="10" viewBox="0 0 10 10" fill="none">
+        <path d="M2.5 4L5 6.5 7.5 4" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </aside>
+
+  <!-- ════════════════ MAIN ════════════════ -->
+  <main class="main">
+
+    <div class="topbar">
+      <div class="topbar-title" id="topbarTitle">Dashboard</div>
+      <div class="topbar-status" id="topbarStatus">2026 · Week 17</div>
+      <div class="topbar-spacer"></div>
+
+      <div class="topbar-search">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none">
+          <circle cx="6" cy="6" r="4" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M9 9l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <input placeholder="Search everything…"/>
+      </div>
+
+      <button class="topbar-icon-btn" title="Notifications">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M3.5 6.5a4.5 4.5 0 0 1 9 0v3l1.5 2h-12l1.5-2v-3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+          <path d="M6.5 12.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <span class="dot"></span>
+      </button>
+    </div>
+
+    <div class="main-content" id="mainContent"></div>
+  </main>
+
+</div>
+
+<!-- ════════════════ TOASTS ════════════════ -->
+<div class="toast-host" id="toastHost"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   ICON LIBRARY — inline SVG per module
+═══════════════════════════════════════════════════════════════ */
+const ICONS = {
+  dashboard:   '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="2" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="8.5" y="8.5" width="5.5" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>',
+  settings:    '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.3"/><path d="M13 9a5 5 0 0 0 0-2l1-.8-1-1.8-1.3.4a5 5 0 0 0-1.7-1L9.7 2.5H8.3L8 3.8a5 5 0 0 0-1.7 1L5 4.4l-1 1.8L5 7a5 5 0 0 0 0 2l-1 .8 1 1.8 1.3-.4a5 5 0 0 0 1.7 1l.3 1.3h1.4l.3-1.3a5 5 0 0 0 1.7-1l1.3.4 1-1.8L13 9Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  users:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5.5" r="2.5" stroke="currentColor" stroke-width="1.3"/><path d="M3 13.5a5 5 0 0 1 10 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  shield:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L3 3.5V8c0 3 2.3 5 5 6 2.7-1 5-3 5-6V3.5L8 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6 8l1.5 1.5L10.5 6.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  bell:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M3.5 6.5a4.5 4.5 0 0 1 9 0v3l1.5 2h-12l1.5-2v-3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.5 13.5a1.5 1.5 0 0 0 3 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  log:         '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="3" y="2" width="10" height="12" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 5.5h5M5.5 8h5M5.5 10.5h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  credit:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="4" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M4.5 9.5h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  plug:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M6 2v2.5M10 2v2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><rect x="4" y="4.5" width="8" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M8 9v2.5a2 2 0 0 0 2 2h.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  box:         '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2.5 4.5L8 2l5.5 2.5L8 7 2.5 4.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M2.5 4.5V11L8 13.5 13.5 11V4.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 7v6.5" stroke="currentColor" stroke-width="1.3"/></svg>',
+
+  report:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M9.5 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9.5 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9.5 2v3.5H13M5.5 9h5M5.5 11h3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  task:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2.5" width="11" height="11" rx="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.3 8l1.7 1.7L10.7 6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  search:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1.3"/><path d="M10 10l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  dashboard2:  '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="2.5" width="5" height="6.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2.5" width="5" height="3.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="7.5" width="5" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2" y="10.5" width="5" height="3" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>',
+  board:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2.5 3a1 1 0 0 1 1-1h3L8 3.5 9.5 2h3a1 1 0 0 1 1 1v9.5a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1V3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 3.5v10" stroke="currentColor" stroke-width="1.3"/></svg>',
+  cctv:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="4.5" width="9" height="5.5" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M11 6.5l3-1.2v4.4l-3-1.2" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M6.5 10v2.5M6.5 12.5H4M6.5 12.5h2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  warn:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2.5L14 13H2L8 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6.5v3M8 11.5v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  eye:         '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 3.5C4.5 3.5 2 8 2 8s2.5 4.5 6 4.5S14 8 14 8s-2.5-4.5-6-4.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="8" cy="8" r="1.8" stroke="currentColor" stroke-width="1.3"/></svg>',
+
+  user_circle: '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6.5" r="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M4 13a4.5 4.5 0 0 1 8 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  ban:         '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 4l8 8" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  bookmark:    '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M4 2.5h8v11l-4-2.5-4 2.5v-11Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  chart:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2 13.5h12M4 13.5V9M7 13.5V6M10 13.5V3.5M13 13.5V7.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  star:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2L9.8 5.8 14 6.3l-3 3 0.7 4.2L8 11.5 4.3 13.5 5 9.3l-3-3 4.2-0.5L8 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+
+  id:          '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="3.5" width="12" height="9" rx="1" stroke="currentColor" stroke-width="1.3"/><circle cx="6" cy="7.5" r="1.5" stroke="currentColor" stroke-width="1.3"/><path d="M4 10.5c0.5-1 1.3-1.5 2-1.5s1.5 0.5 2 1.5M10 7h2.5M10 9h2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  briefcase:   '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="12" height="8" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M6 5V3.5a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1V5M2 8h12" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  alert_tri:   '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2.5L14 13H2L8 2.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8 6.5v3M8 11.5v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>',
+  thumbs:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M3 7.5h2v6H3v-6ZM5 7.5l2.5-5a1 1 0 0 1 1 0l0.5 0.5a1 1 0 0 1 0.2 1l-0.7 2h3.5a1 1 0 0 1 1 1.2l-1 4.3a1 1 0 0 1-1 0.8H5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  clock:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.3"/><path d="M8 5v3l2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  calendar:    '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="3.5" width="12" height="10" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M2 6.5h12M5 2v3M11 2v3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  palm:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 14v-6M4 6C4 4 6 3 8 3s4 1 4 3M4 6h8M6 8.5c0.5-1.5 1.5-1.5 2-1.5s1.5 0 2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  dollar:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M8 2v12M10.5 4.5H6.5a2 2 0 0 0 0 4h3a2 2 0 0 1 0 4H5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+
+  gavel:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M4 10.5L9.5 5M2 13h6M5 7L8 10M11 7l2-2M8.5 4.5l3 3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  file_check:  '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M9.5 2H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V5.5L9.5 2Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M5.5 9l1.5 1.5L10.5 7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  folder:      '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2.5 4.5a1 1 0 0 1 1-1h3L8 5h4.5a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-9a1 1 0 0 1-1-1v-7.5Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  book:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M3 3a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1v10a1 1 0 0 0 1 1h-6a1 1 0 0 1-1-1V3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M8.5 3a1 1 0 0 1 1-1H13a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+
+  chat:        '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2.5 4a1 1 0 0 1 1-1h9a1 1 0 0 1 1 1v6a1 1 0 0 1-1 1h-6l-3 2.5V11h-0a1 1 0 0 1-1-1V4Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  video:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="9" height="6" rx="1" stroke="currentColor" stroke-width="1.3"/><path d="M11 7l3-1.5v5L11 9" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  building:    '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M3 14V3a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v11" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M2 14h12M6 5h1M9 5h1M6 7.5h1M9 7.5h1M6 10h1M9 10h1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>',
+  truck:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><rect x="2" y="5" width="8" height="6" rx="0.5" stroke="currentColor" stroke-width="1.3"/><path d="M10 7h3l1 2v2h-4" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="5" cy="12" r="1.3" stroke="currentColor" stroke-width="1.3"/><circle cx="11.5" cy="12" r="1.3" stroke="currentColor" stroke-width="1.3"/></svg>',
+  coins:       '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><ellipse cx="6" cy="5" rx="4" ry="1.8" stroke="currentColor" stroke-width="1.3"/><path d="M2 5v3c0 1 1.8 1.8 4 1.8s4-0.8 4-1.8V5" stroke="currentColor" stroke-width="1.3"/><path d="M2 8v3c0 1 1.8 1.8 4 1.8s4-0.8 4-1.8V8" stroke="currentColor" stroke-width="1.3"/><ellipse cx="11" cy="9" rx="3" ry="1.3" stroke="currentColor" stroke-width="1.3"/></svg>',
+
+  certificate: '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="7" r="3.5" stroke="currentColor" stroke-width="1.3"/><path d="M5.5 9.5L5 14l3-1.5L11 14l-0.5-4.5" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/></svg>',
+  megaphone:   '<svg class="nav-icon" viewBox="0 0 16 16" fill="none"><path d="M2.5 6v4l7 3V3l-7 3Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><path d="M9.5 5.5c1 0 2 0.7 2 2.5s-1 2.5-2 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>'
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   MODULE DATA — sections + items with status
+   status: 'live' | 'soon' | 'roadmap'
+═══════════════════════════════════════════════════════════════ */
+
+const SECTIONS = [
+  {
+    id: 'core',
+    label: 'Core',
+    items: [
+      { id:'dashboard',     label:'Dashboard',           icon:ICONS.dashboard,    status:'soon',
+        teaser:'A unified home screen showing your casino at a glance — recent reports, open tasks, active guests, and attention-needed items across every module.',
+        eta:'In development' },
+      { id:'settings',      label:'Casino Settings',     icon:ICONS.settings,     status:'live' },
+      { id:'users',         label:'User Management',     icon:ICONS.users,        status:'live' },
+      { id:'roles',         label:'Roles & Permissions', icon:ICONS.shield,       status:'live' },
+      { id:'notifications', label:'Notifications',       icon:ICONS.bell,         status:'live' },
+      { id:'activity',      label:'System Activity Log', icon:ICONS.log,          status:'live' },
+      { id:'subscription',  label:'Subscription & Tier', icon:ICONS.credit,       status:'soon',
+        teaser:'Plan management — see your current tier, usage against limits, and upgrade path. Admins can manage billing and enable add-on modules.',
+        eta:'Q2 2026' },
+      { id:'integrations',  label:'API & Integrations',  icon:ICONS.plug,         status:'roadmap',
+        teaser:'Connect CRS to external systems — casino management platforms, HR tools, compliance reporting endpoints. OAuth + API keys.',
+        eta:'Roadmap' },
+      { id:'inventory',     label:'Inventory / Sensitive Equipment', icon:ICONS.box, status:'roadmap',
+        teaser:'Track sensitive gaming equipment — dice, cards, chip sets, cameras — with serial numbers, custody chain, and tamper-evidence checks.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'surveillance',
+    label: 'Surveillance',
+    items: [
+      { id:'reports',        label:'Reporting',             icon:ICONS.report,     status:'live' },
+      { id:'tasks',          label:'Task Manager',          icon:ICONS.task,       status:'live' },
+      { id:'rfi',            label:'Request for Investigation', icon:ICONS.search, status:'live' },
+      { id:'investigations', label:'Investigation Cases',   icon:ICONS.folder,     status:'roadmap',
+        teaser:'Turn repeat incidents into structured investigation cases. Link related reports, track leads, document findings, close with outcome.',
+        eta:'Roadmap' },
+      { id:'dashboard_surv', label:'Surveillance Dashboard',icon:ICONS.dashboard2, status:'roadmap',
+        teaser:'Real-time surveillance overview — active incidents, department SLA status, shift handoff summary, CCTV coverage gaps.',
+        eta:'Roadmap' },
+      { id:'info_board',     label:'Info Board',            icon:ICONS.board,      status:'soon',
+        teaser:'Department-wide announcements and shift briefings. Replaces whiteboards and WhatsApp groups. Targeted to roles, departments, or everyone.',
+        eta:'In development' },
+      { id:'cctv_audits',    label:'CCTV Audits',           icon:ICONS.cctv,       status:'roadmap',
+        teaser:'Scheduled camera coverage audits — auto-assign auditors, track findings, document blind spots, escalate to maintenance.',
+        eta:'Roadmap' },
+      { id:'malfunction',    label:'Malfunction Log',       icon:ICONS.warn,       status:'roadmap',
+        teaser:'Log equipment malfunctions — CCTV, access control, gaming equipment. Route to maintenance, track repair time, integrate with Tasks.',
+        eta:'Roadmap' },
+      { id:'close_watch',    label:'Close Watch List',      icon:ICONS.eye,        status:'roadmap',
+        teaser:'Guests and employees under heightened surveillance. Alert-on-entry, reason tracking, review cadence, automated expiry.',
+        eta:'Roadmap' },
+      { id:'shift_log',      label:'Shift Log',             icon:ICONS.clock,      status:'soon',
+        teaser:'Surveillance shift handover — entries, observations, unresolved items, notes to next shift. Digital replacement for paper logbook.',
+        eta:'In development' },
+      { id:'daily_brief',    label:'Daily Brief',           icon:ICONS.book,       status:'roadmap',
+        teaser:'Auto-generated end-of-day summary — key incidents, open items, KPIs. Distributed by email to leadership every morning.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'guests',
+    label: 'Guests',
+    items: [
+      { id:'guest_mgmt',     label:'Guest Management',      icon:ICONS.user_circle, status:'soon',
+        teaser:'Master guest directory — IDs, visit history, linked reports, VIP status, photos, notes. The guest equivalent of Employee Management.',
+        eta:'In development' },
+      { id:'guest_barring',  label:'Guest Barring',         icon:ICONS.ban,         status:'roadmap',
+        teaser:'Formal barring process — reason, duration, evidence, jurisdiction scope. Alert on re-entry attempts, scheduled review, appeal flow.',
+        eta:'Roadmap' },
+      { id:'guest_watch',    label:'Guest Watchlist',       icon:ICONS.bookmark,    status:'roadmap',
+        teaser:'Self-exclusion, cooling-off lists, and internal watchlists. Compliance-tracked with legal-hold and regulator reporting.',
+        eta:'Roadmap' },
+      { id:'guest_stats',    label:'Guest Statistics',      icon:ICONS.chart,       status:'roadmap',
+        teaser:'Aggregate guest analytics — visit patterns, spend bands, incident rates by segment, trend detection.',
+        eta:'Roadmap' },
+      { id:'vip',            label:'VIP / Loyalty Tracking',icon:ICONS.star,        status:'roadmap',
+        teaser:'VIP preferences, host assignments, comp tracking, high-value guest alerts. Integrates with external loyalty systems.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'hr',
+    label: 'HR / Employees',
+    items: [
+      { id:'employees',      label:'Employee Management',   icon:ICONS.id,          status:'live' },
+      { id:'onboarding',     label:'Onboarding + Job Board',icon:ICONS.briefcase,   status:'live' },
+      { id:'warnings',       label:'Warnings',              icon:ICONS.alert_tri,   status:'roadmap',
+        teaser:'Formal employee warning register — verbal, written, final. Evidence linked to reports, escalation rules, disciplinary trail.',
+        eta:'Roadmap' },
+      { id:'appraisals',     label:'Appraisals',            icon:ICONS.thumbs,      status:'roadmap',
+        teaser:'Employee performance reviews — scheduled cycles, KPI tracking, multi-rater feedback, growth plans.',
+        eta:'Roadmap' },
+      { id:'attendance',     label:'Attendance',            icon:ICONS.clock,       status:'roadmap',
+        teaser:'Clock-in/out tracking, late arrival flags, absence records. Integrates with Shift Scheduling.',
+        eta:'Roadmap' },
+      { id:'scheduling',     label:'Shift Scheduling',      icon:ICONS.calendar,    status:'roadmap',
+        teaser:'Replace your scheduling spreadsheets. Multi-pattern rosters — 5/2, 4/2, rotating 2/2 day/night — with swap requests and day-off flow routed to department heads.',
+        eta:'Roadmap' },
+      { id:'leave',          label:'Leave Management',      icon:ICONS.palm,        status:'roadmap',
+        teaser:'PTO, sick leave, unpaid leave tracking. Balance per employee, approval routing, calendar integration.',
+        eta:'Roadmap' },
+      { id:'payroll',        label:'Payroll',               icon:ICONS.dollar,      status:'roadmap',
+        teaser:'Payroll run — salaries, overtime, deductions, payslip generation. Exports to accounting systems or standalone statements.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'compliance',
+    label: 'Compliance & Risk',
+    items: [
+      { id:'compliance_reg', label:'Compliance Register',   icon:ICONS.gavel,       status:'roadmap',
+        teaser:'Central register of regulatory obligations — controls, evidence, responsible owners, review cycle. Audit-ready.',
+        eta:'Roadmap' },
+      { id:'reg_reports',    label:'Regulatory Reports',    icon:ICONS.file_check,  status:'roadmap',
+        teaser:'Generate periodic regulator filings — incident summaries, large transaction reports, compliance attestations.',
+        eta:'Roadmap' },
+      { id:'policy',         label:'Policy Library',        icon:ICONS.book,        status:'roadmap',
+        teaser:'Internal policies and SOPs with version control, acknowledgement tracking, and automatic re-review scheduling.',
+        eta:'Roadmap' },
+      { id:'training',       label:'Training & Certifications', icon:ICONS.certificate, status:'roadmap',
+        teaser:'Employee certifications — gaming licenses, AML, responsible gambling. Expiry alerts, renewal workflow, training record.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'operations',
+    label: 'Operations',
+    items: [
+      { id:'vendors',        label:'Vendor Management',     icon:ICONS.truck,       status:'roadmap',
+        teaser:'Approved vendor list — contact, contracts, insurance status, incident history. Links to maintenance work orders.',
+        eta:'Roadmap' },
+      { id:'assets',         label:'Asset Register',        icon:ICONS.building,    status:'roadmap',
+        teaser:'Physical asset inventory — gaming tables, machines, IT equipment. Location, depreciation, maintenance schedule.',
+        eta:'Roadmap' },
+      { id:'cage_ops',       label:'Cage Operations',       icon:ICONS.coins,       status:'roadmap',
+        teaser:'Cage-specific operations — fills, credits, chip movement, shift reconciliation. Integrates with Error reports.',
+        eta:'Roadmap' }
+    ]
+  },
+
+  {
+    id: 'comms',
+    label: 'Communication',
+    items: [
+      { id:'chat',           label:'Internal Chat',         icon:ICONS.chat,        status:'roadmap',
+        teaser:'Work chat scoped to your casino. Channels per department, DMs, file sharing. Keeps casino comms off WhatsApp.',
+        eta:'Roadmap' },
+      { id:'meetings',       label:'Meetings & Minutes',    icon:ICONS.video,       status:'roadmap',
+        teaser:'Schedule meetings, capture minutes and action items. Action items auto-create tasks assigned to attendees.',
+        eta:'Roadmap' },
+      { id:'announcements',  label:'Announcements',         icon:ICONS.megaphone,   status:'roadmap',
+        teaser:'Casino-wide or targeted announcements — all-hands, shift notices, emergency alerts. Read-receipt tracking.',
+        eta:'Roadmap' }
+    ]
+  }
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+let uiState = {
+  collapsedSections: {},
+  activeItem: null
+};
+const UIKEY = 'crs_canvas_ui';
+
+function loadUI() {
+  try { const r = localStorage.getItem(UIKEY); if (r) uiState = Object.assign(uiState, JSON.parse(r)); } catch(e) {}
+  /* All sections collapsed by default */
+  SECTIONS.forEach(s => {
+    if (uiState.collapsedSections[s.id] === undefined) uiState.collapsedSections[s.id] = true;
+  });
+}
+function saveUI() { localStorage.setItem(UIKEY, JSON.stringify(uiState)); }
+
+function findItem(id) {
+  for (const s of SECTIONS) {
+    for (const it of s.items) if (it.id === id) return { section:s, item:it };
+  }
+  return null;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR RENDER
+═══════════════════════════════════════════════════════════════ */
+function chevSVG() {
+  return '<svg viewBox="0 0 16 16" fill="none" width="10" height="10"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+
+function renderSidebar() {
+  const host = document.getElementById('navSections');
+  host.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const collapsed = uiState.collapsedSections[sec.id] === true;
+    const liveCount = sec.items.filter(i => i.status === 'live').length;
+
+    const el = document.createElement('div');
+    el.className = 'nav-section' + (collapsed ? ' collapsed' : '');
+    el.innerHTML = `
+      <button class="nav-section-head" data-sec="${sec.id}">
+        <div class="nav-section-title">
+          <span class="nav-chev">${chevSVG()}</span>
+          <span>${sec.label}</span>
+        </div>
+        <span class="nav-section-count">${liveCount}/${sec.items.length}</span>
+      </button>
+      <div class="nav-section-items">
+        ${sec.items.map(it => {
+          const statusClass = 'status-' + it.status;
+          const activeClass = uiState.activeItem === it.id ? ' active' : '';
+          let badge = '';
+          if (it.status === 'soon') badge = '<span class="nav-badge soon">SOON</span>';
+          else if (it.status === 'roadmap') badge = '<span class="nav-badge roadmap">ROADMAP</span>';
+          return `<button class="nav-item ${statusClass}${activeClass}" data-item="${it.id}">
+            ${it.icon}
+            <span class="nav-item-label">${it.label}</span>
+            ${badge}
+          </button>`;
+        }).join('')}
+      </div>
+    `;
+    host.appendChild(el);
+
+    /* Section toggle */
+    el.querySelector('.nav-section-head').addEventListener('click', () => {
+      el.classList.toggle('collapsed');
+      uiState.collapsedSections[sec.id] = el.classList.contains('collapsed');
+      saveUI();
+      const items = el.querySelector('.nav-section-items');
+      if (!uiState.collapsedSections[sec.id]) {
+        items.style.maxHeight = items.scrollHeight + 'px';
+      } else {
+        items.style.maxHeight = '0';
+      }
+    });
+
+    if (!collapsed) {
+      const items = el.querySelector('.nav-section-items');
+      items.style.maxHeight = items.scrollHeight + 'px';
+    }
+
+    /* Item clicks */
+    el.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => handleItemClick(btn.dataset.item));
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ITEM CLICK
+═══════════════════════════════════════════════════════════════ */
+function handleItemClick(id) {
+  const found = findItem(id);
+  if (!found) return;
+  const { item } = found;
+
+  /* Always render in main area — no popup. Live, soon, and roadmap
+     all get their own page treatment. */
+  uiState.activeItem = id;
+  saveUI();
+  renderSidebar();
+  renderMain(item);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MAIN CONTENT RENDER
+═══════════════════════════════════════════════════════════════ */
+function renderMain(item) {
+  document.getElementById('topbarTitle').textContent = item ? item.label : 'Dashboard';
+
+  const host = document.getElementById('mainContent');
+  if (!item) {
+    renderWelcome(host);
+    return;
+  }
+
+  if (item.status === 'live') {
+    renderLivePlaceholder(host, item);
+  } else {
+    renderComingSoon(host, item);
+  }
+}
+
+function renderLivePlaceholder(host, item) {
+  host.innerHTML = `
+    <div class="page-eyebrow">Live module</div>
+    <div class="page-title">${item.label}</div>
+    <div class="page-desc">You clicked a live module. In the real app, this is where <code>${'#GR - ' + item.label}</code> would render inside the main area container.</div>
+
+    <div class="section-hint">
+      <div class="section-hint-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><circle cx="7" cy="7" r="5" stroke="currentColor" stroke-width="1.3"/><path d="M7 4.5v3M7 9.5v.01" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-hint-text">
+        This is the <strong>CRS Canvas</strong> — a sidebar preview. Real module content lives in the authenticated <code>App</code> page. Click any sidebar item to see its status page.
+      </div>
+    </div>
+  `;
+}
+
+function renderComingSoon(host, item) {
+  const isSoon = item.status === 'soon';
+  const ghostWord = isSoon ? 'Soon' : 'Later';
+  const badgeClass = isSoon ? 'soon' : 'roadmap';
+  const badgeLabel = isSoon ? 'Coming Soon' : 'On Roadmap';
+
+  host.innerHTML = `
+    <div class="coming-soon-page">
+      <div class="coming-soon-bg"></div>
+      <div class="coming-soon-content">
+        <div class="cs-ghost">${ghostWord}</div>
+        <div class="cs-title">${item.label}</div>
+        <div class="cs-desc">${item.teaser || 'More details coming soon.'}</div>
+        <div class="cs-badge ${badgeClass}">
+          <span class="dot"></span>
+          <span>${badgeLabel}</span>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function renderWelcome(host) {
+  /* Count statuses */
+  let live = 0, soon = 0, roadmap = 0;
+  SECTIONS.forEach(s => s.items.forEach(i => {
+    if (i.status === 'live') live++;
+    else if (i.status === 'soon') soon++;
+    else roadmap++;
+  }));
+  const total = live + soon + roadmap;
+
+  host.innerHTML = `
+    <div class="page-eyebrow">CRS Canvas — Suite Overview</div>
+    <div class="page-title">Welcome back, Vladlen</div>
+    <div class="page-desc">Your casino reporting suite is actively being built. The sidebar shows every module — live today, in active development, or on the roadmap. Click any module to see what's planned.</div>
+
+    <div class="welcome-grid">
+      <div class="welcome-card">
+        <div class="welcome-card-label"><span class="dot live"></span>Live</div>
+        <div class="welcome-card-val">${live}</div>
+        <div class="welcome-card-sub">modules ready to use</div>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-label"><span class="dot soon"></span>Coming Soon</div>
+        <div class="welcome-card-val">${soon}</div>
+        <div class="welcome-card-sub">in active development</div>
+      </div>
+      <div class="welcome-card">
+        <div class="welcome-card-label"><span class="dot roadmap"></span>On Roadmap</div>
+        <div class="welcome-card-val">${roadmap}</div>
+        <div class="welcome-card-sub">planned for future releases</div>
+      </div>
+    </div>
+
+    <div class="section-hint">
+      <div class="section-hint-icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1.5v11M1.5 7h11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </div>
+      <div class="section-hint-text">
+        <strong>${total} modules</strong> total across <strong>${SECTIONS.length} sections</strong>. Expand any section to see what's inside. The <code>SOON</code> and <code>ROADMAP</code> badges give you a preview of the full suite — so you can see where the product is heading, not just what it is today.
+      </div>
+    </div>
+  `;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOAST + NOTIFY
+═══════════════════════════════════════════════════════════════ */
+function toast(msg) {
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  host.appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 200ms'; }, 2400);
+  setTimeout(() => el.remove(), 2700);
+}
+
+function notifyMe(label) {
+  toast(`We'll notify you when ${label} launches`);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════════ */
+loadUI();
+renderSidebar();
+renderMain(null);
+</script>
+
+</body>
+</html>

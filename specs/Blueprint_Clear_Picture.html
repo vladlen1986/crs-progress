@@ -1,0 +1,2686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRS — Clear Picture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg:#181818; --surface-1:#1E1E1E; --surface-2:#242424; --surface-3:#2A2A2A;
+  --border:#242424; --border-hover:#333333; --border-active:#3D3D3D;
+  --accent:#3B82F6; --accent-hover:#2563EB; --accent-soft:#60A5FA;
+  --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
+  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
+  --success-soft:#4ADE80;
+  --font-sans:'Inter',system-ui,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,monospace;
+  --ease:160ms cubic-bezier(.4,0,.2,1);
+  --r-button:6px; --r-card:10px; --r-pill:999px;
+}
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body { background:var(--bg); color:var(--text-primary); font-family:var(--font-sans); font-size:13px; -webkit-font-smoothing:antialiased; }
+button { font-family:inherit; cursor:pointer; background:none; border:none; color:inherit; }
+
+.app { display:flex; min-height:100vh; }
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  width:240px; flex-shrink:0;
+  background:var(--surface-1);
+  border-right:1px solid var(--border);
+  position:sticky; top:0; height:100vh; overflow-y:auto;
+  padding:18px 12px 24px;
+  display:flex; flex-direction:column; gap:2px;
+}
+.sidebar::-webkit-scrollbar { width:6px; }
+.sidebar::-webkit-scrollbar-thumb { background:var(--surface-3); border-radius:3px; }
+
+.brand {
+  display:flex; align-items:flex-start; justify-content:space-between;
+  padding:4px 10px 18px; margin-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+.brand-name { font-size:14px; font-weight:800; color:var(--text-primary); letter-spacing:-0.04em; line-height:1.1; }
+.brand-sub  { font-size:9.5px; font-weight:700; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-top:4px; }
+.brand-pct  { font-size:11px; font-family:var(--font-mono); color:var(--accent-soft); font-weight:600; padding-top:2px; }
+
+.nav-top {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 11px; margin:1px 0;
+  border-radius:6px;
+  font-size:12.5px; font-weight:500;
+  color:var(--text-primary);
+  transition:all var(--ease);
+  border:1px solid transparent;
+  cursor:pointer; width:100%; text-align:left;
+}
+.nav-top:hover { background:var(--surface-2); }
+.nav-top.active { background:var(--surface-2); color:var(--accent); border-color:var(--border-hover); font-weight:600; }
+.nav-top svg { width:15px; height:15px; color:var(--text-secondary); flex-shrink:0; }
+.nav-top.active svg { color:var(--accent); }
+
+.nav-section { margin-top:8px; }
+.nav-section-head {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  width:100%; padding:10px 11px 8px;
+  font-size:10.5px; font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:0.1em; text-transform:uppercase;
+  border-radius:4px;
+  transition:color var(--ease);
+}
+.nav-section-head:hover { color:var(--text-secondary); }
+.nav-section-title { display:flex; align-items:center; gap:8px; }
+.nav-chev { width:10px; height:10px; color:var(--text-disabled); transition:transform var(--ease); display:inline-block; }
+.nav-section.collapsed .nav-chev { transform:rotate(-90deg); }
+.nav-section-count {
+  font-size:10px; font-weight:600;
+  color:var(--text-disabled);
+  background:var(--surface-2);
+  border:1px solid var(--border-hover);
+  padding:1px 6px;
+  border-radius:3px;
+  font-family:var(--font-mono); letter-spacing:0;
+}
+.nav-section-count.complete { color:var(--success-soft); background:rgba(34,197,94,0.08); border-color:rgba(34,197,94,0.25); }
+.nav-section-count.partial  { color:var(--accent-soft); background:var(--accent-tint); border-color:rgba(59,130,246,0.25); }
+
+.nav-section-items { display:flex; flex-direction:column; gap:1px; overflow:hidden; transition:max-height 220ms ease; }
+.nav-section.collapsed .nav-section-items { max-height:0 !important; }
+
+.nav-item {
+  display:flex; align-items:center; justify-content:space-between; gap:8px;
+  padding:7px 11px 7px 26px;
+  font-size:12.5px; font-weight:500;
+  color:var(--text-secondary);
+  border-radius:6px;
+  border:1px solid transparent;
+  cursor:pointer; width:100%; text-align:left;
+  transition:all var(--ease);
+}
+.nav-item:hover { background:var(--surface-2); color:var(--text-primary); }
+.nav-item.active { background:var(--surface-2); color:var(--accent); border-color:var(--border-hover); font-weight:600; }
+.nav-item-dot { width:7px; height:7px; border-radius:50%; background:var(--surface-3); flex-shrink:0; }
+.nav-item.s-done .nav-item-dot    { background:var(--success-soft); }
+.nav-item.s-wip  .nav-item-dot    { background:var(--accent); box-shadow:0 0 0 3px var(--accent-glow); }
+.nav-item.s-pending .nav-item-dot { background:var(--text-disabled); }
+
+.sidebar-spacer { flex:1; min-height:20px; }
+.sidebar-tools {
+  display:flex; gap:6px;
+  padding-top:12px; margin-top:auto;
+  border-top:1px solid var(--border);
+}
+.sidebar-tools button {
+  flex:1;
+  height:26px; padding:0 8px;
+  font-size:10.5px; font-weight:600;
+  color:var(--text-muted);
+  border:1px solid var(--border-hover);
+  border-radius:5px; background:transparent;
+  transition:all var(--ease);
+}
+.sidebar-tools button:hover { color:var(--text-primary); border-color:var(--border-active); background:var(--surface-2); }
+
+/* ═══ MAIN ═══ */
+.main { flex:1; min-width:0; max-width:980px; padding:36px 48px 100px; }
+.view { display:none; }
+.view.active { display:block; }
+
+/* OVERVIEW */
+.hero-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px; }
+.hero-title { font-size:28px; font-weight:700; letter-spacing:-0.03em; color:var(--text-primary); margin-bottom:10px; line-height:1.1; }
+.hero-sub { font-size:14px; color:var(--text-secondary); line-height:1.55; max-width:620px; }
+
+.overview-cards { display:grid; grid-template-columns:repeat(3, 1fr); gap:14px; margin-top:24px; }
+.ov-card { background:var(--surface-1); border:1px solid var(--border); border-radius:var(--r-card); padding:18px 20px; }
+.ov-card-label { font-size:11.5px; color:var(--text-secondary); font-weight:500; margin-bottom:6px; }
+.ov-card-val { font-size:26px; font-weight:700; color:var(--text-primary); letter-spacing:-0.03em; font-variant-numeric:tabular-nums; line-height:1.1; }
+.ov-card-val.accent { color:var(--accent-soft); }
+.ov-card-val.success { color:var(--success-soft); }
+.ov-card-sub { font-size:11.5px; color:var(--text-muted); margin-top:6px; }
+
+.next-up {
+  margin-top:22px;
+  padding:16px 20px;
+  background:var(--accent-tint);
+  border:1px solid rgba(59,130,246,0.25);
+  border-radius:var(--r-card);
+  display:flex; align-items:flex-start; gap:14px;
+}
+.next-up-label { font-size:10px; font-weight:700; color:var(--accent-soft); letter-spacing:0.1em; text-transform:uppercase; padding-top:2px; flex-shrink:0; }
+.next-up-text { font-size:13px; color:var(--text-primary); line-height:1.55; }
+.next-up-text strong { color:var(--accent-soft); font-weight:600; }
+
+.overview-sections { margin-top:44px; }
+.overview-section-title { font-size:11px; font-weight:700; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; margin-bottom:14px; }
+.overview-modlist {
+  border:1px solid var(--border);
+  border-radius:var(--r-card);
+  overflow:hidden;
+  background:var(--surface-1);
+  margin-bottom:28px;
+}
+.overview-mod {
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  padding:14px 18px;
+  border-top:1px solid var(--border);
+  cursor:pointer;
+  transition:background var(--ease);
+}
+.overview-mod:first-child { border-top:none; }
+.overview-mod:hover { background:var(--surface-2); }
+.overview-mod-name { font-size:13.5px; font-weight:600; color:var(--text-primary); letter-spacing:-0.005em; }
+.overview-mod-desc { font-size:11.5px; color:var(--text-muted); margin-top:3px; line-height:1.45; }
+.overview-mod-stat { font-size:11px; font-family:var(--font-mono); color:var(--text-muted); white-space:nowrap; }
+
+/* MODULE HERO */
+.module-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:0.1em; color:var(--text-muted); text-transform:uppercase; margin-bottom:10px; }
+.module-title { font-size:26px; font-weight:700; letter-spacing:-0.03em; color:var(--text-primary); margin-bottom:10px; line-height:1.1; }
+.module-desc { font-size:14px; color:var(--text-secondary); line-height:1.55; max-width:640px; }
+
+.module-status-row { display:flex; align-items:center; gap:16px; margin-top:20px; padding-bottom:22px; }
+
+.status-pill {
+  display:inline-flex; align-items:center; gap:6px;
+  height:26px; padding:0 12px;
+  border-radius:var(--r-pill);
+  font-size:11.5px; font-weight:600;
+  border:1px solid;
+  white-space:nowrap;
+}
+.status-pill .dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+.status-pill.done    { color:var(--success-soft); border-color:rgba(34,197,94,0.25); }
+.status-pill.wip     { color:var(--accent-soft);  border-color:rgba(59,130,246,0.25); }
+.status-pill.pending { color:var(--text-muted);   border-color:rgba(107,107,107,0.25); }
+
+.module-progress { flex:1; display:flex; flex-direction:column; gap:6px; max-width:280px; }
+.module-progress-text { display:flex; justify-content:space-between; font-size:11px; color:var(--text-muted); font-family:var(--font-mono); }
+.module-progress-bar { height:5px; background:var(--surface-3); border-radius:3px; overflow:hidden; display:flex; gap:1px; }
+.module-progress-seg { height:100%; transition:width 300ms ease; }
+.module-progress-seg.done { background:var(--success-soft); }
+.module-progress-seg.wip { background:var(--accent); }
+
+/* TABS */
+.tabs-bar { display:flex; border-bottom:1px solid var(--border); gap:0; }
+.tab {
+  height:40px; padding:0 16px;
+  font-size:13px; font-weight:500;
+  color:var(--text-muted);
+  background:none; border:none;
+  border-bottom:2px solid transparent;
+  margin-bottom:-1px;
+  cursor:pointer;
+  transition:color var(--ease), border-color var(--ease);
+  white-space:nowrap;
+}
+.tab:hover { color:var(--text-secondary); }
+.tab.active { color:var(--accent); border-bottom-color:var(--accent); font-weight:700; }
+.tab-count { display:inline-block; font-size:10.5px; font-weight:600; color:var(--text-disabled); margin-left:5px; font-family:var(--font-mono); }
+.tab.active .tab-count { color:var(--accent-soft); }
+
+.tab-panels { padding-top:28px; }
+.tab-panel { display:none; }
+.tab-panel.active { display:block; }
+
+/* OVERVIEW TAB */
+.ov-purpose { font-size:14px; color:var(--text-primary); line-height:1.65; margin-bottom:24px; max-width:720px; }
+.ov-block { margin-bottom:26px; }
+.ov-block-title { font-size:11px; font-weight:700; color:var(--text-muted); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:12px; }
+
+.ov-list { display:flex; flex-direction:column; gap:8px; list-style:none; }
+.ov-list li {
+  font-size:13px; color:var(--text-primary);
+  line-height:1.55;
+  padding-left:18px;
+  position:relative;
+  max-width:720px;
+}
+.ov-list li::before {
+  content:''; position:absolute; left:4px; top:8px;
+  width:5px; height:5px; border-radius:50%;
+  background:var(--accent);
+}
+
+.ov-pipeline {
+  display:flex; flex-wrap:wrap; gap:8px;
+  padding:14px 16px;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-radius:var(--r-card);
+  align-items:center;
+}
+.ov-pipeline-step {
+  display:inline-flex; align-items:center; gap:7px;
+  font-size:11.5px; font-weight:600;
+  color:var(--text-primary);
+  padding:6px 11px;
+  background:var(--surface-2);
+  border:1px solid var(--border-hover);
+  border-radius:5px;
+}
+.ov-pipeline-step .num { font-size:10px; font-weight:700; color:var(--text-disabled); font-family:var(--font-mono); }
+.ov-pipeline-arrow { color:var(--text-disabled); font-size:12px; }
+
+.ov-stat-grid {
+  display:grid; grid-template-columns:repeat(2, 1fr); gap:1px;
+  background:var(--border); border:1px solid var(--border);
+  border-radius:var(--r-card); overflow:hidden;
+  max-width:560px;
+}
+.ov-stat { background:var(--surface-1); padding:14px 18px; display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.ov-stat-label { font-size:12px; color:var(--text-secondary); }
+.ov-stat-val { font-size:15px; font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums; font-family:var(--font-mono); }
+.ov-stat-val.done { color:var(--success-soft); }
+
+/* CHECKLIST + EXPANDABLE ITEMS */
+.checklist-intro {
+  font-size:12.5px; color:var(--text-muted);
+  line-height:1.55;
+  padding:12px 16px;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-radius:8px;
+  margin-bottom:18px;
+  max-width:720px;
+}
+.group-title {
+  font-size:11px; font-weight:700; color:var(--text-muted);
+  letter-spacing:0.1em; text-transform:uppercase;
+  margin:28px 0 10px;
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+.group-title:first-child { margin-top:0; }
+.group-title-count { font-size:10.5px; color:var(--text-disabled); font-family:var(--font-mono); font-weight:500; letter-spacing:0; }
+
+.items { display:flex; flex-direction:column; gap:3px; }
+
+.item-wrap { display:flex; flex-direction:column; }
+
+.item {
+  display:grid;
+  grid-template-columns:auto 1fr auto auto;
+  align-items:center;
+  gap:12px;
+  padding:10px 14px;
+  font-size:13px;
+  color:var(--text-primary);
+  cursor:pointer;
+  line-height:1.45;
+  border-radius:6px;
+  transition:background var(--ease), border-color var(--ease);
+  border:1px solid transparent;
+  user-select:none;
+}
+.item.has-detail { cursor:pointer; }
+.item:not(.has-detail) { cursor:default; }
+.item:hover { background:var(--surface-1); border-color:var(--border); }
+.item-wrap.expanded .item { background:var(--surface-1); border-color:var(--border-hover); }
+
+.item-check {
+  width:17px; height:17px;
+  border-radius:4px;
+  border:1.5px solid var(--border-active);
+  background:transparent;
+  display:inline-flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+  transition:all var(--ease);
+  color:transparent;
+  font-size:11px; font-weight:800;
+  cursor:pointer;
+}
+.item-check:hover { border-color:var(--accent); }
+.item.done .item-check { background:var(--success-soft); border-color:var(--success-soft); color:#0a0a0a; }
+
+.item-label { color:var(--text-primary); }
+.item.pending .item-label { color:var(--text-secondary); }
+/* NO strikethrough on done items — clean look */
+.item.done .item-label { color:var(--text-primary); }
+
+.item-meta { font-size:10.5px; color:var(--text-disabled); font-family:var(--font-mono); white-space:nowrap; }
+
+/* SHARED badge for cross-module reusable components */
+.shared-badge {
+  display:inline-block;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:0.08em;
+  color:var(--accent-soft);
+  background:var(--accent-tint);
+  border:1px solid rgba(59,130,246,0.3);
+  border-radius:3px;
+  padding:1px 6px;
+  margin-left:10px;
+  vertical-align:1px;
+  text-transform:uppercase;
+  font-family:var(--font-sans);
+}
+
+.item-chev {
+  width:14px; height:14px;
+  color:var(--text-disabled);
+  transition:transform var(--ease), color var(--ease);
+  flex-shrink:0;
+}
+.item-wrap.expanded .item-chev { transform:rotate(90deg); color:var(--accent-soft); }
+.item:hover .item-chev { color:var(--text-muted); }
+/* hide chevron slot if no detail */
+.item:not(.has-detail) .item-chev { visibility:hidden; }
+
+/* Expand/collapse via grid-template-rows trick */
+.item-detail-outer {
+  display:grid;
+  grid-template-rows:0fr;
+  transition:grid-template-rows 280ms cubic-bezier(.4,0,.2,1);
+}
+.item-wrap.expanded .item-detail-outer { grid-template-rows:1fr; }
+.item-detail-inner {
+  overflow:hidden;
+  min-height:0;
+}
+.item-detail {
+  padding:16px 18px 20px 46px;
+  background:var(--surface-1);
+  border:1px solid var(--border);
+  border-top:none;
+  border-radius:0 0 8px 8px;
+  margin:-1px 0 0 0;
+}
+
+.detail-desc {
+  font-size:13px; color:var(--text-primary);
+  line-height:1.6;
+  margin-bottom:14px;
+  max-width:680px;
+}
+.detail-block-title {
+  font-size:10.5px; font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:0.1em; text-transform:uppercase;
+  margin:14px 0 8px;
+}
+.detail-block-title:first-child { margin-top:0; }
+
+/* Field table for DTs */
+.detail-table {
+  width:100%;
+  border-collapse:collapse;
+  font-size:12px;
+  margin:0;
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+}
+.detail-table th, .detail-table td {
+  text-align:left;
+  padding:8px 12px;
+  border-bottom:1px solid var(--border);
+  vertical-align:top;
+}
+.detail-table tr:last-child td { border-bottom:none; }
+.detail-table th {
+  font-size:10px; font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:0.08em; text-transform:uppercase;
+  background:var(--surface-2);
+  border-bottom:1px solid var(--border-hover);
+  white-space:nowrap;
+}
+.detail-table td.col-name {
+  font-family:var(--font-mono);
+  color:var(--accent-soft);
+  font-weight:500;
+  font-size:11.5px;
+  white-space:nowrap;
+  width:1%;
+}
+.detail-table td.col-type {
+  font-family:var(--font-mono);
+  color:var(--text-secondary);
+  font-size:11px;
+  white-space:nowrap;
+  width:1%;
+}
+.detail-table td.col-notes {
+  color:var(--text-primary);
+  font-size:12px;
+  line-height:1.5;
+}
+
+/* Component chips for features */
+.comp-list { display:flex; flex-wrap:wrap; gap:6px; }
+.comp-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  font-size:11.5px; color:var(--text-primary);
+  padding:5px 11px;
+  background:var(--surface-2);
+  border:1px solid var(--border-hover);
+  border-radius:var(--r-pill);
+  font-weight:500;
+}
+.comp-chip::before {
+  content:''; width:5px; height:5px; border-radius:50%;
+  background:var(--accent-soft);
+  display:inline-block;
+}
+
+/* Component spec sheet (Trigger / Element) */
+.comp-specs {
+  display:flex; flex-direction:column;
+  gap:1px;
+  background:var(--border);
+  border:1px solid var(--border);
+  border-radius:6px;
+  overflow:hidden;
+  margin-top:4px;
+}
+.comp-spec-row {
+  display:grid;
+  grid-template-columns:110px 1fr;
+  background:var(--surface-2);
+  padding:11px 14px;
+  gap:14px;
+  align-items:baseline;
+}
+.comp-spec-label {
+  font-size:10px; font-weight:700;
+  color:var(--text-muted);
+  letter-spacing:0.1em; text-transform:uppercase;
+  padding-top:2px;
+}
+.comp-spec-val {
+  font-size:12.5px; color:var(--text-primary);
+  line-height:1.55;
+}
+.comp-spec-val code,
+.detail-desc code {
+  font-family:var(--font-mono);
+  font-size:11.5px;
+  color:var(--accent-soft);
+  background:var(--surface-3);
+  border:1px solid var(--border-active);
+  border-radius:4px;
+  padding:2px 7px;
+  margin:0 1px;
+  white-space:nowrap;
+}
+
+/* Parts list inside component detail */
+.parts-list {
+  display:flex; flex-direction:column; gap:7px;
+  list-style:none;
+  margin:4px 0 0;
+  max-width:720px;
+}
+.parts-list li {
+  font-size:12.5px; color:var(--text-primary);
+  line-height:1.55;
+  padding-left:18px;
+  position:relative;
+}
+.parts-list li::before {
+  content:''; position:absolute; left:5px; top:8px;
+  width:4px; height:4px; border-radius:50%;
+  background:var(--accent-soft);
+}
+.parts-list li code {
+  font-family:var(--font-mono);
+  font-size:11px;
+  color:var(--accent-soft);
+  background:var(--surface-2);
+  border:1px solid var(--border-hover);
+  border-radius:3px;
+  padding:1px 6px;
+}
+
+/* OS value chips */
+.os-values { display:flex; flex-wrap:wrap; gap:5px; }
+.os-value-chip {
+  font-size:11.5px; color:var(--text-secondary);
+  padding:3px 9px;
+  background:var(--surface-2);
+  border:1px solid var(--border);
+  border-radius:4px;
+  font-family:var(--font-mono);
+}
+
+.detail-note {
+  font-size:11.5px;
+  color:var(--text-muted);
+  font-style:italic;
+  line-height:1.5;
+}
+
+/* NOT YET BRAINSTORMED */
+.not-yet {
+  padding:44px 24px;
+  background:var(--surface-1);
+  border:1px dashed var(--border-hover);
+  border-radius:var(--r-card);
+  text-align:center;
+}
+.not-yet-title { font-size:15px; font-weight:700; color:var(--text-primary); margin-bottom:6px; letter-spacing:-0.02em; }
+.not-yet-desc { font-size:12.5px; color:var(--text-muted); line-height:1.55; max-width:380px; margin:0 auto; }
+
+/* TOAST */
+.toast-host { position:fixed; bottom:20px; right:20px; z-index:100; display:flex; flex-direction:column; gap:8px; max-width:300px; }
+.toast {
+  padding:10px 14px;
+  background:var(--surface-1);
+  border:1px solid var(--surface-3);
+  border-radius:var(--r-button);
+  box-shadow:0 12px 40px rgba(0,0,0,0.55);
+  font-size:12px; color:var(--text-primary);
+  display:flex; align-items:center; gap:10px;
+  animation:toastIn 220ms cubic-bezier(.2,0,.2,1) both;
+}
+.toast-dot { width:6px; height:6px; border-radius:50%; background:var(--success-soft); flex-shrink:0; }
+@keyframes toastIn { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+
+@media (max-width:900px) {
+  .sidebar { width:210px; }
+  .main { padding:24px 22px 60px; }
+  .overview-cards { grid-template-columns:1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <aside class="sidebar">
+    <div class="brand">
+      <div>
+        <div class="brand-name">CRS</div>
+        <div class="brand-sub">Clear Picture</div>
+      </div>
+      <div class="brand-pct" id="brandPct">—</div>
+    </div>
+
+    <button class="nav-top active" data-view="overview">
+      <svg viewBox="0 0 16 16" fill="none"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/><rect x="9" y="9" width="4.5" height="4.5" rx="1" stroke="currentColor" stroke-width="1.3"/></svg>
+      Overview
+    </button>
+
+    <div id="navSections"></div>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-tools">
+      <button id="btnExport" title="Download progress as JSON">Export</button>
+      <button id="btnImport" title="Restore progress from JSON">Import</button>
+      <button id="btnReset"  title="Reset to defaults">Reset</button>
+      <input type="file" id="fileIn" accept="application/json" style="display:none"/>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <section id="view-overview" class="view active">
+      <div class="hero-eyebrow">Progress tracker</div>
+      <h1 class="hero-title">CRS Build Progress</h1>
+      <p class="hero-sub">Pick a module from the sidebar to see its Overview, Features, Components, and Database. Click any item with a chevron to expand it — fields for Data Types, values for Option Sets, components for Features.</p>
+
+      <div class="overview-cards">
+        <div class="ov-card">
+          <div class="ov-card-label">Modules spec'd</div>
+          <div class="ov-card-val success" id="ovModulesDone">—</div>
+          <div class="ov-card-sub">of <span id="ovModulesTotal">—</span> in this view</div>
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-label">Items done</div>
+          <div class="ov-card-val accent" id="ovItemsDone">—</div>
+          <div class="ov-card-sub">of <span id="ovItemsTotal">—</span> items</div>
+        </div>
+        <div class="ov-card">
+          <div class="ov-card-label">Next</div>
+          <div class="ov-card-val" style="font-size:15px; line-height:1.3; color:var(--text-primary); font-weight:600; letter-spacing:-0.01em;">Review &amp; brainstorm</div>
+          <div class="ov-card-sub">Then we add the next module</div>
+        </div>
+      </div>
+
+      <div class="next-up">
+        <span class="next-up-label">Plan</span>
+        <div class="next-up-text">
+          This iteration shows <strong>Core</strong> and <strong>Reporting</strong>. Database items are fully expandable with field tables everywhere. Feature details (description + components used) populated for Reporting and Casino Settings — the other 4 modules' features stay collapsed until you approve the pattern.
+        </div>
+      </div>
+
+      <div class="overview-sections" id="overviewSections"></div>
+    </section>
+
+    <div id="moduleViews"></div>
+
+  </main>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   DATA: DT_FIELDS injected below; OS_DETAILS, SECTIONS, MODULES follow
+═══════════════════════════════════════════════════════════════ */
+/* === AUTO-GENERATED: DT field tables extracted from main Blueprint === */
+const DT_FIELDS = {
+  'Company': {
+    fieldCount: 10,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'name', type:'text', notes:'Display name — "Grand Monaco Group"' },
+      { name:'legal_name', type:'text', notes:'For invoices — "Monaco Gaming Ltd"' },
+      { name:'short_code', type:'text', notes:'Indexed. 3–8 char uppercase — "MONACO"' },
+      { name:'slug', type:'text (unique, lowercase)', notes:'Indexed. v20 URL-safe, globally unique, min 3 chars. Used in public careers URLs: /c/{slug}/careers. Auto-generated from name at creation (slugified + conflict-suffixed). Immutable after first public job posted. Editable by Admin with settings.edit_critical.' },
+      { name:'tier', type:'Tier (Data Type)', notes:'Indexed, Foreign key. Current subscription tier (Decision #4)' },
+      { name:'is_active', type:'yes/no', notes:'Indexed. CRS-side deactivation for churn' },
+      { name:'activated_date', type:'date', notes:'First signup' },
+      { name:'deactivated_date', type:'date', notes:'For churn tracking' },
+      { name:'enabled_careers_languages', type:'list of text', notes:'v20 ISO codes active on public careers site. Default: ["en"]. Max 4 from [en, ka, ru, tr]. English always included (fallback). Configured in Casino Settings → Careers tab.' }
+    ]
+  },
+  'Property': {
+    fieldCount: 25,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Parent tenant' },
+      { name:'name', type:'text', notes:'"Monaco Main Floor", "Vegas Strip Venue"' },
+      { name:'logo_full', type:'image', notes:'Horizontal logo — sidebar expanded + email headers + PDF letterhead' },
+      { name:'logo_icon', type:'image', notes:'Square/icon — sidebar collapsed + mobile' },
+      { name:'timezone', type:'OS - Timezone', notes:'Indexed. IANA identifier — "Europe/Monaco"' },
+      { name:'currency', type:'OS - Currency', notes:'Indexed. Has attributes: code (EUR), symbol (€), name' },
+      { name:'locale', type:'OS - Locale', notes:'Indexed. BCP 47 — "en-GB"' },
+      { name:'fiscal_week_start_day', type:'OS - Day of Week', notes:'Monday / Sunday / Saturday' },
+      { name:'fiscal_year_anchor_date', type:'date', notes:'Start of current fiscal year' },
+      { name:'week_close_day', type:'OS - Day of Week', notes:'v21 Which weekday closes the fiscal week (Monday / Tuesday / ... / Sunday)' },
+      { name:'week_close_time', type:'text', notes:'v21 "HH:MM" in property timezone (e.g. "11:00")' },
+      { name:'week_close_grace_hours', type:'number', notes:'v21 Auto-close grace period. Default 6, range 1-72.' },
+      { name:'gaming_date_duration_hours', type:'number', notes:'v21 Expected gaming date cycle length. Default 24, range 8-36.' },
+      { name:'gaming_date_close_grace_hours', type:'number', notes:'v21 Auto-close grace after expected_close_at. Default 4, range 1-24.' },
+      { name:'address_street', type:'text', notes:'' },
+      { name:'address_city', type:'text', notes:'' },
+      { name:'address_country', type:'text', notes:'' },
+      { name:'contact_email', type:'text', notes:'Primary venue contact + email Reply-To' },
+      { name:'contact_phone', type:'text', notes:'' },
+      { name:'business_hours_open', type:'text', notes:'"10:00" 24h format' },
+      { name:'business_hours_close', type:'text', notes:'"04:00" (next-day supported)' },
+      { name:'default_sla_hours', type:'number', notes:'Default SLA for sent reports — overridable per report at send time' },
+      { name:'is_default', type:'yes/no', notes:'Flag the MVP auto-created Property' },
+      { name:'is_active', type:'yes/no', notes:'Indexed. Soft-delete / pause' }
+    ]
+  },
+  'GamingDate': {
+    fieldCount: 15,
+    description: 'Per-property operational cycle. Created on open (not pre-generated). Records tag to whichever GamingDate is current at create time. Closes trigger classification sweep + (future) daily-brief generation.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. Per-property' },
+      { name:'fiscal_week', type:'FiscalWeek', notes:'Indexed, Foreign key. Parent fiscal week (cached at open-time for rollups)' },
+      { name:'label', type:'text', notes:'Indexed. "Gaming Date 2026-04-21" — derived from opened_at\'s calendar date in property timezone' },
+      { name:'business_date', type:'date', notes:'Indexed. Calendar-date label (e.g. 2026-04-21). Used for sort, filter, rollup grouping.' },
+      { name:'status', type:'OS - GamingDate Status', notes:'Indexed. current / closed / reopened' },
+      { name:'opened_at', type:'date', notes:'Actual open timestamp' },
+      { name:'opened_by', type:'User', notes:'Foreign key. Who opened (manual only — no auto-open)' },
+      { name:'closed_at', type:'date', notes:'Actual close timestamp. Null while open.' },
+      { name:'closed_by', type:'User', notes:'Foreign key. Who closed. System-user if auto-closed after grace.' },
+      { name:'auto_closed', type:'yes/no', notes:'True if grace-period auto-close fired' },
+      { name:'expected_close_at', type:'date', notes:'Target close time = opened_at + gaming_date_duration_hours from Property config. Used to drive grace-period auto-close.' },
+      { name:'close_notes', type:'text', notes:'Optional close note (handover summary, incidents, anomalies)' },
+      { name:'reopened_count', type:'number', notes:'Tracks reopens (rare)' }
+    ]
+  },
+  'FiscalWeek': {
+    fieldCount: 16,
+    description: 'Pre-generated for 5 years rolling. planned_* dates are calendar boundaries (immutable after generation). opened_* / closed_* are operational timestamps (when humans acted).',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. Per-property weeks' },
+      { name:'fiscal_year', type:'FiscalYear', notes:'Indexed, Foreign key. Parent fiscal year' },
+      { name:'label', type:'text', notes:'"Week 16, 2026 · 13 Apr – 20 Apr" — rendered on generation for display/search' },
+      { name:'week_number', type:'number', notes:'Indexed. 1–53 within fiscal_year' },
+      { name:'planned_start', type:'date', notes:'Indexed. Calendar start (immutable). Inclusive. Property timezone.' },
+      { name:'planned_end', type:'date', notes:'Indexed. Calendar end (immutable). Exclusive — marks start of next week.' },
+      { name:'status', type:'OS - FiscalWeek Status', notes:'Indexed. upcoming / current / closed / reopened' },
+      { name:'opened_at', type:'date', notes:'Actual operational open. Null until opened.' },
+      { name:'opened_by', type:'User', notes:'Foreign key. Who opened. Null or system-user if auto-opened by cascade.' },
+      { name:'closed_at', type:'date', notes:'Actual operational close. Null until closed.' },
+      { name:'closed_by', type:'User', notes:'Foreign key. Who closed. System-user if auto-closed after grace.' },
+      { name:'auto_closed', type:'yes/no', notes:'True when grace-period auto-close fired' },
+      { name:'close_notes', type:'text', notes:'Optional note from closer' },
+      { name:'reopened_count', type:'number', notes:'Increments each time week is reopened (audit)' }
+    ]
+  },
+  'FiscalYear': {
+    fieldCount: 7,
+    description: 'Parent container for fiscal weeks. One per property per calendar year. Starts Jan 1 00:00 property-timezone, ends Dec 31 23:59 property-timezone.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key' },
+      { name:'year', type:'number', notes:'Indexed. e.g. 2026' },
+      { name:'label', type:'text', notes:'"FY2026"' },
+      { name:'week_count', type:'number', notes:'52 or 53 depending on close-day rotation' },
+      { name:'status', type:'OS - FiscalYear Status', notes:'upcoming / current / closed' }
+    ]
+  },
+  'Counter': {
+    fieldCount: 6,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. One counter per property' },
+      { name:'counter_type', type:'OS - Counter Type', notes:'Indexed. report / rfi / task / warning / audit' },
+      { name:'current_value', type:'number', notes:'Last-issued number' },
+      { name:'last_issued_date', type:'date', notes:'For debugging / auditing' }
+    ]
+  },
+  'User': {
+    fieldCount: 25,
+    description: 'Platform user — Bubble built-in User type extended with CRS-specific fields. NO PII fields — all display data flows from employee FK.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble built-in' },
+      { name:'email', type:'text', notes:'Bubble built-in, unique globally. On anonymization: replaced with anonymized-{id}@deleted.crs.app' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant. Critical for privacy rules.' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. Primary property. v2-ready (Decision #1).' },
+      { name:'employee', type:'Employee', notes:'Indexed, Foreign key. Required. Holds all PII. User cannot exist without this.' },
+      { name:'role', type:'Role', notes:'Indexed, Foreign key. Custom Role (Decision #2). Required — user cannot log in without role.' },
+      { name:'extra_permissions', type:'list of OS - Permission', notes:'Exceptions beyond role. Permanent (no expiry).' },
+      { name:'is_active', type:'yes/no', notes:'Soft-disable. Login blocked when false.' },
+      { name:'last_login', type:'date', notes:'Updated on successful login.' },
+      { name:'created_by', type:'User', notes:'Foreign key. Admin who created this account.' },
+      { name:'last_password_change', type:'date', notes:'For password age tracking + expiry policies.' },
+      { name:'must_change_password', type:'yes/no', notes:'Default: yes on new users. Forces reset on first login.' },
+      { name:'password_changed_by', type:'User', notes:'Foreign key. Nullable. Tracks admin force-change vs self-change.' },
+      { name:'is_anonymized', type:'yes/no', notes:'Indexed. GDPR erasure flag (Decision #3).' },
+      { name:'anonymized_date', type:'date', notes:'' },
+      { name:'anonymized_by', type:'User', notes:'Foreign key. Admin who executed erasure.' },
+      { name:'anonymization_reason', type:'text', notes:'GDPR request reference.' },
+      { name:'notification_prefs', type:'NotificationPreferences', notes:'Foreign key. 1-to-1 link (Notifications module).' },
+      { name:'preferences', type:'UserPreferences', notes:'Foreign key. 1-to-1 link for UI preferences.' },
+      { name:'two_fa_enabled', type:'yes/no', notes:'Default: no. User opted into 2FA.' },
+      { name:'two_fa_secret', type:'text', notes:'NEVER client-visible. Encrypted TOTP secret. Blocked in all privacy rules including "This User is Current User".' },
+      { name:'two_fa_backup_codes', type:'list of text', notes:'10 one-time-use codes, shown once at activation. Consumed on use.' },
+      { name:'two_fa_activated_date', type:'date', notes:'When 2FA was enabled.' },
+      { name:'presence_status', type:'OS - Presence Status', notes:'Online / Away / Busy / Offline. Auto-computed from Session activity; user can override manually.' },
+      { name:'presence_override_until', type:'date', notes:'Nullable. If set and > now, uses manual value. Auto-clears at this time and reverts to computed.' }
+    ]
+  },
+  'UserPreferences': {
+    fieldCount: 6,
+    description: 'UI preferences per user. Created automatically when User is created.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'user', type:'User', notes:'Indexed, Foreign key. 1-to-1 back-reference. Unique constraint.' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant + privacy rule.' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready.' },
+      { name:'dark_mode', type:'yes/no', notes:'Default: yes.' },
+      { name:'user_directory_view', type:'OS - Directory View', notes:'Default: Table. Persists hybrid view toggle.' }
+    ]
+  },
+  'Session': {
+    fieldCount: 13,
+    description: 'One record per login. Write-once + lifecycle updates.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation.' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready.' },
+      { name:'user', type:'User', notes:'Indexed, Foreign key. Owner of this session.' },
+      { name:'session_token', type:'text', notes:'NEVER client-visible. Unique token — backend workflows only.' },
+      { name:'ip_address', type:'text', notes:'From User Info Tool plugin.' },
+      { name:'user_agent', type:'text', notes:'Browser/OS string.' },
+      { name:'device_type', type:'OS - Device Type', notes:'Desktop / Mobile / Tablet / API.' },
+      { name:'location_country', type:'text', notes:'Geo-IP lookup (optional).' },
+      { name:'login_date', type:'date', notes:'When session started.' },
+      { name:'last_activity_date', type:'date', notes:'Throttled — updated max once per 5 min.' },
+      { name:'expires_date', type:'date', notes:'Indexed. Default: login_date + 30 days.' },
+      { name:'status', type:'OS - Session Status', notes:'Indexed. Active / Expired / Revoked / Logged Out.' }
+    ]
+  },
+  'Role': {
+    fieldCount: 13,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant-scoped' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'name', type:'text', notes:'Required. Unique per Company (inline validation).' },
+      { name:'description', type:'text', notes:'Optional — what this role does' },
+      { name:'color', type:'text', notes:'Optional — hex or preset, used on role chips' },
+      { name:'icon', type:'text', notes:'Optional — icon name for role chips' },
+      { name:'permissions', type:'list of OS - Permission', notes:'Required, min 1. Checked via role\'s permissions contains X' },
+      { name:'default_department', type:'Department', notes:'Foreign key. Optional — pre-fills when assigning role to new user' },
+      { name:'role_level', type:'number', notes:'Optional — hierarchy rank for sorting / approval chains' },
+      { name:'is_seeded', type:'yes/no', notes:'True only for auto-created Admin role' },
+      { name:'is_system_admin', type:'yes/no', notes:'Safety flag. True for THE one Admin role per Company. Cannot be deleted, renamed, deactivated, or have permissions modified.' },
+      { name:'is_active', type:'yes/no', notes:'Soft-delete. Deactivated roles hidden from pickers; existing assignees retain access.' }
+    ]
+  },
+  'PermissionRequest': {
+    fieldCount: 14,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'requester', type:'User', notes:'Indexed, Foreign key' },
+      { name:'permissions_requested', type:'list of OS - Permission', notes:'Original ask (immutable once submitted)' },
+      { name:'permissions_approved', type:'list of OS - Permission', notes:'What admin actually granted. Subset of requested.' },
+      { name:'permissions_rejected', type:'list of OS - Permission', notes:'What admin denied. Subset of requested.' },
+      { name:'module_context', type:'OS - Permission Group', notes:'Where user was when requesting' },
+      { name:'reason', type:'text', notes:'Required. Why user needs these' },
+      { name:'status', type:'option set', notes:'Indexed. Pending / Approved / Partially Approved / Rejected / Expired / Cancelled' },
+      { name:'reviewed_by', type:'User', notes:'Foreign key. Admin who reviewed' },
+      { name:'reviewed_date', type:'date', notes:'' },
+      { name:'review_note', type:'text', notes:'Admin\'s overall note to requester' },
+      { name:'expires_date', type:'date', notes:'Indexed. Set on create = created_date + 30 days. Nightly workflow expires stale.' },
+      { name:'created_date', type:'date', notes:'' }
+    ]
+  },
+  'Notification': {
+    fieldCount: 25,
+    description: 'One row per recipient per event. Channels merged — a single row can be in-app + email. Title + snippet rendered at create time so drawer displays instantly with no joins. v20: supports 3 recipient kinds via nullable FKs + discriminator.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation fallback' },
+      { name:'property', type:'Property (nullable)', notes:'Indexed, Foreign key. v2-ready multi-property. Nullable when recipient is ApplicantAccount or email-only (no property context).' },
+      { name:'recipient', type:'User (nullable)', notes:'Indexed, Foreign key. v20 Internal user recipient. Was required; now nullable. Privacy rule still keys off this when set.' },
+      { name:'recipient_applicant_account', type:'ApplicantAccount (nullable)', notes:'Indexed, Foreign key. v20 For applicant-facing notifications (status update, interview scheduled, message from HR). Portal reads via token-matched API workflow.' },
+      { name:'recipient_email', type:'text (nullable)', notes:'Indexed. v20 Email-only recipient (no account). Used for: guest applicant submissions, draft abandonment reminders, confirmation emails sent before account creation.' },
+      { name:'recipient_kind', type:'OS - Recipient Kind', notes:'Indexed. v20 Discriminator: internal_user / applicant_account / email_only. Denormalized for fast filtering + privacy rules.' },
+      { name:'event_type', type:'OS - Notification Event Type', notes:'Indexed. What happened' },
+      { name:'actor', type:'User (nullable)', notes:'Foreign key. Who triggered it (excluded from recipients). v20: nullable for applicant-self-triggered events (e.g. applicant.submitted).' },
+      { name:'entity_type', type:'OS', notes:'Indexed. Report / Task / RFI / PermissionRequest / Applicant / JobOpening / etc.' },
+      { name:'entity_id', type:'text', notes:'Indexed. The Thing\'s id' },
+      { name:'related_entity_ids', type:'list of text', notes:'For batched notifications' },
+      { name:'batch_count', type:'number', notes:'1 by default; incremented on batch merge' },
+      { name:'title', type:'text', notes:'Rendered at create for instant display' },
+      { name:'snippet', type:'text', notes:'Short preview' },
+      { name:'cta_url', type:'text', notes:'Deep link to entity (internal app URL or portal URL depending on recipient_kind)' },
+      { name:'channels_delivered', type:'list of text', notes:'Audit — which channels were used' },
+      { name:'state', type:'OS - Notification State', notes:'Indexed. Unread / Read / Archived' },
+      { name:'read_date', type:'date', notes:'' },
+      { name:'archived_date', type:'date', notes:'' },
+      { name:'email_scheduled_send_date', type:'date', notes:'Used for check-on-fire guard' },
+      { name:'email_sent_date', type:'date', notes:'' },
+      { name:'email_status', type:'OS', notes:'Pending / Sent / Failed / Skipped' },
+      { name:'severity', type:'text', notes:'Indexed. Denormalized from event_type for WU-cheap filtering' },
+      { name:'module', type:'OS - Permission Group', notes:'Indexed. Denormalized for drawer filtering' }
+    ]
+  },
+  'NotificationPreferences': {
+    fieldCount: 8,
+    description: 'One record per User, auto-created on signup. Stores channel master toggles + per-event overrides.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. 1-to-1 with User' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'user', type:'User', notes:'Indexed, Foreign key. Unique — one record per User' },
+      { name:'event_preferences', type:'list of EventPreference', notes:'Only where user deviates from default' },
+      { name:'global_inapp_enabled', type:'yes/no', notes:'Master toggle — default true' },
+      { name:'global_email_enabled', type:'yes/no', notes:'Master toggle — default true' },
+      { name:'global_push_enabled', type:'yes/no', notes:'Master toggle — dormant in MVP, visible but disabled' }
+    ]
+  },
+  'EventPreference': {
+    fieldCount: 8,
+    description: 'Per-event channel override. Only created when user deviates from default. Absence = use event type\'s defaults.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation fallback' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'preferences', type:'NotificationPreferences', notes:'Indexed, Foreign key. Parent' },
+      { name:'event_type', type:'OS - Notification Event Type', notes:'Indexed' },
+      { name:'in_app', type:'yes/no', notes:'' },
+      { name:'email', type:'yes/no', notes:'' },
+      { name:'push', type:'yes/no', notes:'' }
+    ]
+  },
+  'Subscription': {
+    fieldCount: 7,
+    description: 'Watch/Follow. Auto-created on meaningful interactions (create, assign, @mention). User can manually add/remove.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Tenant isolation' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'user', type:'User', notes:'Indexed, Foreign key. The watcher' },
+      { name:'entity_type', type:'OS', notes:'Indexed. Report / Task / RFI' },
+      { name:'entity_id', type:'text', notes:'Indexed. Watched Thing\'s id' },
+      { name:'muted', type:'yes/no', notes:'Stay subscribed but skip notifications' }
+    ]
+  },
+  'EmailTemplate': {
+    fieldCount: 12,
+    description: 'Body content per event type. Rendered into master shell at send time. v20: supports per-company overrides + language variants via fallback chain.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key' },
+      { name:'template_key', type:'text', notes:'Indexed. Matches OS - Notification Event Type.Template Key. No longer globally unique alone — unique per (key, company, language) tuple.' },
+      { name:'company', type:'Company (nullable)', notes:'Indexed, Foreign key. v20 Null = global default seeded by Anthropic-you. Non-null = tenant-specific override. Enables Casino Settings → Email Templates tab.' },
+      { name:'language', type:'text (ISO code)', notes:'Indexed. v20 Default en. For hiring events: also ka, ru, tr. Selected at send-time based on Applicant.preferred_language.' },
+      { name:'subject_template', type:'text', notes:'"Report #{report.number} verified by {actor.name}"' },
+      { name:'body_template', type:'long text', notes:'Body with {placeholders}' },
+      { name:'cta_label', type:'text', notes:'"View Report"' },
+      { name:'cta_url_pattern', type:'text', notes:'"/reports/{entity_id}"' },
+      { name:'version', type:'number', notes:'v20 Incremented on every save. Enables rollback + audit.' },
+      { name:'last_edited_by', type:'User (nullable)', notes:'Foreign key. v20 Null for seeded defaults, set for company edits.' },
+      { name:'last_edited_date', type:'date', notes:'v20' },
+      { name:'is_active', type:'yes/no', notes:'Soft-delete / disable' }
+    ]
+  },
+  'ActivityLog': {
+    fieldCount: 27,
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Bubble auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Privacy rule anchor' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property' },
+      { name:'actor', type:'User', notes:'Indexed, Foreign key. Who did it (empty for system events)' },
+      { name:'actor_snapshot', type:'text', notes:'e.g. "Julia Tan · Surveillance Lead" — survives anonymization' },
+      { name:'action', type:'Action (OS)', notes:'Indexed. 38-value catalog' },
+      { name:'subject_type', type:'SubjectType (OS)', notes:'Indexed. ~40-value catalog' },
+      { name:'subject_id', type:'text', notes:'Indexed. The Bubble unique_id of the record (text, not FK — polymorphic)' },
+      { name:'subject_snapshot', type:'text', notes:'Human-readable label e.g. "Report #12794"' },
+      { name:'severity', type:'Severity (OS)', notes:'Indexed. info / warning / critical' },
+      { name:'source', type:'Source (OS)', notes:'Indexed. web / mobile / api / system / scheduled' },
+      { name:'description', type:'text', notes:'Pre-formatted human-readable line shown in UI' },
+      { name:'from_value', type:'text', notes:'For status/field changes' },
+      { name:'to_value', type:'text', notes:'For status/field changes' },
+      { name:'field_changed', type:'text', notes:'Which field was edited (filterable)' },
+      { name:'related_user', type:'User', notes:'Foreign key. For assigned / mentioned / reassigned' },
+      { name:'related_user_snapshot', type:'text', notes:'Preserves name after anonymization' },
+      { name:'related_subject_type', type:'SubjectType (OS)', notes:'When action touches a 2nd thing' },
+      { name:'related_subject_id', type:'text', notes:'' },
+      { name:'related_subject_snapshot', type:'text', notes:'' },
+      { name:'affected_count', type:'number', notes:'For bulk operations, exports, API calls' },
+      { name:'ip_address', type:'text', notes:'From User Info Tool plugin (empty if adblocker)' },
+      { name:'user_agent', type:'text', notes:'From User Info Tool plugin' },
+      { name:'session_id', type:'text', notes:'Indexed. Session\'s unique_id — correlation key' },
+      { name:'is_anonymized_actor', type:'yes/no', notes:'Quick filter flag' },
+      { name:'is_legal_hold', type:'yes/no', notes:'Default: no. Protects row from future archival' },
+      { name:'Created Date', type:'date', notes:'Indexed. Bubble auto — immutable' }
+    ]
+  },
+  'Report': {
+    fieldCount: 27,
+    description: 'Header — optimised for list views and searching. Contains only indexed fields and foreign keys. Heavy fields (narrative, notes) moved to ReportDetail.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report_number', type:'number', notes:'Indexed. Company-scoped, from Counter' },
+      { name:'report_type', type:'ReportType', notes:'Indexed, Foreign key. Admin-managed Data Type' },
+      { name:'report_group', type:'option set', notes:'Indexed. Error / Incident / Procedure Violation / Surveillance' },
+      { name:'status', type:'option set', notes:'Indexed. Draft / Submitted / Verified / Reviewed / Sent / Returned / Response Sent / Closed / Final Closed' },
+      { name:'fiscal_week', type:'FiscalWeek', notes:'Indexed, Foreign key. Locked when week closes' },
+      { name:'incident_date', type:'date', notes:'Indexed. When event occurred' },
+      { name:'department', type:'Department', notes:'Indexed, Foreign key. Primary department' },
+      { name:'section', type:'Section', notes:'Foreign key' },
+      { name:'location', type:'Location', notes:'Foreign key' },
+      { name:'game_type', type:'GameType', notes:'Foreign key. Optional' },
+      { name:'priority', type:'option set', notes:'Indexed. Low / Medium / High / Critical' },
+      { name:'is_flagged', type:'yes/no', notes:'Indexed' },
+      { name:'is_confidential', type:'yes/no', notes:'Indexed. Restricts visibility to specific roles' },
+      { name:'resolution_status', type:'option set', notes:'' },
+      { name:'completion_score', type:'number', notes:'0-100, updated via backend workflow' },
+      { name:'sla_deadline', type:'date', notes:'Nullable — set at Send time' },
+      { name:'is_sla_breached', type:'yes/no', notes:'Indexed. Updated by scheduled workflow' },
+      { name:'tags', type:'list of Tag', notes:'' },
+      { name:'recipient_roles', type:'list of Role', notes:'Set by Surv Manager at Send' },
+      { name:'linked_reports', type:'list of Report', notes:'Manual cross-references' },
+      { name:'created_by', type:'User', notes:'Indexed, Foreign key. Never changes — original creator' },
+      { name:'created_date', type:'date', notes:'' },
+      { name:'modified_by', type:'User', notes:'Foreign key' },
+      { name:'modified_date', type:'date', notes:'' }
+    ]
+  },
+  'ReportDetail': {
+    fieldCount: 11,
+    description: '1-to-1 with Report. Heavy fields only — narrative, notes, financial amounts. Loaded only when report is opened.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key. Denormalized from Report for privacy rule symmetry' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key. 1-to-1' },
+      { name:'narrative', type:'long text', notes:'Main incident description' },
+      { name:'internal_notes', type:'long text', notes:'Surveillance-only' },
+      { name:'amount_lost', type:'number', notes:'Optional' },
+      { name:'amount_recovered', type:'number', notes:'Optional' },
+      { name:'amount_prevented', type:'number', notes:'Optional' },
+      { name:'physical_evidence_ref', type:'text', notes:'CCTV ref, chip tray ID, etc.' },
+      { name:'attachments', type:'list of Attachment', notes:'' }
+    ]
+  },
+  'ReportEmployeeLink': {
+    fieldCount: 7,
+    description: 'Junction type with metadata. Enables filtering employees by "initiator vs participant" for precise statistics.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key' },
+      { name:'employee', type:'Employee', notes:'Indexed, Foreign key' },
+      { name:'is_initiator', type:'yes/no', notes:'Indexed. Guilty/responsible party' },
+      { name:'assignment_role', type:'text', notes:'"Dealer", "Pit Boss", etc.' }
+    ]
+  },
+  'ReportGuestLink': {
+    fieldCount: 7,
+    description: 'Same pattern as ReportEmployeeLink but for guests.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key' },
+      { name:'guest', type:'Guest', notes:'Indexed, Foreign key' },
+      { name:'is_initiator', type:'yes/no', notes:'Indexed' },
+      { name:'context', type:'text', notes:'Optional context' }
+    ]
+  },
+  'ReportResponse': {
+    fieldCount: 11,
+    description: 'Department response to a report — threaded. One record per response round.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key' },
+      { name:'department', type:'Department', notes:'Indexed, Foreign key. Responding department' },
+      { name:'round', type:'number', notes:'1, 2, 3... per department' },
+      { name:'content', type:'long text', notes:'' },
+      { name:'is_return', type:'yes/no', notes:'True if this is a return dispute' },
+      { name:'return_reason', type:'text', notes:'Required if is_return' },
+      { name:'created_by', type:'User', notes:'Indexed, Foreign key' },
+      { name:'created_date', type:'date', notes:'' }
+    ]
+  },
+  'ReportComment': {
+    fieldCount: 9,
+    description: 'Internal comment threads. Scope field distinguishes Surveillance vs recipient department comments.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key' },
+      { name:'scope', type:'option set', notes:'Indexed. surveillance_internal / recipient_internal' },
+      { name:'scope_department', type:'Department', notes:'Foreign key. For recipient_internal — which dept\'s thread' },
+      { name:'content', type:'long text', notes:'' },
+      { name:'created_by', type:'User', notes:'Indexed, Foreign key' },
+      { name:'created_date', type:'date', notes:'' }
+    ]
+  },
+  'ReportRevision': {
+    fieldCount: 9,
+    description: 'Field-level revision history. Written by backend workflow on every field change.',
+    fields: [
+      { name:'id', type:'unique id', notes:'Primary key. Auto' },
+      { name:'company', type:'Company', notes:'Indexed, Foreign key' },
+      { name:'property', type:'Property', notes:'Indexed, Foreign key. v2-ready multi-property (per Decision #1)' },
+      { name:'report', type:'Report', notes:'Indexed, Foreign key' },
+      { name:'field_name', type:'text', notes:'e.g. "narrative"' },
+      { name:'old_value', type:'long text', notes:'' },
+      { name:'new_value', type:'long text', notes:'' },
+      { name:'actor', type:'User', notes:'Foreign key' },
+      { name:'changed_date', type:'date', notes:'Indexed' }
+    ]
+  },
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   OPTION SET DETAILS (authored)
+═══════════════════════════════════════════════════════════════ */
+const OS_DETAILS = {
+  /* Casino Settings */
+  'OS - Timezone': {
+    desc: 'IANA timezone identifiers. Every property has one; dates format per property timezone, not browser.',
+    valuesNote: 'Common casino destinations pre-seeded; full IANA list available.',
+    values: ['Europe/Monaco','Europe/London','Europe/Paris','Europe/Berlin','Europe/Moscow','America/New_York','America/Los_Angeles','America/Las_Vegas','America/Chicago','Asia/Tokyo','Asia/Singapore','Asia/Hong_Kong','Asia/Dubai','Asia/Macau','Australia/Sydney','Africa/Johannesburg']
+  },
+  'OS - Currency': {
+    desc: 'Major world currencies with formatting attributes.',
+    attributes: [
+      { name:'code', type:'text', notes:'ISO 4217 — "EUR"' },
+      { name:'symbol', type:'text', notes:'"€"' },
+      { name:'name', type:'text', notes:'"Euro"' },
+      { name:'decimals', type:'number', notes:'Typically 2' }
+    ],
+    values: ['EUR','USD','GBP','CHF','JPY','CNY','HKD','AED','SGD','AUD','CAD','RUB','TRY','CZK','NOK']
+  },
+  'OS - Locale': {
+    desc: 'BCP 47 locale codes. Drives number and date formatting.',
+    values: ['en-GB','en-US','en-AU','fr-FR','de-DE','es-ES','it-IT','pt-PT','ru-RU','ja-JP','zh-CN','ar-AE','tr-TR']
+  },
+  'OS - Day of Week': {
+    desc: 'Used for fiscal week start day configuration.',
+    values: ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday']
+  },
+  'OS - Counter Type': {
+    desc: 'Identifies which per-property counter to increment. Counter DT is keyed by (property, type).',
+    values: ['report_number','task_number','rfi_number','investigation_number','audit_number']
+  },
+  'OS - GamingDate Status': {
+    desc: 'Per-property shift cycle status. Only one gaming date is Open per property at a time.',
+    values: ['Open','Closed','Reopened']
+  },
+  'OS - FiscalWeek Status': {
+    desc: 'Weekly close cycle. Closing a week locks all reports referencing it.',
+    values: ['Open','Closed','Reopened','Locked']
+  },
+  'OS - FiscalYear Status': {
+    desc: 'Annual cycle for fiscal week generation and rollover.',
+    values: ['Active','Closed','Future']
+  },
+
+  /* User Management */
+  'OS - Device Type (Desktop / Mobile / Tablet / API)': {
+    desc: 'Classifies session origin for auditing and "log out all devices".',
+    values: ['Desktop','Mobile','Tablet','API']
+  },
+  'OS - Session Status (Active / Expired / Revoked / Logged Out)': {
+    desc: 'Lifecycle of a single login session.',
+    values: ['Active','Expired','Revoked','Logged Out']
+  },
+  'OS - Directory View (Table / Card)': {
+    desc: 'User preference for how the user directory renders.',
+    values: ['Table','Card']
+  },
+  'OS - Presence Status (Online / Away / Busy / Offline)': {
+    desc: 'Auto-computed from session activity with manual override.',
+    values: ['Online','Away','Busy','Offline']
+  },
+
+  /* Roles & Permissions */
+  'OS - Permission Group': {
+    desc: 'Top-level taxonomy for permissions. ~10 groups cover the whole app (Reporting, Tasks, Employees, Admin, etc).',
+    valuesNote: 'Admin-managed. Seeded at app build-time.',
+    attributes: [
+      { name:'code', type:'text', notes:'Unique — "reporting"' },
+      { name:'label', type:'text', notes:'Display — "Reporting"' },
+      { name:'icon', type:'text', notes:'Icon identifier' },
+      { name:'sort_order', type:'number', notes:'Display order in picker' }
+    ]
+  },
+  'OS - Permission Subgroup': {
+    desc: 'Second-level taxonomy. Groups permissions under their parent Group (Reporting → Reports / Comments / Exports).',
+    attributes: [
+      { name:'code', type:'text', notes:'"reports"' },
+      { name:'label', type:'text', notes:'"Reports"' },
+      { name:'parent_group', type:'OS - Permission Group', notes:'FK to Group' },
+      { name:'description', type:'text', notes:'Short tooltip' },
+      { name:'sort_order', type:'number', notes:'Order within group' }
+    ]
+  },
+  'OS - Permission': {
+    desc: 'Individual permission code. 100+ values covering every gated action in CRS.',
+    valuesNote: 'Examples: reporting.create, reporting.verify, employees.edit, settings.edit_critical, admin.manage_roles.',
+    attributes: [
+      { name:'code', type:'text', notes:'"reporting.create"' },
+      { name:'label', type:'text', notes:'"Create reports"' },
+      { name:'group', type:'OS - Permission Group', notes:'Parent group' },
+      { name:'subgroup', type:'OS - Permission Subgroup', notes:'Parent subgroup' },
+      { name:'description', type:'text', notes:'What this permission allows' },
+      { name:'is_admin', type:'yes/no', notes:'Reserved for Admin role only' },
+      { name:'implies', type:'list of OS - Permission', notes:'Granting this implies these' },
+      { name:'requires', type:'list of OS - Permission', notes:'Cannot grant without these' },
+      { name:'is_deprecated', type:'yes/no', notes:'Hidden in picker' },
+      { name:'sort_order', type:'number', notes:'Order in subgroup' },
+      { name:'introduced_in', type:'text', notes:'Version string' }
+    ]
+  },
+
+  /* Notifications */
+  'OS - Notification Event Type': {
+    desc: 'Catalog of every notifiable event across all modules. Each event has recipient defaults, batching rules, and channel routing.',
+    valuesNote: 'Examples: report.submitted, report.verified, task.assigned, permission_request.submitted, etc. ~30+ events.',
+    attributes: [
+      { name:'code', type:'text', notes:'"report.submitted"' },
+      { name:'label', type:'text', notes:'"Report submitted"' },
+      { name:'module', type:'text', notes:'Which module owns this event' },
+      { name:'severity', type:'text', notes:'info / warning / critical' },
+      { name:'default_recipients', type:'list of text', notes:'Role codes that receive by default' },
+      { name:'default_batching_window', type:'number', notes:'Minutes (0 = no batching)' },
+      { name:'default_channels', type:'list of text', notes:'in_app, email, push' },
+      { name:'critical_bypass', type:'yes/no', notes:'Skip batching if critical' },
+      { name:'allow_user_opt_out', type:'yes/no', notes:'Can users disable?' },
+      { name:'subject_type', type:'text', notes:'Related subject entity type' },
+      { name:'description', type:'text', notes:'What triggers this event' }
+    ]
+  },
+  'OS - Notification State (Unread / Read / Archived)': {
+    desc: 'Lifecycle of a single notification row. Retention differs per state.',
+    values: ['Unread','Read','Archived']
+  },
+  'OS - Recipient Kind (internal_user / applicant_account / email_only)': {
+    desc: 'Who the notification is for. internal_user = User DT record. applicant_account = Job Board account. email_only = no account.',
+    values: ['internal_user','applicant_account','email_only']
+  },
+
+  /* Activity Log */
+  'OS - Activity Action': {
+    desc: '38 action codes covering every significant operation.',
+    values: ['created','viewed','updated','deleted','submitted','verified','reviewed','sent','responded','closed','reopened','final_closed','commented','replied','mentioned','attached','downloaded','assigned','unassigned','granted','revoked','requested','approved','rejected','cancelled','expired','activated','deactivated','anonymized','exported','logged_in','logged_out','session_revoked','opened','locked','unlocked','configured','migrated']
+  },
+  'OS - Activity Subject Type': {
+    desc: '~40 entity types that can be the subject of an activity.',
+    values: ['Report','ReportResponse','ReportComment','Task','RFI','InvestigationCase','Employee','User','UserPreferences','Session','Role','PermissionRequest','Company','Property','GamingDate','FiscalWeek','FiscalYear','Counter','Notification','ActivityLog','Guest','GuestBarring','Warning','Appraisal','Onboarding','JobPosting','Application','Shift','Schedule','LeaveRequest','AttendanceRecord','Tier','EmailTemplate','Subscription']
+  },
+  'OS - Activity Severity': {
+    desc: 'Drives retention policy and filter defaults.',
+    values: ['info','warning','critical']
+  },
+  'OS - Activity Source': {
+    desc: 'Origin of the action — which surface triggered it.',
+    values: ['web','mobile','api','system','scheduled']
+  },
+
+  /* Reporting */
+  'Report Group (Error / Incident / Procedure Violation / Surveillance)': {
+    desc: 'Top-level classification. Drives default form prompts, notification routing, and filter defaults.',
+    values: ['Error','Incident','Procedure Violation','Surveillance']
+  },
+  'Report Status (9 values — Draft → Final Closed)': {
+    desc: '9-state pipeline controlling edit rights, visibility, and SLA timers.',
+    values: ['Draft','Submitted','Verified','Reviewed','Sent','Returned','Response Sent','Closed','Final Closed']
+  },
+  'Priority (Low / Medium / High / Critical)': {
+    desc: 'Drives sort order in directory and notification severity.',
+    values: ['Low','Medium','High','Critical']
+  },
+  'Resolution Status (admin-configured)': {
+    desc: 'Admin-customizable resolution outcomes. Each casino can tailor their own list.',
+    valuesNote: 'Typical seed values below — each company can add/remove.',
+    values: ['Pending Action','Disciplinary Action Taken','Training Issued','Policy Updated','No Action Required','Escalated']
+  },
+  'Comment Scope (surveillance_internal / recipient_internal)': {
+    desc: 'Visibility scope for report comments — keeps Surveillance discussions private from recipient departments.',
+    values: ['surveillance_internal','recipient_internal']
+  }
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTIONS + MODULES
+═══════════════════════════════════════════════════════════════ */
+const SECTIONS = [
+  { id:'core',         label:'Core',         blurb:'Always-on foundation.' },
+  { id:'surveillance', label:'Surveillance', blurb:'Reporting and surveillance operations.' }
+];
+
+/* Helper — turn string or [label, meta] into item object */
+function mk(arr, status) {
+  return arr.map(x => Array.isArray(x) ? { label:x[0], meta:x[1]||'', status } : { label:x, meta:'', status });
+}
+/* Helper — add { desc, comps } to a feature item */
+function feat(label, desc, comps, status) {
+  return { label, meta:'', status:status||'done', featDetail:{ desc, comps } };
+}
+/* Helper — add { trigger, element, desc, parts } to a component item */
+function comp(label, trigger, element, desc, parts, status) {
+  return { label, meta:'', status:status||'done', compDetail:{ trigger, element, desc, parts } };
+}
+/* Helper — shared/generic reusable used across multiple modules. Adds inputs + usedBy. */
+function sharedComp(o) {
+  return {
+    label: o.label,
+    meta: '',
+    status: o.status || 'done',
+    compDetail: {
+      trigger: o.trigger,
+      element: o.element,
+      desc: o.desc,
+      parts: o.parts,
+      inputs: o.inputs,
+      usedBy: o.usedBy
+    }
+  };
+}
+
+const MODULES = [
+/* ═══ CASINO SETTINGS ═══ */
+{
+  id:'casino-settings', section:'core', label:'Casino Settings',
+  blurb:'Company & property control panel — timezone, currency, branding, fiscal week, numbering.',
+  overview:{
+    purpose:'The control panel for everything casino-wide. Timezone, currency, locale, logos, fiscal week rules, gaming date cycles, and report numbering all live here. Every business record in the app references a Company and Property — this is where they\'re configured.',
+    bullets:[
+      'Company + Property split — MVP = 1 property per company; multi-property flip in v2 with zero migration',
+      'Property-wins display: every date and amount formats in the casino\'s timezone and currency, not the user\'s browser',
+      'Fiscal Week pre-generated 5 years ahead; weeks auto-cascade — closing one opens the next',
+      'Gaming Date is a per-property shift cycle (24hr business day) opened and closed manually',
+      'Report/RFI/Task numbering uses atomic per-property counters — no race conditions, no gaps',
+      'Two edit permission levels: settings.edit (most fields) and settings.edit_critical (timezone, fiscal week rules)'
+    ]
+  },
+  features:[
+    feat('Edit company details','Admin updates basic company info — display name, legal name, short code, activation status.',['Casino Settings Page (tabbed)','Company Details tab']),
+    feat('Add property (multi-property v2)','v2 capability: create additional properties under the same company. MVP is 1 property per company.',['Property Manager tab']),
+    feat('Edit property settings','Update a property\'s name, timezone, currency, locale, fiscal week rules, logos.',['Property Manager tab','Timezone & Locale tab','Fiscal Week Config tab','Branding & Letterhead tab']),
+    feat('Change fiscal week close day','Change which weekday the fiscal week closes on. Requires settings.edit_critical and regenerates future weeks.',['Fiscal Week Config tab']),
+    feat('Upload company logo','Upload both full (horizontal) and icon (square) versions — used in sidebar, PDF letterhead, email headers.',['Branding & Letterhead tab']),
+    feat('Configure letterhead','Set header text, footer text, and watermark preferences for PDF exports (reports, RFIs).',['Branding & Letterhead tab']),
+    feat('Configure number format','Define the pattern for auto-generated report, task, RFI numbers (e.g. "RPT-{YYYY}-{000000}").',['Numbering Config tab']),
+    feat('View current counter state','Read-only view of current counter values per property per type.',['Numbering Config tab']),
+    feat('Edit critical settings','Gated group: timezone, fiscal week rules, numbering format. Requires settings.edit_critical permission.',['Casino Settings Page (tabbed)']),
+    feat('Open / close gaming date','Manually open a new 24hr business day cycle or close the current one. Triggers counter rollover.',['Gaming Date Status Banner','Open Gaming Date popup','Close Gaming Date popup']),
+    feat('Open / close fiscal week','Close the current fiscal week (locks all reports referencing it). Closing cascades to auto-open next week.',['Close Fiscal Week popup','Fiscal Week List']),
+    feat('Reopen gaming date / fiscal week (admin)','Emergency reopen of a closed period with mandatory comment. Full audit trail written.',['Reopen Gaming Date popup','Reopen Fiscal Week popup'])
+  ],
+  components:[
+    comp('Casino Settings Page (tabbed)',
+         'Sidebar nav item "Settings"',
+         'Page — `#CasinoSettings`',
+         'Container for all company/property configuration. Tab switching via Custom State `current_tab`.',
+         [
+           'Page header with title "Casino Settings"',
+           'Tab bar (7 tabs: Company / Property / Timezone & Locale / Fiscal Week / Branding / Numbering / Careers)',
+           'Tab content area — one Group per tab, visibility toggled by `current_tab`',
+           'Sticky bottom action bar (Save / Cancel, per-tab)',
+           'Unsaved-changes warning banner',
+           'Validation error summary (inline at top when present)'
+         ]),
+    comp('Company Details tab',
+         'Tab button click (sets Custom State `current_tab = "company"`)',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Company name field (text)',
+           'Legal name field (text)',
+           'Short code field (3–8 char uppercase, indexed)',
+           'Slug field (read-only once first public job posted)',
+           'Tier display (read-only, linked to Subscription module)',
+           'Is active indicator',
+           'Activated date display',
+           'Enabled careers languages multi-select (max 4)'
+         ]),
+    comp('Property Manager tab',
+         'Tab button click',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Property list — Repeating Group of properties',
+           'Each row: name, timezone, currency, status, Edit action',
+           '"Add Property" button (disabled in MVP, enabled in v2)',
+           'Current property indicator (MVP = single property)'
+         ]),
+    comp('Timezone & Locale tab',
+         'Tab button click',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Timezone dropdown — `OS - Timezone`',
+           'Currency dropdown — `OS - Currency` (shows symbol)',
+           'Locale dropdown — `OS - Locale`',
+           'Live preview block — sample date + sample amount rendered with current selection',
+           'Warning banner — editing affects all historical displays',
+           'Requires `settings.edit_critical` permission'
+         ]),
+    comp('Fiscal Week Config tab',
+         'Tab button click',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Fiscal week start day dropdown — `OS - Day of Week`',
+           'Fiscal year anchor date picker',
+           'Pre-generation depth input (years ahead, default 5)',
+           'Embedded Fiscal Week List (upcoming + recent)',
+           'Embedded Gaming Date History Table (read-only)',
+           'Regenerate weeks action (admin, if anchor changes)'
+         ]),
+    comp('Branding & Letterhead tab',
+         'Tab button click',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Full logo uploader (horizontal) with preview',
+           'Icon logo uploader (square) with preview',
+           'Letterhead header text input',
+           'Letterhead footer text input',
+           'Confidential watermark toggle',
+           'PDF sample preview button',
+           'Email header preview'
+         ]),
+    comp('Numbering Config tab',
+         'Tab button click',
+         'Group inside `#CasinoSettings`',
+         null,
+         [
+           'Per-counter-type config rows (Report / Task / RFI / Investigation / Audit)',
+           'Number format input with tokens reference (`{YYYY}`, `{PP}`, `{000000}`)',
+           'Format live preview per row',
+           'Current counter value display (read-only)',
+           'Reset/override action (admin, audit-logged)'
+         ]),
+    sharedComp({
+      label:'Gaming Date Status Banner',
+      trigger:'Auto-displays at top of every page header for users with `gaming_date.view` permission',
+      element:'Reusable Element — `#GR - Gaming Date Banner`',
+      desc:'Shows current gaming date + open/close action. Placed once, reused on every page header. Self-contained: loads its own data from `Current User\'s property.current_gaming_date`.',
+      inputs:'`property_id` (unique id, optional — defaults to Current User\'s property)',
+      usedBy:'Top bar of every page — Reporting, Tasks, Employees, Guests, Dashboard, Settings, etc.',
+      parts:[
+        'Current gaming date display (formatted per property timezone)',
+        'Status indicator (Open / Closed with colored dot)',
+        'Time-since-opened live counter',
+        '"Close Gaming Date" button (opens `#PP - Close Gaming Date`)',
+        '"Open Gaming Date" button (when no date is open)',
+        'Overflow menu (3-dot) with Reopen action for admins'
+      ]
+    }),
+    comp('Open Gaming Date popup',
+         'Button "Open Gaming Date" in Gaming Date Status Banner',
+         'Popup — `#PP - Open Gaming Date`',
+         null,
+         [
+           'Popup header with title + close X',
+           'New gaming date date picker (defaults to next day)',
+           'Opening note textarea (optional)',
+           'Cancel button (secondary)',
+           '"Open Gaming Date" button (primary)'
+         ]),
+    comp('Close Gaming Date popup',
+         'Button "Close Gaming Date" in Gaming Date Status Banner',
+         'Popup — `#PP - Close Gaming Date`',
+         null,
+         [
+           'Popup header',
+           'Current gaming date display (read-only)',
+           'Auto-open next gaming date toggle (default ON)',
+           'Closing note textarea (optional)',
+           'Warning text describing what closing means',
+           'Cancel / "Close Gaming Date" buttons'
+         ]),
+    comp('Close Fiscal Week popup',
+         'Button "Close Week" in Fiscal Week List',
+         'Popup — `#PP - Close Fiscal Week`',
+         null,
+         [
+           'Popup header',
+           'Current fiscal week display (week number + date range)',
+           'Pending reports count (warning if > 0)',
+           'Auto-open next week toggle',
+           'Closing comment textarea (required)',
+           'Cancel / "Close Week" buttons'
+         ]),
+    comp('Reopen Gaming Date popup',
+         'Admin-only "Reopen" action in Gaming Date History Table',
+         'Popup — `#PP - Reopen Gaming Date`',
+         null,
+         [
+           'Popup header with warning icon',
+           'Gaming date to reopen (read-only display)',
+           'Mandatory reason textarea',
+           'Warning text — describes audit impact',
+           'Cancel / "Reopen" buttons'
+         ]),
+    comp('Reopen Fiscal Week popup',
+         'Admin-only "Reopen" action in Fiscal Week List',
+         'Popup — `#PP - Reopen Fiscal Week`',
+         null,
+         [
+           'Popup header with warning icon',
+           'Fiscal week to reopen (read-only display)',
+           'Cascading effects warning (unlocks all reports in this week)',
+           'Mandatory reason textarea',
+           'Cancel / "Reopen" buttons'
+         ]),
+    comp('Gaming Date History Table',
+         'Embedded in Fiscal Week Config tab (read-only list)',
+         'Repeating Group inside Fiscal Week Config tab',
+         null,
+         [
+           'Column: Date (formatted per property timezone)',
+           'Column: Opened by + timestamp',
+           'Column: Closed by + timestamp',
+           'Column: Duration',
+           'Column: Status pill (Open / Closed / Reopened)',
+           'Row action: Reopen (admin only, conditional)',
+           'Pagination controls'
+         ]),
+    comp('Fiscal Week List',
+         'Embedded in Fiscal Week Config tab',
+         'Repeating Group inside Fiscal Week Config tab',
+         null,
+         [
+           'Column: Week number',
+           'Column: Start date / End date',
+           'Column: Status pill (Open / Closed / Locked)',
+           'Column: Report count (link to filtered Report Directory)',
+           'Row action: Close Week',
+           'Row action: Reopen (admin only)',
+           'Pagination controls'
+         ])
+  ],
+  dataTypes:mk([
+    ['Company','10 fields'],['Property','25 fields'],
+    ['GamingDate','15 fields'],['FiscalWeek','16 fields'],['FiscalYear','7 fields'],
+    ['Counter','6 fields']
+  ], 'done'),
+  optionSets:mk([
+    ['OS - Timezone','~40 values'],['OS - Currency','25 values'],['OS - Locale','15 values'],
+    ['OS - Day of Week','7 values'],['OS - Counter Type','5 values'],
+    ['OS - GamingDate Status','3 values'],
+    ['OS - FiscalWeek Status','4 values'],['OS - FiscalYear Status','3 values']
+  ], 'done')
+},
+
+/* ═══ USER MANAGEMENT ═══ */
+{
+  id:'user-management', section:'core', label:'User Management',
+  blurb:'Login identity — who can sign in, sessions, 2FA, presence.',
+  overview:{
+    purpose:'The identity layer. Every login account in CRS lives here. User is purely the login identity — all the personal stuff (name, phone, avatar) lives on Employee. IT manages Users, HR manages Employees. A User cannot exist without an Employee link.',
+    bullets:[
+      'No email invites — admins create accounts internally and share credentials out-of-band',
+      'Bubble-native auth (email + password) with optional TOTP 2FA per user',
+      'Sessions tracked in their own Data Type — supports "log out all devices", admin force-logout, nightly expiry',
+      'Two-step lifecycle: Deactivate (reversible soft-disable) → Anonymize (GDPR-irreversible PII scrub)',
+      'Presence system: Online / Away / Busy / Offline, auto-computed from session activity with manual override',
+      'Scoped visibility — basic fields company-wide, sensitive fields admin-only, 2FA secrets never client-visible'
+    ]
+  },
+  features:mk([
+    'Log in','Log out','Enroll 2FA','Verify 2FA on login',
+    'Request password reset','Change own password','Update own profile',
+    'Update preferences','Set presence status','View active sessions',
+    'Sign out other devices','Create user (admin)','Assign role to user',
+    'Assign departments / property','Deactivate user','Reactivate user',
+    'Anonymize user (GDPR)','Reset user password (admin)','Filter user directory'
+  ], 'done'),
+  components:mk([
+    'User Directory','Create User','Edit User','User Detail Panel',
+    'User Profile Tab','Change Password','Reset Password (admin)',
+    'Deactivate User','Anonymize User','Session Manager',
+    'Presence Indicator','2FA Setup','User Preferences Panel','Role Assignment'
+  ], 'done'),
+  dataTypes:mk([
+    ['User','25 fields'],['UserPreferences','6 fields'],['Session','13 fields']
+  ], 'done'),
+  optionSets:mk([
+    'OS - Device Type (Desktop / Mobile / Tablet / API)',
+    'OS - Session Status (Active / Expired / Revoked / Logged Out)',
+    'OS - Directory View (Table / Card)',
+    'OS - Presence Status (Online / Away / Busy / Offline)'
+  ], 'done')
+},
+
+/* ═══ ROLES & PERMISSIONS ═══ */
+{
+  id:'roles-permissions', section:'core', label:'Roles & Permissions',
+  blurb:'Who can do what. Custom roles + fixed global permission catalog.',
+  overview:{
+    purpose:'The permission layer. Admins build custom roles ("Pit Boss", "Shift Lead") and pick which permissions each role gets from a fixed global catalog. Users have one role plus optional extras. Every privacy rule in the app checks: does this user\'s role have this permission, OR does their extras list include it?',
+    bullets:[
+      'Three-tier permission taxonomy — Group → Subgroup → Permission — designed to scale to hundreds of permissions',
+      'Only the Admin role is seeded on company signup; admins build everything else from scratch',
+      'One role per user (required) + optional extras list for edge cases',
+      'Soft-delete only — roles deactivate, never hard-delete',
+      'Users can request missing permissions inline; admins review with partial approval',
+      'Permission requests auto-expire after 30 days; users can cancel their own pending requests',
+      'Full audit trail in ActivityLog for every role and permission change'
+    ]
+  },
+  features:mk([
+    'Create custom role','Edit role','Copy role from template',
+    'Assign permissions to role','Bulk-toggle permissions','Search permissions',
+    'Deactivate role (soft-delete)','Assign role to user',
+    'Request extra permission','View own permission requests',
+    'Cancel own permission request','Review permission request (admin)',
+    'Receive request-reviewed notification','Auto-expire pending requests (30d)',
+    'See permissions required on page','See missing permissions'
+  ], 'done'),
+  components:mk([
+    'Roles Directory','Create Role','Edit Role','Role Detail Panel',
+    'Permission Picker (sidebar + panel)','Copy From Role','Deactivate Role',
+    'Permission Requests Queue','Request Extra Permission','Review Permission Request',
+    'Extra Permissions Manager','Roles & Permissions Sidebar (reusable, on every module)'
+  ], 'done'),
+  dataTypes:mk([
+    ['Role','13 fields'],['PermissionRequest','14 fields']
+  ], 'done'),
+  optionSets:mk([
+    ['OS - Permission Group','~10 values'],
+    ['OS - Permission Subgroup','per-group nav'],
+    ['OS - Permission','100s of codes']
+  ], 'done')
+},
+
+/* ═══ NOTIFICATIONS ═══ */
+{
+  id:'notifications', section:'core', label:'Notifications',
+  blurb:'In-app + email infra. Every module\'s events route through one pipeline.',
+  overview:{
+    purpose:'The single infrastructure every module uses to notify users. When something happens — report verified, task assigned, permission request submitted — it routes through one backend workflow. Dedupe prevents spam, batching combines bursts, user preferences let people opt out per event.',
+    bullets:[
+      'Single Notification Data Type — one row per recipient per event',
+      'Hybrid recipients — defaults per event + Watch/Follow subscribers + user opt-out',
+      'Time-window batching (5–15 min) with critical-event bypass',
+      '3 states: Unread → Read → Archived, with 30d/90d/1yr retention by severity',
+      'Strict recipient-only privacy — no admin override, no cross-user visibility',
+      'Email templates per company per language with master fallback chain',
+      'In-app UI: bell dropdown in top bar + dedicated /notifications page'
+    ]
+  },
+  features:mk([
+    'Receive in-app notification','Receive email notification',
+    'Mark notification as read','Mark all as read','Archive notification',
+    'Watch an entity','Unwatch entity','Configure notification preferences',
+    'Disable email for event type','Receive batched notification',
+    'Critical notification bypass','Unsubscribe via email link'
+  ], 'done'),
+  components:mk([
+    'Notifications Bell Dropdown','Notifications Full Page',
+    'Notification Preferences','Watch / Follow Control',
+    'Email Notification Template','Batched Notification Summary'
+  ], 'done'),
+  dataTypes:mk([
+    ['Notification','25 fields'],['NotificationPreferences','8 fields'],
+    ['EventPreference','8 fields'],['Subscription','7 fields'],
+    ['EmailTemplate','12 fields']
+  ], 'done'),
+  optionSets:mk([
+    ['OS - Notification Event Type','11 attrs per event'],
+    'OS - Notification State (Unread / Read / Archived)',
+    'OS - Recipient Kind (internal_user / applicant_account / email_only)'
+  ], 'done')
+},
+
+/* ═══ ACTIVITY LOG ═══ */
+{
+  id:'activity-log', section:'core', label:'System Activity Log',
+  blurb:'Unified audit trail. Every significant action writes one row.',
+  overview:{
+    purpose:'The audit layer. Every important action — a report submitted, a user deactivated, a role edited — writes exactly one row here. Powers per-record timelines (inside each module), a "My Activity" feed, and an admin-wide activity page with filters and CSV export.',
+    bullets:[
+      'Single ActivityLog Data Type with 27 Bubble-native fields (no JSON blob)',
+      'Write-once, never edited, never deleted — if audit was wrong, correction is a new row',
+      'Fired async via Schedule API Workflow — never blocks the user',
+      'Selective logging in MVP — skip viewed/login/logout for ~65% WU savings',
+      'Three-rule privacy: tenant isolation + actor-sees-own + admin with activity.read',
+      'Snapshot pattern — actor_snapshot, subject_snapshot — audit survives anonymization',
+      'CSV export with date presets, 10k-row cap, legal hold flag, export-self-audits'
+    ]
+  },
+  features:mk([
+    'View company-wide activity log','View per-record timeline',
+    'Filter activity log','Search activity log','Export activity log to CSV',
+    'Auto-retain activity log (MVP = no cleanup)'
+  ], 'done'),
+  components:mk([
+    'Activity Log Page','Per-Record Timeline (reusable)',
+    'Activity Filters Sidebar','Export Activity Log','Retention Settings'
+  ], 'done'),
+  dataTypes:mk([
+    ['ActivityLog','27 fields']
+  ], 'done'),
+  optionSets:mk([
+    ['OS - Activity Action','38 values'],
+    ['OS - Activity Subject Type','~40 values'],
+    ['OS - Activity Severity','info / warning / critical'],
+    ['OS - Activity Source','web / mobile / api / system / scheduled']
+  ], 'done')
+},
+
+/* ═══ REPORTING ═══ */
+{
+  id:'reporting', section:'surveillance', label:'Reporting',
+  blurb:'Incident reporting pipeline — Draft → Submit → Verify → Review → Send → Respond → Close.',
+  overview:{
+    purpose:'The core module of CRS. Where Surveillance documents every incident, error, procedure violation, and observation. Each report moves through a pipeline of statuses, gets sent to the responsible department for a response, and closes once all responses are in. Reports link to employees, guests, tasks, and investigations.',
+    pipeline:['Draft','Submitted','Verified','Reviewed','Sent','Responded','Closed','Final Closed'],
+    bullets:[
+      'Four report groups — Error · Incident · Procedure Violation · Surveillance',
+      'Universal form with only 6 mandatory fields (type, group, date, department, section, location) — everything else optional',
+      'Header + Detail split — list views query Report (27 fields), narrative loads on open from ReportDetail',
+      'Employee and Guest links use junction types with metadata (is_initiator, context)',
+      'Send to Department triggers SLA timer + in-app + email notifications to recipient roles',
+      'Responses threaded per department per round; return with mandatory reason kicks back to Reviewed',
+      'All recipients must respond before Close; Surv Manager can force-close with pending responses + note',
+      'Fiscal Week close locks reports; Surv Manager unlocks with mandatory comment',
+      'Full PDF export with casino letterhead, confidential watermark, and attachments'
+    ]
+  },
+  features:[
+    feat('Create report (draft)','Staff starts a new report, filling the 6 mandatory fields. Auto-saves as Draft.',['Create Report','Report Directory']),
+    feat('Edit own draft report','Author updates their own draft before submission — all fields editable.',['Edit Report','Report Preview (floating panel)']),
+    feat('Delete own draft report','Hard-deletes a never-submitted draft. No audit row (draft never existed officially).',['Report Directory','Report Preview (floating panel)']),
+    feat('Submit report','Moves Draft → Submitted. Assigns report number from Counter. Notifies Surveillance seniors.',['Report Preview (floating panel)','Report Status Pipeline']),
+    feat('Verify report','Senior Surveillance confirms accuracy of facts. Submitted → Verified.',['Report Preview (floating panel)','Report Status Pipeline']),
+    feat('Review report','Surveillance Manager final-checks before sending. Verified → Reviewed.',['Report Preview (floating panel)','Report Status Pipeline']),
+    feat('Send report to department','Routes report to responsible department(s). Starts SLA timer. Triggers in-app + email notifications.',['Send to Department','Report Status Pipeline']),
+    feat('Respond to report','Recipient department writes a response (internal or external). Moves to Response Sent.',['Responses','Report Preview (floating panel)']),
+    feat('Close report','Surveillance Manager closes after all required responses received. Moves to Closed.',['Close Report','Report Status Pipeline']),
+    feat('Final-close report','Locks the report fully. Triggered automatically by fiscal week close, or manually by Surv Manager.',['Close Report','Report Status Pipeline']),
+    feat('Reopen closed report','Surv Manager unlocks a Closed or Final Closed report with mandatory reason comment.',['Reopen Report','Report Preview (floating panel)']),
+    feat('Add comment on report','Threaded discussion scoped to audience (surveillance_internal or recipient_internal).',['Comments & Thread','Report Preview (floating panel)']),
+    feat('Reply to comment','Nested reply inside an existing comment thread.',['Comments & Thread']),
+    feat('Mention user in comment','@user trigger creates a mention notification for that user.',['Comments & Thread']),
+    feat('Attach file to report','Upload images, PDFs, videos. Any number of attachments; no individual size cap in MVP.',['File Attachments','Edit Report']),
+    feat('Download attachment','Inline download from the report preview.',['File Attachments','Report Preview (floating panel)']),
+    feat('Delete attachment','Remove an attachment. Only author can delete before submission; Surv Manager after.',['File Attachments','Edit Report']),
+    feat('Export report as PDF','Generate a PDF with casino letterhead, confidential watermark, all fields, comments, responses, attachments.',['Report PDF Preview']),
+    feat('Filter reports','Apply filter combinations to the directory — status, group, date range, department, priority.',['Report Filters Sidebar','Report Directory']),
+    feat('Search reports','Full-text search across report number, title, location, employee names.',['Report Directory']),
+    feat('Save filter preset','Save a filter combination as a named Collection for quick re-access.',['Report Collections (saved filters)','Report Filters Sidebar']),
+    feat('Share filter preset with team','Mark a Collection as shared so teammates can use it.',['Report Collections (saved filters)']),
+    feat('Bulk-download reports','Select multiple reports in directory and download as a ZIP of PDFs.',['Report Directory','Report PDF Preview']),
+    feat('View report KPIs','Dashboard stats — total count, avg time-to-close, overdue count, by group breakdown.',['Report Stats Banner']),
+    feat('Track SLA breaches','Reports past SLA are highlighted in directory and counted in stats.',['Report Directory','Report Stats Banner']),
+    feat('View revision history','See every edit made to a report in chronological order — who, when, what changed.',['Revision History','Report Preview (floating panel)']),
+    feat('View audit trail','See all actions taken on this report (submitted, verified, sent, commented, etc).',['Audit Trail View','Report Preview (floating panel)'])
+  ],
+  components:[
+    comp('Report Directory',
+         'Sidebar nav item "Reports"',
+         'Page — `#Reports`',
+         'Main landing page of the Reporting module. Primary surface for browsing, filtering, and opening reports.',
+         [
+           'Page header with title "Report Directory"',
+           'Search field (top bar, filters by number / title / location)',
+           'Fiscal week pill selector (current week default)',
+           'Time range segmented control (24H / 7D / 1M / 6M / 1Y / All)',
+           'Date range filter pill (custom range)',
+           '"Create Report" primary button (top-right)',
+           '"Report Filters" pill button — opens Report Filters Sidebar',
+           '"Report Stats" pill button — opens Report Stats Banner',
+           'Active filter chips row (dismissible, shown when filters active)',
+           'Directory Table — Repeating Group of reports with 8 columns',
+           'Unread indicator on rows (blue dot left edge)',
+           'Row hover actions (comment, reply, overflow menu)',
+           'Pagination controls (bottom, with page size selector)',
+           'Empty state (grid background + ghost text + Create Report action)',
+           'Roles & Permissions icon button (top-right, opens R&P Sidebar)'
+         ]),
+    comp('Create Report',
+         'Button "Create Report" — primary button in Report Directory header',
+         'Popup — `#PP - Create Report`',
+         'Single popup with all fields. Collects the 6 mandatory fields plus optional context.',
+         [
+           'Popup header (title "Create Report" + close X)',
+           'Report Type dropdown (required)',
+           'Report Group dropdown (required, cascades from type)',
+           'Event Date picker (required, defaults to current gaming date)',
+           'Department dropdown (required)',
+           'Section dropdown (required)',
+           'Location field (required)',
+           'Priority dropdown (Low / Medium / High / Critical)',
+           'Title field (optional)',
+           'Description textarea (optional)',
+           'Employee picker — multi-select, creates ReportEmployeeLink junction records',
+           'Guest picker — multi-select, creates ReportGuestLink junction records',
+           'Amount field (conditional, shown when Group = Error or Incident)',
+           'File attachments uploader — embedded `#GR - Report Attachments`',
+           'Validation error display (inline at top)',
+           '"Save Draft" secondary button',
+           '"Submit" primary button (validates + transitions to Submitted)'
+         ]),
+    comp('Edit Report',
+         'Button "Edit" in Report Preview (visible when status = Draft, author only)',
+         'Popup — `#PP - Edit Report`',
+         'Same fields as Create Report, pre-populated. Always saves updates (no Draft toggle).',
+         [
+           'Popup header with report number + close X',
+           'Same field set as Create Report (populated from existing values)',
+           '"Save Changes" primary button',
+           '"Cancel" secondary button',
+           'Revision note textarea (optional, captured on save)'
+         ]),
+    comp('Report Preview (floating panel)',
+         'Row click on any report in Report Directory',
+         'Reusable Element — `#GR - Report Preview` opened via Floating Group `#FG - Report Preview`',
+         'Right-side slide-in panel. Default landing when opening a report.',
+         [
+           'Header — report number + status pill + close X',
+           'Primary action buttons (contextual: Edit / Submit / Verify / Review / Send / Close / Reopen)',
+           '"Export PDF" secondary button (header)',
+           'Report Status Pipeline (always visible at top)',
+           'Tab bar — Details / Comments / Responses / History / Activity',
+           '"Details" panel — all report fields rendered read-only',
+           '"Comments" panel — embedded `#GR - Report Comments`',
+           '"Responses" panel — embedded `#GR - Report Responses`',
+           '"History" panel — embedded `#GR - Revision History`',
+           '"Activity" panel — embedded `#GR - Audit Trail`',
+           'File Attachments strip (embedded `#GR - Report Attachments`)'
+         ]),
+    comp('Report Status Pipeline',
+         'Embedded inside Report Preview (always visible at top)',
+         'Group inside `#GR - Report Preview`',
+         'Visual stepper showing the 9-state lifecycle. Current stage highlighted; completed stages show timestamp on hover.',
+         [
+           '9 status chips (Draft → Submitted → Verified → Reviewed → Sent → Response Sent → Closed → Final Closed; plus Returned)',
+           'Connector lines between chips',
+           'Current stage visual highlight (blue)',
+           'Completed stage checkmarks',
+           'Timestamp tooltip on each completed stage',
+           'Current status label (large, above pipeline)',
+           'Contextual next-action button (primary)'
+         ]),
+    sharedComp({
+      label:'Comments & Thread',
+      trigger:'Tab "Comments" inside Report Preview (and record preview panels across the app)',
+      element:'Reusable Element — `#GR - Comments Thread`',
+      desc:'One generic comments reusable for every parent type in the app. Takes `parent_type` + `parent_id` + scope rules as inputs and handles the entire threaded discussion.',
+      inputs:'`parent_type` (text) · `parent_id` (unique id) · `allowed_scopes` (list of text — which Comment Scope values are selectable in this context) · `default_scope` (text)',
+      usedBy:'Reports · Tasks · RFIs · Investigation Cases · Info Board posts · Warnings · Appraisals',
+      parts:[
+        'Scope toggle (built from `allowed_scopes` input — e.g. Surveillance internal / Recipient internal for Reports)',
+        'New comment composer (textarea)',
+        '@mention autocomplete dropdown',
+        'Attach file inside comment (optional, uses File Attachments reusable)',
+        'Send button',
+        'Comments list — Repeating Group of `Comment` records where parent_type + parent_id match inputs',
+        'Each comment: avatar, author, timestamp, body, reply action',
+        'Nested reply threads (indented)',
+        'Edit / delete own comment actions',
+        'Empty state (shown when no comments yet)'
+      ]
+    }),
+    comp('Responses',
+         'Tab "Responses" inside Report Preview',
+         'Reusable Element — `#GR - Report Responses`',
+         'Threaded per department per round. Return action kicks status back to Reviewed.',
+         [
+           'Round selector (Round 1 / Round 2 / etc, if multiple)',
+           'Per-department response card (one per recipient dept)',
+           'Department name + response status indicator',
+           'Response body (rendered)',
+           'Response timestamp + author',
+           'Response composer — textarea + send (for recipients with permission)',
+           'Scope toggle on composer',
+           '"Return to Reviewed" button (Surv Manager, mandatory reason)',
+           'SLA indicator per department (on track / at risk / breached)'
+         ]),
+    sharedComp({
+      label:'File Attachments',
+      trigger:'Embedded in Create Report, Edit Report, and Report Preview — plus record preview panels across the app',
+      element:'Reusable Element — `#GR - File Attachments`',
+      desc:'One generic attachments reusable for every parent type. Takes `parent_type` + `parent_id` as inputs and handles upload, list, download, delete.',
+      inputs:'`parent_type` (text) · `parent_id` (unique id) · `is_readonly` (yes/no — hides upload + delete) · `allowed_types` (list of text — optional mime filter) · `max_files` (number — optional cap)',
+      usedBy:'Reports · Tasks · RFIs · Investigation Cases · Employees (photos/documents) · Guests (photos) · Warnings (evidence) · Appraisals · Info Board posts · Comments (inline attachments)',
+      parts:[
+        'Drag-and-drop zone',
+        '"Browse files" button',
+        'Upload progress indicator (per file)',
+        'File list — Repeating Group of `Attachment` records where linked_type + linked_id match inputs',
+        'Each file row: thumbnail, filename, size, uploader, timestamp',
+        'Download action per file',
+        'Delete action per file (conditional on permission + `is_readonly`)',
+        'File preview modal (images inline, PDFs in viewer)',
+        'Empty state'
+      ]
+    }),
+    comp('Send to Department',
+         'Button "Send" in Report Preview (visible when status = Reviewed)',
+         'Popup — `#PP - Send to Department`',
+         'Routes report to responsible departments with SLA timer.',
+         [
+           'Popup header',
+           'Department multi-select',
+           'Priority dropdown (Low / Medium / High / Critical)',
+           'SLA hours field (number, with preset options: 24h / 48h / 72h / custom)',
+           'Response due date auto-calculated (display)',
+           'Cover note textarea (optional)',
+           'Cancel / "Send" buttons'
+         ]),
+    comp('Close Report',
+         'Button "Close" in Report Preview (visible when responses complete)',
+         'Popup — `#PP - Close Report`',
+         'Captures resolution + closing note. Supports force-close when responses pending.',
+         [
+           'Popup header',
+           'Resolution Status dropdown',
+           'Closing note textarea (required)',
+           'Pending responses warning (if any, lists dept names)',
+           '"Force close" toggle (Surv Manager only, when responses pending)',
+           'Cancel / "Close Report" buttons'
+         ]),
+    comp('Reopen Report',
+         'Button "Reopen" in Report Preview (Admin only, on Closed or Final Closed reports)',
+         'Popup — `#PP - Reopen Report`',
+         'Mandatory reason + warning. Writes activity log row.',
+         [
+           'Popup header with warning icon',
+           'Report number display',
+           'Mandatory reason textarea',
+           'Warning text explaining audit impact + fiscal week implications',
+           'Cancel / "Reopen" buttons'
+         ]),
+    comp('Report PDF Preview',
+         'Button "Export PDF" in Report Preview header',
+         'Popup — `#PP - Report PDF`',
+         'Full-sized PDF preview with casino letterhead and attachments.',
+         [
+           'Popup header with title + close X',
+           'PDF viewer (iframe rendered preview)',
+           'Page navigation (prev / next / page count)',
+           '"Download PDF" primary button',
+           '"Print" secondary button',
+           'Confidential watermark toggle (if permission)'
+         ]),
+    comp('Report Filters Sidebar',
+         'Pill button "Report Filters" in Report Directory header',
+         'Reusable Element — `#GR - Report Filters` opened via Floating Group',
+         'Left-side filter panel. Writes to URL params for shareable links.',
+         [
+           'Sidebar header "Filters" + "Clear All" action',
+           'Report Status filter (checkbox group)',
+           'Report Group filter (checkbox group)',
+           'Department filter (multi-select)',
+           'Priority filter (checkbox group)',
+           'Date range picker (event date)',
+           'Identified By filter (CCTV / Report / Investigation / etc)',
+           'Amount range filter (min / max)',
+           'Assigned-to filter (user picker)',
+           'Fiscal week filter',
+           '"Apply" button (bottom sticky)',
+           '"Save as Collection" action'
+         ]),
+    comp('Report Stats Banner',
+         'Pill button "Report Stats" in Report Directory header',
+         'Reusable Element — `#GR - Report Stats` opened via Floating Group',
+         'KPI dashboard scoped to current filter selection.',
+         [
+           'Banner header "Report Stats"',
+           'KPI tab bar (Total / By Group / By Department / Financial)',
+           'KPI cards — total count, by group breakdown, avg time-to-close, overdue count',
+           'Financial KPI cards (Loss Exposure / Closure Rate / Net Impact / Portfolio Resolution)',
+           'Period selector (affects all stats)',
+           'Export stats action'
+         ]),
+    comp('Report Collections (saved filters)',
+         'Dropdown in Report Directory header + "Save current filter" action',
+         'Group inside Report Directory header (dropdown pattern)',
+         'CRUD for ReportCollection records. Shareable with team.',
+         [
+           'Collections dropdown button',
+           'Dropdown list of saved collections (personal + shared)',
+           '"Save current filter as Collection" action',
+           'Per-collection row: name, scope icon (personal / shared), owner',
+           'Edit / Rename / Delete actions per collection',
+           '"Manage collections" link (opens full manager)',
+           'Share-with-team toggle per collection'
+         ]),
+    sharedComp({
+      label:'Revision History',
+      trigger:'Tab "History" inside Report Preview — and record preview panels across the app',
+      element:'Reusable Element — `#GR - Revision History`',
+      desc:'Generic revision timeline. Queries the per-record revision type (e.g. ReportRevision) filtered by subject inputs.',
+      inputs:'`subject_type` (text — drives which revision DT is queried) · `subject_id` (unique id) · `show_restore` (yes/no — admin-only restore button)',
+      usedBy:'Reports · Tasks · RFIs · Investigation Cases',
+      parts:[
+        'Timeline list — one entry per revision',
+        'Each entry: timestamp, actor avatar + name, change summary',
+        'Expand action — shows field-level diff (before / after)',
+        'Revision note display (if captured at save time)',
+        '"Restore this revision" action (shown when `show_restore` = yes, admin only, audit-logged)',
+        'Pagination or infinite scroll for long histories',
+        'Empty state'
+      ]
+    }),
+    sharedComp({
+      label:'Audit Trail View',
+      trigger:'Tab "Activity" inside Report Preview — and every record preview panel in the app',
+      element:'Reusable Element — `#GR - Audit Trail`',
+      desc:'Generic per-record activity timeline. Queries `ActivityLog` filtered by subject inputs. Drop into any record detail to instantly get its audit trail.',
+      inputs:'`subject_type` (text — e.g. "Report", "Task", "User") · `subject_id` (unique id) · `default_severity_filter` (text — optional)',
+      usedBy:'Every record detail panel — Reports, Tasks, RFIs, Investigations, Employees, Users, Roles, Guests, etc.',
+      parts:[
+        'Timeline list of ActivityLog entries',
+        'Each entry: timestamp, actor avatar + name, action verb, severity icon',
+        'Filter by severity (info / warning / critical)',
+        'Filter by action type',
+        'Search field',
+        'Expand entry to see snapshot of changed fields',
+        'Pagination',
+        'Empty state (shown when no activity yet)'
+      ]
+    }),
+    sharedComp({
+      label:'Roles & Permissions Sidebar',
+      trigger:'Icon button "Permissions" in the top-right of every module header',
+      element:'Reusable Element — `#GR - Roles Permissions` opened via Floating Group',
+      desc:'Generic permissions panel placed on every module page. Reads `module_code` input to filter which permissions to show + which to highlight as missing.',
+      inputs:'`module_code` (text — e.g. "reporting", "tasks", "employees")',
+      usedBy:'Every module page in the app',
+      parts:[
+        'Sidebar header "Permissions for [Module]"',
+        'Current role display (name + description)',
+        'Permissions list grouped by Group → Subgroup (filtered by `module_code`)',
+        'Each permission: label + green check if user has it',
+        'Missing permissions section (greyed, with Request action)',
+        'Pending requests section (with Cancel action)',
+        'Request permission modal (opens inline)',
+        'Request justification textarea',
+        '"Request" / "Cancel" buttons on modal'
+      ]
+    })
+  ],
+  dataTypes:mk([
+    ['Report','27 fields (header)'],['ReportDetail','11 fields (1-to-1)'],
+    ['ReportEmployeeLink','7 fields (junction)'],['ReportGuestLink','7 fields (junction)'],
+    ['ReportResponse','11 fields'],['ReportComment','9 fields'],['ReportRevision','9 fields'],
+    ['ReportType','admin-managed lookup'],['ReportCollection','saved filter preset']
+  ], 'done'),
+  optionSets:mk([
+    'Report Group (Error / Incident / Procedure Violation / Surveillance)',
+    'Report Status (9 values — Draft → Final Closed)',
+    'Priority (Low / Medium / High / Critical)',
+    'Resolution Status (admin-configured)',
+    'Comment Scope (surveillance_internal / recipient_internal)'
+  ], 'done')
+}
+];
+
+/* ═══════════════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════════════ */
+const SKEY = 'crs_cp_state_v2';
+const UIKEY = 'crs_cp_ui_v2';
+let state = {};
+let uiState = { collapsed:{}, activeTab:{}, view:'overview', expanded:{} };
+
+function loadState() {
+  try { const r = localStorage.getItem(SKEY); if (r) state = JSON.parse(r); } catch(e) {}
+  try { const r = localStorage.getItem(UIKEY); if (r) uiState = Object.assign(uiState, JSON.parse(r)); } catch(e) {}
+  if (!uiState.expanded) uiState.expanded = {};
+  SECTIONS.forEach(s => { if (uiState.collapsed[s.id] === undefined) uiState.collapsed[s.id] = true; });
+  MODULES.forEach(m => {
+    if (!state[m.id]) state[m.id] = {};
+    ['features','components','dataTypes','optionSets'].forEach(k => {
+      if (m[k] && (!state[m.id][k] || state[m.id][k].length !== m[k].length)) {
+        state[m.id][k] = m[k].map(it => it.status);
+      }
+      /* Clean up any legacy 'wip' state from previous 3-state cycle */
+      if (state[m.id][k]) {
+        state[m.id][k] = state[m.id][k].map(s => s === 'wip' ? 'done' : s);
+      }
+    });
+  });
+  saveState();
+}
+function saveState() { localStorage.setItem(SKEY, JSON.stringify(state)); }
+function saveUI() { localStorage.setItem(UIKEY, JSON.stringify(uiState)); }
+
+/* ═══════════════════════════════════════════════════════════════
+   COUNTS
+═══════════════════════════════════════════════════════════════ */
+function moduleCounts(m) {
+  let total=0, done=0, pending=0;
+  const s = state[m.id] || {};
+  ['features','components','dataTypes','optionSets'].forEach(k => {
+    if (!m[k]) return;
+    const statuses = s[k] || m[k].map(it=>it.status);
+    statuses.forEach(st => {
+      total++;
+      if (st==='done') done++; else pending++;
+    });
+  });
+  return { total, done, pending, wip:0 };
+}
+function moduleRollup(m) {
+  const c = moduleCounts(m);
+  if (c.total === 0) return 'pending';
+  if (c.done === c.total) return 'done';
+  if (c.done > 0) return 'wip';
+  return 'pending';
+}
+function tabCount(m, key) {
+  if (!m[key]) return { done:0, total:0 };
+  const s = state[m.id] || {};
+  const statuses = s[key] || m[key].map(it=>it.status);
+  return { done: statuses.filter(x=>x==='done').length, total: statuses.length };
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DETAIL LOOKUP
+═══════════════════════════════════════════════════════════════ */
+function getItemDetail(moduleId, key, item) {
+  if (key === 'dataTypes') {
+    /* Match item.label (possibly "Report" or "Report" with meta "27 fields (header)") to DT_FIELDS key */
+    const bareName = item.label.replace(/\s*\(.*?\)\s*$/, '').trim();
+    if (DT_FIELDS[bareName]) return { kind:'dt', data:DT_FIELDS[bareName] };
+    if (DT_FIELDS[item.label]) return { kind:'dt', data:DT_FIELDS[item.label] };
+    return null;
+  }
+  if (key === 'optionSets') {
+    /* item.label is the full OS label. Check OS_DETAILS. */
+    if (OS_DETAILS[item.label]) return { kind:'os', data:OS_DETAILS[item.label] };
+    /* Try matching just the OS name prefix (e.g. "OS - Permission Group") */
+    const prefix = item.label.split(' (')[0];
+    if (OS_DETAILS[prefix]) return { kind:'os', data:OS_DETAILS[prefix] };
+    return null;
+  }
+  if (key === 'features') {
+    if (item.featDetail) return { kind:'feature', data:item.featDetail };
+    return null;
+  }
+  if (key === 'components') {
+    if (item.compDetail) return { kind:'component', data:item.compDetail };
+    return null;
+  }
+  return null;
+}
+
+function escHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Escape HTML, then convert `backtick` spans to <code>…</code> for Bubble-name highlighting */
+function mdish(s) {
+  if (s == null) return '';
+  return escHtml(s).replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+
+function renderDetailContent(detail) {
+  if (!detail) return '';
+  if (detail.kind === 'dt') {
+    const d = detail.data;
+    let html = '';
+    if (d.description) html += `<div class="detail-desc">${escHtml(d.description)}</div>`;
+    html += `<div class="detail-block-title">Fields (${d.fields.length})</div>`;
+    html += `<table class="detail-table"><thead><tr><th>Field</th><th>Type</th><th>Notes</th></tr></thead><tbody>`;
+    d.fields.forEach(f => {
+      html += `<tr>
+        <td class="col-name">${escHtml(f.name)}</td>
+        <td class="col-type">${escHtml(f.type)}</td>
+        <td class="col-notes">${escHtml(f.notes)}</td>
+      </tr>`;
+    });
+    html += `</tbody></table>`;
+    return html;
+  }
+  if (detail.kind === 'os') {
+    const d = detail.data;
+    let html = '';
+    if (d.desc) html += `<div class="detail-desc">${escHtml(d.desc)}</div>`;
+    if (d.attributes && d.attributes.length) {
+      html += `<div class="detail-block-title">Attributes (${d.attributes.length})</div>`;
+      html += `<table class="detail-table"><thead><tr><th>Attribute</th><th>Type</th><th>Notes</th></tr></thead><tbody>`;
+      d.attributes.forEach(a => {
+        html += `<tr>
+          <td class="col-name">${escHtml(a.name)}</td>
+          <td class="col-type">${escHtml(a.type)}</td>
+          <td class="col-notes">${escHtml(a.notes || '')}</td>
+        </tr>`;
+      });
+      html += `</tbody></table>`;
+    }
+    if (d.values && d.values.length) {
+      html += `<div class="detail-block-title">Values${d.valuesNote ? '' : ` (${d.values.length})`}</div>`;
+      html += `<div class="os-values">${d.values.map(v => `<span class="os-value-chip">${escHtml(v)}</span>`).join('')}</div>`;
+    }
+    if (d.valuesNote) html += `<div class="detail-note" style="margin-top:10px;">${escHtml(d.valuesNote)}</div>`;
+    return html;
+  }
+  if (detail.kind === 'feature') {
+    const d = detail.data;
+    let html = '';
+    if (d.desc) html += `<div class="detail-desc">${escHtml(d.desc)}</div>`;
+    if (d.comps && d.comps.length) {
+      html += `<div class="detail-block-title">Components used</div>`;
+      html += `<div class="comp-list">${d.comps.map(c => `<span class="comp-chip">${escHtml(c)}</span>`).join('')}</div>`;
+    }
+    return html;
+  }
+  if (detail.kind === 'component') {
+    const d = detail.data;
+    let html = '';
+    if (d.desc) html += `<div class="detail-desc">${escHtml(d.desc)}</div>`;
+    html += `<div class="comp-specs">`;
+    if (d.trigger) {
+      html += `<div class="comp-spec-row">
+        <span class="comp-spec-label">Trigger</span>
+        <span class="comp-spec-val">${mdish(d.trigger)}</span>
+      </div>`;
+    }
+    if (d.element) {
+      html += `<div class="comp-spec-row">
+        <span class="comp-spec-label">Element</span>
+        <span class="comp-spec-val">${mdish(d.element)}</span>
+      </div>`;
+    }
+    if (d.inputs) {
+      html += `<div class="comp-spec-row">
+        <span class="comp-spec-label">Inputs</span>
+        <span class="comp-spec-val">${mdish(d.inputs)}</span>
+      </div>`;
+    }
+    if (d.usedBy) {
+      html += `<div class="comp-spec-row">
+        <span class="comp-spec-label">Used by</span>
+        <span class="comp-spec-val">${mdish(d.usedBy)}</span>
+      </div>`;
+    }
+    html += `</div>`;
+    if (d.parts && d.parts.length) {
+      html += `<div class="detail-block-title">Parts (${d.parts.length})</div>`;
+      html += `<ul class="parts-list">${d.parts.map(p => `<li>${mdish(p)}</li>`).join('')}</ul>`;
+    }
+    return html;
+  }
+  return '';
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SIDEBAR
+═══════════════════════════════════════════════════════════════ */
+function chevSVG() { return '<svg viewBox="0 0 16 16" fill="none" width="10" height="10"><path d="M5 3l5 5-5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+function itemChevSVG() { return '<svg viewBox="0 0 16 16" fill="none" width="14" height="14"><path d="M6 4l4 4-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>'; }
+
+function renderSidebar() {
+  const host = document.getElementById('navSections');
+  host.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const mods = MODULES.filter(m => m.section === sec.id);
+    const doneCount = mods.filter(m => moduleRollup(m) === 'done').length;
+    const cls = doneCount === mods.length ? 'complete' : (doneCount > 0 ? 'partial' : '');
+    const collapsed = uiState.collapsed[sec.id] === true;
+
+    const el = document.createElement('div');
+    el.className = 'nav-section' + (collapsed ? ' collapsed' : '');
+    el.innerHTML = `
+      <button class="nav-section-head" data-sec="${sec.id}">
+        <div class="nav-section-title">
+          <span class="nav-chev">${chevSVG()}</span>
+          <span>${sec.label}</span>
+        </div>
+        <span class="nav-section-count ${cls}">${doneCount}/${mods.length}</span>
+      </button>
+      <div class="nav-section-items">
+        ${mods.map(m => {
+          const r = moduleRollup(m);
+          const sCls = r === 'done' ? 's-done' : (r === 'wip' ? 's-wip' : 's-pending');
+          return `<button class="nav-item ${sCls}" data-mod="${m.id}">
+            <span>${m.label}</span>
+            <span class="nav-item-dot"></span>
+          </button>`;
+        }).join('')}
+      </div>
+    `;
+    host.appendChild(el);
+
+    el.querySelector('.nav-section-head').addEventListener('click', () => {
+      el.classList.toggle('collapsed');
+      uiState.collapsed[sec.id] = el.classList.contains('collapsed');
+      saveUI();
+      const items = el.querySelector('.nav-section-items');
+      if (!uiState.collapsed[sec.id]) items.style.maxHeight = items.scrollHeight + 'px';
+      else items.style.maxHeight = '0';
+    });
+    if (!collapsed) {
+      const items = el.querySelector('.nav-section-items');
+      items.style.maxHeight = items.scrollHeight + 'px';
+    }
+    el.querySelectorAll('.nav-item').forEach(btn => {
+      btn.addEventListener('click', () => switchView(btn.dataset.mod));
+    });
+  });
+}
+
+function updateSidebarActive() {
+  document.querySelectorAll('.nav-top').forEach(el => el.classList.toggle('active', el.dataset.view === uiState.view));
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.mod === uiState.view));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   VIEWS
+═══════════════════════════════════════════════════════════════ */
+function switchView(id) {
+  uiState.view = id;
+  saveUI();
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const target = document.getElementById('view-' + id);
+  if (target) target.classList.add('active');
+  updateSidebarActive();
+  window.scrollTo({ top:0, behavior:'instant' });
+}
+
+/* ═══ OVERVIEW ═══ */
+function renderOverview() {
+  let totalItems = 0, doneItems = 0, modsDone = 0;
+  MODULES.forEach(m => {
+    const c = moduleCounts(m);
+    totalItems += c.total;
+    doneItems += c.done;
+    if (moduleRollup(m) === 'done' && c.total > 0) modsDone++;
+  });
+
+  document.getElementById('ovModulesDone').textContent = modsDone;
+  document.getElementById('ovModulesTotal').textContent = MODULES.length;
+  document.getElementById('ovItemsDone').textContent = doneItems;
+  document.getElementById('ovItemsTotal').textContent = totalItems;
+
+  const pct = totalItems === 0 ? 0 : Math.round((doneItems/totalItems)*100);
+  document.getElementById('brandPct').textContent = pct + '%';
+
+  const host = document.getElementById('overviewSections');
+  host.innerHTML = '';
+  SECTIONS.forEach(sec => {
+    const mods = MODULES.filter(m => m.section === sec.id);
+    if (mods.length === 0) return;
+    const block = document.createElement('div');
+    block.innerHTML = `
+      <div class="overview-section-title">${sec.label}</div>
+      <div class="overview-modlist">
+        ${mods.map(m => {
+          const c = moduleCounts(m);
+          const r = moduleRollup(m);
+          const pillCls = r === 'done' ? 'done' : (r === 'wip' ? 'wip' : 'pending');
+          const pillText = r === 'done' ? 'Done' : (r === 'wip' ? 'In Progress' : 'Planned');
+          return `<div class="overview-mod" data-mod="${m.id}">
+            <div>
+              <div class="overview-mod-name">${m.label}</div>
+              <div class="overview-mod-desc">${m.blurb}</div>
+            </div>
+            <div class="overview-mod-stat">${c.done}/${c.total}</div>
+            <div class="status-pill ${pillCls}"><span class="dot"></span>${pillText}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    `;
+    host.appendChild(block);
+  });
+  host.querySelectorAll('[data-mod]').forEach(el => {
+    el.onclick = () => switchView(el.dataset.mod);
+  });
+}
+
+/* ═══ MODULE VIEWS ═══ */
+function renderModuleViews() {
+  const host = document.getElementById('moduleViews');
+  host.innerHTML = '';
+  MODULES.forEach(m => {
+    const el = document.createElement('section');
+    el.className = 'view';
+    el.id = 'view-' + m.id;
+    el.appendChild(renderModule(m));
+    host.appendChild(el);
+  });
+}
+
+function renderModule(m) {
+  const wrap = document.createElement('div');
+  const c = moduleCounts(m);
+  const r = moduleRollup(m);
+  const pillCls = r === 'done' ? 'done' : (r === 'wip' ? 'wip' : 'pending');
+  const pillText = r === 'done' ? 'Done' : (r === 'wip' ? 'In Progress' : 'Planned');
+  const donePct = c.total === 0 ? 0 : Math.round((c.done/c.total)*100);
+  const sec = SECTIONS.find(s => s.id === m.section);
+
+  const fc = tabCount(m, 'features');
+  const cc = tabCount(m, 'components');
+  const dt = tabCount(m, 'dataTypes');
+  const os = tabCount(m, 'optionSets');
+  const dbDone = dt.done + os.done;
+  const dbTotal = dt.total + os.total;
+
+  const currentTab = uiState.activeTab[m.id] || 'overview';
+
+  wrap.innerHTML = `
+    <div class="module-eyebrow">${sec ? sec.label : ''}</div>
+    <h1 class="module-title">${m.label}</h1>
+    <p class="module-desc">${m.blurb}</p>
+    <div class="module-status-row">
+      <div class="status-pill ${pillCls}"><span class="dot"></span>${pillText}</div>
+      <div class="module-progress">
+        <div class="module-progress-text"><span>${c.done} of ${c.total} items</span><span>${donePct}%</span></div>
+        <div class="module-progress-bar">
+          <div class="module-progress-seg done" style="width:${donePct}%"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tabs-bar">
+      <button class="tab ${currentTab==='overview'?'active':''}" data-tab="overview">Overview</button>
+      <button class="tab ${currentTab==='features'?'active':''}" data-tab="features">Features <span class="tab-count">${fc.done}/${fc.total}</span></button>
+      <button class="tab ${currentTab==='components'?'active':''}" data-tab="components">Components <span class="tab-count">${cc.done}/${cc.total}</span></button>
+      <button class="tab ${currentTab==='database'?'active':''}" data-tab="database">Database <span class="tab-count">${dbDone}/${dbTotal}</span></button>
+    </div>
+
+    <div class="tab-panels">
+      <div class="tab-panel ${currentTab==='overview'?'active':''}" data-panel="overview">${renderOverviewTab(m)}</div>
+      <div class="tab-panel ${currentTab==='features'?'active':''}" data-panel="features">${renderChecklist(m, 'features', 'What the user can do in this module. Click an item to see description and components used.')}</div>
+      <div class="tab-panel ${currentTab==='components'?'active':''}" data-panel="components">${renderChecklist(m, 'components', 'UI surfaces to build in Bubble (pages, popups, floating groups, reusable elements).')}</div>
+      <div class="tab-panel ${currentTab==='database'?'active':''}" data-panel="database">${renderDatabaseTab(m)}</div>
+    </div>
+  `;
+
+  /* Tabs */
+  wrap.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => {
+      const name = t.dataset.tab;
+      uiState.activeTab[m.id] = name;
+      saveUI();
+      wrap.querySelectorAll('.tab').forEach(x => x.classList.toggle('active', x.dataset.tab === name));
+      wrap.querySelectorAll('.tab-panel').forEach(x => x.classList.toggle('active', x.dataset.panel === name));
+    });
+  });
+
+  /* Item wrappers: checkbox click = toggle, row click = expand */
+  wrap.querySelectorAll('.item-wrap').forEach(wr => {
+    const it = wr.querySelector('.item');
+    const check = wr.querySelector('.item-check');
+    const key = it.dataset.key;
+    const idx = parseInt(it.dataset.idx, 10);
+
+    /* Checkbox toggle */
+    check.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (!state[m.id][key]) state[m.id][key] = [];
+      const cur = state[m.id][key][idx];
+      const next = cur === 'done' ? 'pending' : 'done';
+      state[m.id][key][idx] = next;
+      saveState();
+      it.classList.remove('done','pending');
+      it.classList.add(next);
+      check.textContent = next === 'done' ? '✓' : '';
+      refreshModuleChrome(m, wrap);
+      renderSidebar();
+      renderOverview();
+      updateSidebarActive();
+    });
+
+    /* Row click = expand (only if has detail) */
+    if (it.classList.contains('has-detail')) {
+      it.addEventListener('click', (e) => {
+        if (e.target.closest('.item-check')) return;
+        wr.classList.toggle('expanded');
+        const expKey = `${m.id}::${key}::${idx}`;
+        uiState.expanded[expKey] = wr.classList.contains('expanded');
+        saveUI();
+      });
+    }
+  });
+
+  return wrap;
+}
+
+function renderOverviewTab(m) {
+  const ov = m.overview;
+  if (!ov) return '<div class="not-yet"><div class="not-yet-title">Not yet brainstormed</div><div class="not-yet-desc">We\'ll fill this in together before specs.</div></div>';
+
+  const fc = tabCount(m, 'features');
+  const cc = tabCount(m, 'components');
+  const dt = tabCount(m, 'dataTypes');
+  const os = tabCount(m, 'optionSets');
+
+  let html = `<div class="ov-purpose">${ov.purpose}</div>`;
+
+  if (ov.pipeline) {
+    html += `<div class="ov-block">
+      <div class="ov-block-title">Status Pipeline</div>
+      <div class="ov-pipeline">`;
+    ov.pipeline.forEach((step, i) => {
+      html += `<span class="ov-pipeline-step"><span class="num">${String(i+1).padStart(2,'0')}</span>${step}</span>`;
+      if (i < ov.pipeline.length - 1) html += '<span class="ov-pipeline-arrow">→</span>';
+    });
+    html += '</div></div>';
+  }
+
+  if (ov.bullets && ov.bullets.length) {
+    html += `<div class="ov-block">
+      <div class="ov-block-title">Key points</div>
+      <ul class="ov-list">${ov.bullets.map(b => `<li>${b}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  html += `<div class="ov-block">
+    <div class="ov-block-title">At a glance</div>
+    <div class="ov-stat-grid">
+      <div class="ov-stat"><span class="ov-stat-label">Features</span><span class="ov-stat-val ${fc.done===fc.total&&fc.total>0?'done':''}">${fc.done}/${fc.total}</span></div>
+      <div class="ov-stat"><span class="ov-stat-label">Components</span><span class="ov-stat-val ${cc.done===cc.total&&cc.total>0?'done':''}">${cc.done}/${cc.total}</span></div>
+      <div class="ov-stat"><span class="ov-stat-label">Data Types</span><span class="ov-stat-val ${dt.done===dt.total&&dt.total>0?'done':''}">${dt.done}/${dt.total}</span></div>
+      <div class="ov-stat"><span class="ov-stat-label">Option Sets</span><span class="ov-stat-val ${os.done===os.total&&os.total>0?'done':''}">${os.done}/${os.total}</span></div>
+    </div>
+  </div>`;
+
+  return html;
+}
+
+function renderItem(moduleId, key, item, idx, status) {
+  const detail = getItemDetail(moduleId, key, item);
+  const expKey = `${moduleId}::${key}::${idx}`;
+  const expanded = uiState.expanded && uiState.expanded[expKey];
+  const hasDetail = !!detail;
+  const st = status || 'pending';
+  const isShared = key === 'components' && item.compDetail && item.compDetail.usedBy;
+  const sharedBadge = isShared ? '<span class="shared-badge" title="Reusable — shared across modules">SHARED</span>' : '';
+
+  return `<div class="item-wrap ${expanded?'expanded':''}">
+    <div class="item ${st} ${hasDetail?'has-detail':''}" data-key="${key}" data-idx="${idx}">
+      <span class="item-check">${st==='done'?'✓':''}</span>
+      <span class="item-label">${escHtml(item.label)}${sharedBadge}</span>
+      ${item.meta ? `<span class="item-meta">${escHtml(item.meta)}</span>` : '<span></span>'}
+      <span class="item-chev">${itemChevSVG()}</span>
+    </div>
+    ${hasDetail ? `<div class="item-detail-outer"><div class="item-detail-inner"><div class="item-detail">${renderDetailContent(detail)}</div></div></div>` : ''}
+  </div>`;
+}
+
+function renderChecklist(m, key, introText) {
+  const arr = m[key];
+  if (!arr || arr.length === 0) {
+    return '<div class="not-yet"><div class="not-yet-title">Not yet brainstormed</div><div class="not-yet-desc">Tell me what to put here and I\'ll seed the list.</div></div>';
+  }
+  const statuses = (state[m.id] && state[m.id][key]) || arr.map(x=>x.status);
+  let html = `<div class="checklist-intro">${introText}</div><div class="items">`;
+  arr.forEach((it, i) => {
+    html += renderItem(m.id, key, it, i, statuses[i] || 'pending');
+  });
+  html += '</div>';
+  return html;
+}
+
+function renderDatabaseTab(m) {
+  if (!m.dataTypes && !m.optionSets) {
+    return '<div class="not-yet"><div class="not-yet-title">Not yet brainstormed</div><div class="not-yet-desc">Data Types and Option Sets will be seeded once features are agreed.</div></div>';
+  }
+  let html = '<div class="checklist-intro">Bubble Data Types and Option Sets you need to create. Click any item to expand and see the full field/value table.</div>';
+
+  if (m.dataTypes) {
+    const statuses = (state[m.id] && state[m.id].dataTypes) || m.dataTypes.map(x=>x.status);
+    const d = statuses.filter(x=>x==='done').length;
+    html += `<div class="group-title">Data Types <span class="group-title-count">${d}/${m.dataTypes.length}</span></div><div class="items">`;
+    m.dataTypes.forEach((it, i) => {
+      html += renderItem(m.id, 'dataTypes', it, i, statuses[i] || 'pending');
+    });
+    html += '</div>';
+  }
+
+  if (m.optionSets) {
+    const statuses = (state[m.id] && state[m.id].optionSets) || m.optionSets.map(x=>x.status);
+    const d = statuses.filter(x=>x==='done').length;
+    html += `<div class="group-title">Option Sets <span class="group-title-count">${d}/${m.optionSets.length}</span></div><div class="items">`;
+    m.optionSets.forEach((it, i) => {
+      html += renderItem(m.id, 'optionSets', it, i, statuses[i] || 'pending');
+    });
+    html += '</div>';
+  }
+
+  return html;
+}
+
+function refreshModuleChrome(m, wrap) {
+  const c = moduleCounts(m);
+  const r = moduleRollup(m);
+  const pillCls = r === 'done' ? 'done' : (r === 'wip' ? 'wip' : 'pending');
+  const pillText = r === 'done' ? 'Done' : (r === 'wip' ? 'In Progress' : 'Planned');
+  const donePct = c.total === 0 ? 0 : Math.round((c.done/c.total)*100);
+
+  const pill = wrap.querySelector('.module-status-row .status-pill');
+  pill.className = 'status-pill ' + pillCls;
+  pill.innerHTML = `<span class="dot"></span>${pillText}`;
+
+  wrap.querySelector('.module-progress-text span:first-child').textContent = `${c.done} of ${c.total} items`;
+  wrap.querySelector('.module-progress-text span:last-child').textContent = donePct + '%';
+  wrap.querySelector('.module-progress-seg.done').style.width = donePct + '%';
+
+  const fc = tabCount(m, 'features');
+  const cc = tabCount(m, 'components');
+  const dt = tabCount(m, 'dataTypes');
+  const os = tabCount(m, 'optionSets');
+  const tabs = wrap.querySelectorAll('.tab');
+  if (tabs[1]) tabs[1].querySelector('.tab-count').textContent = `${fc.done}/${fc.total}`;
+  if (tabs[2]) tabs[2].querySelector('.tab-count').textContent = `${cc.done}/${cc.total}`;
+  if (tabs[3]) tabs[3].querySelector('.tab-count').textContent = `${dt.done + os.done}/${dt.total + os.total}`;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TOOLS
+═══════════════════════════════════════════════════════════════ */
+function toast(msg) {
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="toast-dot"></span><span>${msg}</span>`;
+  host.appendChild(el);
+  setTimeout(()=>{ el.style.opacity='0'; el.style.transition='opacity 200ms'; }, 2400);
+  setTimeout(()=>el.remove(), 2700);
+}
+
+document.getElementById('btnExport').onclick = () => {
+  const blob = new Blob([JSON.stringify(state, null, 2)], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `crs_clear_picture_${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('Progress exported');
+};
+document.getElementById('btnImport').onclick = () => document.getElementById('fileIn').click();
+document.getElementById('fileIn').onchange = (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  const r = new FileReader();
+  r.onload = ev => {
+    try {
+      state = JSON.parse(ev.target.result);
+      saveState();
+      renderAll();
+      toast('Progress imported');
+    } catch(err) { toast('Invalid JSON'); }
+  };
+  r.readAsText(f);
+};
+document.getElementById('btnReset').onclick = () => {
+  if (!confirm('Reset all progress to defaults?')) return;
+  localStorage.removeItem(SKEY);
+  state = {};
+  loadState();
+  renderAll();
+  toast('Progress reset');
+};
+
+document.querySelector('.nav-top').onclick = () => switchView('overview');
+
+function renderAll() {
+  renderSidebar();
+  renderOverview();
+  renderModuleViews();
+  switchView(uiState.view || 'overview');
+}
+
+loadState();
+renderAll();
+</script>
+
+</body>
+</html>

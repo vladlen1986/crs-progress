@@ -1,0 +1,53 @@
+Primary Background: #181818
+Secondary Background: #1E1E1E
+Tertiary Background: #242424
+Elevated Background: #2A2A2A
+
+Border Default: #242424
+Border Hover: #333333
+Border Active: #3D3D3D
+
+Accent Color: #3B82F6
+Accent Hover: #2563EB
+Accent Active: #1D4ED8
+Accent Glow: rgba(59,130,246,0.13)
+
+Font: Inter
+Primary Font Color: #E0E0E0
+Secondary Font Color: #A6A6A6
+Muted Font Color: #6B6B6B
+Disabled Font Color: #565656
+
+Status - Success: #22C55E
+Status - Error: #EF4444
+Status - Warning: #F59E0B
+Status - Purple: #8B5CF6
+Status - Cyan: #06B6D4
+
+Input Border Focus: #3B82F6 + glow rgba(59,130,246,0.13)
+Transition: 160ms cubic-bezier(.4,0,.2,1)
+
+Border Radius - Cards: 10px
+Border Radius - Buttons: 6-7px
+Border Radius - Modals: 12-14px
+Border Radius - Inputs: 6-7px
+Border Radius - Badges: 4-5px
+Border Radius - Pills: 20px
+
+Button Height - Default: 32-34px
+Button Height - Large: 40-44px
+Button Height - Small: 28px
+Input Height - Default: 36-38px
+Input Height - Large: 44px
+
+Tag Coming Soon - Background: #1A1025
+Tag Coming Soon - Border: #3D2D6E
+Tag Coming Soon - Text: #C084FC
+
+Tag On Roadmap - Background: #111827
+Tag On Roadmap - Border: #1F2D45
+Tag On Roadmap - Text: #60A5FA
+
+Box Shadow - Cards: none (border only)
+Box Shadow - Modals: 0 24px 60px rgba(0,0,0,0.6)
+Box Shadow - Dropdowns: 0 12px 40px rgba(0,0,0,0.55)
