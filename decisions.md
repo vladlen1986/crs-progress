@@ -8,6 +8,43 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-27 — Locked 4 sections via Bubble Option Set reconciliation
+
+**Decided:** Bubble Option Set is now source of truth for these 4 sections,
+finalized in this commit:
+
+- Admin / Core (10): Casino Settings, User Management, Roles & Permissions,
+  Subscription & Tier, Fiscal Week Management, Notifications, System Activity
+  Log, Import & Export, API & Integrations, Contacts
+- Operations (8): Dashboard, Reporting, Task Manager, Request for
+  Investigation, Malfunction Log, Lost & Found, Break List, Policies &
+  Procedures
+- Surveillance (5): Daily Activity Log, Gaming Day Report, CCTV Audits,
+  Investigation Cases, Alert Center
+- HR / Employees (9): Employee Management, Job Board, Onboarding, Attendance,
+  Scheduling, Leave Management, Disciplinary Actions, Appraisals, Payroll
+
+**Net changes from prior locked state:**
+- Renamed: End of Shift Report → Gaming Day Report (Surveillance) — reflects
+  24h gaming day scope vs single shift
+- Removed: Equipment Inspection Log, Vehicles (both Surveillance)
+- Added: Policies & Procedures (Operations) — operational SOPs distinct from
+  Compliance's Policy Library
+- Confirmed: Import & Export already in CLAUDE.md changelog, now reflected
+  in Excel/Bubble
+- Reordered: sort_order in all 4 sections matched to Bubble display order
+  (× 10 increments)
+
+**Pending:** Guests, Compliance, Communication sections under review
+tomorrow. Source-of-truth for those remains the prior locked state until
+reviewed.
+
+**Trade-off accepted:** Equipment Inspection Log and Vehicles removed without
+formal pilot validation. Logged here as risk — if pilot later asks for either,
+revisit and re-add.
+
+---
+
 ## 2026-04-27 — Tech debt: rename DT code names ShiftLog → DailyActivityLog
 
 **Status:** Deferred. Identified but not acted on.

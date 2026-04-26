@@ -119,6 +119,10 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - 2026-04-27: Executed pending renames — Warnings → Disciplinary Actions; Onboarding + Job Board split into Onboarding and Job Board.
 - 2026-04-27: Added Break List module (Operations) — pilot explicitly requested. Real-time pit boss allocation distinct from Scheduling. Total now 45.
 - 2026-04-27: LOCKED — Multi-property tenancy as Pattern A (strict isolation). Every business DT requires company + property fields. User belongs to one property. See `decisions.md`.
+- 2026-04-27: Reconciled 4 sections (Admin / Core, Operations, Surveillance, HR / Employees) against finalized Bubble Option Set. Section composition locked for these 4. Guests/Compliance/Communication review pending tomorrow.
+- 2026-04-27: Renamed End of Shift Report → Gaming Day Report (Surveillance). Reflects 24-hour gaming day scope, not single shift.
+- 2026-04-27: Removed Equipment Inspection Log and Vehicles from Surveillance. Net composition unchanged after Policies & Procedures + Import & Export added.
+- 2026-04-27: Added Policies & Procedures (Operations) — central operational SOP library, distinct from Compliance's Policy Library.
 - Tasks moved to Operations (was Surveillance)
 - Investigation Cases moved to Surveillance (was Compliance)
 - Malfunction Log moved to Operations (was Surveillance)
