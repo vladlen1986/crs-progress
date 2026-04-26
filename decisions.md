@@ -8,6 +8,73 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-27 — Reality reset on module status
+
+**Decided:** All modules set to 'roadmap' status in the Excel. The previous
+live/soon/roadmap labels were aspirational tier-groupings, not build state.
+Nothing is actually built yet.
+
+**Why:** Mismatch between intended status and actual status was causing
+Claude (assistant + Code) to give answers based on aspirational state.
+Truth in source-of-truth is non-negotiable.
+
+**Future:** When a module ships in Bubble, flip its row to 'live' (and
+later 'soon' for active development). Until then, all 44 are roadmap.
+
+---
+
+## 2026-04-27 — iTrak gap analysis: 4 modules added, 12 skipped
+
+**Decided:** After comparing CRS's 39 modules against iTrak's published
+module list (Omnigo iTrak Modules Overview brochure), added 4 modules and
+permanently skipped 12.
+
+**Added (4):**
+- Contacts (Admin / Core) — vendors, agencies, regulators, suppliers
+- Vehicles (Surveillance) — plate, make, owner, linked to subjects/incidents
+- Lost & Found (Operations) — intake to disposal lifecycle
+- Visitor Management (Guests) — contractors, vendors, deliveries, VIP visits
+
+**Permanently skipped (12):**
+- Dispatch, Guard Tour, Work Orders — real needs but out of scope for
+  Core/Pro and don't fit ICP (mid-market European casinos)
+- Standard Reports — already covered by CRS Reporting module
+- Command & Planning — large-property pre-event feature, ICP doesn't need it
+- Mobile App — already a tier capability, not a module (per pricing/tiers.md)
+- Facial Recognition, License Plate Recognition — integration territory
+  (third-party APIs), not modules to build
+- FINTRAC — Canadian-specific AML reporting, ICP is European
+- IGNET+ — cross-property network effect, can't replicate from zero.
+  Counter-positioning: "regional system, no shared DB needed."
+- BI by Exago — already covered by CRS Dashboard module
+- Subjects — already covered by Guest Watchlist + Guest Barring
+
+**Equivalents confirmed (no action needed):**
+- iTrak "Daily Log" = CRS "Daily Activity Log"
+- iTrak "Briefing Log" = CRS "End of Shift Report"
+- iTrak "Incident Records" = CRS "Reporting"
+- iTrak "Personnel" = CRS "Employee Management"
+- iTrak "Patron Management" = CRS "Guest Management"
+- iTrak "Case Management" = CRS "Investigation Cases"
+- iTrak "Alerts" = CRS "Alert Center"
+- iTrak "Audits" = CRS "CCTV Audits" (CRS narrower scope, intentional)
+- iTrak "Notifications" = CRS "Notifications"
+
+**Why these criteria:**
+For each iTrak gap, three filters:
+1. Will the pilot's surveillance director use this in 90 days?
+2. Does it strengthen the wedge against iTrak, or just chase parity?
+3. Can it be built solo without partners?
+Two of three "no" → skip.
+
+**Required artifacts:**
+- data/CRS_Module_OptionSets.xlsx updated to 44 modules, all roadmap
+- CLAUDE.md updated to reflect 44 module count and reality reset
+- specs/CRS_Blueprint.html regeneration deferred to a separate commit
+  (still has stale module names in scripts/v21_content.py)
+
+---
+
 ## 2026-04-26 — Pricing tier structure locked (USD)
 
 **Decided:** Three-tier structure — Core ($15K/yr, 6 modules), Pro ($25K/yr, 
