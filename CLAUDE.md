@@ -135,8 +135,8 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 
 ## When in doubt
 
-1. Check decisions.md for prior rulings on architecture or commercial questions
-2. Check pricing/tiers.md for pricing questions
+1. Check `decisions.md` for prior rulings on architecture or commercial questions
+2. Check `pricing/tiers.md` for pricing questions
 3. Check `design/design.md` for design questions
 4. Check `data/CRS_Module_OptionSets.xlsx` for module data
 5. Check `specs/CRS_Blueprint.html` for spec details
