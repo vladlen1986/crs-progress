@@ -32,9 +32,9 @@ Multi-tenant SaaS for casino operations. Built on Bubble.io. Solo founder buildi
 6. **Search:** Hybrid (Native Bubble + Scious Omnisearch + Typesense).
 7. **Audit:** Single `ActivityLog` DT, polymorphic, async write.
 
-### Module count: 44 (locked, updated 2026-04-27)
+### Module count: 45 (locked, updated 2026-04-27)
 
-All 44 on roadmap. Nothing shipped yet. Status field in Excel = roadmap for all rows. **Do not invent new modules.** If discussing a module, it must be in `data/CRS_Module_OptionSets.xlsx`.
+All 45 on roadmap. Nothing shipped yet. Status field in Excel = roadmap for all rows. **Do not invent new modules.** If discussing a module, it must be in `data/CRS_Module_OptionSets.xlsx`.
 
 ### Sections (7, locked)
 
@@ -114,6 +114,7 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - 2026-04-27: Added 4 modules from iTrak gap analysis — Contacts (Admin / Core), Vehicles (Surveillance), Lost & Found (Operations), Visitor Management (Guests). Total now 44, all roadmap.
 - 2026-04-27: Confirmed Alert Center covers operational alarm management — no separate alarm module needed.
 - 2026-04-27: Executed pending renames — Warnings → Disciplinary Actions; Onboarding + Job Board split into Onboarding and Job Board.
+- 2026-04-27: Added Break List module (Operations) — pilot explicitly requested. Real-time pit boss allocation distinct from Scheduling. Total now 45.
 - Tasks moved to Operations (was Surveillance)
 - Investigation Cases moved to Surveillance (was Compliance)
 - Malfunction Log moved to Operations (was Surveillance)

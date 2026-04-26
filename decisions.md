@@ -8,6 +8,38 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-27 — Break List module added (45 total)
+
+**Decided:** Added Break List to Operations section as module 45.
+
+**Why:** Pilot explicitly requested it. Real-time pit boss allocation is a
+universal casino floor workflow. Confirmed separate from Scheduling —
+different lifecycle (real-time vs weekly), different ownership pattern
+during shift (Pit Boss vs HR/Manager).
+
+**Scope distinction:**
+- Scheduling (HR/Employees) — weekly/monthly shift planning, owned by HR
+- Break List (Operations) — real-time table assignment in 20–30 min
+  rotations during shift, owned by Pit Boss
+
+**Why not a feature of Scheduling:** Different users in operational context,
+different time horizon (real-time vs planning), different data shape
+(allocations to physical tables vs shifts to people), different access
+patterns (mobile/floor view vs desk view).
+
+**Open questions for build phase (not blocking module creation):**
+- Rotation interval: 20 vs 30 min — should be a casino setting per tenant
+- How does Break List read from Scheduling? (Does it pre-populate today's
+  available staff from the weekly schedule?)
+- Floor visualization: list view vs table-grid view
+- Break tracking: separate "on break" status vs implied gaps in allocation
+
+**Required artifacts:**
+- data/CRS_Module_OptionSets.xlsx — 45 rows
+- CLAUDE.md — module count updated to 45
+
+---
+
 ## 2026-04-27 — Reality reset on module status
 
 **Decided:** All modules set to 'roadmap' status in the Excel. The previous
