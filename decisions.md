@@ -8,6 +8,68 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-27 — Multi-property tenancy: Pattern A (strict isolation)
+
+**Decided:** Pattern A — strict property isolation. Every business Data
+Type carries `company` AND `property` fields. Each User belongs to exactly
+ONE property. Privacy rules check both fields on every business DT. No
+cross-property visibility for any user, ever.
+
+**Privacy rule template:**
+```
+Current User's company = This Thing's company
+AND
+Current User's property = This Thing's property
+```
+
+**Why Pattern A:**
+- Simplest correct model for MVP
+- Cleanest privacy logic — easy to reason about, hard to leak
+- Matches single-property pilot reality
+- Defensible to security review
+
+**Known trade-offs accepted:**
+- Group operators (Director overseeing 3 properties) need 3 user accounts
+- No cross-property reporting
+- No "view all properties" admin UX
+- A future multi-property customer triggers migration work
+
+**Exceptions — Data Types that DO NOT need a property field:**
+- `Company` — company is the parent of properties; no property field
+- `Property` — itself the property record; has company but not self-reference
+- `Subscription` / `Tier` — company-level billing
+- `Permission` (Option Set) — system-level
+- `Module` / `ModuleSection` / `ModuleStatus` (Option Sets) — system-level
+- Any system-level config or static reference data
+
+If a Data Type is unsure, default to having `company + property`. Removing
+later is safe; adding later requires migration.
+
+**Migration path to Pattern B (when a multi-property customer signs):**
+1. Convert `User.property` (single) to `User.accessible_properties` (list)
+2. Update all privacy rules to check
+   `Current User's accessible_properties contains This Thing's property`
+3. Update UI to show property selector for users with >1 property
+4. Migrate existing single-property users by wrapping their value in a list
+5. Document in `decisions.md` as Pattern B activation
+
+**Migration path to Pattern C (when a casino group signs):**
+1. Add `Role.has_all_properties` boolean (or equivalent permission)
+2. Update privacy rule template to allow role-based bypass:
+   `Current User's role's has_all_properties = yes
+    OR Current User's accessible_properties contains This Thing's property`
+3. Document trigger event and rollout
+
+**Required artifacts:**
+- `CLAUDE.md` updated (this commit)
+- `specs/CRS_Blueprint.html` — every business DT must show company + property
+  fields (audit pending — see `audits/2026-04-27-property-field-audit.md`
+  in this commit)
+- All Bubble Data Types built going forward must include both fields
+- All Bubble privacy rules must check both fields
+
+---
+
 ## 2026-04-27 — Break List module added (45 total)
 
 **Decided:** Added Break List to Operations section as module 45.

@@ -24,7 +24,7 @@ Multi-tenant SaaS for casino operations. Built on Bubble.io. Solo founder buildi
 
 ### Locked architecture decisions
 
-1. **Multi-tenant:** Company + Property tenancy. MVP = 1 property per company.
+1. **Multi-tenant + Multi-property (Pattern A — strict isolation):** Every business Data Type carries BOTH `company` and `property` fields. A user belongs to exactly ONE property. Privacy rules check both: `Current User's company = This Thing's company AND Current User's property = This Thing's property`. No cross-property visibility. See `decisions.md` 2026-04-27 for trade-offs and migration path.
 2. **Permissions:** Custom Role DT + fixed Permission OS + per-user extras list.
 3. **GDPR:** Hybrid anonymize/soft-delete/retain.
 4. **Tiers:** 3 subscription tiers (Core / Pro / Enterprise). 5 internal tier slots reserved in data model for future flexibility. See pricing/tiers.md.
@@ -105,6 +105,9 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - ❌ Don't fragment shared modules per department (Reporting is one module).
 - ❌ Don't use `#E0E0E0` as default body text.
 - ❌ Don't over-engineer. MVP first, scale later.
+- ❌ Don't write privacy rules that check only company. Must check company AND property on every business DT.
+- ❌ Don't add a Data Type without `company` and `property` fields unless it's explicitly listed in `decisions.md` as a known exception (Company, Subscription, system-level configs).
+- ❌ Don't design UI assumes a user can switch properties. They cannot.
 
 ---
 
@@ -115,6 +118,7 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - 2026-04-27: Confirmed Alert Center covers operational alarm management — no separate alarm module needed.
 - 2026-04-27: Executed pending renames — Warnings → Disciplinary Actions; Onboarding + Job Board split into Onboarding and Job Board.
 - 2026-04-27: Added Break List module (Operations) — pilot explicitly requested. Real-time pit boss allocation distinct from Scheduling. Total now 45.
+- 2026-04-27: LOCKED — Multi-property tenancy as Pattern A (strict isolation). Every business DT requires company + property fields. User belongs to one property. See `decisions.md`.
 - Tasks moved to Operations (was Surveillance)
 - Investigation Cases moved to Surveillance (was Compliance)
 - Malfunction Log moved to Operations (was Surveillance)
@@ -135,6 +139,7 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - Pinned section at top, items remain visible in original section with filled pin icon
 - Module click → `Go to page App, send parameter v = module's page_route`
 - App page renders `#GR - Coming Soon` if module status ≠ live
+- All sidebar queries (Repeating Groups, Search for X) must constrain by Current User's property, not just company.
 
 ---
 
