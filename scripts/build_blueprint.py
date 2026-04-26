@@ -8,9 +8,10 @@ Strategy:
 4. Each module container has a tab bar + tab panels
 5. Add routing JS at the bottom
 """
+import os
 import re
 import sys
-sys.path.insert(0, '/home/claude')
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from mapping import PLATFORM_PAGES, MODULES, TAB_ORDER, TAB_LABELS, CATEGORY_ORDER
 
 def extract_sections_content(html):
@@ -916,7 +917,11 @@ def build_routing_js():
 
 
 def main():
-    with open('CRS_Blueprint_Source.html') as f:
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    source_path = os.path.join(script_dir, '..', 'specs', 'CRS_Blueprint_Source.html')
+    output_path = os.path.join(script_dir, '..', 'specs', 'CRS_Blueprint.html')
+
+    with open(source_path, encoding='utf-8') as f:
         content = f.read()
 
     # Extract sections
@@ -981,9 +986,9 @@ def main():
 '''
 
     final = head + new_body
-    with open('/home/claude/CRS_Blueprint.html', 'w') as f:
+    with open(output_path, 'w', encoding='utf-8') as f:
         f.write(final)
-    print(f'Wrote {len(final)} chars to CRS_Blueprint.html')
+    print(f'Wrote {len(final)} chars to {output_path}')
 
 
 if __name__ == '__main__':

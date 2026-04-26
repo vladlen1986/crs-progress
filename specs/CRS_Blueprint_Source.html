@@ -1038,10 +1038,10 @@ code{
         <svg class="nav-group-chevron" width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M3 4l2 2 2-2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
       </div>
       <div class="nav-group-children">
-        <a class="nav-item pending-item" href="#s-pending">Shift Log</a>
+        <a class="nav-item pending-item" href="#s-pending">Daily Activity Log</a>
         <a class="nav-item pending-item" href="#s-pending">Malfunction Log</a>
         <a class="nav-item pending-item" href="#s-pending">Watchlist</a>
-        <a class="nav-item pending-item" href="#s-pending">Daily Brief</a>
+        <a class="nav-item pending-item" href="#s-pending">End of Shift Report</a>
       </div>
     </div>
 
@@ -1261,7 +1261,7 @@ code{
       <div class="label-row mt-16">Module Categories</div>
       <div class="two-col">
         <div class="info-card accent"><div class="info-card-title">Operations</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt">Dashboard, Reporting, Report Templates, Task Management, Request for Investigation</span></li></ul></div>
-        <div class="info-card cyan"><div class="info-card-title">Surveillance</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt">Operations, Watchlist, Shift Log, Malfunction Log, Pit Ops Shift Log, Daily Brief</span></li></ul></div>
+        <div class="info-card cyan"><div class="info-card-title">Surveillance</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt">Operations, Watchlist, Daily Activity Log, Malfunction Log, End of Shift Report</span></li></ul></div>
         <div class="info-card purple"><div class="info-card-title">Guests</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt">Guest Management, Barring, Opportunistic Lists</span></li></ul></div>
         <div class="info-card warning"><div class="info-card-title">Employees &amp; HR</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt"><strong>Employee Management</strong> (locked v18): Org hierarchy, profiles, multi-property assignments, documents, scoped notes, history, certifications, GDPR anonymization. <strong>Onboarding + Job Board</strong> (locked v20): Public careers page, 7-step application form, ApplicantAccount custom auth, 11-stage pipeline (9 active + 2 terminal), InterviewSession, template-based onboarding checklists, full GDPR. Plus pending: Appraisals, Warnings, Attendance, Scheduling, Payroll, Leave</span></li></ul></div>
         <div class="info-card success"><div class="info-card-title">Compliance</div><ul class="spec-list" style="margin:0;"><li><span class="dot"></span><span class="txt">Audit Management, Procedure & Policy, Inventory, Sensitive Equipment Control</span></li></ul></div>
@@ -1318,8 +1318,8 @@ code{
             <tr><td class="roadmap-num">04</td><td>Dashboard</td><td>Operations</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
 
             <!-- ── Surveillance ── -->
-            <tr><td class="roadmap-num">05</td><td>Surveillance Shift Log</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
-            <tr><td class="roadmap-num">06</td><td>Surveillance Daily Brief</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
+            <tr><td class="roadmap-num">05</td><td>Daily Activity Log</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
+            <tr><td class="roadmap-num">06</td><td>End of Shift Report</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">07</td><td>CCTV Audits</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">08</td><td>Malfunction Log</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">09</td><td>Close Watch</td><td>Surveillance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
@@ -1459,7 +1459,7 @@ code{
         </div>
         <div class="locked-card-section">
           <div class="locked-card-label">Omnisearch + Typesense</div>
-          <div class="locked-card-value">Report narrative + internal notes, task/RFI descriptions, fuzzy name search (Employee, Guest), Shift Log / Daily Brief full-text, global search bar. Preserves Bubble privacy rules automatically — required for multi-tenant safety.</div>
+          <div class="locked-card-value">Report narrative + internal notes, task/RFI descriptions, fuzzy name search (Employee, Guest), Daily Activity Log / End of Shift Report full-text, global search bar. Preserves Bubble privacy rules automatically — required for multi-tenant safety.</div>
         </div>
         <div class="locked-card-section">
           <div class="locked-card-label">Cost</div>
@@ -1499,9 +1499,9 @@ code{
             <tr><td>Reporting</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Tasks</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>RFI</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Shift Log</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>Daily Activity Log</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Malfunction Log</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
-            <tr><td>Daily Brief</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
+            <tr><td>End of Shift Report</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Guest Management</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Guest Barring + Lists</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
             <tr><td>Watchlist</td><td class="no">—</td><td class="no">—</td><td class="yes">✓</td><td class="yes">✓</td><td class="yes">✓</td></tr>
@@ -1614,7 +1614,7 @@ code{
             <tr><td>Report narrative + internal notes full-text</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Long text, grows unbounded, needs fuzzy</td></tr>
             <tr><td>Task / RFI description search</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Same reasoning</td></tr>
             <tr><td>Employee / Guest name search</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Fuzzy critical for Georgian/non-Latin names</td></tr>
-            <tr><td>Shift Log / Daily Brief / Malfunction Log</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Text-heavy logs, grows unbounded</td></tr>
+            <tr><td>Daily Activity Log / End of Shift Report / Malfunction Log</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Text-heavy logs, grows unbounded</td></tr>
             <tr><td>Global search bar (cross-entity)</td><td><strong style="color:var(--success-soft);">Omnisearch + Typesense</strong></td><td>Searches across multiple entity types</td></tr>
           </tbody>
         </table>
@@ -1732,7 +1732,7 @@ code{
             </tr>
             <tr>
               <td><strong>Scious Omnisearch</strong></td>
-              <td>Global Search, Reporting, Tasks, RFI, Shift Log, Guest, Employee</td>
+              <td>Global Search, Reporting, Tasks, RFI, Daily Activity Log, Guest, Employee</td>
               <td>Full-text fuzzy search across large datasets. Preserves Bubble privacy rules automatically — required for multi-tenant safety.</td>
               <td>Subscription — see pricing on Scious site</td>
               <td>Bubble Plugins marketplace</td>
@@ -1805,7 +1805,7 @@ code{
       <div class="action-card">
         <div class="action-card-label">Phase 2 — Module Specs (Active)</div>
         <div class="action-card-title">Spec remaining ~30 modules in dependency order</div>
-        <div class="action-card-desc">HR foundation (Employee) → Guest foundation → Surveillance modules (Shift Log, Daily Brief, CCTV Audits) → HR operational (Warnings, Appraisals, Attendance) → Compliance → Communication → Dashboard → Admin remainder.</div>
+        <div class="action-card-desc">HR foundation (Employee) → Guest foundation → Surveillance modules (Daily Activity Log, End of Shift Report, CCTV Audits) → HR operational (Warnings, Appraisals, Attendance) → Compliance → Communication → Dashboard → Admin remainder.</div>
       </div>
 
       <div class="action-card">
@@ -1847,8 +1847,8 @@ code{
         <table class="spec-table">
           <thead><tr><th>#</th><th>Module</th><th>Description</th><th>Status</th></tr></thead>
           <tbody>
-            <tr><td class="roadmap-num">05</td><td>Surveillance Shift Log</td><td>Operator shift handover log with entries per event</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
-            <tr><td class="roadmap-num">06</td><td>Surveillance Daily Brief</td><td>End-of-shift summary combining shift log + key events + KPIs</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
+            <tr><td class="roadmap-num">05</td><td>Daily Activity Log</td><td>Operator shift handover log with entries per event</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
+            <tr><td class="roadmap-num">06</td><td>End of Shift Report</td><td>End-of-shift summary combining shift activity + key events + KPIs</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">07</td><td>CCTV Audits</td><td>Scheduled surveillance audits — camera coverage, policy compliance</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">08</td><td>Malfunction Log</td><td>Equipment failures — CCTV cameras, card shufflers, slot machines</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
             <tr><td class="roadmap-num">09</td><td>Close Watch</td><td>Flagged guests/events under active surveillance monitoring</td><td><span class="tag" style="background:var(--surface-2);border-color:var(--border);color:var(--text-muted);">Pending</span></td></tr>
@@ -2845,6 +2845,7 @@ ADMIN (12)                   │  [Save Role — 23 permissions selected]<br>
         <div class="datatype-fields">
           <div class="datatype-field pk"><span class="datatype-field-name">id</span><span class="datatype-field-type">unique id</span><span class="datatype-field-note"></span></div>
           <div class="datatype-field idx fk"><span class="datatype-field-name">company</span><span class="datatype-field-type">Company</span><span class="datatype-field-note"></span></div>
+          <div class="datatype-field idx fk"><span class="datatype-field-name">property</span><span class="datatype-field-type">Property</span><span class="datatype-field-note"></span></div>
           <div class="datatype-field idx fk"><span class="datatype-field-name">requester</span><span class="datatype-field-type">User</span><span class="datatype-field-note"></span></div>
           <div class="datatype-field"><span class="datatype-field-name">permissions_requested</span><span class="datatype-field-type">list of OS - Permission</span><span class="datatype-field-note">Original ask (immutable once submitted)</span></div>
           <div class="datatype-field"><span class="datatype-field-name">permissions_approved</span><span class="datatype-field-type">list of OS - Permission</span><span class="datatype-field-note">What admin actually granted. Subset of requested.</span></div>
@@ -4694,7 +4695,7 @@ Step 3: Show success message</pre>
         <table class="spec-table">
           <thead><tr><th>Module</th><th>Event DT</th><th>gaming_date</th><th>fiscal_week</th></tr></thead>
           <tbody>
-            <tr><td>Surveillance Shift Log</td><td><code>ShiftLog</code>, <code>ShiftLogEntry</code></td><td>Required</td><td>Required</td></tr>
+            <tr><td>Daily Activity Log</td><td><code>ShiftLog</code>, <code>ShiftLogEntry</code></td><td>Required</td><td>Required</td></tr>
             <tr><td>Malfunction Log</td><td><code>Malfunction</code></td><td>Required</td><td>Required</td></tr>
             <tr><td>CCTV Audits</td><td><code>Audit</code>, <code>AuditFinding</code></td><td>Required</td><td>Required</td></tr>
             <tr><td>Close Watch</td><td><code>CloseWatchEntry</code></td><td>Required</td><td>Required</td></tr>
@@ -6346,11 +6347,10 @@ Atomicity: Bubble executes "Make changes to a Thing" atomically — no race cond
         <div class="info-card">
           <div class="info-card-title">Surveillance</div>
           <ul class="spec-list" style="margin:0;">
-            <li><span class="dot"></span><span class="txt">Shift Log</span></li>
+            <li><span class="dot"></span><span class="txt">Daily Activity Log</span></li>
             <li><span class="dot"></span><span class="txt">Malfunction Log</span></li>
             <li><span class="dot"></span><span class="txt">Watchlist & Intelligence</span></li>
-            <li><span class="dot"></span><span class="txt">Daily Brief & Handover</span></li>
-            <li><span class="dot"></span><span class="txt">Pit Operations Shift Log</span></li>
+            <li><span class="dot"></span><span class="txt">End of Shift Report</span></li>
           </ul>
         </div>
         <div class="info-card">

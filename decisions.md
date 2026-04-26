@@ -8,6 +8,25 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-27 — Tech debt: rename DT code names ShiftLog → DailyActivityLog
+
+**Status:** Deferred. Identified but not acted on.
+
+**Issue:** Internal DT code names ShiftLog and ShiftLogEntry remain in
+specs/CRS_Blueprint_Source.html (e.g., line 4697) after module name renames
+(Shift Log → Daily Activity Log). The display name now matches Excel, but
+the code identifier still uses the old terminology.
+
+**Why deferred:** Renaming code identifiers is a wider refactor — every
+reference in spec, privacy rule documentation, and (eventually) Bubble DT
+names. Not blocking any current work because no Bubble DT exists yet.
+
+**When to revisit:** Before creating the actual Bubble DT. Decide at that
+moment whether to use DailyActivityLog as the canonical code name or accept
+the legacy ShiftLog convention.
+
+---
+
 ## 2026-04-27 — Multi-property tenancy: Pattern A (strict isolation)
 
 **Decided:** Pattern A — strict property isolation. Every business Data
