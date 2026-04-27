@@ -8,6 +8,60 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-28 — Final lock: 46 modules across 7 sections (Bubble = source of truth)
+
+**Decided:** All 7 sections finalized in Bubble Option Set. Excel
+reconciled to match. From this point forward, Bubble is the operational
+source of truth for module composition.
+
+**Final composition (46 modules):**
+
+- **Operations (9):** Dashboard, Reporting, Task Manager, Request for
+  Investigation, Malfunction Log, Lost & Found, Break List, Meetings, Chain
+  of Command
+- **Surveillance (6):** Daily Activity Log, Gaming Day Report, CCTV
+  Audits, Investigation Cases, Advantage Play Analyzer, Alert Center
+- **HR / Employees (9):** Employee Management, Job Board, Onboarding,
+  Attendance, Scheduling, Leave Management, Disciplinary Actions,
+  Appraisals, Payroll
+- **Guests (6):** Guest Management, Visitor Management, Guest Watchlist,
+  Guest Barring, Guest Opportunist List, Blackbook Network
+- **Communication (2):** Info Board, Intercom
+- **Admin / Core (11):** Casino Settings, User Management, Roles &
+  Permissions, Subscription & Tier, Fiscal Week Management,
+  Notifications, System Activity Log, Import & Export, API &
+  Integrations, Contacts, Support Center
+- **Compliance (3):** Policy Library, House Rules, Sensitive Equipment
+
+**Net changes from prior reconciliation (2026-04-27):**
+- Added: Advantage Play Analyzer (Surveillance, pilot-requested AP
+  detection tool — see prior decisions.md entry)
+- Renamed: Chain of Command Chart → Chain of Command (Operations);
+  Inventory / Sensitive Equipment → Sensitive Equipment (Compliance — key
+  and route also updated to `sensitive_equipment` / `sensitive-equipment`)
+- Icon swaps (13): User Management → person-gear (was person-badge,
+  resolves collision with Visitor Management); Roles & Permissions →
+  shield-check; Fiscal Week Management → calendar; Request for
+  Investigation → envelope-open; Guest Watchlist → binoculars; Guest
+  Barring → journal-x; Guest Opportunist List → incognito; Blackbook
+  Network → globe-americas; Attendance → clock; House Rules → bank
+  (resolves collision with Policy Library which kept book); Sensitive
+  Equipment → safe; Info Board → megaphone; Intercom → chat-quote.
+
+**Lock policy from this point:**
+Module count locked at 46. Adding a module requires:
+1. Pilot-validated need (explicit ask or observed daily use), AND
+2. Distinct scope from existing modules, AND
+3. New decisions.md entry documenting reasoning
+
+Removing a module requires same rigor.
+
+**Next phase:** Move from spec/catalog work to actual product build.
+First Bubble DT to construct: Report (Operations / Reporting module)
+with company + property + privacy rules per Pattern A.
+
+---
+
 ## 2026-04-28 — Locked Guests, Compliance, Communication + cross-section additions
 
 **Decided:** Final composition of all 7 sections at 45 modules.

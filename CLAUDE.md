@@ -32,9 +32,9 @@ Multi-tenant SaaS for casino operations. Built on Bubble.io. Solo founder buildi
 6. **Search:** Hybrid (Native Bubble + Scious Omnisearch + Typesense).
 7. **Audit:** Single `ActivityLog` DT, polymorphic, async write.
 
-### Module count: 45 (locked, updated 2026-04-27)
+### Module count: 46 (locked, updated 2026-04-28)
 
-All 45 on roadmap. Nothing shipped yet. Status field in Excel = roadmap for all rows. **Do not invent new modules.** If discussing a module, it must be in `data/CRS_Module_OptionSets.xlsx`.
+All 46 on roadmap. Nothing shipped yet. Status field in Excel = roadmap for all rows. **Do not invent new modules.** If discussing a module, it must be in `data/CRS_Module_OptionSets.xlsx`.
 
 ### Sections (7, locked)
 
@@ -127,6 +127,7 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
   - Added: Meetings, Chain of Command Chart (Operations); Guest Opportunist List, Blackbook Network (Guests); House Rules (Compliance); Support Center (Admin / Core).
   - Renamed: Internal Messaging → Intercom (Communication).
   - Deleted: Policies & Procedures (Operations); Guest Statistics, VIP / Loyalty Tracking (Guests); Compliance Register, Regulatory Reports (Compliance); Announcements (Communication, folded into Info Board).
+- 2026-04-28: FINAL RECONCILIATION — all 7 sections locked at 46 modules total. Bubble Option Set is authoritative source. xlsx fully synced. Section composition: Operations 9, Surveillance 6, HR / Employees 9, Guests 6, Communication 2, Admin / Core 11, Compliance 3.
 - Tasks moved to Operations (was Surveillance)
 - Investigation Cases moved to Surveillance (was Compliance)
 - Malfunction Log moved to Operations (was Surveillance)
