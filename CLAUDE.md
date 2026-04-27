@@ -123,6 +123,10 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 - 2026-04-27: Renamed End of Shift Report → Gaming Day Report (Surveillance). Reflects 24-hour gaming day scope, not single shift.
 - 2026-04-27: Removed Equipment Inspection Log and Vehicles from Surveillance. Net composition unchanged after Policies & Procedures + Import & Export added.
 - 2026-04-27: Added Policies & Procedures (Operations) — central operational SOP library, distinct from Compliance's Policy Library.
+- 2026-04-28: Locked Guests, Compliance, Communication sections + finalized cross-section additions. Net: 6 ADDs, 6 DELETEs, 1 RENAME.
+  - Added: Meetings, Chain of Command Chart (Operations); Guest Opportunist List, Blackbook Network (Guests); House Rules (Compliance); Support Center (Admin / Core).
+  - Renamed: Internal Messaging → Intercom (Communication).
+  - Deleted: Policies & Procedures (Operations); Guest Statistics, VIP / Loyalty Tracking (Guests); Compliance Register, Regulatory Reports (Compliance); Announcements (Communication, folded into Info Board).
 - Tasks moved to Operations (was Surveillance)
 - Investigation Cases moved to Surveillance (was Compliance)
 - Malfunction Log moved to Operations (was Surveillance)

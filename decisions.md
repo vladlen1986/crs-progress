@@ -8,6 +8,59 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-04-28 — Locked Guests, Compliance, Communication + cross-section additions
+
+**Decided:** Final composition of all 7 sections at 45 modules.
+
+- Admin / Core (11): Casino Settings, User Management, Roles & Permissions,
+  Subscription & Tier, Fiscal Week Management, Notifications, System Activity
+  Log, Import & Export, API & Integrations, Contacts, Support Center
+- Operations (9): Dashboard, Reporting, Task Manager, Request for
+  Investigation, Malfunction Log, Lost & Found, Break List, Meetings, Chain
+  of Command Chart
+- Surveillance (5): Daily Activity Log, Gaming Day Report, CCTV Audits,
+  Investigation Cases, Alert Center
+- Guests (6): Guest Management, Visitor Management, Guest Watchlist, Guest
+  Barring, Guest Opportunist List, Blackbook Network
+- HR / Employees (9): Employee Management, Job Board, Onboarding, Attendance,
+  Scheduling, Leave Management, Disciplinary Actions, Appraisals, Payroll
+- Compliance (3): Policy Library, House Rules, Inventory / Sensitive
+  Equipment
+- Communication (2): Info Board, Intercom
+
+**Net changes from prior locked state:**
+- Added (6): Meetings, Chain of Command Chart (Operations); Guest Opportunist
+  List, Blackbook Network (Guests); House Rules (Compliance); Support Center
+  (Admin / Core).
+- Renamed (1): Internal Messaging → Intercom (Communication).
+- Deleted (6): Policies & Procedures (Operations); Guest Statistics, VIP /
+  Loyalty Tracking (Guests); Compliance Register, Regulatory Reports
+  (Compliance); Announcements (Communication, folded into Info Board).
+
+**Naming decisions:**
+- Intercom (Communication) — internal messenger module. Note: shares name
+  with external SaaS Intercom but used here as internal module name only.
+  Will rename if ever spun out as external product.
+- House Rules (Compliance) — chosen over "Game Reglament" (Georgian term)
+  because "House Rules" is the global industry standard used by UK, US,
+  EU, and Asian gaming regulators.
+- Support Center (Admin / Core) — combined Help Center + Feedback into one
+  module rather than fragmenting.
+
+**Trade-offs accepted:**
+- Removed Guest Statistics and VIP / Loyalty Tracking without pilot
+  validation. If pilot later asks for guest analytics or VIP tracking,
+  re-add as separate modules.
+- Removed Compliance Register and Regulatory Reports — pilot can use
+  Reporting + Policy Library + House Rules combination for now. Re-add
+  if real workflow gaps emerge.
+- Blackbook Network listed as Guests module placeholder, but actual
+  product is separate (Phase 2). Module description makes this explicit.
+- Chain of Command Chart added per user request despite "nice to have"
+  framing — accepting risk that this becomes a deferred build.
+
+---
+
 ## 2026-04-27 — Locked 4 sections via Bubble Option Set reconciliation
 
 **Decided:** Bubble Option Set is now source of truth for these 4 sections,
