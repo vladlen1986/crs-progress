@@ -8,6 +8,23 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Tech debt: Migrate Inspector/Tables from DT to Option Set
+
+**Decided:** Defer to post-May refactor.
+
+**Current state:** `15 Report - Inspector_Tables` DT.
+
+**Target state:** Convert to Option Set. Same reasoning as Report Group 
+and Event Status — fixed values, used in constraints, faster lookups.
+
+**Why deferred:** Migrating 13K+ Reports from `inspector_tables` (DT link) 
+to OS values requires bulk update + workflow updates + privacy rule 
+updates. Out of May scope.
+
+**Trigger to revisit:** Post-cutover, after foundation 4 modules stable.
+
+---
+
 ## 2026-05-01 — Tech debt: Migrate Report Event Status from DT to Option Set
 
 **Decided:** Defer to post-May refactor.
