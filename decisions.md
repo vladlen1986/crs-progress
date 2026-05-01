@@ -8,6 +8,46 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Multilingual UI: deferred to post-May, plan for June/July
+
+**Decided:** Multi-language UI is a MUST for CRS commercial sale 
+(non-English casino markets: Georgia, Russia, Turkey, Kazakhstan, 
+Armenia, EU non-English). Defer implementation to post-May.
+
+**Approach (locked for future build):**
+- **Static UI strings:** Option Set pattern. Single `OS - UI Strings` 
+  with attributes per language (en, ru, ka, tr, kz). Reference via 
+  `Current User's language`.
+- **User-generated content:** Per-DT language fields. Already in use on 
+  Report DT (event_description_english/georgian/russian/turkish). 
+  Continue this pattern on Daily Activity Log, Gaming Day Report, etc.
+- **NOT using:** Google Translate or auto-translation services (unreliable 
+  for casino domain terminology).
+
+**Languages targeted (priority order):**
+1. English (default)
+2. Russian (Russia, Georgia, Kazakhstan, Armenia)
+3. Georgian (pilot market)
+4. Turkish (Turkey market)
+5. Kazakh (Kazakhstan market)
+
+**Required artifacts (when build phase begins):**
+- OS - Language (option set with locale codes: en, ru, ka, tr, kz)
+- OS - UI Strings (option set with attributes per language)
+- User.language field (link to OS - Language)
+- Translation table for ~500-1000 UI strings minimum
+- Professional translator engagement (NOT auto-translation)
+
+**Effort estimate:** 30-50 hours for retrofit to existing 4-year app.
+
+**Why deferred:** Out of May refactor scope. Foundation modules and 
+multi-tenancy must ship first.
+
+**Trigger to revisit:** After May cutover stable, before commercial 
+launch to non-English market.
+
+---
+
 ## 2026-05-01 — Day 1 complete: Foundation tenancy schema (dev branch)
 
 **Decided:** Tenancy hierarchy locked and schema built on dev branch.
