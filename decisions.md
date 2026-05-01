@@ -8,6 +8,30 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Tech debt: Migrate Report Group from DT to Option Set
+
+**Decided:** Defer to post-May refactor.
+
+**Current state:** Report Group is `09 Report Group` DT with 4 records 
+(Error, Incident, Procedure Violation, Surveillance).
+
+**Target state:** Convert Report Group to Option Set. Reasons:
+- 4 fixed values, never change
+- Used in constraints across many searches
+- OS lookup faster than DT search in privacy rules
+- Saves WU on report directory queries
+
+**Out of scope:** Report Type stays as DT — user-created, per-tenant 
+customizable.
+
+**Why deferred:** Migrating 13K+ Reports from `report_group` (DT link) 
+to OS values requires bulk update + workflow updates + privacy rule 
+updates. Out of May scope.
+
+**Trigger to revisit:** Post-cutover, after foundation 4 modules stable.
+
+---
+
 ## 2026-04-27 — Locked 4 sections via Bubble Option Set reconciliation
 
 **Decided:** Bubble Option Set is now source of truth for these 4 sections,
