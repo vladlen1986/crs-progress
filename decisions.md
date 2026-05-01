@@ -8,6 +8,86 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Day 1 complete: Foundation tenancy schema (dev branch)
+
+**Decided:** Tenancy hierarchy locked and schema built on dev branch.
+
+**Hierarchy locked:**
+Company → Property → Division → Department
+
+Casino Section and Casino Location are physical attributes, not part of 
+org hierarchy. They link to Property only.
+
+**OS bug fixes:**
+- OS - Module Status: renamed "Alfa" → "Alpha" (Display only, db_values 
+  left as-is to avoid breaking workflow references).
+
+**Property DT created:**
+| Field | Type |
+|---|---|
+| company | 01 Company |
+| name | text |
+| code | text |
+| address | text |
+| city | text |
+| country | Country |
+| timezone | text |
+| phone | text |
+| email | text |
+| license_number | text |
+| opening_date | date |
+| logo | image |
+| active | yes/no |
+
+One Property record created: "Otium Casino" (code OTM, Batumi, Georgia, 
+Asia/Tbilisi).
+
+**Company DT extended (existing `name` field preserved):**
+Added: legal_name, registration_number, vat_number, country, timezone, 
+currency, phone, email, website, logo, active.
+
+Otium Company record populated with available values.
+
+**OS - Currency created:**
+GEL (₾), USD ($), EUR (€), RUB (₽), TRY (₺), KZT (₸).
+Attribute: symbol (text).
+
+**Department DT cleaned:**
+Removed `company` field (was never populated). Final fields: name, 
+short_name, division, property, order.
+
+**Property field added to:**
+All business and operational DTs (15+ DTs including User, Report, 
+Employee, Guest, Task, Fiscal Week, Gaming Date, Info Board, 
+Notification, Audit Run/Response/Template/Checklist, Report-Employee 
+Link, Report-Guest Link, etc.). Skipped only on reference DTs (Country, 
+OS - Currency, etc.). All fields empty — Day 4 migration will populate.
+
+**Casino Section + Casino Location:**
+Property field added. Company and Division fields removed (never 
+populated, no live data dependency).
+
+**Tech debt logged for post-May:**
+- Migrate Report Group (DT) → Option Set
+- Migrate Report Event Status (DT) → Option Set
+- Migrate Inspector/Tables (DT) → Option Set
+- Cleanup `company - deleted` option-set fields across DTs
+- Department.division removal once Department.property is verified working
+- 4-way permission system consolidation
+- Mission/Zona DT deletion
+- Update/Update Section DT deletion
+
+**Refactor rules in force:**
+1. Add new, don't delete old (1+ week overlap)
+2. Every change reversible until cutover
+3. Test on dev before touching live
+
+**Cutover plan:** Single migration end of May (Option A).
+
+**Day 2 plan:** User Management refactor.
+
+---
+
 ## 2026-05-01 — Tech debt: Migrate Inspector/Tables from DT to Option Set
 
 **Decided:** Defer to post-May refactor.
