@@ -8,6 +8,26 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Tech debt: Migrate Report Event Status from DT to Option Set
+
+**Decided:** Defer to post-May refactor.
+
+**Current state:** Report Event Status is `14 Report - Event Status` DT.
+
+**Target state:** Convert to Option Set. Reasons:
+- Fixed values, rarely change
+- Used in constraints across report searches
+- OS lookup faster than DT in privacy rules
+- Saves WU on report directory queries
+
+**Why deferred:** Migrating 13K+ Reports from `event_status` (DT link) 
+to OS values requires bulk update + workflow updates + privacy rule 
+updates. Out of May scope.
+
+**Trigger to revisit:** Post-cutover, after foundation 4 modules stable.
+
+---
+
 ## 2026-05-01 — Tech debt: Migrate Report Group from DT to Option Set
 
 **Decided:** Defer to post-May refactor.
