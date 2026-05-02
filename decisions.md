@@ -8,6 +8,96 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-02 — Day 2: Schema layer complete (OS - Timezone, OS - Currency, currency architecture)
+
+**Completed on dev branch:**
+
+OS - Timezone:
+- Full IANA list, 385 active entries
+- Attributes: display_name (text, IANA format), region (text)
+- Sorted by region → GMT offset → alphabetical
+- Half-hour offset labels fixed (Tehran GMT+3:30, Kabul GMT+4:30,
+  Kathmandu GMT+5:45, Yangon GMT+6:30, Kolkata/Colombo GMT+5:30,
+  Adelaide/Broken Hill/Darwin GMT+9:30, Eucla GMT+8:45, Lord Howe GMT+10:30,
+  Marquesas GMT-9:30, Chatham GMT+12:45, St Johns GMT-3:30)
+- 21 original entries soft-deleted
+- Note: GMT labels are static (no DST math); IANA display_name handles
+  real time logic
+
+OS - Currency:
+- Full ISO 4217 active list, 156 currencies
+- Attributes: code, name, country, symbol — all text
+- Display format: "USD - US Dollar ($)" with ASCII hyphens
+- 6 original entries soft-deleted
+
+Field type updates:
+- Company.timezone → OS - Timezone
+- Property.timezone → OS - Timezone
+- Company.currency → OS - Currency (default fallback for new properties)
+- Property.currency → OS - Currency (reporting/operational, primary)
+
+**Architectural decisions:**
+
+Currency belongs on Property (operational), not Company-only. Casino
+groups operate properties across countries with different operational
+currencies. Company.currency stays as group HQ default, but Property is
+the source of truth for all reports, financial entries, and rollups.
+
+Conceptual labels:
+- Property.currency = "Reporting Currency" — used for all reports,
+  financial entries, and rollups for that property
+- Company.currency = "Default Currency" — group HQ default, applied to
+  new properties on creation
+
+**Workflow rule (added 2026-05-01, reinforced):**
+
+- Bubble schema/workflow changes → Buildprint Build mode on dev branch
+- Repo edits (decisions.md, CLAUDE.md, audits) → Claude Code with
+  PERMISSION MODE pattern
+- Strategy/design/UX decisions → Claude chat
+- Reference: https://docs.buildprint.ai/best-practices-for-using-agents-xk9k2
+
+**Casino Settings reusable element (RE_CasinoSettings) — IN PROGRESS:**
+
+Status as of 2026-05-02:
+- Identity card complete (logo upload, name, legal_name,
+  registration_number, vat_number)
+- Locale & Operations card in progress (timezone + currency dropdowns)
+- Contact card pending (phone, email, website)
+- Status toggle card pending (active/inactive)
+- Properties tab pending (list + selected detail layout)
+- Property detail cards pending (Identity, Location, Operations, Status)
+- Workflows pending: save Company, save Property, add Property, logo upload
+- Privacy rules pending (Pattern A across both DTs)
+
+**Otium pilot data — populated:**
+- Otium Company: country=Georgia, timezone=Asia/Tbilisi, currency=USD
+  (group default)
+- Otium Casino Property: city=Batumi, timezone=Asia/Tbilisi, currency=USD
+
+**Report DT WU optimization — backlog identified, deferred:**
+- 50+ active fields (3x normal)
+- 22 soft-deleted fields still increasing payload
+- Multiple list fields bloating record size: bookmarked_by, read_by,
+  report_view_history, related_users, receipient_list, new_receipient_list,
+  report_comments, response
+- 4 multilingual description fields × 13K records
+- Denormalized data: gaming_date + fiscal_week, event_section +
+  event_location
+- Deferred to post-Casino-Settings session
+
+**Tech debt logged this session:**
+- Half-hour timezone GMT labels are static (no DST tracking) — acceptable,
+  IANA handles real time math
+- 21 + 6 soft-deleted Option Set entries (Bubble doesn't allow hard-delete)
+- Report DT cleanup planned for separate focused session
+
+**Next session priority:**
+Resume Casino Settings build — Locale & Operations card → Contact card →
+Status → Properties tab → Workflows → Privacy rules.
+
+---
+
 ## 2026-05-01 — Workflow rule: use Buildprint Build mode for Bubble schema/workflow changes
 
 **Decided:** From now on, schema changes (DTs, fields, Option Sets,
