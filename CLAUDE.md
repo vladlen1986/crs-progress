@@ -96,6 +96,27 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 
 ---
 
+## Tooling & workflow
+
+### Bubble work via Buildprint (added 2026-05-01)
+
+For schema changes, Option Sets, and workflow edits in Bubble:
+- Use Buildprint Build mode on DEV branch
+- Claude writes the Buildprint prompt; user pastes into Buildprint
+- Plan mode for inventory/discovery; Build mode only for actual changes
+- Always review Buildprint plan before approving
+- Never run Buildprint on live before May 31 cutover
+
+For repo work (decisions.md, CLAUDE.md, audits):
+- Claude Code as before, PERMISSION MODE pattern
+
+For strategy / design / UX decisions:
+- Direct chat with Claude
+
+See `decisions.md` 2026-05-01 for full rule set and prompt patterns.
+
+---
+
 ## Things NOT to do
 
 - ❌ Don't fabricate modules. If unsure, check the Excel.

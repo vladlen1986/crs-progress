@@ -8,6 +8,42 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-05-01 — Workflow rule: use Buildprint Build mode for Bubble schema/workflow changes
+
+**Decided:** From now on, schema changes (DTs, fields, Option Sets,
+privacy rules) and workflow edits in Bubble are executed via Buildprint
+Build mode using prompts written by Claude in chat, instead of manual
+click-by-click work in Bubble editor.
+
+**Rules:**
+- Buildprint runs only on DEV branch — NEVER on live until cutover.
+- Always start in Plan mode, switch to Build only for actual changes.
+- Switch back to Plan when done to prevent accidental edits.
+- Review Buildprint's plan before approving — same review discipline as
+  for Claude Code.
+- If Buildprint goes off-track: restart chat with narrower prompt, don't
+  try to fix in same conversation.
+- Use Buildprint's "fork chat" feature to compact long conversations.
+- Verify all Buildprint outputs against Bubble editor — agents can
+  hallucinate.
+
+**When NOT to use Buildprint:**
+- Strategy / architecture decisions (stay in Claude chat)
+- Design decisions / UX (stay in Claude chat)
+- Repo edits / decisions.md updates (Claude Code)
+- Anything touching live data before cutover
+
+**Prompt patterns Claude will write:**
+- Inventory queries (Plan mode): "Generate inventory of X"
+- Schema changes (Build mode): "Add field X to DT Y of type Z. Confirm
+  plan before applying."
+- Option Set creation (Build mode): full attribute + options table
+- Privacy rule changes (Build mode): explicit logic + verification step
+
+**Reference:** https://docs.buildprint.ai/best-practices-for-using-agents-xk9k2
+
+---
+
 ## 2026-04-28 — Final lock: 46 modules across 7 sections (Bubble = source of truth)
 
 **Decided:** All 7 sections finalized in Bubble Option Set. Excel
