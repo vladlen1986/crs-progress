@@ -13,8 +13,8 @@
 
   /* ───── Borders ───── */
   --border:        #242424;
-  --border-hover:  #2A2A2A;
-  --border-active: #333333;
+  --border-hover:  #333333;
+  --border-active: #3D3D3D;
 
   /* ───── Accent ───── */
   --accent:        #3B82F6;
