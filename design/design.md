@@ -20,8 +20,8 @@ Authoritative design reference for the Casino Reporting Suite (CRS). Everything 
 | Token | Hex | Use |
 |---|---|---|
 | `--border` | `#242424` | Default borders (matches surface-2 for subtle dividers) |
-| `--border-hover` | `#333333` | Hover state borders |
-| `--border-active` | `#3D3D3D` | Pressed/active borders |
+| `--border-hover` | `#2A2A2A` | Default input borders, hover state borders |
+| `--border-active` | `#333333` | Input hover borders, pressed/active borders |
 
 ### Accent (blue)
 
@@ -225,6 +225,14 @@ Every interactive component has these states defined:
 - **Empty state** (centered placeholder + ghost text + CTA)
 - **Loading state** (skeleton or spinner — not just blank)
 - **Error state** (red border + error message below)
+
+### Input states
+
+| State | Border |
+|---|---|
+| Default | `#2A2A2A` |
+| Hover | `#333333` |
+| Focus | `#3B82F6` |
 
 ---
 
