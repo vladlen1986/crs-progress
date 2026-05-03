@@ -23,6 +23,31 @@ Authoritative design reference for the Casino Reporting Suite (CRS). Everything 
 | `--border-hover` | `#333333` | Hover state borders |
 | `--border-active` | `#3D3D3D` | Pressed/active borders |
 
+### Inputs
+
+Input-specific tokens, separate from global border scale. Softer borders so fields don't compete with content for attention.
+
+| Token | Hex | Use |
+|---|---|---|
+| `--input-bg` | `#242424` | Default input background |
+| `--input-bg-focus` | `#2A2A2A` | Background when focused |
+| `--input-bg-disabled` | `#1E1E1E` | Disabled input background |
+| `--input-border` | `#2A2A2A` | Default input border |
+| `--input-border-hover` | `#333333` | Border on hover |
+| `--input-border-focus` | `#3B82F6` | Border when focused (matches `--accent`) |
+| `--input-border-error` | `#EF4444` | Border in error state (matches `--error`) |
+| `--input-glow-focus` | `rgba(59,130,246,0.13)` | 3px focus ring glow |
+| `--input-glow-error` | `rgba(239,68,68,0.13)` | 3px error ring glow |
+
+**Input states:**
+
+| State | Border | Glow |
+|---|---|---|
+| Default | `#2A2A2A` | — |
+| Hover | `#333333` | — |
+| Focus | `#3B82F6` | 3px `rgba(59,130,246,0.13)` |
+| Error | `#EF4444` | 3px `rgba(239,68,68,0.13)` |
+
 ### Accent (blue)
 
 | Token | Hex | Use |

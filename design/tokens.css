@@ -16,6 +16,17 @@
   --border-hover:  #333333;
   --border-active: #3D3D3D;
 
+  /* ───── Inputs ───── */
+  --input-bg:            #242424;
+  --input-bg-focus:      #2A2A2A;
+  --input-bg-disabled:   #1E1E1E;
+  --input-border:        #2A2A2A;
+  --input-border-hover:  #333333;
+  --input-border-focus:  #3B82F6;
+  --input-border-error:  #EF4444;
+  --input-glow-focus:    rgba(59,130,246,0.13);
+  --input-glow-error:    rgba(239,68,68,0.13);
+
   /* ───── Accent ───── */
   --accent:        #3B82F6;
   --accent-hover:  #2563EB;
