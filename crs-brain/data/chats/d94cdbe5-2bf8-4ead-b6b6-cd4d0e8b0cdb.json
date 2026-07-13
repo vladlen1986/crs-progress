@@ -1,0 +1,19 @@
+{
+  "id": "d94cdbe5-2bf8-4ead-b6b6-cd4d0e8b0cdb",
+  "title": "List the 7 CRS sections as a short bullet list.",
+  "sessionId": "371a7167-0b12-4919-b518-49b3a04b7e4a",
+  "created": "2026-07-13T20:13:28.416Z",
+  "updated": "2026-07-13T20:13:32.462Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "List the 7 CRS sections as a short bullet list.",
+      "ts": "2026-07-13T20:13:28.416Z"
+    },
+    {
+      "role": "assistant",
+      "content": "- Admin / Core\n- Operations\n- Surveillance\n- Guests\n- HR / Employees\n- Compliance\n- Communication",
+      "ts": "2026-07-13T20:13:32.462Z"
+    }
+  ]
+}
