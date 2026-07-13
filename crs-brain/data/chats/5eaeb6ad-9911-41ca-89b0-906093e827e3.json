@@ -1,0 +1,20 @@
+{
+  "id": "5eaeb6ad-9911-41ca-89b0-906093e827e3",
+  "title": "Give me a short markdown summary: 2 headings, a bullet list ",
+  "sessionId": "5b41607d-80fe-49c9-979e-b551901897dd",
+  "created": "2026-07-13T21:36:14.406Z",
+  "updated": "2026-07-13T21:36:19.370Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Give me a short markdown summary: 2 headings, a bullet list of 3 items, and one bold word.",
+      "ts": "2026-07-13T21:36:14.406Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "## Summary\n\nQuick note on the CRS project status.\n\n### Highlights\n- 46 modules locked across 7 sections, all currently **roadmap**\n- Multi-tenant + multi-property isolation (Pattern A) enforced on every business DT\n- Design tokens are the single source of truth — no hard-coded colors",
+      "ts": "2026-07-13T21:36:19.370Z"
+    }
+  ]
+}
