@@ -102,13 +102,18 @@ function walk(dir, baseRel = '') {
 }
 
 // ---- claude bridge ---------------------------------------------------------
-// Spawn `claude -p`, feed the prompt via stdin (avoids arg-escaping issues),
-// return parsed JSON result. Uses the Max subscription (no API key).
-function runClaude(message, sessionId) {
+// Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
+// text deltas as they arrive. Uses the Max subscription (no API key).
+// hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
+function runClaudeStream(message, sessionId, hooks = {}) {
+  const onDelta = hooks.onDelta || (() => {});
+  const onStatus = hooks.onStatus || (() => {});
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
-      '--output-format', 'json',
+      '--output-format', 'stream-json',
+      '--include-partial-messages',
+      '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
       '--append-system-prompt', SYSTEM_PROMPT,
     ];
@@ -121,36 +126,81 @@ function runClaude(message, sessionId) {
       windowsHide: true,
     });
 
-    let stdout = '';
+    let buf = '';
     let stderr = '';
+    let finalText = '';
+    let sawResult = false;
+
     const timer = setTimeout(() => {
       child.kill();
       reject(new Error('claude timed out after 5 minutes'));
     }, 5 * 60 * 1000);
 
-    child.stdout.on('data', (d) => (stdout += d));
+    function handleEvent(ev) {
+      if (!ev || !ev.type) return;
+      if (ev.type === 'stream_event' && ev.event) {
+        const e = ev.event;
+        if (e.type === 'content_block_delta' && e.delta && e.delta.type === 'text_delta') {
+          onDelta(e.delta.text || '');
+        } else if (e.type === 'content_block_start' && e.content_block && e.content_block.type === 'tool_use') {
+          onStatus(e.content_block.name || 'working');
+        }
+      } else if (ev.type === 'result') {
+        sawResult = true;
+        finalText = ev.result || finalText;
+        sessionId = ev.session_id || sessionId;
+      }
+    }
+
+    child.stdout.on('data', (d) => {
+      buf += d;
+      let nl;
+      while ((nl = buf.indexOf('\n')) >= 0) {
+        const line = buf.slice(0, nl).trim();
+        buf = buf.slice(nl + 1);
+        if (!line) continue;
+        try { handleEvent(JSON.parse(line)); } catch { /* ignore non-JSON lines */ }
+      }
+    });
     child.stderr.on('data', (d) => (stderr += d));
     child.on('error', (e) => { clearTimeout(timer); reject(e); });
     child.on('close', (code) => {
       clearTimeout(timer);
-      if (code !== 0 && !stdout) {
+      if (buf.trim()) { try { handleEvent(JSON.parse(buf.trim())); } catch {} }
+      if (!sawResult && code !== 0) {
         return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 500)}`));
       }
-      try {
-        const parsed = JSON.parse(stdout);
-        resolve({
-          text: parsed.result || '',
-          sessionId: parsed.session_id || sessionId,
-          isError: !!parsed.is_error,
-          durationMs: parsed.duration_ms,
-        });
-      } catch (e) {
-        reject(new Error('could not parse claude output: ' + stdout.slice(0, 300)));
-      }
+      resolve({ text: finalText, sessionId });
     });
 
     child.stdin.write(message);
     child.stdin.end();
+  });
+}
+
+// ---- git helpers -----------------------------------------------------------
+// Best-effort commit of the brain's memory after each exchange. Non-fatal.
+function autoCommit(title) {
+  if (process.env.CRS_BRAIN_AUTOCOMMIT === '0') return;
+  const msg = 'brain: ' + String(title || 'update').replace(/[\r\n]+/g, ' ').slice(0, 60);
+  const add = spawn('git', ['add', 'crs-brain/data'], { cwd: REPO_ROOT, windowsHide: true });
+  add.on('error', () => {});
+  add.on('close', () => {
+    const commit = spawn('git', ['commit', '-q', '--no-verify', '-m', msg], { cwd: REPO_ROOT, windowsHide: true });
+    commit.on('error', () => {});   // nothing-to-commit or no-repo → ignore
+  });
+}
+
+// Recent commit log for the weekly digest.
+function gitLog(days) {
+  return new Promise((resolve) => {
+    const child = spawn('git',
+      ['log', `--since=${days} days ago`, '--pretty=format:%h  %ad  %s', '--date=short'],
+      { cwd: REPO_ROOT, windowsHide: true });
+    let out = '';
+    child.stdout.on('data', (d) => (out += d));
+    child.on('error', () => resolve(''));
+    child.on('close', () => resolve(out.trim()));
   });
 }
 
@@ -249,33 +299,48 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req);
       const message = (body.message || '').toString();
       if (!message.trim()) return send(res, 400, { error: 'empty message' });
+      // `title` lets the caller (e.g. digest) set a friendly name distinct from the prompt.
+      const forcedTitle = (body.title || '').toString().trim();
 
       let chat = body.id ? loadChat(body.id) : null;
       if (!chat) {
         chat = {
           id: crypto.randomUUID(),
-          title: message.slice(0, 60),
+          title: forcedTitle || message.slice(0, 60),
           sessionId: null,
           created: nowIso(),
           updated: nowIso(),
           messages: [],
         };
       }
-
       chat.messages.push({ role: 'user', content: message, ts: nowIso() });
 
-      const result = await runClaude(message, chat.sessionId);
-      chat.sessionId = result.sessionId;
-      chat.updated = nowIso();
-      chat.messages.push({ role: 'assistant', content: result.text, ts: nowIso() });
-      saveChat(chat);
-
-      return send(res, 200, {
-        id: chat.id,
-        title: chat.title,
-        reply: result.text,
-        sessionId: chat.sessionId,
+      // Stream Server-Sent Events back to the browser.
+      res.writeHead(200, {
+        'Content-Type': 'text/event-stream; charset=utf-8',
+        'Cache-Control': 'no-cache',
+        'Connection': 'keep-alive',
       });
+      const sse = (o) => res.write(`data: ${JSON.stringify(o)}\n\n`);
+      sse({ type: 'meta', id: chat.id, title: chat.title });
+
+      let streamed = '';
+      try {
+        const result = await runClaudeStream(message, chat.sessionId, {
+          onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
+          onStatus: (s) => sse({ type: 'status', text: s }),
+        });
+        const finalText = result.text || streamed;
+        chat.sessionId = result.sessionId;
+        chat.updated = nowIso();
+        chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso() });
+        saveChat(chat);
+        autoCommit(chat.title);
+        sse({ type: 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
+      } catch (e) {
+        sse({ type: 'error', error: e.message });
+      }
+      return res.end();
     }
 
     if (p === '/api/chat' && req.method === 'DELETE') {
@@ -286,6 +351,12 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    if (p === '/api/digest-context' && req.method === 'GET') {
+      const days = Math.max(1, Math.min(90, parseInt(u.searchParams.get('days')) || 7));
+      const log = await gitLog(days);
+      return send(res, 200, { days, log, progress: loadProgress() });
     }
 
     if (p === '/api/progress' && req.method === 'PUT') {

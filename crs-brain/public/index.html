@@ -125,7 +125,10 @@
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
       <button id="tabFiles" onclick="setTab('files')">Files</button>
     </div>
-    <button class="newbtn" onclick="newChat()" id="newChatBtn">+ New conversation</button>
+    <div id="chatActions">
+      <button class="newbtn" onclick="newChat()">+ New conversation</button>
+      <button class="newbtn" onclick="runDigest()" style="margin-top:-2px">✨ Weekly digest</button>
+    </div>
     <div class="pane" id="paneChats"></div>
     <div class="pane hide tree" id="paneFiles"></div>
   </div>
@@ -205,7 +208,7 @@ async function api(path,opts){ const r=await fetch(path,opts); if(!r.ok){const e
 function setTab(t){ state.tab=t;
   $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files');
   $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files');
-  $('newChatBtn').style.display = t==='chats' ? '' : 'none';
+  $('chatActions').style.display = t==='chats' ? '' : 'none';
 }
 
 // ---------- chats ----------
@@ -233,30 +236,70 @@ function renderChat(messages){
 }
 function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
 
-async function sendMsg(){
-  if(state.sending) return;
-  const input=$('input'); const text=input.value.trim(); if(!text) return;
+function sendMsg(){
+  const input=$('input'); const text=input.value.trim(); if(!text||state.sending) return;
   input.value=''; input.style.height='auto';
+  streamChat(text);
+}
+
+// Core streaming exchange — shared by normal chat and the weekly digest.
+async function streamChat(text, opts={}){
+  if(state.sending) return;
   showChat();
   const log=$('chatLog');
   if(log.querySelector('.empty')) log.innerHTML='';
   const u=document.createElement('div'); u.className='msg user';
   u.innerHTML=`<div class="who">You</div><div class="bubble">${esc(text).replace(/\n/g,'<br>')}</div>`; log.appendChild(u);
   const a=document.createElement('div'); a.className='msg assistant';
-  a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble think"><span class="spin"></span> thinking…</div>`; log.appendChild(a);
+  a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble md think"><span class="spin"></span> thinking…</div>`; log.appendChild(a);
+  const bubble=a.querySelector('.bubble');
   log.scrollTop=log.scrollHeight;
   state.sending=true; $('sendBtn').disabled=true;
+  let acc='';
+  const near=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 120;
   try{
-    const res=await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text})});
-    state.chatId=res.id;
-    a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble md">${renderMd(res.reply)}</div>`;
-    $('centerTitle').textContent=res.title||'Conversation';
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title})});
+    if(!res.body) throw new Error('no stream');
+    const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){
+      const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let idx;
+      while((idx=buf.indexOf('\n\n'))>=0){
+        const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
+        const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
+        let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
+        const stick=near();
+        if(ev.type==='meta'){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=ev.title; }
+        else if(ev.type==='status'){ if(!acc){ bubble.classList.add('think'); bubble.innerHTML=`<span class="spin"></span> ${esc(ev.text)}…`; } }
+        else if(ev.type==='delta'){ acc+=ev.text; bubble.classList.remove('think'); bubble.innerHTML=renderMd(acc); }
+        else if(ev.type==='done'){ state.chatId=ev.id; bubble.classList.remove('think'); bubble.innerHTML=renderMd(ev.reply||acc); if(ev.title) $('centerTitle').textContent=ev.title; }
+        else if(ev.type==='error'){ bubble.classList.remove('think'); bubble.style.borderColor='#5a2b2b'; bubble.style.color='#e0a0a0'; bubble.innerHTML='Error: '+esc(ev.error); }
+        if(stick) log.scrollTop=log.scrollHeight;
+      }
+    }
     loadChats(); loadProgress();
   }catch(e){
-    a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble" style="border-color:#5a2b2b;color:#e0a0a0">Error: ${esc(e.message)}</div>`;
+    bubble.classList.remove('think'); bubble.style.borderColor='#5a2b2b'; bubble.style.color='#e0a0a0'; bubble.innerHTML='Error: '+esc(e.message);
   }finally{
-    state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight;
+    state.sending=false; $('sendBtn').disabled=false;
   }
+}
+
+// Weekly digest — pull recent git commits + progress board, ask the Brain to synthesize.
+async function runDigest(){
+  if(state.sending) return;
+  newChat();
+  toast('Gathering recent changes…');
+  try{
+    const ctx=await api('/api/digest-context?days=7');
+    const prog=JSON.stringify(ctx.progress,null,2);
+    const msg=`Weekly digest. Use ONLY the context provided below — do not read repo files (keep this fast). Tell me:\n`+
+      `1) What changed in the last ${ctx.days} days\n2) What's in progress now\n3) What's next\n4) Anything missing, stalled, or at risk.\n`+
+      `Be concise and specific.\n\n`+
+      `## Git commits (last ${ctx.days} days)\n${ctx.log||'(none)'}\n\n## Progress board\n\`\`\`json\n${prog}\n\`\`\``;
+    streamChat(msg,{title:'Weekly digest — '+new Date().toISOString().slice(0,10)});
+  }catch(e){ toast('Digest failed: '+e.message); }
 }
 
 // ---------- files ----------
