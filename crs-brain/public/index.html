@@ -82,6 +82,10 @@
   .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:.15s}
   .ghost:hover{border-color:rgba(91,135,255,.45);color:var(--primary)}
   .ghost.on{border-color:var(--accent);color:var(--primary);background:var(--accent-soft)}
+  .sel{background:var(--panel2) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="%236c6c78" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 9px center;border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 26px 6px 10px;font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;transition:.15s;-webkit-appearance:none;appearance:none}
+  .sel:hover{border-color:rgba(91,135,255,.45);color:var(--primary)}
+  .sel:focus{outline:none;border-color:var(--accent)}
+  .sel option{background:var(--panel2);color:var(--primary)}
 
   /* chat */
   .chat{flex:1;overflow:auto;padding:26px 18px 10px}
@@ -212,6 +216,20 @@
     <div class="center-head">
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
+      <select class="sel" id="modelSel" title="Model" onchange="applyModelSettings()">
+        <option value="claude-opus-4-8">Opus 4.8</option>
+        <option value="claude-opus-4-7">Opus 4.7</option>
+        <option value="claude-sonnet-5">Sonnet 5</option>
+        <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
+        <option value="claude-fable-5">Fable 5</option>
+      </select>
+      <select class="sel" id="effortSel" title="Reasoning effort" onchange="applyModelSettings()">
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="xhigh">X-High</option>
+        <option value="max">Max</option>
+      </select>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
@@ -431,7 +449,7 @@ async function streamChat(text, opts={}){
   setTimeout(pump, 16);
 
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[]})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],model:$('modelSel')?.value,effort:$('effortSel')?.value})});
     if(!res.body) throw new Error('no stream');
     const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
     while(true){
@@ -583,8 +601,22 @@ async function logoutClaude(){
   loadAuth(); toast('Disconnected');
 }
 
+// ---------- model / effort ----------
+async function loadModelSettings(){
+  try{ const s=await api('/api/settings');
+    if($('modelSel')&&[...$('modelSel').options].some(o=>o.value===s.model)) $('modelSel').value=s.model;
+    if($('effortSel')&&s.effort) $('effortSel').value=s.effort;
+  }catch{}
+}
+async function applyModelSettings(){
+  const model=$('modelSel').value, effort=$('effortSel').value;
+  try{ await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,effort})});
+    toast($('modelSel').selectedOptions[0].text+'  ·  '+$('effortSel').selectedOptions[0].text+' effort');
+  }catch(e){ toast('Could not save: '+e.message); }
+}
+
 // ---------- boot ----------
-(async function(){ loadAuth(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+(async function(){ loadAuth(); loadModelSettings(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
 </script>
 </body>
 </html>

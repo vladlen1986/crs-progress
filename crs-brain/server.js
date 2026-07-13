@@ -27,8 +27,16 @@ const CHATS_DIR = path.join(DATA_DIR, 'chats');
 const ATTACH_DIR = path.join(DATA_DIR, 'attachments');
 const DOCS_DIR = path.join(DATA_DIR, 'docs');
 const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
+const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
 for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
+
+const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high' };
+function loadSettings() {
+  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
+  catch { return { ...DEFAULT_SETTINGS }; }
+}
+function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2)); }
 
 const PORT = process.env.CRS_BRAIN_PORT || 4317;
 
@@ -107,7 +115,7 @@ function walk(dir, baseRel = '') {
 // Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
 // text deltas as they arrive. Uses the Max subscription (no API key).
 // hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
-function runClaudeStream(message, sessionId, hooks = {}) {
+function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onDelta = hooks.onDelta || (() => {});
   const onStatus = hooks.onStatus || (() => {});
   return new Promise((resolve, reject) => {
@@ -119,6 +127,8 @@ function runClaudeStream(message, sessionId, hooks = {}) {
       '--permission-mode', 'acceptEdits',
       '--append-system-prompt', SYSTEM_PROMPT,
     ];
+    if (opts.model) args.push('--model', opts.model);
+    if (opts.effort) args.push('--effort', opts.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
@@ -374,10 +384,15 @@ const server = http.createServer(async (req, res) => {
 
       let streamed = '';
       try {
+        const cfg = loadSettings();
+        const runOpts = {
+          model: (body.model || cfg.model || '').toString() || undefined,
+          effort: (body.effort || cfg.effort || '').toString() || undefined,
+        };
         const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
-        });
+        }, runOpts);
         const finalText = result.text || streamed;
         chat.sessionId = result.sessionId;
         chat.updated = nowIso();
@@ -395,6 +410,20 @@ const server = http.createServer(async (req, res) => {
       const id = u.searchParams.get('id');
       try { fs.unlinkSync(chatPath(id)); } catch {}
       return send(res, 200, { ok: true });
+    }
+
+    if (p === '/api/settings' && req.method === 'GET') {
+      return send(res, 200, loadSettings());
+    }
+    if (p === '/api/settings' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      const cur = loadSettings();
+      const next = {
+        model: (body.model || cur.model).toString(),
+        effort: (body.effort || cur.effort).toString(),
+      };
+      saveSettings(next);
+      return send(res, 200, next);
     }
 
     if (p === '/api/progress' && req.method === 'GET') {
