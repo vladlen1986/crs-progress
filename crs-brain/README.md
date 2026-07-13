@@ -32,8 +32,10 @@ To stop: press `Ctrl+C` in the terminal (or close the window).
 |---|---|
 | **Chats** (left) | Conversations with Claude. Each one is resumable — Claude remembers the whole thread. Saved to `data/chats/*.json`. |
 | **Files** (left) | Tree of every `.md`/`.txt`/`.json`/… in the repo. Click to read (markdown rendered); hit **Edit** → **Save** to change it. |
-| **Chat** (center) | Ask anything: "what's next?", "what's missing?", "summarize the currency decision", "update the progress board". Claude reads the real files to answer. |
+| **Chat** (center) | Ask anything: "what's next?", "what's missing?", "summarize the currency decision", "update the progress board". Replies **stream in live**; Claude reads the real files to answer. |
+| **Weekly digest** (button) | One click pulls the last 7 days of git commits + the progress board and asks the Brain: what changed, what's in progress, what's next, what's missing/stalled. |
 | **Progress** (right) | Now / Next / Later / Done + a Missing-gaps list. Ask the Brain to update it and it edits `data/progress.json`. |
+| **Auto-commit** | Every exchange commits `crs-brain/data` to git automatically, so your memory is always versioned. Turn it off with `CRS_BRAIN_AUTOCOMMIT=0`. |
 
 ## Memory = git
 
