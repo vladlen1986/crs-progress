@@ -1,0 +1,22 @@
+{
+  "id": "304bce62-df07-407a-ae39-6de1f2f6c4bc",
+  "title": "this is an updated design md file please replace the old one",
+  "sessionId": "647bce9b-4028-4a1c-90c0-01b5e86f8c2b",
+  "created": "2026-07-13T21:27:21.440Z",
+  "updated": "2026-07-13T21:30:28.897Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "this is an updated design md file please replace the old one",
+      "ts": "2026-07-13T21:27:21.440Z",
+      "attachments": [
+        "crs-brain/data/attachments/da351c2c-design _1_.md"
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "Replaced `design/design.md` with the new merged version (adds Soft Grey light theme, paired token tables, §3 theme system, §5–§9 modal/menu/filter patterns, §20 component addenda; corrects module count to 46 and permissions to single-list-on-role).\n\nTwo things worth flagging from the new doc that touch other files you'll want to keep aligned:\n\n1. **CLAUDE.md still says \"3 tiers\"** (Core/Pro/Enterprise) — new design.md §12 point 4 says \"5 subscription tiers.\" One of them is stale. Want me to reconcile?\n2. **Old `design/tokens.css` and `Styles.txt`** are now explicitly superseded (\"This file replaces the old `design.md` + `Styles.txt` (now merged)\"). Delete them, or leave as legacy references?",
+      "ts": "2026-07-13T21:30:28.897Z"
+    }
+  ]
+}
