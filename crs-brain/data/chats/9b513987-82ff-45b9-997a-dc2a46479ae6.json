@@ -1,0 +1,19 @@
+{
+  "id": "9b513987-82ff-45b9-997a-dc2a46479ae6",
+  "title": "Weekly digest — 2026-07-13",
+  "sessionId": "2beee49f-b6f6-4df4-8327-0f2a973bddb5",
+  "created": "2026-07-13T20:19:45.598Z",
+  "updated": "2026-07-13T20:19:56.990Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Weekly digest. Use ONLY the context provided below — do not read repo files (keep this fast). Tell me:\n1) What changed in the last 7 days\n2) What's in progress now\n3) What's next\n4) Anything missing, stalled, or at risk.\nBe concise and specific.\n\n## Git commits (last 7 days)\neecd45e  2026-07-14  brain: Weekly digest test\n6e93335  2026-07-14  brain: List the 7 CRS sections as a short bullet list.\ncfec90f  2026-07-14  Add CRS Brain — local second-brain app (subscription-powered)\n\n## Progress board\n```json\n{\n  \"updated\": \"2026-05-02\",\n  \"note\": \"Maintained by you and CRS Brain. Ask the Brain to 'update progress' and it edits this file.\",\n  \"columns\": {\n    \"now\": [\n      {\n        \"id\": \"casino-settings-re\",\n        \"title\": \"Casino Settings RE\",\n        \"note\": \"Reusable element — in progress\"\n      }\n    ],\n    \"next\": [],\n    \"later\": [\n      {\n        \"id\": \"report-dt-wu\",\n        \"title\": \"Report DT Workflow optimization\",\n        \"note\": \"Deferred (Day 2)\"\n      }\n    ],\n    \"done\": [\n      {\n        \"id\": \"os-timezone\",\n        \"title\": \"OS – Timezone\",\n        \"note\": \"385 IANA entries\"\n      },\n      {\n        \"id\": \"os-currency\",\n        \"title\": \"OS – Currency\",\n        \"note\": \"156 ISO 4217\"\n      },\n      {\n        \"id\": \"currency-arch\",\n        \"title\": \"Currency architecture\",\n        \"note\": \"Property = reporting, Company = default\"\n      }\n    ]\n  },\n  \"missing\": []\n}\n```",
+      "ts": "2026-07-13T20:19:45.598Z"
+    },
+    {
+      "role": "assistant",
+      "content": "## Weekly digest\n\n**1) Last 7 days (all 2026-07-14)**\n- Spun up CRS Brain — local second-brain app (subscription-powered).\n- Added the 7 CRS sections as a bullet list in Brain.\n- Weekly digest wiring test.\n\nAll three commits landed today; the six days prior were silent.\n\n**2) In progress now**\n- Casino Settings RE (reusable element).\n\n**3) Next**\n- `next` column is empty. Nothing queued.\n\n**4) Missing / stalled / at risk**\n- **Empty `next` queue** — no staged work after Casino Settings RE ships. Decide the follow-on now, don't wait.\n- **Board stale** — `updated: 2026-05-02`, i.e. ~10 weeks untouched. Either the board is abandoned or progress isn't being logged. Progress board can't be trusted as a status source until refreshed.\n- **6 silent days before today** — three commits in one burst suggests batched work, not steady cadence. Fine if intentional; a risk if you thought you were shipping daily.\n- **Report DT Workflow optimization** sitting in `later` since May — confirm it's still deferred, not forgotten.\n- **No Bubble/schema work reflected** — all three commits are Brain/tooling. Casino Settings RE (the actual product work) has no commit trail this week.",
+      "ts": "2026-07-13T20:19:56.990Z"
+    }
+  ]
+}
