@@ -3,7 +3,7 @@
   "title": "Are you still here ?",
   "sessionId": "82751467-02ac-4518-b051-e6fb92488d82",
   "created": "2026-07-13T21:20:39.993Z",
-  "updated": "2026-07-13T21:20:52.115Z",
+  "updated": "2026-07-13T21:21:12.813Z",
   "messages": [
     {
       "role": "user",
@@ -26,6 +26,17 @@
       "role": "assistant",
       "content": "Why don't casinos ever play hide and seek?\n\nBecause good luck hiding when there's a camera every 3 feet.",
       "ts": "2026-07-13T21:20:52.115Z"
+    },
+    {
+      "role": "user",
+      "content": "another one",
+      "ts": "2026-07-13T21:21:07.302Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "A pit boss walks into a bar and orders a drink.\n\nThe bartender says, \"Sorry, we don't serve your kind here.\"\n\nPit boss: \"What, pit bosses?\"\n\nBartender: \"No — people who count my pours.\"",
+      "ts": "2026-07-13T21:21:12.813Z"
     }
   ]
 }
