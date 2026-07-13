@@ -78,7 +78,21 @@
   .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;color:var(--secondary)}
   .bubble.think{color:var(--muted);font-style:italic}
 
-  .composer{border-top:1px solid var(--line);padding:12px 18px;display:flex;gap:10px;align-items:flex-end}
+  .composer-wrap{border-top:1px solid var(--line)}
+  .composer{padding:12px 18px;display:flex;gap:10px;align-items:flex-end}
+  .attach-btn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:10px;width:44px;height:44px;font-size:17px;flex:0 0 auto}
+  .attach-btn:hover{border-color:var(--accent);color:var(--primary)}
+  .attach-chips{display:flex;flex-wrap:wrap;gap:6px;padding:10px 18px 0}
+  .attach-chips:empty{display:none}
+  .chip{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:12px;color:var(--secondary)}
+  .chip .rm{cursor:pointer;color:var(--muted);font-weight:700}
+  .chip .rm:hover{color:#e0a0a0}
+  .chip.up{opacity:.6}
+  .msg-atts{margin-bottom:7px;display:flex;flex-wrap:wrap;gap:6px}
+  .matt{font-size:11px;background:rgba(255,255,255,.06);border-radius:5px;padding:2px 8px;color:var(--primary)}
+  .msg-acts{display:flex;gap:8px;margin-top:7px;max-width:760px;margin-left:auto;margin-right:auto}
+  .msg-acts button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:3px 11px;font-size:11px;cursor:pointer}
+  .msg-acts button:hover{border-color:var(--accent);color:var(--primary)}
   .composer textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line);color:var(--primary);border-radius:10px;padding:11px 14px;font-family:inherit;font-size:14px;max-height:180px;min-height:44px}
   .composer textarea:focus{outline:none;border-color:var(--accent)}
   .send{background:var(--accent);border:none;color:#06121f;font-weight:700;border-radius:10px;padding:11px 18px;font-size:14px}
@@ -156,9 +170,14 @@
     <!-- chat view -->
     <div id="chatView" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
       <div class="chat" id="chatLog"></div>
-      <div class="composer">
-        <textarea id="input" placeholder="Ask about your CRS project… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
-        <button class="send" id="sendBtn" onclick="sendMsg()">Send</button>
+      <div class="composer-wrap">
+        <div class="attach-chips" id="attachChips"></div>
+        <div class="composer">
+          <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()">📎</button>
+          <textarea id="input" placeholder="Ask about your CRS project… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+          <button class="send" id="sendBtn" onclick="sendMsg()">Send</button>
+        </div>
+        <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesPicked(event)">
       </div>
     </div>
     <!-- file view -->
@@ -178,7 +197,7 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
-let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false };
+let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[] };
 
 // ---------- tiny markdown renderer (no external deps) ----------
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -241,17 +260,65 @@ function renderChat(messages){
   const log=$('chatLog'); log.innerHTML='';
   for(const m of messages){
     const el=document.createElement('div'); el.className='msg '+m.role;
-    el.innerHTML=`<div class="who">${m.role==='user'?'You':'CRS Brain'}</div><div class="bubble ${m.role==='user'?'':'md'}">${m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):renderMd(m.content)}</div>`;
+    const atts=(m.attachments||[]);
+    const attHtml=atts.length?`<div class="msg-atts">${atts.map(pth=>`<span class="matt">📎 ${esc(pth.split('/').pop())}</span>`).join('')}</div>`:'';
+    el.innerHTML=`<div class="who">${m.role==='user'?'You':'CRS Brain'}</div><div class="bubble ${m.role==='user'?'':'md'}">${attHtml}${m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):renderMd(m.content)}</div>`;
+    if(m.role==='assistant' && m.content) addReplyActions(el, m.content);
     log.appendChild(el);
   }
   log.scrollTop=log.scrollHeight;
 }
+
+// Action bar under each assistant reply: save it as a .md doc and open it, or copy.
+function addReplyActions(msgEl, text){
+  const acts=document.createElement('div'); acts.className='msg-acts';
+  const b1=document.createElement('button'); b1.textContent='📄 Open as doc';
+  b1.onclick=()=>openReplyDoc(text, $('centerTitle').textContent);
+  const b2=document.createElement('button'); b2.textContent='Copy';
+  b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
+  acts.appendChild(b1); acts.appendChild(b2); msgEl.appendChild(acts);
+}
+async function openReplyDoc(text, title){
+  try{
+    const r=await api('/api/savedoc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title||'brain-doc',content:text})});
+    await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
+  }catch(e){ toast('Could not save: '+e.message); }
+}
 function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
 
 function sendMsg(){
-  const input=$('input'); const text=input.value.trim(); if(!text||state.sending) return;
+  const input=$('input'); const text=input.value.trim();
+  const atts=(state.pending||[]).filter(a=>a.path);
+  if((!text && !atts.length)||state.sending) return;
   input.value=''; input.style.height='auto';
-  streamChat(text);
+  const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
+  state.pending=[]; renderChips();
+  streamChat(text,{attachments,attachmentNames});
+}
+
+// ---------- attachments ----------
+function pickFiles(){ $('fileInput').click(); }
+function renderChips(){
+  const box=$('attachChips'); box.innerHTML='';
+  (state.pending||[]).forEach((a,i)=>{
+    const c=document.createElement('span'); c.className='chip'+(a.path?'':' up');
+    c.innerHTML=`📎 ${esc(a.name)} ${a.path?`<span class="rm" title="Remove">✕</span>`:'<span class="spin"></span>'}`;
+    if(a.path) c.querySelector('.rm').onclick=()=>{ state.pending.splice(i,1); renderChips(); };
+    box.appendChild(c);
+  });
+}
+async function onFilesPicked(ev){
+  const files=[...ev.target.files]; ev.target.value='';
+  if(!state.pending) state.pending=[];
+  for(const f of files){
+    const entry={name:f.name,path:null}; state.pending.push(entry); renderChips();
+    try{
+      const dataBase64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(f); });
+      const out=await api('/api/attach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.name,dataBase64})});
+      entry.path=out.path;
+    }catch(e){ toast('Attach failed: '+e.message); state.pending=state.pending.filter(x=>x!==entry); }
+    renderChips();
+  }
 }
 
 // Core streaming exchange — shared by normal chat and the weekly digest.
@@ -260,8 +327,11 @@ async function streamChat(text, opts={}){
   showChat();
   const log=$('chatLog');
   if(log.querySelector('.empty')) log.innerHTML='';
+  const names=opts.attachmentNames||[];
+  const attHtml=names.length?`<div class="msg-atts">${names.map(n=>`<span class="matt">📎 ${esc(n)}</span>`).join('')}</div>`:'';
+  const bodyHtml=text?esc(text).replace(/\n/g,'<br>'):'<span style="color:var(--muted)">(files attached)</span>';
   const u=document.createElement('div'); u.className='msg user';
-  u.innerHTML=`<div class="who">You</div><div class="bubble">${esc(text).replace(/\n/g,'<br>')}</div>`; log.appendChild(u);
+  u.innerHTML=`<div class="who">You</div><div class="bubble">${attHtml}${bodyHtml}</div>`; log.appendChild(u);
   const a=document.createElement('div'); a.className='msg assistant';
   a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble md think"><span class="spin"></span> thinking…</div>`; log.appendChild(a);
   const bubble=a.querySelector('.bubble');
@@ -270,7 +340,7 @@ async function streamChat(text, opts={}){
   let acc='';
   const near=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 120;
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[]})});
     if(!res.body) throw new Error('no stream');
     const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
     while(true){
@@ -285,7 +355,7 @@ async function streamChat(text, opts={}){
         if(ev.type==='meta'){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=ev.title; }
         else if(ev.type==='status'){ if(!acc){ bubble.classList.add('think'); bubble.innerHTML=`<span class="spin"></span> ${esc(ev.text)}…`; } }
         else if(ev.type==='delta'){ acc+=ev.text; bubble.classList.remove('think'); bubble.innerHTML=renderMd(acc); }
-        else if(ev.type==='done'){ state.chatId=ev.id; bubble.classList.remove('think'); bubble.innerHTML=renderMd(ev.reply||acc); if(ev.title) $('centerTitle').textContent=ev.title; }
+        else if(ev.type==='done'){ state.chatId=ev.id; bubble.classList.remove('think'); const ft=ev.reply||acc; bubble.innerHTML=renderMd(ft); if(ev.title) $('centerTitle').textContent=ev.title; addReplyActions(a, ft); }
         else if(ev.type==='error'){ bubble.classList.remove('think'); bubble.style.borderColor='#5a2b2b'; bubble.style.color='#e0a0a0'; bubble.innerHTML='Error: '+esc(ev.error); }
         if(stick) log.scrollTop=log.scrollHeight;
       }

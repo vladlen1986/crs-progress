@@ -9,22 +9,27 @@ browse and edit your `.md` files, and keep a live progress board — all in one 
 - **Grounded in your real repo** — the file browser and chat read/write the actual project files
   (`CLAUDE.md`, `decisions.md`, `design/`, `data/`, anything you add).
 
-## Requirements
+## Requirements (once per machine — Windows or Mac)
 
-- [Node.js](https://nodejs.org) (already installed)
-- Claude Code CLI, logged in with your Max plan (`claude` — already set up)
+- [Node.js](https://nodejs.org)
+- Claude Code CLI, signed in with your Max plan. If the app shows "Connect
+  Claude account", click it (or run `claude auth login` once).
 
-## Run it
+> A web page can't run your Claude subscription by itself — browsers block pages
+> from launching programs. So the launcher below starts a tiny local backend
+> that talks to the `claude` CLI. You never manage it manually: one double-click
+> starts it **and** opens the app.
 
-Double-click **`start.bat`**, or from a terminal:
+## Run it — one double-click
 
-```
-node crs-brain/server.js
-```
+- **Windows:** double-click **`start.bat`**
+- **Mac:** double-click **`start.command`** (first time: right-click → Open)
 
-Then open **http://localhost:4317** in your browser.
+Your browser opens to the app automatically. Keep the little terminal window
+open — that *is* the app. Close it to quit. Double-clicking again while it's
+running just re-opens the tab.
 
-To stop: press `Ctrl+C` in the terminal (or close the window).
+(Manual fallback: `node crs-brain/server.js`, then open http://localhost:4317)
 
 ## How it works
 
@@ -33,6 +38,8 @@ To stop: press `Ctrl+C` in the terminal (or close the window).
 | **Chats** (left) | Conversations with Claude. Each one is resumable — Claude remembers the whole thread. Saved to `data/chats/*.json`. |
 | **Files** (left) | Tree of every `.md`/`.txt`/`.json`/… in the repo. Click to read (markdown rendered); hit **Edit** → **Save** to change it. |
 | **Chat** (center) | Ask anything: "what's next?", "what's missing?", "summarize the currency decision", "update the progress board". Replies **stream in live**; Claude reads the real files to answer. |
+| **Attach files** (📎) | Attach any file to a message; the Brain reads it to answer. Files are stored in `data/attachments/` (kept local, not committed). |
+| **Open as doc** (📄) | Every reply has an "Open as doc" button — saves that reply as a markdown file in `data/docs/` and opens it in the viewer. Ask "give me X in markdown" → click → it opens. |
 | **Weekly digest** (button) | One click pulls the last 7 days of git commits + the progress board and asks the Brain: what changed, what's in progress, what's next, what's missing/stalled. |
 | **Progress** (right) | Now / Next / Later / Done + a Missing-gaps list. Ask the Brain to update it and it edits `data/progress.json`. |
 | **Auto-commit** | Every exchange commits `crs-brain/data` to git automatically, so your memory is always versioned. Turn it off with `CRS_BRAIN_AUTOCOMMIT=0`. |

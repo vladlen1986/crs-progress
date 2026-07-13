@@ -24,9 +24,11 @@ const REPO_ROOT = path.resolve(BRAIN_DIR, '..');   // .../crs-progress
 const PUBLIC_DIR = path.join(BRAIN_DIR, 'public');
 const DATA_DIR = path.join(BRAIN_DIR, 'data');
 const CHATS_DIR = path.join(DATA_DIR, 'chats');
+const ATTACH_DIR = path.join(DATA_DIR, 'attachments');
+const DOCS_DIR = path.join(DATA_DIR, 'docs');
 const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
 
-for (const d of [DATA_DIR, CHATS_DIR]) fs.mkdirSync(d, { recursive: true });
+for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
 
 const PORT = process.env.CRS_BRAIN_PORT || 4317;
 
@@ -335,7 +337,8 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/chat' && req.method === 'POST') {
       const body = await readJsonBody(req);
       const message = (body.message || '').toString();
-      if (!message.trim()) return send(res, 400, { error: 'empty message' });
+      const attachments = Array.isArray(body.attachments) ? body.attachments.filter(Boolean) : [];
+      if (!message.trim() && !attachments.length) return send(res, 400, { error: 'empty message' });
       // `title` lets the caller (e.g. digest) set a friendly name distinct from the prompt.
       const forcedTitle = (body.title || '').toString().trim();
 
@@ -343,14 +346,22 @@ const server = http.createServer(async (req, res) => {
       if (!chat) {
         chat = {
           id: crypto.randomUUID(),
-          title: forcedTitle || message.slice(0, 60),
+          title: forcedTitle || message.slice(0, 60) || 'Attached files',
           sessionId: null,
           created: nowIso(),
           updated: nowIso(),
           messages: [],
         };
       }
-      chat.messages.push({ role: 'user', content: message, ts: nowIso() });
+      chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
+
+      // Give Claude the attachment paths so it can open them with its own tools.
+      let promptToClaude = message;
+      if (attachments.length) {
+        const list = attachments.map((a) => `- ${a}`).join('\n');
+        promptToClaude =
+          `The user attached the following file(s) in the repo — read them as needed to answer:\n${list}\n\n${message}`;
+      }
 
       // Stream Server-Sent Events back to the browser.
       res.writeHead(200, {
@@ -363,7 +374,7 @@ const server = http.createServer(async (req, res) => {
 
       let streamed = '';
       try {
-        const result = await runClaudeStream(message, chat.sessionId, {
+        const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
         });
@@ -388,6 +399,31 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
+    if (p === '/api/attach' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = (body.name || 'file').toString().replace(/[^\w.\- ]+/g, '_').slice(0, 80);
+      const data = Buffer.from((body.dataBase64 || '').toString(), 'base64');
+      if (!data.length) return send(res, 400, { error: 'empty file' });
+      if (data.length > 25 * 1024 * 1024) return send(res, 413, { error: 'file too large (25MB max)' });
+      const stamp = crypto.randomBytes(4).toString('hex');
+      const abs = path.join(ATTACH_DIR, `${stamp}-${name}`);
+      fs.writeFileSync(abs, data);
+      const rel = path.relative(REPO_ROOT, abs).split(path.sep).join('/');
+      return send(res, 200, { path: rel, name });
+    }
+
+    // Save an assistant reply as a markdown document; return its repo-relative path.
+    if (p === '/api/savedoc' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const raw = (body.title || 'document').toString();
+      const slug = raw.toLowerCase().replace(/[^\w]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 50) || 'document';
+      const abs = path.join(DOCS_DIR, `${slug}.md`);
+      fs.writeFileSync(abs, (body.content || '').toString());
+      const rel = path.relative(REPO_ROOT, abs).split(path.sep).join('/');
+      return send(res, 200, { path: rel });
     }
 
     if (p === '/api/auth/status' && req.method === 'GET') {
@@ -426,10 +462,32 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// Open the app in the default browser (Windows / macOS / Linux).
+function openBrowser(url) {
+  const cmd = process.platform === 'win32' ? 'cmd'
+            : process.platform === 'darwin' ? 'open'
+            : 'xdg-open';
+  const args = process.platform === 'win32' ? ['/c', 'start', '', url] : [url];
+  try { spawn(cmd, args, { detached: true, stdio: 'ignore', windowsHide: true }).unref(); } catch {}
+}
+
+const URL_ = `http://localhost:${PORT}`;
+
+server.on('error', (e) => {
+  if (e.code === 'EADDRINUSE') {
+    // Already running — just focus the existing instance and exit quietly.
+    console.log(`  CRS Brain is already running → ${URL_}`);
+    openBrowser(URL_);
+    process.exit(0);
+  }
+  console.error('  Server error:', e.message);
+  process.exit(1);
+});
+
 server.listen(PORT, '127.0.0.1', () => {
-  console.log(`\n  CRS Brain running →  http://localhost:${PORT}\n`);
+  console.log(`\n  CRS Brain running →  ${URL_}\n`);
   console.log(`  Repo:   ${REPO_ROOT}`);
-  console.log(`  Chats:  ${CHATS_DIR}`);
-  console.log(`  Uses your Claude Max subscription (no per-token billing).`);
-  console.log(`  Press Ctrl+C to stop.\n`);
+  console.log(`  Uses your Claude subscription (no per-token billing).`);
+  console.log(`  This window is the app. Close it to quit.\n`);
+  if (process.env.CRS_BRAIN_NOOPEN !== '1') openBrowser(URL_);
 });

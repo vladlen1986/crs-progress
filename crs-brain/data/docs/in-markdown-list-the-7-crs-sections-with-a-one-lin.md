@@ -1,7 +1,0 @@
-- **Admin / Core** — platform-wide setup: users, roles, permissions, tenants, billing, integrations, support.
-- **Operations** — day-to-day floor execution: shift logs, tasks, meetings, break lists, lost & found, chain of command.
-- **Surveillance** — camera-room workflows: gaming day report, alert center, investigation cases, malfunction log, vehicles.
-- **Guests** — patron records: profiles, opportunist list, blackbook network, visitor management.
-- **HR / Employees** — workforce lifecycle: onboarding, job board, scheduling, disciplinary actions, records.
-- **Compliance** — regulatory guardrails: house rules, policy library, compliance controls.
-- **Communication** — internal comms: intercom (messaging) and info board.
