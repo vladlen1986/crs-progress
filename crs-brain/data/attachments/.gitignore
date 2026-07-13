@@ -1,0 +1,4 @@
+# Uploaded chat attachments are kept locally but not committed to git
+# (they can be large/binary). The generated docs in ../docs ARE versioned.
+*
+!.gitignore
