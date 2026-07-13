@@ -1,0 +1,19 @@
+{
+  "updated": "2026-05-02",
+  "note": "Maintained by you and CRS Brain. Ask the Brain to 'update progress' and it edits this file.",
+  "columns": {
+    "now": [
+      { "id": "casino-settings-re", "title": "Casino Settings RE", "note": "Reusable element — in progress" }
+    ],
+    "next": [],
+    "later": [
+      { "id": "report-dt-wu", "title": "Report DT Workflow optimization", "note": "Deferred (Day 2)" }
+    ],
+    "done": [
+      { "id": "os-timezone", "title": "OS – Timezone", "note": "385 IANA entries" },
+      { "id": "os-currency", "title": "OS – Currency", "note": "156 ISO 4217" },
+      { "id": "currency-arch", "title": "Currency architecture", "note": "Property = reporting, Company = default" }
+    ]
+  },
+  "missing": []
+}

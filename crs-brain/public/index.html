@@ -1,0 +1,343 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CRS Brain</title>
+<style>
+  :root{
+    --bg:#141414; --panel:#1c1c1c; --panel2:#242424; --line:#333;
+    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6f6f6f;
+    --accent:#4a9eff; --accent-dim:#2b3a4d; --good:#4ca777; --warn:#c9a13b;
+    --radius:10px; --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55}
+  button{font-family:inherit;cursor:pointer}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:#2f2f2f;border-radius:6px}
+
+  .app{display:grid;grid-template-columns:270px 1fr 320px;height:100vh}
+  .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
+  .col.left{border-right:1px solid var(--line);background:var(--panel)}
+  .col.right{border-left:1px solid var(--line);background:var(--panel)}
+
+  .brand{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  .brand h1{font-size:14px;margin:0;color:var(--primary);font-weight:600;letter-spacing:.3px}
+  .brand small{margin-left:auto;color:var(--muted);font-size:11px}
+
+  .tabs{display:flex;border-bottom:1px solid var(--line)}
+  .tabs button{flex:1;background:none;border:none;color:var(--muted);padding:10px;font-size:12px;font-weight:600;border-bottom:2px solid transparent}
+  .tabs button.on{color:var(--primary);border-bottom-color:var(--accent)}
+  .pane{flex:1;overflow:auto;padding:8px}
+  .pane.hide{display:none}
+
+  .newbtn{margin:8px;padding:9px;border:1px dashed var(--line);background:none;color:var(--secondary);border-radius:var(--radius);font-size:12px;width:calc(100% - 16px)}
+  .newbtn:hover{border-color:var(--accent);color:var(--primary)}
+
+  .item{padding:8px 10px;border-radius:8px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer}
+  .item:hover{background:var(--panel2)}
+  .item.on{background:var(--accent-dim);color:var(--primary)}
+  .item .meta{margin-left:auto;color:var(--muted);font-size:11px}
+  .item .x{opacity:0;color:var(--muted);font-size:14px}
+  .item:hover .x{opacity:.7}
+
+  .tree .node{padding:3px 6px;border-radius:6px;font-size:13px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center}
+  .tree .node:hover{background:var(--panel2)}
+  .tree .node.file.on{background:var(--accent-dim);color:var(--primary)}
+  .tree .dir{color:var(--primary);font-weight:600}
+  .tree .children{margin-left:12px;border-left:1px solid var(--line);padding-left:4px}
+  .tree .ic{color:var(--muted);width:14px;text-align:center;flex:0 0 14px}
+
+  /* center */
+  .center-head{padding:12px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;min-height:52px}
+  .center-head .title{color:var(--primary);font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .center-head .spacer{margin-left:auto}
+  .ghost{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:6px 12px;font-size:12px}
+  .ghost:hover{border-color:var(--accent);color:var(--primary)}
+  .ghost.on{border-color:var(--accent);color:var(--primary)}
+
+  .chat{flex:1;overflow:auto;padding:22px 18px}
+  .msg{max-width:760px;margin:0 auto 18px}
+  .msg .who{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin-bottom:5px}
+  .msg.user .bubble{background:var(--accent-dim);color:var(--primary)}
+  .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;color:var(--secondary)}
+  .bubble.think{color:var(--muted);font-style:italic}
+
+  .composer{border-top:1px solid var(--line);padding:12px 18px;display:flex;gap:10px;align-items:flex-end}
+  .composer textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line);color:var(--primary);border-radius:10px;padding:11px 14px;font-family:inherit;font-size:14px;max-height:180px;min-height:44px}
+  .composer textarea:focus{outline:none;border-color:var(--accent)}
+  .send{background:var(--accent);border:none;color:#06121f;font-weight:700;border-radius:10px;padding:11px 18px;font-size:14px}
+  .send:disabled{opacity:.5;cursor:default}
+
+  /* file editor */
+  .editor{flex:1;display:flex;flex-direction:column;overflow:hidden}
+  .editor textarea{flex:1;background:var(--bg);color:var(--primary);border:none;padding:18px;font-family:var(--mono);font-size:13px;line-height:1.6;resize:none}
+  .editor textarea:focus{outline:none}
+  .doc{flex:1;overflow:auto;padding:22px 32px;max-width:920px}
+
+  /* markdown */
+  .md h1,.md h2,.md h3{color:var(--primary);line-height:1.3;margin:1.2em 0 .5em}
+  .md h1{font-size:22px;border-bottom:1px solid var(--line);padding-bottom:.3em}
+  .md h2{font-size:18px}.md h3{font-size:15px}
+  .md p,.md li{color:var(--secondary)}
+  .md code{background:var(--panel2);padding:1px 5px;border-radius:4px;font-family:var(--mono);font-size:12.5px;color:#d7b98a}
+  .md pre{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:12px 14px;overflow:auto}
+  .md pre code{background:none;padding:0;color:var(--secondary)}
+  .md a{color:var(--accent);text-decoration:none}
+  .md a:hover{text-decoration:underline}
+  .md table{border-collapse:collapse;margin:1em 0;font-size:13px}
+  .md th,.md td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+  .md th{color:var(--primary);background:var(--panel2)}
+  .md blockquote{border-left:3px solid var(--line);margin:1em 0;padding-left:14px;color:var(--muted)}
+  .md ul,.md ol{padding-left:22px}
+
+  /* progress */
+  .right h2{font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0;padding:14px 16px 8px}
+  .cols{padding:0 12px 12px}
+  .pcol{margin-bottom:14px}
+  .pcol .hdr{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--primary);margin:6px 4px}
+  .pcol .hdr .cnt{color:var(--muted);font-weight:500}
+  .pcol .pill{width:7px;height:7px;border-radius:50%}
+  .card{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin:6px 0;font-size:13px;color:var(--secondary)}
+  .card .t{color:var(--primary)}
+  .card .n{color:var(--muted);font-size:12px;margin-top:2px}
+  .missing .card{border-color:#4a3a2a;background:#241c12}
+  .empty{color:var(--muted);font-size:12px;padding:6px 4px;font-style:italic}
+  .refresh{background:none;border:none;color:var(--muted);font-size:12px;margin-left:auto;cursor:pointer}
+  .refresh:hover{color:var(--primary)}
+
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);color:var(--primary);padding:9px 16px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:50}
+  .toast.show{opacity:1}
+  .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- LEFT -->
+  <div class="col left">
+    <div class="brand"><span class="dot"></span><h1>CRS Brain</h1><small id="repoName"></small></div>
+    <div class="tabs">
+      <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
+      <button id="tabFiles" onclick="setTab('files')">Files</button>
+    </div>
+    <button class="newbtn" onclick="newChat()" id="newChatBtn">+ New conversation</button>
+    <div class="pane" id="paneChats"></div>
+    <div class="pane hide tree" id="paneFiles"></div>
+  </div>
+
+  <!-- CENTER -->
+  <div class="col center" style="background:var(--bg)">
+    <div class="center-head">
+      <span class="title" id="centerTitle">New conversation</span>
+      <span class="spacer"></span>
+      <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
+      <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
+    </div>
+    <!-- chat view -->
+    <div id="chatView" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
+      <div class="chat" id="chatLog"></div>
+      <div class="composer">
+        <textarea id="input" placeholder="Ask about your CRS project… (Enter to send, Shift+Enter for newline)" rows="1"></textarea>
+        <button class="send" id="sendBtn" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+    <!-- file view -->
+    <div id="fileView" class="editor" style="display:none">
+      <div class="doc md" id="fileDoc"></div>
+      <textarea id="fileEdit" style="display:none"></textarea>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="col right">
+    <h2 style="display:flex">Progress <button class="refresh" onclick="loadProgress()" title="Reload">↻</button></h2>
+    <div class="cols" id="progress"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false };
+
+// ---------- tiny markdown renderer (no external deps) ----------
+function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function mdInline(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+}
+function renderMd(src){
+  const lines = src.replace(/\r/g,'').split('\n');
+  let html='', i=0;
+  while(i<lines.length){
+    let l=lines[i];
+    if(/^```/.test(l)){ let code=''; i++; while(i<lines.length && !/^```/.test(lines[i])){code+=lines[i]+'\n';i++;} i++; html+='<pre><code>'+esc(code)+'</code></pre>'; continue; }
+    if(/^#{1,6}\s/.test(l)){ const n=l.match(/^#+/)[0].length; html+=`<h${n}>${mdInline(l.replace(/^#+\s/,''))}</h${n}>`; i++; continue; }
+    if(/^\s*>/.test(l)){ let q=''; while(i<lines.length && /^\s*>/.test(lines[i])){q+=lines[i].replace(/^\s*>\s?/,'')+' ';i++;} html+='<blockquote>'+mdInline(q)+'</blockquote>'; continue; }
+    if(/^\s*[-*+]\s/.test(l)){ html+='<ul>'; while(i<lines.length && /^\s*[-*+]\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*[-*+]\s/,''))+'</li>';i++;} html+='</ul>'; continue; }
+    if(/^\s*\d+\.\s/.test(l)){ html+='<ol>'; while(i<lines.length && /^\s*\d+\.\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*\d+\.\s/,''))+'</li>';i++;} html+='</ol>'; continue; }
+    if(/^\s*\|.*\|\s*$/.test(l) && i+1<lines.length && /^\s*\|[-:\s|]+\|\s*$/.test(lines[i+1])){
+      const row=(x)=>x.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const head=row(l); i+=2; let body='';
+      while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ body+='<tr>'+row(lines[i]).map(c=>'<td>'+mdInline(c)+'</td>').join('')+'</tr>'; i++; }
+      html+='<table><thead><tr>'+head.map(c=>'<th>'+mdInline(c)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>'; continue;
+    }
+    if(l.trim()===''){ i++; continue; }
+    let para=l; i++;
+    while(i<lines.length && lines[i].trim()!=='' && !/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+\.\s|\s*>)/.test(lines[i])){ para+=' '+lines[i]; i++; }
+    html+='<p>'+mdInline(para)+'</p>';
+  }
+  return html;
+}
+
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+async function api(path,opts){ const r=await fetch(path,opts); if(!r.ok){const e=await r.json().catch(()=>({error:r.status})); throw new Error(e.error||'error');} return r.json(); }
+
+// ---------- tabs ----------
+function setTab(t){ state.tab=t;
+  $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files');
+  $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files');
+  $('newChatBtn').style.display = t==='chats' ? '' : 'none';
+}
+
+// ---------- chats ----------
+async function loadChats(){
+  const {chats}=await api('/api/chats');
+  $('paneChats').innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
+  for(const c of chats){
+    const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
+    d.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">✕</span>`;
+    d.onclick=(e)=>{ if(e.target.classList.contains('x')){delChat(c.id);return;} openChat(c.id); };
+    $('paneChats').appendChild(d);
+  }
+}
+function newChat(){ state.chatId=null; showChat(); $('chatLog').innerHTML='<div class="empty" style="text-align:center;margin-top:40px">Ask anything about CRS — progress, decisions, what\'s next, what\'s missing.</div>'; $('centerTitle').textContent='New conversation'; loadChats(); $('input').focus(); }
+async function openChat(id){ state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); $('centerTitle').textContent=chat.title||'Conversation'; renderChat(chat.messages); loadChats(); }
+async function delChat(id){ await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
+function renderChat(messages){
+  const log=$('chatLog'); log.innerHTML='';
+  for(const m of messages){
+    const el=document.createElement('div'); el.className='msg '+m.role;
+    el.innerHTML=`<div class="who">${m.role==='user'?'You':'CRS Brain'}</div><div class="bubble ${m.role==='user'?'':'md'}">${m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):renderMd(m.content)}</div>`;
+    log.appendChild(el);
+  }
+  log.scrollTop=log.scrollHeight;
+}
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+
+async function sendMsg(){
+  if(state.sending) return;
+  const input=$('input'); const text=input.value.trim(); if(!text) return;
+  input.value=''; input.style.height='auto';
+  showChat();
+  const log=$('chatLog');
+  if(log.querySelector('.empty')) log.innerHTML='';
+  const u=document.createElement('div'); u.className='msg user';
+  u.innerHTML=`<div class="who">You</div><div class="bubble">${esc(text).replace(/\n/g,'<br>')}</div>`; log.appendChild(u);
+  const a=document.createElement('div'); a.className='msg assistant';
+  a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble think"><span class="spin"></span> thinking…</div>`; log.appendChild(a);
+  log.scrollTop=log.scrollHeight;
+  state.sending=true; $('sendBtn').disabled=true;
+  try{
+    const res=await api('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text})});
+    state.chatId=res.id;
+    a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble md">${renderMd(res.reply)}</div>`;
+    $('centerTitle').textContent=res.title||'Conversation';
+    loadChats(); loadProgress();
+  }catch(e){
+    a.innerHTML=`<div class="who">CRS Brain</div><div class="bubble" style="border-color:#5a2b2b;color:#e0a0a0">Error: ${esc(e.message)}</div>`;
+  }finally{
+    state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight;
+  }
+}
+
+// ---------- files ----------
+async function loadFiles(){
+  const {root,tree}=await api('/api/files'); $('repoName').textContent=root;
+  const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(tree,true));
+}
+function renderTree(nodes,open){
+  const wrap=document.createElement('div');
+  for(const n of nodes){
+    if(n.type==='dir'){
+      const d=document.createElement('div'); d.className='node dir';
+      d.innerHTML=`<span class="ic">▸</span>${esc(n.name)}`;
+      const kids=renderTree(n.children,false); kids.className='children'; kids.style.display=open?'block':'none';
+      if(open) d.querySelector('.ic').textContent='▾';
+      d.onclick=(e)=>{e.stopPropagation(); const vis=kids.style.display!=='none'; kids.style.display=vis?'none':'block'; d.querySelector('.ic').textContent=vis?'▸':'▾';};
+      wrap.appendChild(d); wrap.appendChild(kids);
+    }else{
+      const f=document.createElement('div'); f.className='node file'; f.dataset.path=n.path;
+      f.innerHTML=`<span class="ic">·</span>${esc(n.name)}`;
+      f.onclick=()=>openFile(n.path);
+      wrap.appendChild(f);
+    }
+  }
+  return wrap;
+}
+async function openFile(p){
+  state.filePath=p; state.editing=false;
+  document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
+  $('chatView').style.display='none'; $('fileView').style.display='flex';
+  $('centerTitle').textContent=p;
+  const isMd=/\.md$/i.test(p);
+  $('editToggle').style.display = /\.(md|txt|json|css|js|py|csv|ya?ml|html)$/i.test(p) ? '' : 'none';
+  $('editToggle').classList.remove('on'); $('saveBtn').style.display='none';
+  const {content}=await api('/api/file?path='+encodeURIComponent(p));
+  $('fileEdit').value=content;
+  const doc=$('fileDoc');
+  doc.className = isMd ? 'doc md' : 'doc';
+  doc.style.display='block'; $('fileEdit').style.display='none';
+  doc.innerHTML = isMd ? renderMd(content) : '<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:13px;color:var(--secondary)">'+esc(content)+'</pre>';
+}
+function toggleEdit(){
+  state.editing=!state.editing;
+  $('editToggle').classList.toggle('on',state.editing);
+  $('saveBtn').style.display=state.editing?'':'none';
+  $('fileDoc').style.display=state.editing?'none':'block';
+  $('fileEdit').style.display=state.editing?'block':'none';
+  if(!state.editing) openFile(state.filePath);
+}
+async function saveFile(){
+  await api('/api/file',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:state.filePath,content:$('fileEdit').value})});
+  toast('Saved  ·  '+state.filePath); state.editing=false; $('saveBtn').style.display='none'; $('editToggle').classList.remove('on'); openFile(state.filePath);
+}
+
+// ---------- progress ----------
+const COLS=[['now','Now','#4a9eff'],['next','Next','#c9a13b'],['later','Later','#6f6f6f'],['done','Done','#4ca777']];
+async function loadProgress(){
+  const p=await api('/api/progress'); const box=$('progress'); box.innerHTML='';
+  for(const [key,label,color] of COLS){
+    const items=(p.columns&&p.columns[key])||[];
+    const col=document.createElement('div'); col.className='pcol';
+    col.innerHTML=`<div class="hdr"><span class="pill" style="background:${color}"></span>${label}<span class="cnt">${items.length}</span></div>`;
+    if(!items.length) col.innerHTML+='<div class="empty">—</div>';
+    for(const it of items){ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="t">${esc(it.title||'')}</div>${it.note?`<div class="n">${esc(it.note)}</div>`:''}`; col.appendChild(c); }
+    box.appendChild(col);
+  }
+  const missing=(p.missing||[]);
+  const m=document.createElement('div'); m.className='pcol missing';
+  m.innerHTML=`<div class="hdr"><span class="pill" style="background:#c9633b"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
+  if(!missing.length) m.innerHTML+='<div class="empty">—</div>';
+  for(const x of missing){ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="t">${esc(typeof x==='string'?x:(x.title||''))}</div>`; m.appendChild(c); }
+  box.appendChild(m);
+}
+
+// ---------- input UX ----------
+const inp=$('input');
+inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,180)+'px';});
+inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
+
+// ---------- boot ----------
+(async function(){ await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+</script>
+</body>
+</html>
