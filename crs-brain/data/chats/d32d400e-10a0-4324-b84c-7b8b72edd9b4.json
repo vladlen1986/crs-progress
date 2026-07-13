@@ -1,0 +1,20 @@
+{
+  "id": "d32d400e-10a0-4324-b84c-7b8b72edd9b4",
+  "title": "what model is selected now ?",
+  "sessionId": "7ece2702-fec9-4d2c-a5e3-8e3551d6577f",
+  "created": "2026-07-13T22:26:41.191Z",
+  "updated": "2026-07-13T22:26:51.872Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "what model is selected now ?",
+      "ts": "2026-07-13T22:26:41.191Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "CRS Brain is set to `claude-fable-5` with reasoning effort `max` (crs-brain/data/settings.json). That's also the model I'm running as right now.",
+      "ts": "2026-07-13T22:26:51.872Z"
+    }
+  ]
+}
