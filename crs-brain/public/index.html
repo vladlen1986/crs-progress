@@ -18,6 +18,7 @@
   *{box-sizing:border-box}
   .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex:0 0 auto}
   .ic.sm{width:13px;height:13px}
+  .ic.spinning{animation:sp .7s linear infinite}
   html,body{height:100%;margin:0}
   body{
     background:radial-gradient(1100px 560px at 72% -12%, rgba(91,135,255,.07), transparent), var(--bg);
@@ -309,7 +310,7 @@
 
   <!-- RIGHT -->
   <div class="col right">
-    <h2>Usage</h2>
+    <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
     <div class="usage" id="usage"></div>
     <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
     <div class="cols" id="progress"></div>
@@ -702,6 +703,15 @@ async function loadUsage(){
   if(rl.seven_day) rows+=usageRow('Weekly · 7d', rl.seven_day);
   if(!rows) rows='<div class="note">No window data reported yet.</div>';
   box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div><button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
+}
+async function refreshUsage(btn){
+  const ic=btn&&btn.querySelector('.ic'); if(ic) ic.classList.add('spinning');
+  const before=(await api('/api/usage').catch(()=>({}))).data?.at;
+  await loadUsage();
+  const after=(await api('/api/usage').catch(()=>({}))).data?.at;
+  if(ic) setTimeout(()=>ic.classList.remove('spinning'),500);
+  if(after&&after!==before) toast('Usage updated');
+  else if(after) toast('Up to date · use Claude Code to refresh readings');
 }
 async function enableUsage(){ try{ await api('/api/usage/enable',{method:'POST'}); toast('Live usage enabled — open a Claude Code session to populate it.'); }catch(e){ toast('Failed: '+e.message); } loadUsage(); }
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
