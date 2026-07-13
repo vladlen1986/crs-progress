@@ -3,7 +3,7 @@
   "title": "sidebar progress what is this for ?",
   "sessionId": "072b33e0-21d6-4dc3-b592-19211e38f65e",
   "created": "2026-07-13T21:46:49.928Z",
-  "updated": "2026-07-13T21:46:58.505Z",
+  "updated": "2026-07-13T21:47:47.612Z",
   "messages": [
     {
       "role": "user",
@@ -15,6 +15,17 @@
       "role": "assistant",
       "content": "No matches in the repo. Can you clarify what you mean? A few possibilities:\n\n1. **Sidebar progress bar** — a UI element showing completion % across modules in the CRS sidebar?\n2. **Progress on the sidebar implementation** — status of the sidebar work described in CLAUDE.md?\n3. Something you saw elsewhere (screenshot, another tool)?\n\nWhich one — or paste a screenshot?",
       "ts": "2026-07-13T21:46:58.505Z"
+    },
+    {
+      "role": "user",
+      "content": "no in this app CRS Brain",
+      "ts": "2026-07-13T21:47:18.671Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "It's the **right-hand column** in CRS Brain — a kanban-style board tracking your CRS project work.\n\n**Four columns + Missing:**\n- **Now** — actively working on (currently: Casino Settings RE)\n- **Next** — up next\n- **Later** — deferred (currently: Report DT WU optimization)\n- **Done** — shipped (OS Timezone, OS Currency, Currency architecture)\n- **Missing** — gaps flagged\n\n**How it works:**\n- Backed by `crs-brain/data/progress.json` — git-versioned, survives across sessions.\n- You ask the Brain \"update progress\" in chat → it edits the JSON directly.\n- The `↻` button reloads it. The **Weekly digest** button feeds it + recent git commits to the Brain to summarize what changed / what's stalled.\n\nBasically: a persistent \"what am I doing on CRS\" board that the Brain can read and write, so you never lose the thread between sessions.",
+      "ts": "2026-07-13T21:47:47.612Z"
     }
   ]
 }
