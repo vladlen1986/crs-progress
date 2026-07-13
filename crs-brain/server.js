@@ -14,6 +14,7 @@
 
 const http = require('http');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
@@ -37,6 +38,37 @@ function loadSettings() {
   catch { return { ...DEFAULT_SETTINGS }; }
 }
 function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2)); }
+
+// ---- live usage / rate limits (via statusline capture) --------------------
+const USAGE_FILE = path.join(DATA_DIR, 'usage.json');
+const CLAUDE_SETTINGS = path.join(os.homedir(), '.claude', 'settings.json');
+const STATUSLINE_PATH = path.join(BRAIN_DIR, 'statusline.js');
+const STATUSLINE_CMD = `node "${STATUSLINE_PATH.split(path.sep).join('/')}"`;
+
+function loadUsage() {
+  try { return JSON.parse(fs.readFileSync(USAGE_FILE, 'utf8')); } catch { return null; }
+}
+function readClaudeSettings() {
+  try { return JSON.parse(fs.readFileSync(CLAUDE_SETTINGS, 'utf8')); } catch { return {}; }
+}
+function usageEnabled() {
+  const s = readClaudeSettings();
+  return !!(s.statusLine && /statusline\.js/.test(JSON.stringify(s.statusLine)));
+}
+// Merge ONLY the statusLine key; preserve everything else the user has.
+function enableUsage() {
+  const s = readClaudeSettings();
+  s.statusLine = { type: 'command', command: STATUSLINE_CMD };
+  fs.mkdirSync(path.dirname(CLAUDE_SETTINGS), { recursive: true });
+  fs.writeFileSync(CLAUDE_SETTINGS, JSON.stringify(s, null, 2));
+}
+function disableUsage() {
+  const s = readClaudeSettings();
+  if (s.statusLine && /statusline\.js/.test(JSON.stringify(s.statusLine))) {
+    delete s.statusLine;
+    fs.writeFileSync(CLAUDE_SETTINGS, JSON.stringify(s, null, 2));
+  }
+}
 
 const PORT = process.env.CRS_BRAIN_PORT || 4317;
 
@@ -410,6 +442,18 @@ const server = http.createServer(async (req, res) => {
       const id = u.searchParams.get('id');
       try { fs.unlinkSync(chatPath(id)); } catch {}
       return send(res, 200, { ok: true });
+    }
+
+    if (p === '/api/usage' && req.method === 'GET') {
+      return send(res, 200, { enabled: usageEnabled(), data: loadUsage() });
+    }
+    if (p === '/api/usage/enable' && req.method === 'POST') {
+      enableUsage();
+      return send(res, 200, { enabled: true });
+    }
+    if (p === '/api/usage/disable' && req.method === 'POST') {
+      disableUsage();
+      return send(res, 200, { enabled: false });
     }
 
     if (p === '/api/settings' && req.method === 'GET') {

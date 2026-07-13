@@ -16,6 +16,8 @@
     --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
   }
   *{box-sizing:border-box}
+  .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex:0 0 auto}
+  .ic.sm{width:13px;height:13px}
   html,body{height:100%;margin:0}
   body{
     background:radial-gradient(1100px 560px at 72% -12%, rgba(91,135,255,.07), transparent), var(--bg);
@@ -73,7 +75,10 @@
   .tree .node.file.on{background:var(--accent-soft);color:var(--primary)}
   .tree .dir{color:var(--primary);font-weight:600}
   .tree .children{margin-left:11px;border-left:1px solid var(--line);padding-left:5px}
-  .tree .ic{color:var(--muted);width:13px;text-align:center;flex:0 0 13px;font-size:11px}
+  .tree .chev{display:inline-flex;color:var(--muted);transition:transform .15s;flex:0 0 auto}
+  .tree .chev.open{transform:rotate(90deg)}
+  .tree .file .ic{color:var(--muted)}
+  .tree .dir .ic{color:var(--secondary)}
 
   /* center header */
   .center-head{padding:0 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;height:58px;flex:0 0 58px;background:rgba(19,19,24,.55);backdrop-filter:blur(10px)}
@@ -168,7 +173,8 @@
 
   /* progress */
   .right h2{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0;padding:18px 16px 10px;display:flex;align-items:center;font-weight:700}
-  .cols{padding:0 14px 14px;overflow:auto}
+  .cols{padding:0 14px 14px;overflow:auto;flex:1;min-height:0}
+  .right h2:first-child{padding-top:16px}
   .pcol{margin-bottom:16px}
   .pcol .hdr{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;color:var(--primary);margin:8px 2px}
   .pcol .hdr .cnt{color:var(--muted);font-weight:500;background:rgba(255,255,255,.05);border-radius:20px;padding:0 7px;line-height:17px;font-size:11px}
@@ -186,6 +192,36 @@
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 
+  /* icon + text alignment */
+  .msg-acts button{display:inline-flex;align-items:center;gap:6px}
+  .account .connect{display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .matt{display:inline-flex;align-items:center;gap:5px}
+  .item .x{display:inline-flex;align-items:center}
+  .newbtn .ic{opacity:.8}
+  .avatar .ic{width:16px;height:16px}
+  .brand .logo .ic{width:17px;height:17px}
+  .hero-mark .ic{width:26px;height:26px}
+
+  /* usage panel */
+  .usage{padding:0 14px 6px}
+  .usage .ucard{background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:12px 13px;font-size:12px}
+  .usage .urow{margin-bottom:12px}
+  .usage .urow:last-child{margin-bottom:0}
+  .usage .ulabel{display:flex;align-items:center;gap:6px;color:var(--secondary);margin-bottom:6px}
+  .usage .ulabel b{color:var(--primary);font-weight:600}
+  .usage .ulabel .pctv{margin-left:auto;color:var(--primary);font-weight:600;font-variant-numeric:tabular-nums}
+  .usage .bar{height:7px;border-radius:20px;background:rgba(255,255,255,.07);overflow:hidden}
+  .usage .bar span{display:block;height:100%;border-radius:20px;transition:width .5s ease}
+  .usage .sub{color:var(--muted);font-size:11px;margin-top:5px;display:flex}
+  .usage .sub .reset{margin-left:auto}
+  .usage .updated{color:var(--muted);font-size:11px;margin-top:10px;display:flex;align-items:center;gap:6px}
+  .usage .enable{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:9px;padding:9px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 3px 12px rgba(91,135,255,.3)}
+  .usage .enable:hover{filter:brightness(1.07)}
+  .usage .note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:9px}
+  .usage .off{color:var(--secondary);display:flex;align-items:center;gap:7px;margin-bottom:9px}
+  .usage .disable{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:9px}
+  .usage .disable:hover{color:var(--primary)}
+
   @keyframes sp{to{transform:rotate(360deg)}}
   @keyframes tokIn{from{opacity:0}to{opacity:1}}
   @keyframes blink{50%{opacity:0}}
@@ -194,18 +230,36 @@
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
+  <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
+  <symbol id="i-clip" viewBox="0 0 24 24"><path d="M21 11.5l-8.7 8.7a5 5 0 0 1-7.1-7.1l8.7-8.7a3.3 3.3 0 0 1 4.7 4.7l-8.7 8.7a1.7 1.7 0 0 1-2.4-2.4l8-8"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><line x1="12" y1="19" x2="12" y2="6"/><polyline points="6 12 12 6 18 12"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="8.5" y1="13" x2="15.5" y2="13"/><line x1="8.5" y1="16.5" x2="13" y2="16.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/></symbol>
+  <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
+  <symbol id="i-doc-sm" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/></symbol>
+  <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 20a8 8 0 1 1 16 0"/><line x1="12" y1="20" x2="15.5" y2="12.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17.2"/></symbol>
+</defs></svg>
 <div class="app">
   <!-- LEFT -->
   <div class="col left">
-    <div class="brand"><div class="logo">✦</div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div>
+    <div class="brand"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
       <button id="tabFiles" onclick="setTab('files')">Files</button>
     </div>
     <div id="chatActions">
-      <button class="newbtn" onclick="newChat()">＋ New conversation</button>
-      <button class="newbtn" onclick="runDigest()">✨ Weekly digest</button>
+      <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
+      <button class="newbtn" onclick="runDigest()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg> Weekly digest</button>
     </div>
     <div class="pane" id="paneChats"></div>
     <div class="pane hide tree" id="paneFiles"></div>
@@ -239,9 +293,9 @@
       <div class="composer-wrap">
         <div class="attach-chips" id="attachChips"></div>
         <div class="composer">
-          <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()">📎</button>
+          <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
-          <button class="send" id="sendBtn" title="Send" onclick="sendMsg()">↑</button>
+          <button class="send" id="sendBtn" title="Send" onclick="sendMsg()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-send"/></svg></button>
         </div>
         <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesPicked(event)">
       </div>
@@ -255,7 +309,9 @@
 
   <!-- RIGHT -->
   <div class="col right">
-    <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload">↻</button></h2>
+    <h2>Usage</h2>
+    <div class="usage" id="usage"></div>
+    <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
     <div class="cols" id="progress"></div>
   </div>
 </div>
@@ -263,6 +319,7 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
+const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
 let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[] };
 
 // ---------- tiny markdown renderer (no external deps) ----------
@@ -314,26 +371,26 @@ async function loadChats(){
   $('paneChats').innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
   for(const c of chats){
     const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
-    d.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">✕</span>`;
-    d.onclick=(e)=>{ if(e.target.classList.contains('x')){delChat(c.id);return;} openChat(c.id); };
+    d.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">${svg('i-x','sm')}</span>`;
+    d.onclick=(e)=>{ if(e.target.closest('.x')){delChat(c.id);return;} openChat(c.id); };
     $('paneChats').appendChild(d);
   }
 }
-function heroHtml(){ return '<div class="hero"><div class="hero-mark">✦</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing. Attach files with 📎, or ask for anything in markdown and open it as a document.</div></div>'; }
+function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing. Attach files, or ask for anything in markdown and open it as a document.</div></div>'; }
 function newChat(){ state.chatId=null; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; loadChats(); $('input').focus(); }
 async function openChat(id){ state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); $('centerTitle').textContent=chat.title||'Conversation'; renderChat(chat.messages); loadChats(); }
 async function delChat(id){ await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
 
-function attsHtml(atts){ return atts&&atts.length?`<div class="msg-atts">${atts.map(x=>`<span class="matt">📎 ${esc((''+x).split('/').pop())}</span>`).join('')}</div>`:''; }
+function attsHtml(atts){ return atts&&atts.length?`<div class="msg-atts">${atts.map(x=>`<span class="matt">${svg('i-clip','sm')} ${esc((''+x).split('/').pop())}</span>`).join('')}</div>`:''; }
 function userMsgEl(content, atts){
   const el=document.createElement('div'); el.className='msg user';
   const body=content?esc(content).replace(/\n/g,'<br>'):'<span class="dim">(files attached)</span>';
-  el.innerHTML=`<div class="avatar you">You</div><div class="content"><div class="bubble">${attsHtml(atts)}${body}</div></div>`;
+  el.innerHTML=`<div class="avatar you">${svg('i-user')}</div><div class="content"><div class="bubble">${attsHtml(atts)}${body}</div></div>`;
   return el;
 }
 function botMsgEl(){
   const el=document.createElement('div'); el.className='msg assistant';
-  el.innerHTML=`<div class="avatar bot">✦</div><div class="content"><div class="body md"></div></div>`;
+  el.innerHTML=`<div class="avatar bot">${svg('i-logo')}</div><div class="content"><div class="body md"></div></div>`;
   return el;
 }
 function renderChat(messages){
@@ -353,9 +410,9 @@ function renderChat(messages){
 function addReplyActions(msgEl, text){
   const host=msgEl.querySelector('.content')||msgEl;
   const acts=document.createElement('div'); acts.className='msg-acts';
-  const b1=document.createElement('button'); b1.textContent='📄 Open as doc';
+  const b1=document.createElement('button'); b1.innerHTML=svg('i-file','sm')+' Open as doc';
   b1.onclick=()=>openReplyDoc(text, $('centerTitle').textContent);
-  const b2=document.createElement('button'); b2.textContent='⧉ Copy';
+  const b2=document.createElement('button'); b2.innerHTML=svg('i-copy','sm')+' Copy';
   b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
   acts.appendChild(b1); acts.appendChild(b2); host.appendChild(acts);
 }
@@ -383,7 +440,7 @@ function renderChips(){
   const box=$('attachChips'); box.innerHTML='';
   (state.pending||[]).forEach((a,i)=>{
     const c=document.createElement('span'); c.className='chip'+(a.path?'':' up');
-    c.innerHTML=`📎 ${esc(a.name)} ${a.path?`<span class="rm" title="Remove">✕</span>`:'<span class="spin"></span>'}`;
+    c.innerHTML=`${svg('i-clip','sm')} ${esc(a.name)} ${a.path?`<span class="rm" title="Remove">${svg('i-x','sm')}</span>`:'<span class="spin"></span>'}`;
     if(a.path) c.querySelector('.rm').onclick=()=>{ state.pending.splice(i,1); renderChips(); };
     box.appendChild(c);
   });
@@ -464,13 +521,13 @@ async function streamChat(text, opts={}){
         else if(ev.type==='status'){ if(!full && !started){ body.innerHTML=`<span class="dots"><i></i><i></i><i></i></span><span class="statusnote">${esc(ev.text)}…</span>`; } }
         else if(ev.type==='delta'){ full+=ev.text; }
         else if(ev.type==='done'){ state.chatId=ev.id; full=ev.reply||full; streamDone=true; if(ev.title) $('centerTitle').textContent=ev.title; }
-        else if(ev.type==='error'){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML='⚠  '+esc(ev.error); }
+        else if(ev.type==='error'){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); }
       }
     }
     streamDone=true;
     loadChats(); loadProgress();
   }catch(e){
-    if(!errored){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML='⚠  '+esc(e.message); }
+    if(!errored){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML=svg('i-alert','sm')+'  '+esc(e.message); }
   }finally{
     state.sending=false; $('sendBtn').disabled=false;
   }
@@ -502,14 +559,13 @@ function renderTree(nodes,open){
   for(const n of nodes){
     if(n.type==='dir'){
       const d=document.createElement('div'); d.className='node dir';
-      d.innerHTML=`<span class="ic">▸</span>${esc(n.name)}`;
+      d.innerHTML=`<span class="chev${open?' open':''}">${svg('i-chevron','sm')}</span>${svg('i-folder','sm')}${esc(n.name)}`;
       const kids=renderTree(n.children,false); kids.className='children'; kids.style.display=open?'block':'none';
-      if(open) d.querySelector('.ic').textContent='▾';
-      d.onclick=(e)=>{e.stopPropagation(); const vis=kids.style.display!=='none'; kids.style.display=vis?'none':'block'; d.querySelector('.ic').textContent=vis?'▸':'▾';};
+      d.onclick=(e)=>{e.stopPropagation(); const vis=kids.style.display!=='none'; kids.style.display=vis?'none':'block'; d.querySelector('.chev').classList.toggle('open',!vis);};
       wrap.appendChild(d); wrap.appendChild(kids);
     }else{
       const f=document.createElement('div'); f.className='node file'; f.dataset.path=n.path;
-      f.innerHTML=`<span class="ic">·</span>${esc(n.name)}`;
+      f.innerHTML=`${svg('i-doc-sm','sm')}${esc(n.name)}`;
       f.onclick=()=>openFile(n.path);
       wrap.appendChild(f);
     }
@@ -579,10 +635,10 @@ async function loadAuth(){
       const method=a.authMethod==='claude.ai'?'subscription':(a.authMethod||'');
       box.innerHTML=`<span class="adot on"></span><div class="ainfo"><div class="aemail" title="${esc(a.email||'')}">${esc(a.email||'Connected')}</div><div class="aplan">${esc(plan||'Claude')} · ${esc(method)}</div></div><button class="alink" onclick="logoutClaude()">Disconnect</button>`;
     }else{
-      box.innerHTML=`<button class="connect" onclick="connectClaude()">🔗 Connect Claude account</button>`;
+      box.innerHTML=`<button class="connect" onclick="connectClaude()">${svg('i-link')} Connect Claude account</button>`;
     }
   }catch(e){
-    box.innerHTML=`<button class="connect" onclick="connectClaude()">🔗 Connect Claude account</button>`;
+    box.innerHTML=`<button class="connect" onclick="connectClaude()">${svg('i-link')} Connect Claude account</button>`;
   }
 }
 async function connectClaude(){
@@ -615,8 +671,44 @@ async function applyModelSettings(){
   }catch(e){ toast('Could not save: '+e.message); }
 }
 
+// ---------- live usage / limits ----------
+function fmtAgo(ms){ const s=Math.max(0,Math.round((Date.now()-ms)/1000)); if(s<60)return s+'s ago'; const m=Math.round(s/60); if(m<60)return m+'m ago'; const h=Math.round(m/60); return h+'h ago'; }
+function fmtReset(sec){ const ms=sec*1000-Date.now(); if(ms<=0) return 'resetting…'; const m=Math.round(ms/60000); if(m<60) return 'resets in '+m+'m'; const h=Math.floor(m/60), mm=m%60; if(h<24) return 'resets in '+h+'h '+mm+'m'; const d=Math.floor(h/24); return 'resets in '+d+'d '+(h%24)+'h'; }
+function barColor(p){ return p>=90?'#e8746b':p>=70?'#e0b84a':'#4ec98a'; }
+function usageRow(label, w){
+  const p=Math.min(100,Math.max(0,w.used_percentage||0));
+  return `<div class="urow"><div class="ulabel"><b>${label}</b><span class="pctv">${Math.round(p)}%</span></div>`+
+    `<div class="bar"><span style="width:${p}%;background:${barColor(p)}"></span></div>`+
+    `<div class="sub"><span class="reset">${w.resets_at?fmtReset(w.resets_at):''}</span></div></div>`;
+}
+async function loadUsage(){
+  let u; try{ u=await api('/api/usage'); }catch{ return; }
+  const box=$('usage');
+  if(!u.enabled){
+    box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} Live usage tracking is off</div>`+
+      `<button class="enable" onclick="enableUsage()">${svg('i-gauge')} Enable live usage</button>`+
+      `<div class="note">Adds a status line to your Claude Code that reports your 5-hour &amp; weekly limits. It refreshes whenever you use Claude Code interactively (limits are account-wide, so this app's usage counts too).</div></div>`;
+    return;
+  }
+  const d=u.data;
+  if(!d||!d.rate_limits){
+    box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} Waiting for first reading…</div>`+
+      `<div class="note">Open an interactive <code>claude</code> session once (any project) to populate your limits.</div>`+
+      `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
+    return;
+  }
+  const rl=d.rate_limits; let rows='';
+  if(rl.five_hour) rows+=usageRow('Session · 5h', rl.five_hour);
+  if(rl.seven_day) rows+=usageRow('Weekly · 7d', rl.seven_day);
+  if(!rows) rows='<div class="note">No window data reported yet.</div>';
+  box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div><button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
+}
+async function enableUsage(){ try{ await api('/api/usage/enable',{method:'POST'}); toast('Live usage enabled — open a Claude Code session to populate it.'); }catch(e){ toast('Failed: '+e.message); } loadUsage(); }
+async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
+
 // ---------- boot ----------
-(async function(){ loadAuth(); loadModelSettings(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+setInterval(loadUsage, 30000);
 </script>
 </body>
 </html>
