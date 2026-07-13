@@ -3,7 +3,7 @@
   "title": "Are you still here ?",
   "sessionId": "82751467-02ac-4518-b051-e6fb92488d82",
   "created": "2026-07-13T21:20:39.993Z",
-  "updated": "2026-07-13T21:22:37.171Z",
+  "updated": "2026-07-13T21:23:12.799Z",
   "messages": [
     {
       "role": "user",
@@ -59,6 +59,17 @@
       "role": "assistant",
       "content": "Yes — use `/model` to switch. Options include Opus 4.7, Sonnet 4.6, and Haiku 4.5. You can also toggle Fast mode (Opus 4.6, faster output) with `/fast`.",
       "ts": "2026-07-13T21:22:37.171Z"
+    },
+    {
+      "role": "user",
+      "content": "/model Opus 4.8 High",
+      "ts": "2026-07-13T21:23:08.252Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "That model doesn't exist. The latest Opus is **4.7** (what I'm on now). There's no 4.8, and no \"High\" variant.\n\nAvailable: Opus 4.7, Sonnet 4.6, Haiku 4.5. Use `/model` to switch.",
+      "ts": "2026-07-13T21:23:12.799Z"
     }
   ]
 }
