@@ -3,7 +3,7 @@
   "title": "Are you still here ?",
   "sessionId": "82751467-02ac-4518-b051-e6fb92488d82",
   "created": "2026-07-13T21:20:39.993Z",
-  "updated": "2026-07-13T21:22:16.393Z",
+  "updated": "2026-07-13T21:22:37.171Z",
   "messages": [
     {
       "role": "user",
@@ -48,6 +48,17 @@
       "role": "assistant",
       "content": "Claude Opus 4.7 (1M context).",
       "ts": "2026-07-13T21:22:16.393Z"
+    },
+    {
+      "role": "user",
+      "content": "can i ask you to switch to another model ?",
+      "ts": "2026-07-13T21:22:33.082Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Yes — use `/model` to switch. Options include Opus 4.7, Sonnet 4.6, and Haiku 4.5. You can also toggle Fast mode (Opus 4.6, faster output) with `/fast`.",
+      "ts": "2026-07-13T21:22:37.171Z"
     }
   ]
 }
