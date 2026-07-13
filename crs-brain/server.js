@@ -191,6 +191,43 @@ function autoCommit(title) {
   });
 }
 
+// ---- auth helpers ----------------------------------------------------------
+// Ask the claude CLI who is logged in (subscription vs API key, plan, email).
+function authStatus() {
+  return new Promise((resolve) => {
+    const child = spawn('claude', ['auth', 'status', '--json'], {
+      cwd: REPO_ROOT, shell: true, windowsHide: true,
+    });
+    let out = '';
+    child.stdout.on('data', (d) => (out += d));
+    child.on('error', () => resolve({ loggedIn: false, error: 'claude CLI not found' }));
+    child.on('close', () => {
+      try { resolve(JSON.parse(out)); }
+      catch { resolve({ loggedIn: false, error: 'could not read auth status' }); }
+    });
+  });
+}
+
+// Launch the interactive Claude sign-in in a visible terminal window.
+// `claude auth login` opens the browser OAuth flow — same as logging into Claude Code.
+function launchLogin() {
+  if (process.platform === 'win32') {
+    spawn('cmd.exe', ['/c', 'start', 'CRS Brain — Sign in to Claude', 'cmd', '/k', 'claude', 'auth', 'login'],
+      { detached: true, windowsHide: false });
+  } else {
+    // macOS/Linux: run it directly; it prints a URL / opens the browser.
+    spawn('claude', ['auth', 'login'], { detached: true, stdio: 'ignore' });
+  }
+}
+
+function runLogout() {
+  return new Promise((resolve) => {
+    const child = spawn('claude', ['auth', 'logout'], { cwd: REPO_ROOT, shell: true, windowsHide: true });
+    child.on('error', () => resolve());
+    child.on('close', () => resolve());
+  });
+}
+
 // Recent commit log for the weekly digest.
 function gitLog(days) {
   return new Promise((resolve) => {
@@ -351,6 +388,20 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    if (p === '/api/auth/status' && req.method === 'GET') {
+      return send(res, 200, await authStatus());
+    }
+
+    if (p === '/api/auth/login' && req.method === 'POST') {
+      launchLogin();
+      return send(res, 200, { started: true });
+    }
+
+    if (p === '/api/auth/logout' && req.method === 'POST') {
+      await runLogout();
+      return send(res, 200, { ok: true });
     }
 
     if (p === '/api/digest-context' && req.method === 'GET') {

@@ -29,6 +29,17 @@
   .brand h1{font-size:14px;margin:0;color:var(--primary);font-weight:600;letter-spacing:.3px}
   .brand small{margin-left:auto;color:var(--muted);font-size:11px}
 
+  .account{display:flex;align-items:center;gap:9px;padding:9px 14px;border-bottom:1px solid var(--line);font-size:12px}
+  .account .adot{width:8px;height:8px;border-radius:50%;background:#c9633b;flex:0 0 8px}
+  .account .adot.on{background:var(--good);box-shadow:0 0 8px var(--good)}
+  .account .ainfo{min-width:0}
+  .account .aemail{color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
+  .account .aplan{color:var(--muted);font-size:11px}
+  .account .alink{margin-left:auto;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap}
+  .account .alink:hover{color:var(--primary);text-decoration:underline}
+  .account .connect{width:100%;background:var(--accent);border:none;color:#06121f;font-weight:700;border-radius:8px;padding:8px;font-size:12px;cursor:pointer}
+  .account .connect:hover{filter:brightness(1.08)}
+
   .tabs{display:flex;border-bottom:1px solid var(--line)}
   .tabs button{flex:1;background:none;border:none;color:var(--muted);padding:10px;font-size:12px;font-weight:600;border-bottom:2px solid transparent}
   .tabs button.on{color:var(--primary);border-bottom-color:var(--accent)}
@@ -121,6 +132,7 @@
   <!-- LEFT -->
   <div class="col left">
     <div class="brand"><span class="dot"></span><h1>CRS Brain</h1><small id="repoName"></small></div>
+    <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
       <button id="tabFiles" onclick="setTab('files')">Files</button>
@@ -379,8 +391,40 @@ const inp=$('input');
 inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,180)+'px';});
 inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
 
+// ---------- account / connection ----------
+async function loadAuth(){
+  const box=$('account');
+  try{
+    const a=await api('/api/auth/status');
+    if(a.loggedIn){
+      const plan=(a.subscriptionType||'').replace(/^\w/,c=>c.toUpperCase());
+      const method=a.authMethod==='claude.ai'?'subscription':(a.authMethod||'');
+      box.innerHTML=`<span class="adot on"></span><div class="ainfo"><div class="aemail" title="${esc(a.email||'')}">${esc(a.email||'Connected')}</div><div class="aplan">${esc(plan||'Claude')} · ${esc(method)}</div></div><button class="alink" onclick="logoutClaude()">Disconnect</button>`;
+    }else{
+      box.innerHTML=`<button class="connect" onclick="connectClaude()">🔗 Connect Claude account</button>`;
+    }
+  }catch(e){
+    box.innerHTML=`<button class="connect" onclick="connectClaude()">🔗 Connect Claude account</button>`;
+  }
+}
+async function connectClaude(){
+  $('account').innerHTML=`<span class="aplan">opening sign-in window…</span>`;
+  try{ await api('/api/auth/login',{method:'POST'}); }catch(e){ toast('Could not start login: '+e.message); return loadAuth(); }
+  toast('A sign-in window opened — finish in your browser.');
+  let tries=0; const iv=setInterval(async()=>{
+    tries++;
+    try{ const a=await api('/api/auth/status'); if(a.loggedIn){ clearInterval(iv); loadAuth(); toast('Connected as '+a.email); } }catch{}
+    if(tries>80){ clearInterval(iv); loadAuth(); }
+  },3000);
+}
+async function logoutClaude(){
+  if(!confirm('Disconnect your Claude account? Chat will stop working until you reconnect.')) return;
+  try{ await api('/api/auth/logout',{method:'POST'}); }catch{}
+  loadAuth(); toast('Disconnected');
+}
+
 // ---------- boot ----------
-(async function(){ await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+(async function(){ loadAuth(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
 </script>
 </body>
 </html>
