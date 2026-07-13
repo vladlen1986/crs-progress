@@ -1,0 +1,20 @@
+{
+  "id": "319f7b01-fe32-4aa5-b48d-377c941f778b",
+  "title": "Are you still here ?",
+  "sessionId": "82751467-02ac-4518-b051-e6fb92488d82",
+  "created": "2026-07-13T21:20:39.993Z",
+  "updated": "2026-07-13T21:20:43.193Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Are you still here ?",
+      "ts": "2026-07-13T21:20:39.993Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Yes, still here. What do you need?",
+      "ts": "2026-07-13T21:20:43.193Z"
+    }
+  ]
+}
