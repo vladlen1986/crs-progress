@@ -1,0 +1,20 @@
+{
+  "id": "8e0bf6b7-12ae-418d-b755-59a50d8ec5c0",
+  "title": "Hello",
+  "sessionId": "3c73d48a-6695-450c-8081-9c32610ababb",
+  "created": "2026-07-13T22:21:38.118Z",
+  "updated": "2026-07-13T22:21:42.762Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello",
+      "ts": "2026-07-13T22:21:38.118Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Hello. What are you working on today?",
+      "ts": "2026-07-13T22:21:42.762Z"
+    }
+  ]
+}
