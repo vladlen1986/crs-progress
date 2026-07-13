@@ -70,6 +70,51 @@ function disableUsage() {
   }
 }
 
+// Fetch a fresh reading: the statusline only runs in an INTERACTIVE claude
+// session, so we briefly drive one in a pseudo-terminal (node-pty), send one
+// cheap Haiku turn to force an API response (which triggers the statusline →
+// writes usage.json), then kill it. Requires node-pty; degrades gracefully.
+let populating = false;
+function populateUsage() {
+  return new Promise((resolve) => {
+    if (!usageEnabled()) return resolve({ ok: false, error: 'tracking not enabled' });
+    let pty;
+    try { pty = require('node-pty'); }
+    catch { return resolve({ ok: false, error: 'node-pty not installed (run npm install in crs-brain)' }); }
+
+    const before = (loadUsage() || {}).at || 0;
+    const isWin = process.platform === 'win32';
+    const file = isWin ? 'cmd.exe' : 'claude';
+    const args = (isWin ? ['/c', 'claude'] : []).concat(['--model', 'claude-haiku-4-5-20251001']);
+
+    let term;
+    try {
+      term = pty.spawn(file, args, { name: 'xterm-256color', cols: 100, rows: 30, cwd: REPO_ROOT, env: process.env });
+    } catch (e) { return resolve({ ok: false, error: e.message }); }
+
+    term.onData(() => {});
+    let done = false;
+    const sendTimer = setTimeout(() => { try { term.write('hi\r'); } catch {} }, 3500);
+    const cleanup = () => {
+      try {
+        if (isWin && term.pid) spawn('taskkill', ['/PID', String(term.pid), '/T', '/F'], { windowsHide: true });
+        else term.kill();
+      } catch {}
+    };
+    const finish = (ok, error) => {
+      if (done) return; done = true;
+      clearTimeout(sendTimer); clearInterval(poll); clearTimeout(killTimer);
+      cleanup();
+      resolve({ ok, error, data: loadUsage() });
+    };
+    const poll = setInterval(() => {
+      const u = loadUsage();
+      if (u && u.at && u.at > before) finish(true);
+    }, 700);
+    const killTimer = setTimeout(() => finish(false, 'timed out waiting for a reading'), 45000);
+  });
+}
+
 const PORT = process.env.CRS_BRAIN_PORT || 4317;
 
 // Which files the brain lists in the file browser.
@@ -454,6 +499,13 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/usage/disable' && req.method === 'POST') {
       disableUsage();
       return send(res, 200, { enabled: false });
+    }
+    if (p === '/api/usage/populate' && req.method === 'POST') {
+      if (populating) return send(res, 200, { ok: false, error: 'already fetching' });
+      populating = true;
+      const r = await populateUsage();
+      populating = false;
+      return send(res, 200, r);
     }
 
     if (p === '/api/settings' && req.method === 'GET') {

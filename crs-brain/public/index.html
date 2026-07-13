@@ -321,7 +321,7 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
-let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[] };
+let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[], populating:false };
 
 // ---------- tiny markdown renderer (no external deps) ----------
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -683,18 +683,23 @@ function usageRow(label, w){
     `<div class="sub"><span class="reset">${w.resets_at?fmtReset(w.resets_at):''}</span></div></div>`;
 }
 async function loadUsage(){
-  let u; try{ u=await api('/api/usage'); }catch{ return; }
   const box=$('usage');
+  if(state.populating){
+    box.innerHTML=`<div class="ucard"><div class="off"><span class="spin"></span> Fetching your limits… <span class="dim">(~20s)</span></div>`+
+      `<div class="note">Running a quick Claude Code session to read your session &amp; weekly limits.</div></div>`;
+    return;
+  }
+  let u; try{ u=await api('/api/usage'); }catch{ return; }
   if(!u.enabled){
     box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} Live usage tracking is off</div>`+
       `<button class="enable" onclick="enableUsage()">${svg('i-gauge')} Enable live usage</button>`+
-      `<div class="note">Adds a status line to your Claude Code that reports your 5-hour &amp; weekly limits. It refreshes whenever you use Claude Code interactively (limits are account-wide, so this app's usage counts too).</div></div>`;
+      `<div class="note">Adds a status line to your Claude Code that reports your 5-hour &amp; weekly limits. Enabling fetches your first reading automatically.</div></div>`;
     return;
   }
   const d=u.data;
   if(!d||!d.rate_limits){
-    box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} Waiting for first reading…</div>`+
-      `<div class="note">Open an interactive <code>claude</code> session once (any project) to populate your limits.</div>`+
+    box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} No reading yet</div>`+
+      `<button class="enable" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch now</button>`+
       `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
     return;
   }
@@ -702,18 +707,32 @@ async function loadUsage(){
   if(rl.five_hour) rows+=usageRow('Session · 5h', rl.five_hour);
   if(rl.seven_day) rows+=usageRow('Weekly · 7d', rl.seven_day);
   if(!rows) rows='<div class="note">No window data reported yet.</div>';
-  box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div><button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
+  box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div>`+
+    `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
+    `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
 }
+// Header ↻ — instant re-read of the cached reading.
 async function refreshUsage(btn){
   const ic=btn&&btn.querySelector('.ic'); if(ic) ic.classList.add('spinning');
-  const before=(await api('/api/usage').catch(()=>({}))).data?.at;
   await loadUsage();
-  const after=(await api('/api/usage').catch(()=>({}))).data?.at;
-  if(ic) setTimeout(()=>ic.classList.remove('spinning'),500);
-  if(after&&after!==before) toast('Usage updated');
-  else if(after) toast('Up to date · use Claude Code to refresh readings');
+  if(ic) setTimeout(()=>ic.classList.remove('spinning'),400);
 }
-async function enableUsage(){ try{ await api('/api/usage/enable',{method:'POST'}); toast('Live usage enabled — open a Claude Code session to populate it.'); }catch(e){ toast('Failed: '+e.message); } loadUsage(); }
+// Drive a brief interactive Claude session to get a brand-new reading.
+async function fetchFreshUsage(){
+  if(state.populating) return;
+  state.populating=true; loadUsage();
+  try{
+    const r=await api('/api/usage/populate',{method:'POST'});
+    if(r.ok) toast('Usage updated');
+    else toast('Could not fetch: '+(r.error||'unknown'));
+  }catch(e){ toast('Fetch failed: '+e.message); }
+  state.populating=false; loadUsage();
+}
+async function enableUsage(){
+  try{ await api('/api/usage/enable',{method:'POST'}); }catch(e){ toast('Failed: '+e.message); return loadUsage(); }
+  toast('Live usage enabled — fetching your first reading…');
+  fetchFreshUsage();
+}
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
 
 // ---------- boot ----------
