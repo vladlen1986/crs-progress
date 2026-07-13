@@ -1,0 +1,20 @@
+{
+  "id": "b835904c-ba33-4d47-808c-29a0314dd871",
+  "title": "Give me a short markdown summary: 2 headings, a bullet list ",
+  "sessionId": "df5de0d7-738d-4bda-975b-4dd286d77231",
+  "created": "2026-07-13T21:33:52.230Z",
+  "updated": "2026-07-13T21:33:56.036Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Give me a short markdown summary: 2 headings, a bullet list of 3 items, and one bold word.",
+      "ts": "2026-07-13T21:33:52.230Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "# Summary\n\nHere is a short example with **formatting**.\n\n## Items\n\n- First item\n- Second item\n- Third item",
+      "ts": "2026-07-13T21:33:56.036Z"
+    }
+  ]
+}
