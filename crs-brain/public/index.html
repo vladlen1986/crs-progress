@@ -355,6 +355,11 @@
   .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .expl-item:hover .nm{color:var(--primary)}
   .expl-empty{grid-column:1/-1;color:var(--muted);font-size:12.5px;padding:30px;text-align:center}
+  /* chat search */
+  .chat-search{display:block;width:calc(100% - 24px);margin:0 12px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
+  .chat-search:focus{border-color:var(--accent)}
+  .item .snip{display:block;color:var(--muted);font-size:10.5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  mark.hl{background:rgba(249,115,22,.35);color:var(--primary);border-radius:2px;padding:0 1px}
 
   /* ───── mobile (≤900px): columns become slide-in drawers ───── */
   .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
@@ -466,6 +471,7 @@
       <button id="tabFiles" onclick="setTab('files')">Files</button>
     </div>
     <div id="chatActions">
+      <input class="chat-search" id="chatSearch" placeholder="Search chats…" autocomplete="off" oninput="onChatSearch(this.value)">
       <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
       <button class="newbtn" onclick="runDigest()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg> Weekly digest</button>
     </div>
@@ -703,6 +709,24 @@ function chatItemEl(c){
   d.onclick=(e)=>{ if(e.target.closest('.x')){delChat(c.id);return;} openChat(c.id); };
   return d;
 }
+// ---------- chat search (sidebar) ----------
+let chatSearchT=null;
+function hl(text,q){ if(!q) return esc(text); const i=text.toLowerCase().indexOf(q.toLowerCase()); if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark class="hl">'+esc(text.slice(i,i+q.length))+'</mark>'+esc(text.slice(i+q.length)); }
+function onChatSearch(q){ clearTimeout(chatSearchT);
+  chatSearchT=setTimeout(async()=>{ q=q.trim();
+    if(!q){ loadChats(); return; }
+    try{ const {chats}=await api('/api/search-chats?q='+encodeURIComponent(q));
+      const box=$('paneChats'); const normal=chats.filter(c=>!c.bp);
+      box.innerHTML = normal.length? '' : '<div class="empty" style="padding:12px">No chats match “'+esc(q)+'”.</div>';
+      for(const c of normal){ const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
+        d.style.flexDirection='column'; d.style.alignItems='stretch';
+        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span><span class="meta">${c.count}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
+        d.onclick=()=>openChat(c.id); box.appendChild(d); }
+    }catch{}
+  }, 180);
+}
+
 async function loadChats(){
   const {chats}=await api('/api/chats');
   state.chatList=chats;
@@ -1341,17 +1365,32 @@ async function loadUsage(){
     return;
   }
   const d=u.data;
-  if(!d||!d.rate_limits){
+  if(!d){
     box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} No reading yet</div>`+
+      `<div class="note">Use Claude Code interactively once (any session) and your usage appears here.</div>`+
       `<button class="enable" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch now</button>`+
       `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
     return;
   }
-  const rl=d.rate_limits; let rows='';
-  if(rl.five_hour) rows+=usageRow('Session · 5h', rl.five_hour);
-  if(rl.seven_day) rows+=usageRow('Weekly · 7d', rl.seven_day);
-  if(!rows) rows='<div class="note">No window data reported yet.</div>';
-  box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div>`+
+  let rows='';
+  // Newer Claude Code: rate_limits gone → show context window + session cost.
+  if(d.rate_limits){
+    if(d.rate_limits.five_hour) rows+=usageRow('Session · 5h', d.rate_limits.five_hour);
+    if(d.rate_limits.seven_day) rows+=usageRow('Weekly · 7d', d.rate_limits.seven_day);
+  }
+  const cw=d.context_window;
+  if(cw){
+    const pct = cw.used_percentage!=null ? Math.round(cw.used_percentage) : (cw.total_input_tokens&&cw.context_window_size ? Math.round(100*cw.total_input_tokens/cw.context_window_size) : 0);
+    const winK = cw.context_window_size ? Math.round(cw.context_window_size/1000)+'K' : '';
+    rows+=`<div class="urow"><div class="ulabel"><b>Context window</b><span class="pctv">${pct}%</span></div>`+
+      `<div class="bar"><span style="width:${Math.min(100,pct)}%;background:${barColor(pct)}"></span></div>`+
+      `<div class="sub"><span class="reset">${(cw.total_input_tokens||0).toLocaleString()} in · ${(cw.total_output_tokens||0).toLocaleString()} out · ${winK}</span></div></div>`;
+  }
+  if(d.cost && (d.cost.total_lines_added||d.cost.total_lines_removed||d.cost.total_cost_usd)){
+    rows+=`<div class="sub" style="margin-top:8px">Session: ${d.cost.total_cost_usd?('$'+d.cost.total_cost_usd.toFixed(2)+' · '):''}+${d.cost.total_lines_added||0}/-${d.cost.total_lines_removed||0} lines</div>`;
+  }
+  if(!rows) rows='<div class="note">Waiting for your next Claude Code render…</div>';
+  box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div>`+
     `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
     `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
 }

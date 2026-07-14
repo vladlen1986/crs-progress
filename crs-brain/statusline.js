@@ -24,13 +24,16 @@ process.stdin.on('end', () => {
   let j = {};
   try { j = JSON.parse(raw); } catch {}
 
-  // 1. persist rate limits for the app
+  // 1. persist usage for the app. Newer Claude Code dropped rate_limits from the
+  //    statusline and exposes context_window + cost instead; persist whatever's here.
   try {
-    if (j.rate_limits) {
-      const out = path.join(__dirname, 'data', 'usage.json');
-      fs.mkdirSync(path.dirname(out), { recursive: true });
-      fs.writeFileSync(out, JSON.stringify({ at: Date.now(), rate_limits: j.rate_limits }, null, 2));
-    }
+    const out = path.join(__dirname, 'data', 'usage.json');
+    fs.mkdirSync(path.dirname(out), { recursive: true });
+    const payload = { at: Date.now(), model: (j.model && (j.model.display_name || j.model.id)) || null };
+    if (j.rate_limits) payload.rate_limits = j.rate_limits;
+    if (j.context_window) payload.context_window = j.context_window;
+    if (j.cost) payload.cost = j.cost;
+    fs.writeFileSync(out, JSON.stringify(payload, null, 2));
   } catch {}
 
   // 2. render a compact status line

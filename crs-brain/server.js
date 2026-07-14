@@ -39,6 +39,16 @@ if (process.platform !== 'win32') {
     if (!process.env.LOGNAME) process.env.LOGNAME = uname;
   } catch {}
 }
+// Resolve a binary to its full path across the extended PATH (for pty/exec that
+// don't do their own PATH lookup reliably).
+function resolveBin(name) {
+  for (const dir of (process.env.PATH || '').split(path.sep === '\\' ? ';' : ':')) {
+    if (!dir) continue;
+    const full = path.join(dir, name);
+    try { if (fs.existsSync(full)) return full; } catch {}
+  }
+  return null;
+}
 
 // ---- paths -----------------------------------------------------------------
 const BRAIN_DIR = __dirname;                       // .../crs-brain
@@ -106,7 +116,9 @@ function populateUsage() {
 
     const before = (loadUsage() || {}).at || 0;
     const isWin = process.platform === 'win32';
-    const file = isWin ? 'cmd.exe' : 'claude';
+    // node-pty's posix_spawnp doesn't reliably resolve 'claude' via PATH — use the
+    // full binary path (found via extended PATH) so the pty can exec it.
+    const file = isWin ? 'cmd.exe' : (resolveBin('claude') || 'claude');
     const args = (isWin ? ['/c', 'claude'] : []).concat(['--model', 'claude-haiku-4-5-20251001']);
 
     let term;
@@ -735,6 +747,30 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/chats' && req.method === 'GET') {
       return send(res, 200, { chats: listChats() });
+    }
+
+    // Native search across chats (title + message content), returns a snippet.
+    if (p === '/api/search-chats' && req.method === 'GET') {
+      const q = (u.searchParams.get('q') || '').toLowerCase().trim();
+      if (!q) return send(res, 200, { chats: listChats() });
+      const out = [];
+      for (const f of fs.readdirSync(CHATS_DIR)) {
+        if (!f.endsWith('.json')) continue;
+        try {
+          const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
+          const msgs = c.messages || [];
+          const titleHit = (c.title || '').toLowerCase().includes(q);
+          let snippet = '';
+          for (const m of msgs) {
+            const t = (m.content || '').toString();
+            const i = t.toLowerCase().indexOf(q);
+            if (i >= 0) { snippet = t.slice(Math.max(0, i - 32), i + 60).replace(/\s+/g, ' ').trim(); break; }
+          }
+          if (titleHit || snippet) out.push({ id: c.id, title: c.title, updated: c.updated, count: msgs.length, bp: c.bp === true, snippet });
+        } catch {}
+      }
+      out.sort((a, b) => (b.updated || '').localeCompare(a.updated || ''));
+      return send(res, 200, { chats: out, q });
     }
 
     if (p === '/api/chat' && req.method === 'GET') {
