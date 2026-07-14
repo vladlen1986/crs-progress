@@ -3,7 +3,7 @@
   "title": "Map — Give me list of all design prototypes in html",
   "sessionId": "fb936d99-f5c4-4285-a245-6d098b639562",
   "created": "2026-07-14T09:37:03.993Z",
-  "updated": "2026-07-14T09:45:18.650Z",
+  "updated": "2026-07-14T13:30:34.662Z",
   "messages": [
     {
       "role": "user",
@@ -72,6 +72,17 @@
       "role": "assistant",
       "content": "The harness is gating every nested `claude` spawn behind an approval that isn't being granted through the tool, so I can't execute it from here — and I won't route around a permission check to force it.\n\nRun this one line in your own terminal (from the repo root) and paste the output — that's all I need:\n\n```\nclaude -p \"hi\" --output-format stream-json --include-partial-messages --verbose --model claude-opus-4-8 | head -20\n```\n\nRead the `\"type\":` fields:\n- If you see **`\"type\":\"stream_event\"`** lines → partial streaming works; the bug is in the frontend/persistence and I'll fix there.\n- If you see **only** `\"type\":\"system\"`, `\"type\":\"assistant\"`, `\"type\":\"result\"` → confirmed: no partials in your CLI, which is why nothing streams and the answer just pops in. I'll rewrite `handleEvent` to also parse the `assistant` events (thinking + tool_use blocks live there) plus persist blocks so they survive reload.\n\nPaste the lines and I'll act.",
       "ts": "2026-07-14T09:45:18.650Z"
+    },
+    {
+      "role": "user",
+      "content": "What is the best solution to build app and do not consume much wu",
+      "ts": "2026-07-14T13:29:38.783Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "WU = Workload Units, and the whole game is Bubble's own framework: **Complexity, Repetition, Volume** (`brain/bubble/help-guides/workload/optimizing-workload/optimization-checklist.md:52`). Every WU decision reduces to those three. Here's the ranked playbook, tuned to your SPA + Pattern A architecture.\n\n**1. Don't load data on page load — this is your #1 risk.**\nYour whole app is one `App` SPA page with 46 module groups toggled by `v`. The trap: if every module's `Do a search for` fires on page load, you pay for 46 modules to serve 1. Gate each module's data source behind a visibility condition so **only the active module queries** (`optimization-checklist.md:85-92`). Hidden group → no search → no WU.\n\n**2. Server-side constraints, never `:filtered` / `:advanced` / nested searches.**\nPut `company` AND `property` as **search constraints** (indexed, server-side) — not as `:filtered` operators that pull rows then filter (`optimization-checklist.md:131-135`). Nested searches (a search inside a RG cell or inside a constraint) multiply both complexity and volume. At 5M records, one `:filtered` in a repeating group is the difference between cheap and ruinous.\n\n**3. Volume: return fewer things and fewer bytes.**\nPaginate repeating groups; don't display heavy/unstructured fields (long text, notes, blobs) in list views — only in the detail view (`optimization-checklist.md:136-139`, `:231`). Structured fields (names, IDs, dates) are cheap; keep lists to those.\n\n**4. Store aggregates, don't recompute them.**\nAny `:count` / `:sum` / `:average` on a dashboard re-queries every display. Compute once, write to a field, read the field (`optimization-checklist.md:114-121`). Your reporting/dashboard modules will live or die on this.\n\n**5. Redirects server-side.**\nAuth/redirect logic (`User is logged out`, no conditions) resolves before the page HTML is even sent — zero WU spent rendering a page you're about to leave (`optimization-checklist.md:106-112`).\n\n**6. Backend/bulk (matters once tenants import data):**\n- Prefer **Make changes to a list** over *Schedule API workflow on a list*; prefer *Schedule on a list* over **recursive** workflows — recursive re-schedules N times and burns the most WU (`optimization-checklist.md:189-193`).\n- Database triggers must carry tight conditions so they don't fire on every write (`optimization-checklist.md:206-212`).\n- Every inbound API endpoint requires authentication, or it can be hammered for free WU (`optimization-checklist.md:214-219`).\n\n**CRS-specific, highest-leverage:**\n- The `#GR - Coming Soon` element for non-live modules should query **nothing** — pure static. With 46 modules mostly on roadmap, that keeps the SPA nearly free until a module is actually built.\n- Your 7 sidebar RGs run on every load. Keep them structured-fields-only and constrained by `property` (already mandated in CLAUDE.md). That's fine — just never let a sidebar RG carry a nested search for badge counts; store counts instead (see #4).\n\nThe scale test: at 50 tenants / 5M records, WU is dominated by **volume × repetition**. Server-side constraints on indexed `company`+`property`, visibility-gated searches, and stored aggregates are the three that keep it flat. Full detail: `brain/bubble/help-guides/workload/optimizing-workload/` (page-load, searches, workflows-and-actions, backend-workflows).\n\nWant me to turn this into a build-time WU checklist doc under `crs-brain/data/docs/`, or draft the visibility-condition pattern for the SPA module groups?",
+      "ts": "2026-07-14T13:30:34.662Z"
     }
   ]
 }
