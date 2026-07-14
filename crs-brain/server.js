@@ -54,7 +54,7 @@ const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
 for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
 
-const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high' };
+const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
   catch { return { ...DEFAULT_SETTINGS }; }
@@ -752,6 +752,34 @@ const server = http.createServer(async (req, res) => {
     return send(res, 500, { error: e.message });
   }
 });
+
+// ---- weekly manual sync ------------------------------------------------------
+// Keeps brain/bubble + brain/buildprint mirrors fresh. Runs at most once per
+// 7 days, checked hourly and shortly after boot. Failures keep the old mirror.
+const MANUALS_WEEK = 7 * 24 * 3600 * 1000;
+let manualsRunning = false;
+function maybeSyncManuals() {
+  if (manualsRunning) return;
+  const s = loadSettings();
+  if (Date.now() - (s.manualsCheckedAt || 0) < MANUALS_WEEK) return;
+  const script = path.join(REPO_ROOT, 'scripts', 'update-manuals.sh');
+  if (!fs.existsSync(script)) return;
+  manualsRunning = true;
+  console.log('  ⟳ Checking Bubble/Buildprint manuals for upstream updates…');
+  const child = spawn('bash', [script], { cwd: REPO_ROOT });
+  let out = '';
+  child.stdout.on('data', (d) => (out += d));
+  child.stderr.on('data', (d) => (out += d));
+  child.on('error', () => { manualsRunning = false; });
+  child.on('close', (code) => {
+    manualsRunning = false;
+    const sum = out.split('\n').filter((l) => /SUMMARY|COMMITTED|No upstream/.test(l)).join(' | ');
+    console.log(`  ⟳ Manual sync ${code === 0 ? 'done' : 'exit ' + code}: ${sum || '(no summary)'}`);
+    if (code === 0) saveSettings({ ...loadSettings(), manualsCheckedAt: Date.now() });
+  });
+}
+setTimeout(maybeSyncManuals, 90 * 1000);          // shortly after boot
+setInterval(maybeSyncManuals, 3600 * 1000);        // hourly gate, weekly action
 
 // Open the app in the default browser (Windows / macOS / Linux).
 function openBrowser(url) {
