@@ -1,13 +1,12 @@
 {
   "columns": {
-    "inbox": [
+    "inbox": [],
+    "exploring": [
       {
         "id": "t1",
         "text": "test idea #ux !high",
         "ts": "2026-07-14"
-      }
-    ],
-    "exploring": [
+      },
       {
         "id": "1784011000316831",
         "text": "prototype breaklist drag #breaklist !med",
