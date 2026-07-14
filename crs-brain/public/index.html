@@ -313,6 +313,16 @@
   .bp-conn .bp-ok,.bp-conn .bp-off{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
   .bp-conn .bp-ok{background:var(--success);box-shadow:0 0 7px var(--success)}
   .bp-conn .bp-off{background:var(--muted)}
+  /* right panel scroll + recent files */
+  .col.right .rscroll{flex:1;overflow:auto;min-height:0}
+  .col.right .rscroll .cols{flex:none;overflow:visible;min-height:0}
+  .recent{padding:0 12px 4px}
+  .recent .rf{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;color:var(--secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
+  .recent .rf:hover{background:var(--panel2);color:var(--primary)}
+  .recent .rf .ic{color:var(--muted);flex:0 0 auto}
+  .recent .rf .nm{overflow:hidden;text-overflow:ellipsis}
+  .recent .rf .ago{margin-left:auto;color:var(--muted);font-size:10px;flex:0 0 auto}
+  .recent .rempty{color:var(--muted);font-size:11.5px;padding:5px 8px;font-style:italic}
 
   /* ───── mobile (≤900px): columns become slide-in drawers ───── */
   .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
@@ -436,8 +446,8 @@
     <div class="pane hide" id="paneBuildprint"></div>
     <div class="pane hide tree" id="paneFiles"></div>
     <div class="tabs" id="fileFilter" style="display:none;margin-top:0">
-      <button id="ffAll" class="on" onclick="setFileFilter(false)">All files</button>
-      <button id="ffCrs" onclick="setFileFilter(true)">CRS only</button>
+      <button id="ffCrs" class="on" onclick="setFileFilter(true)">Project</button>
+      <button id="ffAll" onclick="setFileFilter(false)">All files</button>
     </div>
   </div>
 
@@ -496,10 +506,16 @@
 
   <!-- RIGHT -->
   <div class="col right">
-    <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse panel" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
-    <div class="usage" id="usage"></div>
-    <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
-    <div class="cols" id="progress"></div>
+    <h2 class="rtop">Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse panel" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
+    <div class="rscroll">
+      <div class="usage" id="usage"></div>
+      <h2>Recently opened</h2>
+      <div class="recent" id="recentOpened"></div>
+      <h2>Recently edited <button class="refresh" onclick="loadRecentEdited()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+      <div class="recent" id="recentEdited"></div>
+      <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+      <div class="cols" id="progress"></div>
+    </div>
   </div>
 </div>
 <div class="mscrim" id="mscrim" onclick="mob(null)"></div>
@@ -614,13 +630,16 @@ function setTab(t){ state.tab=t;
   $('fileFilter').style.display = t==='files' ? '' : 'none';
 }
 
-// ---------- CRS-only content filter ----------
+// ---------- Project-only file filter ----------
+// Project view (default): the CRS product files you actually work on.
+// Hidden: the app that runs the brain (crs-brain/), build scripts, README/CLAUDE
+// (the brain reads those, you don't), and the reference manuals inside brain/.
 const CRS_DIRS=new Set(['brain','specs','design','data','demos','pricing','audits']);
-const CRS_ROOT_FILES=new Set(['CLAUDE.md','decisions.md']);
-state.crsOnly = localStorage.getItem('crsOnly')==='1';
+const CRS_ROOT_FILES=new Set(['decisions.md']);        // README.md / CLAUDE.md are for the brain, not you
+const MANUAL_DIRS=new Set(['bubble','buildprint','bubble-forum']);   // reference manuals — hidden in project view
+state.crsOnly = localStorage.getItem('crsOnly')!=='0';  // default ON
 function setFileFilter(crs){ state.crsOnly=crs; localStorage.setItem('crsOnly',crs?'1':'0');
-  $('ffAll').classList.toggle('on',!crs); $('ffCrs').classList.toggle('on',crs); loadFiles(); }
-const MANUAL_DIRS=new Set(['bubble','buildprint']);   // reference manuals — hidden in CRS-only mode
+  $('ffCrs').classList.toggle('on',crs); $('ffAll').classList.toggle('on',!crs); loadFiles(); }
 function filterTree(tree){ if(!state.crsOnly) return tree;
   return tree.filter(n=> n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name))
     .map(n=> n.type==='dir'&&n.name==='brain'
@@ -1042,8 +1061,28 @@ function renderTree(nodes,open){
   }
   return wrap;
 }
+// ---------- recent files (right sidebar) ----------
+function agoTxt(ms){ const s=Math.round((Date.now()-ms)/1000); if(s<60)return s+'s'; const m=Math.round(s/60); if(m<60)return m+'m'; const h=Math.round(m/60); if(h<24)return h+'h'; return Math.round(h/24)+'d'; }
+function rfEl(pth, ago){ const d=document.createElement('div'); d.className='rf'; d.title=pth;
+  const nm=pth.split('/').pop();
+  d.innerHTML=`${svg(isImg(pth)?'i-doc-sm':'i-doc-sm','sm')}<span class="nm">${esc(nm)}</span>${ago?`<span class="ago">${ago}</span>`:''}`;
+  d.onclick=()=>{ if(isHtml(pth)) apiOpen(pth); else openFile(pth); };
+  return d; }
+function pushRecentOpened(p){ let a=[]; try{ a=JSON.parse(localStorage.getItem('recentOpened')||'[]'); }catch{}
+  a=a.filter(x=>x!==p); a.unshift(p); a=a.slice(0,12); localStorage.setItem('recentOpened',JSON.stringify(a)); }
+function loadRecentOpened(){ const box=$('recentOpened'); if(!box) return;
+  let a=[]; try{ a=JSON.parse(localStorage.getItem('recentOpened')||'[]'); }catch{}
+  box.innerHTML = a.length? '' : '<div class="rempty">Files you open show here</div>';
+  for(const p of a.slice(0,8)) box.appendChild(rfEl(p)); }
+async function loadRecentEdited(){ const box=$('recentEdited'); if(!box) return;
+  try{ const {files}=await api('/api/recent-edited?limit=8');
+    box.innerHTML = files.length? '' : '<div class="rempty">—</div>';
+    for(const f of files) box.appendChild(rfEl(f.path, agoTxt(f.mtime)));
+  }catch{ box.innerHTML='<div class="rempty">—</div>'; } }
+
 async function openFile(p){
   bumpView();
+  pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('fileView').style.display='flex';
@@ -1299,7 +1338,7 @@ function openFromHash(){
   }
 }
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

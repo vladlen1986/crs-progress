@@ -694,6 +694,31 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { root: path.basename(REPO_ROOT), tree: walk(REPO_ROOT) });
     }
 
+    // Recently edited PROJECT files (by mtime) — excludes app internals & manuals.
+    if (p === '/api/recent-edited' && req.method === 'GET') {
+      const limit = Math.min(30, parseInt(u.searchParams.get('limit')) || 8);
+      const PROJ = new Set(['brain', 'specs', 'design', 'data', 'demos', 'pricing', 'audits']);
+      const MAN = new Set(['brain/bubble', 'brain/buildprint', 'brain/bubble-forum']);
+      const out = [];
+      (function w(dir, rel) {
+        let es; try { es = fs.readdirSync(dir, { withFileTypes: true }); } catch { return; }
+        for (const e of es) {
+          const r = rel ? `${rel}/${e.name}` : e.name;
+          const top = r.split('/')[0];
+          if (e.isDirectory()) {
+            if (IGNORE_DIRS.has(e.name) || !PROJ.has(top) || MAN.has(r)) continue;
+            w(path.join(dir, e.name), r);
+          } else {
+            if (!(PROJ.has(top) || r === 'decisions.md')) continue;
+            if (!ALLOWED_EXT.has(path.extname(e.name).toLowerCase())) continue;
+            try { out.push({ path: r, mtime: fs.statSync(path.join(dir, e.name)).mtimeMs }); } catch {}
+          }
+        }
+      })(REPO_ROOT, '');
+      out.sort((a, b) => b.mtime - a.mtime);
+      return send(res, 200, { files: out.slice(0, limit) });
+    }
+
     if (p === '/api/file' && req.method === 'GET') {
       const abs = safeRepoPath(u.searchParams.get('path'));
       const content = fs.readFileSync(abs, 'utf8');
