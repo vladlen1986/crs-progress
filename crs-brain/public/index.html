@@ -39,7 +39,25 @@
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
   .col.left{border-right:1px solid var(--line);background:var(--panel)}
   .col.right{border-left:1px solid var(--line);background:var(--panel)}
-  .col.center{background:transparent}
+  .col.center{background:transparent;position:relative}
+
+  /* sidebar collapse (desktop only) */
+  @media (min-width:901px){
+    .app.lcol{grid-template-columns:0 1fr 330px}
+    .app.rcol{grid-template-columns:274px 1fr 0}
+    .app.lcol.rcol{grid-template-columns:0 1fr 0}
+    .app.lcol .col.left,.app.rcol .col.right{display:none}
+    .app.lcol .expand-handle.left{display:inline-flex}
+    .app.rcol .expand-handle.right{display:inline-flex}
+  }
+  .col-collapse{margin-left:auto;background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:.15s;padding:0}
+  .col-collapse:hover{color:var(--primary);border-color:var(--accent);background:var(--panel2)}
+  .col-collapse svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .expand-handle{display:none;position:absolute;top:14px;z-index:20;background:var(--panel2);border:1px solid var(--line);color:var(--muted);width:24px;height:32px;border-radius:8px;align-items:center;justify-content:center;cursor:pointer;transition:.15s}
+  .expand-handle:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  .expand-handle svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .expand-handle.left{left:10px}
+  .expand-handle.right{right:10px}
 
   /* brand */
   .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:11px}
@@ -120,6 +138,32 @@
   .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
   .body.err{color:#e8938b}
 
+  /* work blocks — Buildprint-style thinking/tool activity with live timers */
+  .wblocks{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  .wblocks:empty{display:none}
+  .wblock{border:1px solid var(--line);background:var(--panel2);border-radius:9px;overflow:hidden}
+  .wblock .whead{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;padding:8px 11px;color:var(--secondary);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+  .wblock .whead:hover{background:rgba(255,255,255,.03)}
+  .wblock .wchev{width:12px;height:12px;flex:0 0 auto;color:var(--muted);transition:transform .15s}
+  .wblock.open .wchev{transform:rotate(90deg)}
+  .wblock .wlabel{color:var(--primary);font-weight:600}
+  .wblock .wtime{margin-left:auto;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
+  .wblock.run .wlabel,.wblock.run .wtime{color:var(--accent2,#60A5FA)}
+  .wblock.run .wlabel{animation:wpulse 1.4s ease-in-out infinite}
+  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .wblock .wbody{display:none;padding:2px 12px 11px 32px;color:var(--muted);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--line)}
+  .wblock.open .wbody{display:block}
+  .wblock .wbody:empty::after{content:'(no details)';opacity:.6}
+
+  /* prompt queue strip */
+  .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
+  .queue-strip:empty{display:none}
+  .queue-strip .ql{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;font-weight:700}
+  .qchip{display:flex;align-items:center;justify-content:space-between;gap:5px;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:6px 8px 6px 12px;font-size:12px;color:var(--secondary);width:100%}
+  .qchip .qtxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qchip .qx{cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px;border-radius:50%}
+  .qchip .qx:hover{color:var(--danger)}
+
   /* composer */
   .composer-wrap{padding:12px 18px 18px}
   .composer{display:flex;gap:6px;align-items:flex-end;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:7px;transition:border-color .15s;max-width:830px;margin:0 auto}
@@ -132,6 +176,14 @@
   .send{background:var(--grad);border:none;color:#fff;font-weight:700;border-radius:8px;width:38px;height:38px;font-size:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.15s}
   .send:hover{background:#2563EB}
   .send:disabled{opacity:.4;cursor:default}
+  .send.stop{background:var(--panel2);border:1px solid var(--line3);color:var(--danger)}
+  .send.stop:hover{background:var(--elev);border-color:var(--danger)}
+  /* retry / continue bar under the latest reply */
+  .retry-bar{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
+  .retry-bar button{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:6px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:.15s}
+  .retry-bar button:hover{border-color:var(--accent);color:var(--primary);background:var(--elev)}
+  .retry-bar button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  .stopped-note{color:var(--muted);font-size:12px;font-style:italic;margin-top:6px}
   .ingest-btn{display:none;align-items:center;gap:7px;background:var(--accent-tint);border:1px solid var(--line2);color:var(--accent2);font-weight:600;border-radius:8px;height:38px;padding:0 14px;font-size:12.5px;flex:0 0 auto;transition:.15s;white-space:nowrap}
   .ingest-btn.show{display:inline-flex}
   .ingest-btn:hover{background:var(--accent-soft);color:var(--primary)}
@@ -198,6 +250,40 @@
 
   .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
 
+  /* ───── dashboard (home) ───── */
+  .brand-home{display:flex;align-items:center;gap:11px;cursor:pointer;flex:1;min-width:0;border-radius:8px;transition:.12s}
+  .brand-home:hover{opacity:.85}
+  .dash{flex:1;overflow:auto;padding:30px 34px 44px}
+  .dash-inner{max-width:1080px;margin:0 auto}
+  .dash h2{color:var(--primary);font-size:23px;font-weight:650;margin:0 0 3px}
+  .dash .subline{color:var(--muted);font-size:13.5px;margin-bottom:26px}
+  .dash section{margin-bottom:26px}
+  .dash .lbl{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 11px}
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(132px,1fr));gap:11px}
+  .stat{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .stat .v{color:var(--primary);font-size:25px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1}
+  .stat .k{color:var(--muted);font-size:11.5px;margin-top:6px;display:flex;align-items:center;gap:6px}
+  .stat .k .dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+  .actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(158px,1fr));gap:11px}
+  .action{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px;text-align:left;cursor:pointer;transition:.15s;display:flex;flex-direction:column;gap:7px;font-family:inherit}
+  .action:hover{border-color:var(--line2);background:var(--elev)}
+  .action .ai{width:30px;height:30px;border-radius:8px;background:var(--accent-tint);display:flex;align-items:center;justify-content:center;color:var(--accent2)}
+  .action .ai .ic{width:16px;height:16px}
+  .action .at{color:var(--primary);font-size:13.5px;font-weight:600}
+  .action .ad{font-size:11.5px;color:var(--muted);line-height:1.4}
+  .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+  .dcard h3{color:var(--primary);font-size:12.5px;font-weight:600;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .dcard h3 .cnt{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500}
+  .drow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--secondary);cursor:pointer}
+  .drow.static{cursor:default}
+  .drow:hover:not(.static){color:var(--primary)}
+  .drow .pill{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  .drow .rt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .drow .rmeta{margin-left:auto;color:var(--muted);font-size:11px;flex:0 0 auto}
+  .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
+  @media (max-width:760px){.dash{padding:20px 15px}.dash-cols{grid-template-columns:1fr}}
+
   /* ───── mobile (≤900px): columns become slide-in drawers ───── */
   .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
   @media (max-width:900px){
@@ -207,6 +293,7 @@
     .col.right{right:0;transform:translateX(105%);border-left:1px solid var(--line2)}
     .col.left.show,.col.right.show{transform:translateX(0)}
     .mbtn{display:inline-flex;align-items:center;justify-content:center}
+    .col-collapse,.expand-handle{display:none!important}
     .center-head{padding:0 10px;gap:8px}
     .center-head .title{font-size:13px}
     .sel{padding:6px 20px 6px 6px;font-size:11px;max-width:86px}
@@ -299,7 +386,7 @@
 <div class="app">
   <!-- LEFT -->
   <div class="col left">
-    <div class="brand"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div>
+    <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
@@ -319,6 +406,8 @@
 
   <!-- CENTER -->
   <div class="col center">
+    <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+    <button class="expand-handle right" title="Show usage & progress" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
@@ -347,16 +436,20 @@
     <div id="chatView" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
       <div class="chat" id="chatLog"></div>
       <div class="composer-wrap">
+        <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
         <div class="composer">
           <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
           <button class="ingest-btn" id="ingestBtn" title="Route this report into brain/ — updates database, security, workflows, migrations, changelog" onclick="sendMsg(true)"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-ingest"/></svg> Ingest to Brain</button>
           <button class="send" id="sendBtn" title="Send" onclick="sendMsg()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-send"/></svg></button>
+          <button class="send stop" id="stopBtn" title="Stop generating" style="display:none" onclick="stopGen()"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg></button>
         </div>
         <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesPicked(event)">
       </div>
     </div>
+    <!-- dashboard (home) -->
+    <div id="dashView" class="dash" style="display:none"></div>
     <!-- file view -->
     <div id="fileView" class="editor" style="display:none">
       <div class="doc md" id="fileDoc"></div>
@@ -366,7 +459,7 @@
 
   <!-- RIGHT -->
   <div class="col right">
-    <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+    <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
     <div class="usage" id="usage"></div>
     <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
     <div class="cols" id="progress"></div>
@@ -384,7 +477,15 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
-let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[], populating:false };
+let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[], queue:[], populating:false, abort:null, stopped:false };
+function setGenerating(on){
+  const s=$('sendBtn'), st=$('stopBtn'), ig=$('ingestBtn');
+  if(s) s.style.display = on?'none':'';
+  if(st) st.style.display = on?'':'none';
+  if(ig) ig.style.opacity = on?'.4':'';
+  if(ig) ig.style.pointerEvents = on?'none':'';
+}
+function stopGen(){ if(state.abort){ state.stopped=true; try{ state.abort.abort(); }catch{} } }
 
 // ---------- tiny markdown renderer (no external deps) ----------
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
@@ -446,6 +547,18 @@ function mob(side){
   R.classList.toggle('show', openR);
   $('mscrim').classList.toggle('show', openL||openR);
 }
+// ---------- desktop sidebar collapse ----------
+function toggleCol(side){
+  const cls = side==='left' ? 'lcol' : 'rcol';
+  const app = document.querySelector('.app');
+  const collapsed = app.classList.toggle(cls);
+  localStorage.setItem('collapse_'+side, collapsed?'1':'0');
+}
+(function restoreCols(){
+  const app = document.querySelector('.app');
+  if(localStorage.getItem('collapse_left')==='1') app.classList.add('lcol');
+  if(localStorage.getItem('collapse_right')==='1') app.classList.add('rcol');
+})();
 // picking a chat/file on mobile closes the drawer
 document.addEventListener('click',e=>{
   if(innerWidth>900) return;
@@ -525,22 +638,140 @@ function addReplyActions(msgEl, text){
   b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
   acts.appendChild(b1); acts.appendChild(b2); host.appendChild(acts);
 }
+// Always-visible controls under the newest reply: regenerate, and (after a Stop) continue.
+function addRetryBar(msgEl, stopped){
+  const host=msgEl.querySelector('.content')||msgEl;
+  host.querySelectorAll('.retry-bar').forEach(el=>el.remove());
+  const bar=document.createElement('div'); bar.className='retry-bar';
+  const retry=document.createElement('button'); retry.innerHTML=svg('i-refresh','sm')+' Try again';
+  retry.onclick=()=>regenerate(msgEl);
+  bar.appendChild(retry);
+  if(stopped){
+    const cont=document.createElement('button'); cont.innerHTML=svg('i-send','sm')+' Continue';
+    cont.onclick=()=>continueGen();
+    bar.appendChild(cont);
+  }
+  host.appendChild(bar);
+}
+// "Try again" — drop this reply and re-run the preceding user turn (server-side).
+function regenerate(msgEl){
+  if(state.sending) return;
+  if(msgEl) msgEl.remove();
+  streamChat('', {regenerate:true});
+}
+// "Continue" — resume from where a stopped reply left off, using the same session.
+function continueGen(){
+  if(state.sending) return;
+  streamChat('Continue exactly where you left off — do not repeat what you already wrote.', {});
+}
 async function openReplyDoc(text, title){
   try{
     const r=await api('/api/savedoc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title||'brain-doc',content:text})});
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+
+// ---------- dashboard (home) ----------
+function showDashboard(){
+  state.chatId=null; state.filePath=null;
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('centerTitle').textContent='Dashboard';
+  if(innerWidth<=900) mob(null);
+  renderDashboard();
+}
+async function renderDashboard(){
+  const box=$('dashView');
+  const [files,chatsR,progress,ideas]=await Promise.all([
+    api('/api/files').catch(()=>({tree:[]})),
+    api('/api/chats').catch(()=>({chats:[]})),
+    api('/api/progress').catch(()=>({columns:{},missing:[]})),
+    fetch('/api/ideas').then(r=>r.json()).catch(()=>({columns:{}})),
+  ]);
+  let nFiles=0,bubble=0,build=0,forum=0,docs=0;
+  (function walk(ns,pfx){ for(const n of ns){ if(n.type==='dir') walk(n.children,pfx+n.name+'/');
+    else { nFiles++; const p=pfx+n.name;
+      if(p.startsWith('brain/bubble/'))bubble++; else if(p.startsWith('brain/buildprint/'))build++;
+      else if(p.startsWith('brain/bubble-forum/'))forum++;
+      if(p.startsWith('crs-brain/data/docs/'))docs++; } } })(files.tree||[],'');
+  const chats=chatsR.chats||[];
+  const ideaCount=Object.values(ideas.columns||{}).flat().length;
+  const col=k=>(progress.columns&&progress.columns[k])||[];
+  const now=col('now'),next=col('next'),done=col('done'),missing=progress.missing||[];
+  const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
+  const A=(icon,title,desc,onclick)=>`<button class="action" onclick="${onclick}"><span class="ai">${svg(icon)}</span><span class="at">${title}</span><span class="ad">${desc}</span></button>`;
+  const stat=(v,k,color)=>`<div class="stat"><div class="v">${v}</div><div class="k">${color?`<span class="dot" style="background:${color}"></span>`:''}${k}</div></div>`;
+  const chatRows=chats.slice(0,6).map(c=>`<div class="drow" onclick="openChat('${c.id}')"><span class="rt">${esc(c.title||'Untitled')}</span><span class="rmeta">${c.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>';
+  const pRow=(it,color)=>`<div class="drow static"><span class="pill" style="background:${color}"></span><span class="rt">${esc(typeof it==='string'?it:(it.title||''))}</span></div>`;
+  const nowRows=now.length?now.map(x=>pRow(x,'#3B82F6')).join(''):'<div class="dempty">Nothing in progress</div>';
+  const nextRows=next.slice(0,4).map(x=>pRow(x,'#F59E0B')).join('');
+  box.innerHTML=`<div class="dash-inner">
+    <h2>${greet}, Vlad</h2>
+    <div class="subline">Your CRS second brain — everything grounded, versioned, and searchable.</div>
+
+    <section><div class="lbl">Overview</div><div class="stats">
+      ${stat(nFiles.toLocaleString(),'files','#8B5CF6')}
+      ${stat(chats.length,'conversations','#3B82F6')}
+      ${stat(ideaCount,'ideas','#F59E0B')}
+      ${stat(done.length,'done','#22C55E')}
+      ${stat((bubble+build+forum).toLocaleString(),'manual pages','#60A5FA')}
+    </div></section>
+
+    <section><div class="lbl">Quick actions</div><div class="actions">
+      ${A('i-plus','New conversation','Ask anything about CRS','newChat()')}
+      ${A('i-logo','Galaxy map','Explore the brain visually','window.open(\'/map\',\'crsmap\')')}
+      ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
+      ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
+      ${A('i-folder','Browse files','Open the file tree','setTab(\'files\')')}
+    </div></section>
+
+    <section><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-sparkle','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>${chatRows}</div>
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Progress</h3>
+        <div class="lbl" style="margin:6px 0 2px;font-size:9.5px">Now</div>${nowRows}
+        ${next.length?`<div class="lbl" style="margin:12px 0 2px;font-size:9.5px">Next</div>${nextRows}`:''}
+        ${missing.length?`<div class="lbl" style="margin:12px 0 2px;font-size:9.5px;color:#EF4444">Gaps</div>${missing.slice(0,3).map(x=>pRow(x,'#EF4444')).join('')}`:''}
+      </div>
+    </div></section>
+
+    <section><div class="lbl">Knowledge base</div><div class="stats">
+      ${stat(bubble.toLocaleString(),'Bubble manual','#8B5CF6')}
+      ${stat(build,'Buildprint manual','#C084FC')}
+      ${stat(forum,'forum threads','#A78BFA')}
+      ${stat(docs,'saved docs','#60A5FA')}
+    </div></section>
+  </div>`;
+}
+function startIngest(){ newChat(); toast('Attach a Buildprint report (📎), then hit Ingest to Brain'); $('input').focus(); }
 
 function sendMsg(ingest){
   const input=$('input'); const text=input.value.trim();
   const atts=(state.pending||[]).filter(a=>a.path);
-  if((!text && !atts.length)||state.sending) return;
-  input.value=''; input.style.height='auto';
+  if(!text && !atts.length) return;
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
+  input.value=''; input.style.height='auto';
   state.pending=[]; renderChips();
-  streamChat(text,{attachments,attachmentNames,ingest:ingest===true});
+  const job={text,attachments,attachmentNames,ingest:ingest===true};
+  // Busy? queue it instead of dropping it — sends automatically when the current reply finishes.
+  if(state.sending){ (state.queue=state.queue||[]).push(job); renderQueue(); toast('Queued — sends after the current reply'); return; }
+  runJob(job);
+}
+function runJob(job){ streamChat(job.text,{attachments:job.attachments,attachmentNames:job.attachmentNames,ingest:job.ingest}); }
+function renderQueue(){
+  const el=$('queueStrip'); if(!el) return;
+  const q=state.queue||[];
+  el.innerHTML = q.length
+    ? `<span class="ql">Queued · ${q.length}</span>`+q.map((j,i)=>`<span class="qchip"><span class="qtxt">${esc(j.text||(j.attachmentNames&&j.attachmentNames.join(', '))||'attachment')}</span><span class="qx" data-i="${i}" title="Remove">×</span></span>`).join('')
+    : '';
+  el.querySelectorAll('.qx').forEach(x=>x.onclick=()=>{ state.queue.splice(+x.dataset.i,1); renderQueue(); });
+}
+function dequeue(){
+  renderQueue();
+  if((state.queue||[]).length && !state.sending){
+    const next=state.queue.shift(); renderQueue();
+    setTimeout(()=>runJob(next),150);
+  }
 }
 
 // ---------- attachments ----------
@@ -571,37 +802,73 @@ async function uploadFiles(files){
 }
 function onFilesPicked(ev){ const files=[...ev.target.files]; ev.target.value=''; uploadFiles(files); }
 
-// ---------- streaming chat with smooth typewriter reveal ----------
+// ---------- streaming chat: Buildprint-style work blocks + typewriter answer ----------
+function wLabel(kind,tool){
+  if(kind==='thinking') return 'Thinking';
+  const t=(tool||'').toLowerCase();
+  if(/read|grep|glob|fetch|search/.test(t)) return 'Reading';
+  if(/edit|write|notebook/.test(t)) return 'Building';
+  return 'Working';
+}
+function fmtDur(ms){
+  const s=Math.floor(ms/1000);
+  if(s<60) return s+'s';
+  const m=Math.floor(s/60); if(m<60) return m+'m '+(s%60)+'s';
+  const h=Math.floor(m/60); return h+'h '+(m%60)+'m';
+}
 async function streamChat(text, opts={}){
   if(state.sending) return;
   showChat();
   const log=$('chatLog');
   if(log.querySelector('.hero')||log.querySelector('.empty')) log.innerHTML='';
-  log.appendChild(userMsgEl(text, opts.attachmentNames));
+  document.querySelectorAll('.retry-bar').forEach(el=>el.remove());   // only the newest reply keeps its retry/continue controls
+  if(!opts.regenerate) log.appendChild(userMsgEl(text, opts.attachmentNames));
   const a=botMsgEl(); const body=a.querySelector('.body');
-  body.classList.add('streaming');
-  body.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+  body.innerHTML='';
+  const blocksEl=document.createElement('div'); blocksEl.className='wblocks';
+  const answerEl=document.createElement('div'); answerEl.className='streaming';
+  answerEl.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
+  body.appendChild(blocksEl); body.appendChild(answerEl);
   log.appendChild(a);
   log.scrollTop=log.scrollHeight;
-  state.sending=true; $('sendBtn').disabled=true;
-
-  // reveal machinery — decoupled from network chunk size for a smooth flow.
-  // Uses setTimeout (not requestAnimationFrame): rAF is fully paused in hidden
-  // tabs, which would strand the reply on the loading dots. setTimeout still
-  // fires (throttled) so the final render is always guaranteed.
-  let full='', revealed=0, streamDone=false, errored=false, started=false, finalized=false;
-  const caret=document.createElement('span'); caret.className='caret';
+  state.sending=true; state.stopped=false;
+  const ac=new AbortController(); state.abort=ac;
+  setGenerating(true);
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
+
+  // ---- work blocks: thinking / tool activity, each with a live timer ----
+  let activeCard=null, dotsShown=true;
+  const timerIv=setInterval(()=>{ if(activeCard) activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); }, 500);
+  function clearDots(){ if(dotsShown){ answerEl.innerHTML=''; dotsShown=false; } }
+  function finalizeCard(){ if(activeCard){ activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); activeCard.el.classList.remove('run'); activeCard=null; } }
+  function startCard(kind,tool){
+    finalizeCard(); clearDots();
+    const el=document.createElement('div'); el.className='wblock run';
+    el.innerHTML='<button class="whead" type="button"><svg class="wchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wlabel">'+esc(wLabel(kind,tool))+'</span><span class="wtime">0s</span></button><div class="wbody"></div>';
+    el.querySelector('.whead').onclick=()=>el.classList.toggle('open');
+    blocksEl.appendChild(el);
+    activeCard={el,timeEl:el.querySelector('.wtime'),bodyEl:el.querySelector('.wbody'),start:performance.now(),kind,text:''};
+    if(nearBottom()) log.scrollTop=log.scrollHeight;
+  }
+  function appendThink(t){
+    if(!activeCard||activeCard.kind!=='thinking') startCard('thinking');
+    activeCard.text+=t; activeCard.bodyEl.textContent=activeCard.text;
+    if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight;
+  }
+
+  // ---- answer typewriter reveal (into answerEl); setTimeout survives hidden tabs ----
+  let full='', revealed=0, streamDone=false, errored=false, started=false, finalized=false, stoppedReply=false;
+  const caret=document.createElement('span'); caret.className='caret';
   function pump(){
     if(errored||finalized) return;
-    if(!started && full.length){ body.innerHTML=''; body.appendChild(caret); started=true; }
+    if(!started && full.length){ clearDots(); finalizeCard(); answerEl.innerHTML=''; answerEl.appendChild(caret); started=true; }
     if(revealed<full.length){
       const remaining=full.length-revealed;
       const step = remaining>240 ? remaining-200 : 3;   // steady typing; catch up only if far behind
       const slice=full.slice(revealed, revealed+step); revealed+=slice.length;
       const frag=document.createDocumentFragment();
       slice.split(/(\s+)/).forEach(t=>{ if(t===''){return;} const s=document.createElement('span'); s.className='tok'; s.textContent=t; frag.appendChild(s); });
-      body.insertBefore(frag, caret);
+      answerEl.insertBefore(frag, caret);
       if(nearBottom()) log.scrollTop=log.scrollHeight;
     }
     if(streamDone && revealed>=full.length){ return finalize(); }
@@ -609,16 +876,23 @@ async function streamChat(text, opts={}){
   }
   function finalize(){
     if(errored||finalized) return; finalized=true;
-    body.classList.remove('streaming');
-    body.style.opacity='0'; body.innerHTML=renderMd(full);
-    setTimeout(()=>{ body.style.transition='opacity .28s ease'; body.style.opacity='1'; }, 20);
-    addReplyActions(a, full);
+    finalizeCard(); clearInterval(timerIv);
+    answerEl.classList.remove('streaming');
+    if(stoppedReply && !full.trim()){
+      answerEl.innerHTML='<span class="stopped-note">Stopped before any output.</span>';
+    }else{
+      answerEl.style.opacity='0'; answerEl.innerHTML=renderMd(full);
+      setTimeout(()=>{ answerEl.style.transition='opacity .28s ease'; answerEl.style.opacity='1'; }, 20);
+    }
+    if(stoppedReply && full.trim()){ const n=document.createElement('div'); n.className='stopped-note'; n.textContent='⏹ Stopped'; answerEl.after(n); }
+    if(full.trim()) addReplyActions(a, full);
+    addRetryBar(a, stoppedReply);
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
   setTimeout(pump, 16);
 
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],ingest:opts.ingest===true,model:$('modelSel')?.value,effort:$('effortSel')?.value})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],ingest:opts.ingest===true,regenerate:opts.regenerate===true,model:$('modelSel')?.value,effort:$('effortSel')?.value}),signal:ac.signal});
     if(!res.body) throw new Error('no stream');
     const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
     while(true){
@@ -630,18 +904,27 @@ async function streamChat(text, opts={}){
         const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
         let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
         if(ev.type==='meta'){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=ev.title; }
-        else if(ev.type==='status'){ if(!full && !started){ body.innerHTML=`<span class="dots"><i></i><i></i><i></i></span><span class="statusnote">${esc(ev.text)}…</span>`; } }
-        else if(ev.type==='delta'){ full+=ev.text; }
+        else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
+        else if(ev.type==='think'){ appendThink(ev.text||''); }
+        else if(ev.type==='detail'){ if(activeCard){ activeCard.text += (activeCard.text?'\n':'')+(ev.text||''); activeCard.bodyEl.textContent=activeCard.text; if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight; } }
+        else if(ev.type==='status'){ /* superseded by work blocks */ }
+        else if(ev.type==='delta'){ if(activeCard) finalizeCard(); full+=ev.text; }
         else if(ev.type==='done'){ state.chatId=ev.id; full=ev.reply||full; streamDone=true; if(ev.title) $('centerTitle').textContent=ev.title; }
-        else if(ev.type==='error'){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); }
+        else if(ev.type==='stopped'){ state.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; }
+        else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
       }
     }
     streamDone=true;
-    loadChats(); loadProgress();
   }catch(e){
-    if(!errored){ errored=true; body.classList.remove('streaming'); body.classList.add('err'); body.innerHTML=svg('i-alert','sm')+'  '+esc(e.message); }
+    if(e.name==='AbortError' || state.stopped){
+      stoppedReply=true; streamDone=true;   // Stop button: keep partial, let pump finalize
+    }else if(!errored){
+      errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err');
+      answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(e.message); body.appendChild(em); addRetryBar(a,false);
+    }
   }finally{
-    state.sending=false; $('sendBtn').disabled=false;
+    state.sending=false; state.abort=null; setGenerating(false); clearInterval(timerIv);
+    loadChats(); loadProgress(); dequeue();
   }
 }
 
@@ -690,7 +973,7 @@ function renderTree(nodes,open){
 async function openFile(p){
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('fileView').style.display='flex';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('fileView').style.display='flex';
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');
@@ -902,7 +1185,7 @@ function openFromHash(){
   }
 }
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else newChat(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>
