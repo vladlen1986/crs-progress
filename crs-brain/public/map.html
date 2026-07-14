@@ -49,7 +49,22 @@
 
   .tip{position:fixed;pointer-events:none;background:rgba(20,20,23,.95);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:11.5px;color:var(--primary);z-index:20;display:none;max-width:300px}
   .tip .sub{color:var(--muted);font-size:10px;margin-top:2px}
-  .hint{position:fixed;bottom:14px;left:20px;color:var(--muted);font-size:10.5px;z-index:10;pointer-events:none;letter-spacing:.3px}
+  .hint{position:fixed;bottom:14px;right:20px;color:var(--muted);font-size:10.5px;z-index:10;pointer-events:none;letter-spacing:.3px}
+
+  /* chat dock — ask the brain, it lights up the galaxy */
+  .dock{position:fixed;left:20px;bottom:20px;width:340px;z-index:11;background:rgba(20,20,23,.93);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .dock .dhead{display:flex;align-items:center;gap:8px;padding:9px 12px;border-bottom:1px solid var(--line);color:var(--primary);font-size:11px;font-weight:700;letter-spacing:1.2px}
+  .dock .dhead .dot{width:7px;height:7px;border-radius:50%;background:var(--c-skill)}
+  .dock .dhead .fold{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;font-family:inherit}
+  .dock .dbody{max-height:180px;overflow:auto;padding:10px 12px;font-size:12px;line-height:1.55;color:var(--secondary);white-space:pre-wrap;word-break:break-word;display:none}
+  .dock .dbody.show{display:block}
+  .dock .dbody b{color:var(--primary)}
+  .dock .dbody .hits{color:var(--c-skill);font-weight:600}
+  .dock form{display:flex;gap:6px;padding:9px}
+  .dock input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--primary);padding:8px 11px;font-size:12px;font-family:inherit;outline:none}
+  .dock input:focus{border-color:var(--accent)}
+  .dock button.ask{background:var(--accent);border:none;color:#fff;border-radius:6px;padding:0 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+  .dock button.ask:disabled{opacity:.4}
 </style>
 </head>
 <body>
@@ -81,6 +96,14 @@
 </div>
 <div class="tip" id="tip"></div>
 <div class="hint">drag to pan · wheel to zoom · click a file to open it · double-click a hub to collapse</div>
+<div class="dock" id="dock">
+  <div class="dhead"><span class="dot"></span> ASK THE BRAIN <button class="fold" id="dockFold" title="Collapse">—</button></div>
+  <div class="dbody" id="dockBody"></div>
+  <form id="dockForm">
+    <input id="dockQ" placeholder="e.g. where is the buttons prototype?" autocomplete="off">
+    <button class="ask" id="dockSend" type="submit">Ask</button>
+  </form>
+</div>
 
 <script>
 'use strict';
@@ -408,11 +431,16 @@ cv.addEventListener('pointermove',e=>{
         : `${hover.label}`;
     } else ui.tip.style.display='none';
   }});
+function openNode(n){
+  if(!n||n.kind!=='file'||!n.path) return;
+  if(/\.html?$/i.test(n.path)){ // html → the user's default browser
+    fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:n.path})})
+      .then(()=>flash('Opened in your browser · '+n.label)).catch(()=>flash('Could not open'));
+  } else window.open('/#file='+encodeURIComponent(n.path),'crsbrain');
+}
 cv.addEventListener('pointerup',e=>{
   cv.classList.remove('dragging');
-  if(downAt && !downAt.moved){ const n=pick(e.clientX,e.clientY);
-    if(n&&n.kind==='file'&&n.path) window.open('/#file='+encodeURIComponent(n.path),'crsbrain');
-  }
+  if(downAt && !downAt.moved){ const n=pick(e.clientX,e.clientY); openNode(n); }
   dragN=null; panning=false; downAt=null; });
 cv.addEventListener('dblclick',e=>{ const n=pick(e.clientX,e.clientY);
   if(n&&n.kind==='hub'){ S.collapsed[n.id]=!S.collapsed[n.id];
@@ -447,6 +475,46 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
 // restore baked seg states
 document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+
+// ---- chat dock: ask the brain, highlight what it points at ---------------------------
+const dockBody=document.getElementById('dockBody'), dockQ=document.getElementById('dockQ'),
+      dockSend=document.getElementById('dockSend');
+let dockChatId=null, asking=false;
+document.getElementById('dockFold').addEventListener('click',()=>dockBody.classList.toggle('show'));
+document.getElementById('dockForm').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const q=dockQ.value.trim(); if(!q||asking) return;
+  asking=true; dockSend.disabled=true; dockQ.value='';
+  dockBody.classList.add('show'); dockBody.innerHTML='<b>You:</b> '+q.replace(/</g,'&lt;')+'\n\n<i style="color:var(--muted)">thinking…</i>';
+  const prompt=q+'\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)';
+  let full='';
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({id:dockChatId,message:prompt,title:'Map — '+q.slice(0,50)})});
+    const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){ const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true});
+      let idx; while((idx=buf.indexOf('\n\n'))>=0){ const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
+        const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
+        let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
+        if(ev.type==='meta') dockChatId=ev.id;
+        else if(ev.type==='delta'){ full+=ev.text; dockBody.textContent=full; dockBody.scrollTop=dockBody.scrollHeight; }
+        else if(ev.type==='done'){ full=ev.reply||full; dockChatId=ev.id; }
+        else if(ev.type==='error'){ full='Error: '+ev.error; }
+      } }
+  }catch(err){ full='Error: '+err.message; }
+  dockBody.textContent=full;
+  // light up every node whose path appears in the answer, then fly to the first
+  const hits=nodes.filter(n=>n.kind==='file'&&n.path&&full.includes(n.path));
+  if(hits.length){
+    matches=new Set(hits.map(n=>n.id));
+    for(const n of hits){ if(n.cluster){ matches.add(n.cluster); if(S.collapsed[n.cluster]){ S.collapsed[n.cluster]=false; for(const x of nodes) if(x.cluster===n.cluster) x.hidden=false; } } }
+    const t=hits[0]; cam.k=Math.max(cam.k,1.1); cam.x=-t.x*cam.k; cam.y=-t.y*cam.k;
+    dockBody.innerHTML+='\n\n<span class="hits">◉ '+hits.length+' file'+(hits.length>1?'s':'')+' highlighted on the map — click to open.</span>';
+  } else { matches=null; }
+  dockBody.scrollTop=dockBody.scrollHeight;
+  asking=false; dockSend.disabled=false;
+});
 
 // ---- boot ----------------------------------------------------------------------------
 fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); })

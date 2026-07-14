@@ -176,6 +176,22 @@
   .md blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:2px 0 2px 14px;color:var(--muted)}
   .md ul,.md ol{padding-left:22px}
   .md li{margin:.25em 0}
+  .md .md-img,.doc .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
+  .md a[data-path]{color:var(--accent2);border-bottom:1px dashed rgba(96,165,250,.4)}
+  .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
+
+  /* quick-open palette (Cmd/Ctrl+K) */
+  .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
+  .pal-wrap.show{display:flex}
+  .pal{width:520px;max-width:92vw;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 24px 60px rgba(0,0,0,.6);overflow:hidden}
+  .pal input{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--primary);padding:14px 16px;font-size:14px;font-family:inherit;outline:none}
+  .pal .results{max-height:46vh;overflow:auto;padding:6px}
+  .pal .res{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--secondary)}
+  .pal .res .k{margin-left:auto;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .pal .res.on{background:var(--accent-soft);color:var(--primary)}
+  .pal .none{padding:14px;color:var(--muted);font-size:12.5px;text-align:center}
+
+  .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
 
   /* progress */
   .right h2{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0;padding:18px 16px 10px;display:flex;align-items:center;font-weight:700}
@@ -292,6 +308,7 @@
         <option value="xhigh">X-High</option>
         <option value="max">Max</option>
       </select>
+      <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
@@ -325,6 +342,12 @@
   </div>
 </div>
 <div class="toast" id="toast"></div>
+<div class="pal-wrap" id="palWrap" onclick="if(event.target===this)closePal()">
+  <div class="pal">
+    <input id="palQ" placeholder="Jump to file or chat…  (Esc to close)" autocomplete="off">
+    <div class="results" id="palRes"></div>
+  </div>
+</div>
 
 <script>
 const $ = (id) => document.getElementById(id);
@@ -333,12 +356,17 @@ let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:fa
 
 // ---------- tiny markdown renderer (no external deps) ----------
 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+const FILE_RE=/(^|[\s>(])((?:[\w][\w.-]*\/)+[\w][\w.-]*\.(?:md|html|css|js|py|json|txt|csv|ya?ml|png|jpe?g|gif|svg|webp|xlsx))(?=[\s)<.,;:!?]|$)/g;
 function mdInline(s){
   return esc(s)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,(m,alt,src)=>`<img class="md-img" alt="${alt}" src="${/^https?:/.test(src)?src:'/api/raw?path='+encodeURIComponent(src)}">`)
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank" rel="noreferrer">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,(m,t,href)=>/^https?:/.test(href)
+      ?`<a href="${href}" target="_blank" rel="noreferrer">${t}</a>`
+      :`<a href="#" data-path="${href}">${t}</a>`)
+    .replace(FILE_RE,'$1<a href="#" data-path="$2">$2</a>');
 }
 function renderMd(src){
   const lines = src.replace(/\r/g,'').split('\n');
@@ -366,6 +394,16 @@ function renderMd(src){
 
 function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
 async function api(path,opts){ const r=await fetch(path,opts); if(!r.ok){const e=await r.json().catch(()=>({error:r.status})); throw new Error(e.error||'error');} return r.json(); }
+const isHtml=p=>/\.html?$/i.test(p), isImg=p=>/\.(png|jpe?g|gif|svg|webp)$/i.test(p);
+// Open with the OS default app (html → default browser).
+async function apiOpen(p){ if(!p) return;
+  try{ await api('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:p})}); toast('Opened in your browser  ·  '+p.split('/').pop()); }
+  catch(e){ toast('Could not open: '+e.message); } }
+// Route any file reference to the right opener.
+function smartOpen(p){ if(isHtml(p)) apiOpen(p); else { setTab('files'); openFile(p); } }
+// Clickable file paths inside chat replies and rendered docs.
+document.addEventListener('click',(e)=>{ const a=e.target.closest('a[data-path]'); if(!a) return;
+  e.preventDefault(); smartOpen(a.dataset.path); });
 
 // ---------- tabs ----------
 function setTab(t){ state.tab=t;
@@ -377,6 +415,7 @@ function setTab(t){ state.tab=t;
 // ---------- chats ----------
 async function loadChats(){
   const {chats}=await api('/api/chats');
+  state.chatList=chats;
   $('paneChats').innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
   for(const c of chats){
     const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
@@ -456,19 +495,20 @@ function renderChips(){
     box.appendChild(c);
   });
 }
-async function onFilesPicked(ev){
-  const files=[...ev.target.files]; ev.target.value='';
+async function uploadFiles(files){
   if(!state.pending) state.pending=[];
   for(const f of files){
-    const entry={name:f.name,path:null}; state.pending.push(entry); renderChips();
+    const name=f.name||('pasted-'+Date.now()+'.png');
+    const entry={name,path:null}; state.pending.push(entry); renderChips();
     try{
       const dataBase64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(f); });
-      const out=await api('/api/attach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:f.name,dataBase64})});
+      const out=await api('/api/attach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,dataBase64})});
       entry.path=out.path;
     }catch(e){ toast('Attach failed: '+e.message); state.pending=state.pending.filter(x=>x!==entry); }
     renderChips();
   }
 }
+function onFilesPicked(ev){ const files=[...ev.target.files]; ev.target.value=''; uploadFiles(files); }
 
 // ---------- streaming chat with smooth typewriter reveal ----------
 async function streamChat(text, opts={}){
@@ -564,6 +604,7 @@ async function runDigest(){
 async function loadFiles(){
   const {root,tree}=await api('/api/files'); $('repoName').textContent=root;
   const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(tree,true));
+  state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(tree);
 }
 function renderTree(nodes,open){
   const wrap=document.createElement('div');
@@ -576,8 +617,8 @@ function renderTree(nodes,open){
       wrap.appendChild(d); wrap.appendChild(kids);
     }else{
       const f=document.createElement('div'); f.className='node file'; f.dataset.path=n.path;
-      f.innerHTML=`${svg('i-doc-sm','sm')}${esc(n.name)}`;
-      f.onclick=()=>openFile(n.path);
+      f.innerHTML=`${svg('i-doc-sm','sm')}${esc(n.name)}${isHtml(n.name)?' <span style="color:var(--muted);font-size:10px">↗</span>':''}`;
+      f.onclick=()=>isHtml(n.path)?apiOpen(n.path):openFile(n.path);   // html → default browser
       wrap.appendChild(f);
     }
   }
@@ -588,12 +629,19 @@ async function openFile(p){
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
   $('chatView').style.display='none'; $('fileView').style.display='flex';
   $('centerTitle').textContent=p;
+  $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
+  const doc=$('fileDoc');
+  if(isImg(p)){ // images render directly, no text fetch
+    $('editToggle').style.display='none'; $('saveBtn').style.display='none';
+    doc.className='doc'; doc.style.display='block'; $('fileEdit').style.display='none';
+    doc.innerHTML='<img class="md-img" style="max-width:100%" src="/api/raw?path='+encodeURIComponent(p)+'" alt="'+esc(p)+'">';
+    return;
+  }
   const isMd=/\.md$/i.test(p);
   $('editToggle').style.display = /\.(md|txt|json|css|js|py|csv|ya?ml|html)$/i.test(p) ? '' : 'none';
   $('editToggle').classList.remove('on'); $('saveBtn').style.display='none';
   const {content}=await api('/api/file?path='+encodeURIComponent(p));
   $('fileEdit').value=content;
-  const doc=$('fileDoc');
   doc.className = isMd ? 'doc md' : 'doc';
   doc.style.display='block'; $('fileEdit').style.display='none';
   doc.innerHTML = isMd ? renderMd(content) : '<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:13px;color:var(--secondary)">'+esc(content)+'</pre>';
@@ -635,6 +683,43 @@ async function loadProgress(){
 const inp=$('input');
 inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,200)+'px';});
 inp.addEventListener('keydown',(e)=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();} });
+// paste an image straight into the composer
+inp.addEventListener('paste',(e)=>{ const files=[...(e.clipboardData?.files||[])]; if(files.length){ e.preventDefault(); uploadFiles(files); } });
+// drag & drop files onto the composer
+{ const comp=document.querySelector('.composer');
+  ['dragover','dragenter'].forEach(ev=>comp.addEventListener(ev,e=>{ e.preventDefault(); comp.classList.add('dropping'); }));
+  ['dragleave','drop'].forEach(ev=>comp.addEventListener(ev,e=>{ e.preventDefault(); comp.classList.remove('dropping'); }));
+  comp.addEventListener('drop',e=>{ const files=[...(e.dataTransfer?.files||[])]; if(files.length) uploadFiles(files); });
+}
+
+// ---------- quick-open palette (Cmd/Ctrl+K) ----------
+let palIdx=0, palItems=[];
+function openPal(){ $('palWrap').classList.add('show'); $('palQ').value=''; palFilter(''); $('palQ').focus(); }
+function closePal(){ $('palWrap').classList.remove('show'); }
+function palFilter(q){
+  q=q.toLowerCase();
+  const files=(state.allFiles||[]).filter(p=>p.toLowerCase().includes(q)).slice(0,10)
+    .map(p=>({kind:'file',label:p,go:()=>{closePal();smartOpen(p);}}));
+  const chats=(state.chatList||[]).filter(c=>(c.title||'').toLowerCase().includes(q)).slice(0,5)
+    .map(c=>({kind:'chat',label:c.title||'Untitled',go:()=>{closePal();openChat(c.id);}}));
+  palItems=[...files,...chats]; palIdx=0; palRender();
+}
+function palRender(){
+  const box=$('palRes');
+  if(!palItems.length){ box.innerHTML='<div class="none">No matches</div>'; return; }
+  box.innerHTML='';
+  palItems.forEach((it,i)=>{ const d=document.createElement('div'); d.className='res'+(i===palIdx?' on':'');
+    d.innerHTML=`${svg(it.kind==='file'?'i-doc-sm':'i-sparkle','sm')} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.label)}</span><span class="k">${it.kind}</span>`;
+    d.onclick=it.go; d.onmousemove=()=>{palIdx=i;palRender();}; box.appendChild(d); });
+}
+$('palQ').addEventListener('input',e=>palFilter(e.target.value));
+$('palQ').addEventListener('keydown',e=>{
+  if(e.key==='ArrowDown'){e.preventDefault();palIdx=Math.min(palItems.length-1,palIdx+1);palRender();}
+  if(e.key==='ArrowUp'){e.preventDefault();palIdx=Math.max(0,palIdx-1);palRender();}
+  if(e.key==='Enter'&&palItems[palIdx])palItems[palIdx].go();
+  if(e.key==='Escape')closePal();
+});
+addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openPal(); } });
 
 // ---------- account / connection ----------
 async function loadAuth(){

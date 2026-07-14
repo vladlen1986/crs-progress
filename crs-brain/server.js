@@ -141,7 +141,9 @@ const PORT = process.env.CRS_BRAIN_PORT || 4317;
 // Which files the brain lists in the file browser.
 const ALLOWED_EXT = new Set([
   '.md', '.txt', '.json', '.html', '.css', '.py', '.js', '.csv', '.yml', '.yaml',
+  '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
 ]);
+const IMG_EXT = new Set(['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']);
 const IGNORE_DIRS = new Set(['.git', 'node_modules', '.claude', 'crs-brain/node_modules']);
 
 // System steer for the brain assistant.
@@ -157,6 +159,10 @@ const SYSTEM_PROMPT = [
   'The progress board lives at crs-brain/data/progress.json. When the user asks you to update progress,',
   'record what is next, or note something missing, READ that file, then EDIT it (keep the same JSON shape),',
   'and briefly confirm what you changed. Be direct and concise, per the project\'s CLAUDE.md style.',
+  'VISUAL ANSWERS: when a picture beats prose (prototypes, diagrams, dashboards, comparisons), CREATE a',
+  'self-contained .html or .svg file under crs-brain/data/docs/ (use design/tokens.css values) and put its',
+  'repo-relative path in your reply — the app makes file paths clickable and renders images inline.',
+  'Always mention exact repo file paths when you reference project files, so the user can click them.',
 ].join(' ');
 
 // Extra steer for Ingest mode (📥): route a Buildprint/session report into brain/.
@@ -229,6 +235,15 @@ function walk(dir, baseRel = '') {
 }
 
 // ---- claude bridge ---------------------------------------------------------
+// Spawn the claude CLI WITHOUT a shell: shell:true concatenates args unescaped,
+// so any "(" in a system prompt becomes a /bin/sh syntax error. On Windows the
+// cmd.exe /c wrapper resolves the claude.cmd shim while node quotes args safely.
+function spawnClaude(args, opts = {}) {
+  if (process.platform === 'win32') {
+    return spawn('cmd.exe', ['/c', 'claude', ...args], { windowsHide: true, ...opts });
+  }
+  return spawn('claude', args, opts);   // PATH extended at startup
+}
 // Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
 // text deltas as they arrive. Uses the Max subscription (no API key).
 // hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
@@ -249,11 +264,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
-    const child = spawn('claude', args, {
-      cwd: REPO_ROOT,
-      shell: true,            // resolve the claude.cmd shim on Windows
-      windowsHide: true,
-    });
+    const child = spawnClaude(args, { cwd: REPO_ROOT });
 
     let buf = '';
     let stderr = '';
@@ -324,9 +335,7 @@ function autoCommit(title) {
 // Ask the claude CLI who is logged in (subscription vs API key, plan, email).
 function authStatus() {
   return new Promise((resolve) => {
-    const child = spawn('claude', ['auth', 'status', '--json'], {
-      cwd: REPO_ROOT, shell: true, windowsHide: true,
-    });
+    const child = spawnClaude(['auth', 'status', '--json'], { cwd: REPO_ROOT });
     let out = '';
     child.stdout.on('data', (d) => (out += d));
     child.on('error', () => resolve({ loggedIn: false, error: 'claude CLI not found' }));
@@ -362,7 +371,7 @@ function launchLogin() {
 
 function runLogout() {
   return new Promise((resolve) => {
-    const child = spawn('claude', ['auth', 'logout'], { cwd: REPO_ROOT, shell: true, windowsHide: true });
+    const child = spawnClaude(['auth', 'logout'], { cwd: REPO_ROOT });
     child.on('error', () => resolve());
     child.on('close', () => resolve());
   });
@@ -605,6 +614,34 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(abs, (body.content || '').toString());
       const rel = path.relative(REPO_ROOT, abs).split(path.sep).join('/');
       return send(res, 200, { path: rel });
+    }
+
+    // Serve raw file bytes (images, html previews) from inside the repo.
+    if (p === '/api/raw' && req.method === 'GET') {
+      const abs = safeRepoPath(u.searchParams.get('path'));
+      const ext = path.extname(abs).toLowerCase();
+      const M = { '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.gif':'image/gif',
+        '.svg':'image/svg+xml', '.webp':'image/webp', '.html':'text/html; charset=utf-8',
+        '.css':'text/css', '.js':'text/javascript', '.json':'application/json' };
+      return fs.readFile(abs, (err, data) => {
+        if (err) return send(res, 404, { error: 'not found' });
+        res.writeHead(200, { 'Content-Type': M[ext] || 'application/octet-stream' });
+        res.end(data);
+      });
+    }
+
+    // Open a repo file with the OS default app (html → default browser).
+    if (p === '/api/open' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const abs = safeRepoPath(body.path);
+      if (!fs.existsSync(abs)) return send(res, 404, { error: 'not found' });
+      const cmd = process.platform === 'win32' ? ['cmd.exe', ['/c', 'start', '', abs]]
+                : process.platform === 'darwin' ? ['open', [abs]]
+                : ['xdg-open', [abs]];
+      const child = spawn(cmd[0], cmd[1], { detached: true, stdio: 'ignore' });
+      child.on('error', () => {});
+      child.unref();
+      return send(res, 200, { ok: true });
     }
 
     if (p === '/api/auth/status' && req.method === 'GET') {
