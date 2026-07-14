@@ -35,7 +35,7 @@
   ::-webkit-scrollbar-thumb:active{background:var(--accent)}
   ::-webkit-scrollbar-corner{background:transparent}
 
-  .app{display:grid;grid-template-columns:274px 1fr 330px;height:100vh}
+  .app{display:grid;grid-template-columns:var(--left-w,274px) 1fr 330px;height:100vh}
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
   .col.left{border-right:1px solid var(--line);background:var(--panel)}
   .col.right{border-left:1px solid var(--line);background:var(--panel)}
@@ -165,7 +165,7 @@
   .qchip .qx:hover{color:var(--danger)}
 
   /* composer */
-  .composer-wrap{padding:12px 18px 18px}
+  .composer-wrap{padding:12px 18px 30px}
   /* Claude-app-style composer: text on top, controls row beneath */
   .composer{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:12px 12px 9px;transition:border-color .15s,box-shadow .15s;max-width:830px;margin:0 auto}
   .composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-tint)}
@@ -480,6 +480,10 @@
   <div class="col left">
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
+    <div class="sidenav">
+      <button onclick="window.open('/map','crsmap')" title="Second-brain galaxy map"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
+      <button onclick="openKanban()" title="Folder kanban board"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg> Kanban</button>
+    </div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
       <button id="tabBp" onclick="setTab('buildprint')">Buildprint</button>
@@ -502,6 +506,7 @@
       <button id="ffCrs" class="on" onclick="setFileFilter(true)">Project</button>
       <button id="ffAll" onclick="setFileFilter(false)">All files</button>
     </div>
+    <div class="lresizer" id="lresizer"></div>
   </div>
 
   <!-- CENTER -->
@@ -569,8 +574,6 @@
       <div class="recent" id="recentOpened"></div>
       <h2>Recently edited <button class="refresh" onclick="loadRecentEdited()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
       <div class="recent" id="recentEdited"></div>
-      <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
-      <div class="cols" id="progress"></div>
     </div>
   </div>
 </div>
@@ -658,6 +661,20 @@ async function apiOpen(p){ if(!p) return;
   catch(e){ toast('Could not open: '+e.message); } }
 // Route any file reference to the right opener.
 function smartOpen(p){ if(isHtml(p)) apiOpen(p); else { setTab('files'); openFile(p); } }
+// Open the galaxy map straight to the folder kanban board.
+function openKanban(){ window.open('/map#board','crsmap'); }
+// ---------- resizable left sidebar ----------
+(function(){
+  const root=document.documentElement, saved=localStorage.leftW;
+  if(saved) root.style.setProperty('--left-w',saved);
+  const rz=document.getElementById('lresizer'); if(!rz) return;
+  let dragging=false;
+  const clamp=x=>Math.max(210,Math.min(480,x));
+  rz.addEventListener('pointerdown',e=>{ dragging=true; rz.classList.add('drag'); rz.setPointerCapture(e.pointerId); e.preventDefault(); });
+  rz.addEventListener('pointermove',e=>{ if(!dragging) return;
+    const w=clamp(e.clientX)+'px'; root.style.setProperty('--left-w',w); localStorage.leftW=w; });
+  rz.addEventListener('pointerup',e=>{ dragging=false; rz.classList.remove('drag'); try{ rz.releasePointerCapture(e.pointerId); }catch{} });
+})();
 // Clickable file paths inside chat replies and rendered docs.
 document.addEventListener('click',(e)=>{ const a=e.target.closest('a[data-path]'); if(!a) return;
   e.preventDefault(); smartOpen(a.dataset.path); });
@@ -872,7 +889,7 @@ async function renderDashboard(){
   const now=col('now'),next=col('next'),done=col('done'),missing=progress.missing||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
   const A=(icon,title,desc,onclick)=>`<button class="action" onclick="${onclick}"><span class="ai">${svg(icon)}</span><span class="at">${title}</span><span class="ad">${desc}</span></button>`;
-  const stat=(v,k,color)=>`<div class="stat"><div class="v">${v}</div><div class="k">${color?`<span class="dot" style="background:${color}"></span>`:''}${k}</div></div>`;
+  const stat=(v,k,color,onclick)=>`<div class="stat${onclick?' clk':''}"${onclick?` onclick="${onclick}"`:''}><div class="v">${v}</div><div class="k">${color?`<span class="dot" style="background:${color}"></span>`:''}${k}</div></div>`;
   const chatRows=chats.slice(0,6).map(c=>`<div class="drow" onclick="openChat('${c.id}')"><span class="rt">${esc(c.title||'Untitled')}</span><span class="rmeta">${c.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>';
   const pRow=(it,color)=>`<div class="drow static"><span class="pill" style="background:${color}"></span><span class="rt">${esc(typeof it==='string'?it:(it.title||''))}</span></div>`;
   const nowRows=now.length?now.map(x=>pRow(x,'#3B82F6')).join(''):'<div class="dempty">Nothing in progress</div>';
@@ -882,11 +899,11 @@ async function renderDashboard(){
     <div class="subline">Your CRS second brain — everything grounded, versioned, and searchable.</div>
 
     <section><div class="lbl">Overview</div><div class="stats">
-      ${stat(nFiles.toLocaleString(),'files','#8B5CF6')}
-      ${stat(chats.length,'conversations','#3B82F6')}
-      ${stat(ideaCount,'ideas','#F59E0B')}
-      ${stat(done.length,'done','#22C55E')}
-      ${stat((bubble+build+forum).toLocaleString(),'manual pages','#60A5FA')}
+      ${stat(nFiles.toLocaleString(),'files','#8B5CF6',"openExpl('')")}
+      ${stat(chats.length,'conversations','#3B82F6',"setTab('chats')")}
+      ${stat(ideaCount,'ideas','#F59E0B',"window.open('/map#ideas','crsmap')")}
+      ${stat(done.length,'done','#22C55E',"openFile('brain/changelog.md')")}
+      ${stat((bubble+build+forum).toLocaleString(),'manual pages','#60A5FA',"openExpl('brain/bubble')")}
     </div></section>
 
     <section><div class="lbl">Quick actions</div><div class="actions">
@@ -908,10 +925,10 @@ async function renderDashboard(){
     </div></section>
 
     <section><div class="lbl">Knowledge base</div><div class="stats">
-      ${stat(bubble.toLocaleString(),'Bubble manual','#8B5CF6')}
-      ${stat(build,'Buildprint manual','#C084FC')}
-      ${stat(forum,'forum threads','#A78BFA')}
-      ${stat(docs,'saved docs','#60A5FA')}
+      ${stat(bubble.toLocaleString(),'Bubble manual','#8B5CF6',"openExpl('brain/bubble')")}
+      ${stat(build,'Buildprint manual','#C084FC',"openExpl('brain/buildprint')")}
+      ${stat(forum,'forum threads','#A78BFA',"openExpl('brain/bubble-forum')")}
+      ${stat(docs,'saved docs','#60A5FA',"openExpl('crs-brain/data/docs')")}
     </div></section>
   </div>`;
 }
@@ -1250,7 +1267,8 @@ async function saveFile(){
 // ---------- progress ----------
 const COLS=[['now','Now','#3B82F6'],['next','Next','#F59E0B'],['later','Later','#6B6B6B'],['done','Done','#22C55E']];
 async function loadProgress(){
-  const p=await api('/api/progress'); const box=$('progress'); box.innerHTML='';
+  const box=$('progress'); if(!box) return;
+  const p=await api('/api/progress'); box.innerHTML='';
   for(const [key,label,color] of COLS){
     const items=(p.columns&&p.columns[key])||[];
     const col=document.createElement('div'); col.className='pcol';

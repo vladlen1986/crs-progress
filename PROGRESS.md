@@ -22,19 +22,18 @@ Core app (`crs-brain/`):
 - **Mobile** — LAN PIN gate (`crs-brain/.pin`, gitignored, current PIN persisted), responsive drawers, Tailscale (Mac IP `100.114.97.93:4317`).
 - Recent bug fixes: mid-stream chat-switch no longer strands reply / sticks Stop (view-generation guard + live re-attach, `streamChat` in index.html); project-only file view default; Finder/Explorer popup + file-type icon tiles; map folder-node → explorer (`#explore=` hash); composer = Claude-app style (model+effort inside); Chats tab clears an open file; **usage fixed** (node-pty `spawn-helper` chmod +x; Claude Code 2.1.209 dropped `rate_limits` → panel now shows context window+cost); **sidebar chat search** (`/api/search-chats` + `#chatSearch`).
 
-## 3. In progress — 5-request UI batch (ONLY CSS applied so far; safe/unused until HTML+JS added)
-File: `crs-brain/public/index.html`. A CSS block was added right after `.usage .disable:hover` defining `.sidenav`, `.lresizer`, `.col.left{position:relative}`, `.composer-row button/.sel{height:34px}`, `.stat.clk/.dcard.clk`. **Remaining to finish each of the 5:**
-1. **Map + Kanban buttons in left sidebar** — add `<div class="sidenav">` right after the `<div class="account" id="account">` line (~L467) with two buttons: Map → `window.open('/map','crsmap')`; Kanban → new `openKanban()` → `window.open('/map#board','crsmap')`. Then in `map.html` boot: if `location.hash==='#board'` call `toggleBoard()` (and `#ideas` → open board + ideas tab).
-2. **Input higher + equal button heights** — button-height CSS is DONE. STILL TODO: bump `.composer-wrap{padding:12px 18px 18px}` bottom to ~30px to lift the input off the bottom.
-3. **Dashboard cards clickable** — in `renderDashboard()` change `stat(v,k,color)` → `stat(v,k,color,onclick)` adding `clk` class + `onclick`; wire: files→`openExpl('')`, conversations→`setTab('chats')`, ideas→`window.open('/map#ideas','crsmap')`, done→`openFile('brain/changelog.md')`, manual pages→`openExpl('brain/bubble')`; knowledge cards: Bubble→`openExpl('brain/bubble')`, Buildprint→`openExpl('brain/buildprint')`, forum→`openExpl('brain/bubble-forum')`. (`.stat.clk` CSS DONE.)
-4. **Sidebar resizable** — add `<div class="lresizer" id="lresizer"></div>` as last child of `<div class="col left">`; change `.app{grid-template-columns:274px 1fr 330px}` → `var(--left-w,274px) 1fr 330px`; JS: pointerdown on `#lresizer` → drag updates `document.documentElement.style.setProperty('--left-w', clamp(210..480)+'px')`, save to `localStorage.leftW`, apply on boot. (`.lresizer` + `.col.left{position:relative}` CSS DONE.)
-5. **Remove Progress from right sidebar** — delete the `<h2>Progress …</h2>` + `<div class="cols" id="progress">` inside `.rscroll` (right panel); guard `loadProgress()` with `const box=$('progress'); if(!box) return;` at its top. (Dashboard keeps its own progress render — do NOT remove that.)
+## 3. DONE — 5-request UI batch (all implemented + verified in-browser 2026-07-15)
+Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shipped and checked in a live browser (no console errors; server on :4317).
+1. **Map + Kanban buttons in left sidebar** — DONE. `<div class="sidenav">` with Map → `window.open('/map','crsmap')` and Kanban → `openKanban()` → `window.open('/map#board','crsmap')`, right after the account line. `map.html` now has `openFromHash()` (called on boot + on `hashchange`): `#board` opens the folder board, `#ideas` opens it on the Ideas tab. Verified: board opens, Ideas tab activates.
+2. **Input higher** — DONE. `.composer-wrap` padding `12px 18px 18px` → `12px 18px 30px`. (Button heights were already DONE.)
+3. **Dashboard cards clickable** — DONE. `stat(v,k,color)` → `stat(v,k,color,onclick)` (adds `clk` + `onclick`). All 9 cards wired: files→`openExpl('')`, conversations→`setTab('chats')`, ideas→`/map#ideas`, done→`openFile('brain/changelog.md')`, manual pages→`openExpl('brain/bubble')`; knowledge: Bubble/Buildprint/forum→`openExpl('brain/…')`, saved docs→`openExpl('crs-brain/data/docs')`. Verified all 9 have `clk` + handler.
+4. **Sidebar resizable** — DONE. `<div class="lresizer" id="lresizer">` added as last child of `.col.left`; `.app` grid col 1 = `var(--left-w,274px)`; pointer-capture drag IIFE clamps 210–480px, persists `localStorage.leftW`, applies on boot.
+5. **Remove Progress from right sidebar** — DONE. Deleted the `<h2>Progress</h2>` + `<div id="progress">` from `.rscroll`; `loadProgress()` guarded with `const box=$('progress'); if(!box) return;`. Dashboard's own progress render untouched.
 
 ## 4. Next up (ordered)
-1. Finish the 5-request UI batch above.
-2. Task 33 — per-chat attachments bar (attachments linked to chat, 2nd right-side scroll bar, sort + group by date/type, file-type icons; derive from chat message `attachments`).
-3. Task 30 — **Buildprint prompt creator** (structural, plan-first: reads progress + ideas + `design/tokens.css` + full app plan → structured plan → precise Buildprint prompt). The strategic centerpiece; give it its own focused session.
-4. Task 27 pinned messages; Task 28 chat folders (delete→Uncategorized); Task 29 meaningful dashboard + legacy-file tagging.
+1. Task 33 — per-chat attachments bar (attachments linked to chat, 2nd right-side scroll bar, sort + group by date/type, file-type icons; derive from chat message `attachments`).
+2. Task 30 — **Buildprint prompt creator** (structural, plan-first: reads progress + ideas + `design/tokens.css` + full app plan → structured plan → precise Buildprint prompt). The strategic centerpiece; give it its own focused session.
+3. Task 27 pinned messages; Task 28 chat folders (delete→Uncategorized); Task 29 meaningful dashboard + legacy-file tagging.
 
 ## 5. Open decisions (need Vlad's call)
 - **GitHub push** — `main` is ~88 commits ahead; not pushed (no `gh` auth on this Mac). Options: (a) `gh auth login` then `git push`; (b) GitHub Desktop (installer was in Downloads) → Push origin. Blocks office-PC sync + backup.
@@ -64,6 +63,11 @@ File: `crs-brain/public/index.html`. A CSS block was added right after `.usage .
 ---
 
 ## Decisions log (append-only)
+
+### 2026-07-15 — Session: finished the 5-request UI batch
+- Shipped all 5 UI items (§3): left-sidebar Map/Kanban nav, taller composer, clickable dashboard stat cards, drag-resizable left sidebar (persisted), and Progress removed from the right panel. Touches `crs-brain/public/index.html` + `map.html` only.
+- `map.html` gained `openFromHash()` + a `hashchange` listener so `/map#board` and `/map#ideas` deep-links open the folder board (Ideas tab for `#ideas`) whether the map is freshly opened or already up.
+- Verified live in-browser against the running :4317 server (sidenav present, 9 stat cards carry `clk`+onclick, `#progress` gone from right panel, resizer wired, board/ideas deep-links open). No console errors.
 
 ### 2026-07-14 — Session: CRS Brain app build-out
 - Built the entire CRS Brain app + knowledge base + Buildprint integration + mobile in one long session (see §2). All locked decisions in §6 established this session.

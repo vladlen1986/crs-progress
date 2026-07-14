@@ -1300,8 +1300,16 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
 });
 
 // ---- boot ----------------------------------------------------------------------------
-fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); })
+fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); openFromHash(); })
   .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#A6A6A6">Could not load the repo tree — is the CRS Brain server running?</div>'); });
+// Deep links from the main app: #board opens the folder board, #ideas opens it on the Ideas tab.
+function openFromHash(){ const h=location.hash;
+  if(h==='#board'||h==='#ideas'){
+    if(h==='#ideas'){ const ib=document.querySelector('#boardTabs button[data-t="ideas"]');
+      if(ib){ boardTab='ideas'; document.querySelectorAll('#boardTabs button').forEach(x=>x.classList.toggle('on',x===ib)); } }
+    if(!boardOpen) toggleBoard(); else renderBoard();
+  } }
+window.addEventListener('hashchange',openFromHash);
 </script>
 </body>
 </html>
