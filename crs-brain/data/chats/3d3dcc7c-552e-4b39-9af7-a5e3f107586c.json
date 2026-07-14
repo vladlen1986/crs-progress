@@ -3,7 +3,7 @@
   "title": "side bar on the left and right must have button to collapse",
   "sessionId": "8a0ab176-f193-4fbe-874c-1e0e4dc8c84f",
   "created": "2026-07-14T15:53:54.441Z",
-  "updated": "2026-07-14T15:58:47.531Z",
+  "updated": "2026-07-14T16:03:21.462Z",
   "messages": [
     {
       "role": "user",
@@ -15,6 +15,19 @@
       "role": "assistant",
       "content": "All pieces are wired consistently. I couldn't drive the live browser (server probes needed approval), so I verified the markup, CSS, and JS statically instead — I have not visually confirmed it in the running app.\n\nWhat I added to `crs-brain/public/index.html`:\n\n- **Collapse buttons** — a `«` chevron in the left sidebar's brand row (`toggleCol('left')`) and a `»` chevron in the right sidebar's \"Usage\" header (`toggleCol('right')`).\n- **Expand handles** — thin edge buttons pinned inside the center column that appear only when a side is collapsed, so you can bring it back.\n- **Grid behavior** — collapsing sets `lcol`/`rcol` on `.app`, which zeros that column's grid track and hides the panel; center reflows to fill the space.\n- **Persistence** — state saved to `localStorage` and restored on load.\n- **Mobile-safe** — collapse rules are scoped to `min-width:901px`; on ≤900px the existing hamburger drawers take over and the new controls are hidden, so nothing conflicts.\n\nTo see it live, reload the CRS Brain app (server on port 4317). Want me to run through it in a browser if you can confirm the server's running?",
       "ts": "2026-07-14T15:58:47.531Z"
+    },
+    {
+      "role": "user",
+      "content": "Why no details, i want to see the details",
+      "ts": "2026-07-14T15:58:48.395Z",
+      "attachments": [
+        "crs-brain/data/attachments/0b18ddcf-Screenshot 2026-07-14 at 19.55.03.png"
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "The code reads correctly and braces balance. The changes are consistent across both files.\n\n## What was wrong\n\nThe work-block cards stream from `server.js`. On a tool step the server captured only the tool **name** (`onBlock({kind:'tool', tool})`) and threw away the tool's **input** — the streamed `input_json_delta` chunks were never read. So every Reading/Building/Working card had an empty body, and the CSS filled it with the `(no details)` placeholder you saw when you expanded them.\n\n## The fix\n\n**`crs-brain/server.js`**\n- `runClaudeStream` now accumulates the `input_json_delta` chunks per tool block and, on `content_block_stop`, parses them and emits a new `detail` SSE event (server.js:359-380).\n- Added `formatToolInput()` (server.js:305) that turns the raw tool input into readable lines — e.g. Read → `file_path: …`, Bash → `description:` + `command:`, Grep → `pattern:` + `path:` — long values truncated at 800 chars.\n- Wired `onDetail → sse({type:'detail'})` into the chat handler (server.js:~632).\n\n**`crs-brain/public/index.html`**\n- The stream loop now handles the `detail` event and writes it into the active card's body, so expanding a Reading/Building/Working card shows exactly what it did.\n\nTwo things to know:\n1. **Restart the server** for the `server.js` change to take effect (the browser file reloads on its own).\n2. This only enriches **live** replies. Reopening an old chat still shows just the final answer — the step trace isn't persisted to disk. If you want past conversations to keep their expandable detail too, that's a follow-up (storing steps in the chat JSON) — say the word and I'll do it.",
+      "ts": "2026-07-14T16:03:21.462Z"
     }
   ]
 }
