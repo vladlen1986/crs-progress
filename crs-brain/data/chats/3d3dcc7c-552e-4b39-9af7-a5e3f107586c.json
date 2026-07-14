@@ -3,7 +3,7 @@
   "title": "side bar on the left and right must have button to collapse",
   "sessionId": "8a0ab176-f193-4fbe-874c-1e0e4dc8c84f",
   "created": "2026-07-14T15:53:54.441Z",
-  "updated": "2026-07-14T16:03:21.462Z",
+  "updated": "2026-07-14T16:04:35.871Z",
   "messages": [
     {
       "role": "user",
@@ -28,6 +28,17 @@
       "role": "assistant",
       "content": "The code reads correctly and braces balance. The changes are consistent across both files.\n\n## What was wrong\n\nThe work-block cards stream from `server.js`. On a tool step the server captured only the tool **name** (`onBlock({kind:'tool', tool})`) and threw away the tool's **input** — the streamed `input_json_delta` chunks were never read. So every Reading/Building/Working card had an empty body, and the CSS filled it with the `(no details)` placeholder you saw when you expanded them.\n\n## The fix\n\n**`crs-brain/server.js`**\n- `runClaudeStream` now accumulates the `input_json_delta` chunks per tool block and, on `content_block_stop`, parses them and emits a new `detail` SSE event (server.js:359-380).\n- Added `formatToolInput()` (server.js:305) that turns the raw tool input into readable lines — e.g. Read → `file_path: …`, Bash → `description:` + `command:`, Grep → `pattern:` + `path:` — long values truncated at 800 chars.\n- Wired `onDetail → sse({type:'detail'})` into the chat handler (server.js:~632).\n\n**`crs-brain/public/index.html`**\n- The stream loop now handles the `detail` event and writes it into the active card's body, so expanding a Reading/Building/Working card shows exactly what it did.\n\nTwo things to know:\n1. **Restart the server** for the `server.js` change to take effect (the browser file reloads on its own).\n2. This only enriches **live** replies. Reopening an old chat still shows just the final answer — the step trace isn't persisted to disk. If you want past conversations to keep their expandable detail too, that's a follow-up (storing steps in the chat JSON) — say the word and I'll do it.",
       "ts": "2026-07-14T16:03:21.462Z"
+    },
+    {
+      "role": "user",
+      "content": "queyed section must be above the input all of them",
+      "ts": "2026-07-14T16:03:22.384Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The queued section already sat above the input in markup, but its strip was full-width and left-aligned while the input is centered at 830px — so the chips didn't line up over the box. I constrained `.queue-strip` to the same `max-width:830px` centered width as the composer (index.html:159), so now every queued item sits directly above the input, aligned with it.\n\nJust reload the page (it's a static-file change, no server restart needed).\n\nOne check on intent: the queued items render as wrapped chips (each truncated to ~240px with a `×` to remove). If by \"all of them\" you meant each queued prompt shown in full on its own row (stacked list) rather than compact chips, say so and I'll switch it to full-width rows.",
+      "ts": "2026-07-14T16:04:35.871Z"
     }
   ]
 }
