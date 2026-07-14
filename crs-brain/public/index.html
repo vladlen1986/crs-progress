@@ -514,7 +514,10 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
-let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[], queue:[], populating:false, abort:null, stopped:false };
+let state = { tab:'chats', chatId:null, filePath:null, editing:false, sending:false, pending:[], queue:[], populating:false, abort:null, stopped:false, viewGen:0, live:null };
+// Called whenever the center view changes (open a chat/file/dashboard). Lets an
+// in-flight stream detect it's no longer the active view, and frees the composer.
+function bumpView(){ state.viewGen++; if(!(state.live && !state.live.done)) return; state.sending=false; if(typeof setGenerating==='function') setGenerating(false); }
 function setGenerating(on){
   const s=$('sendBtn'), st=$('stopBtn'), ig=$('ingestBtn');
   if(s) s.style.display = on?'none':'';
@@ -642,11 +645,23 @@ async function loadChats(){
 }
 function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure. Finished a Buildprint session? Attach the report and hit <b style="color:var(--accent2)">Ingest to Brain</b> — every fact gets routed to its file.</div></div>'; }
 function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="background:var(--accent)">🔨</div><div class="hero-t">Buildprint task</div><div class="hero-s">Operate your CRS Bubble app on the <b style="color:var(--primary)">test</b> branch — I run Buildprint (sync → edit → check → apply) and log results to the brain. I show the plan before applying, never touch live.<br><br>Try: <i>"run a security audit"</i> · <i>"list data types with no privacy rules"</i> · <i>"add company + property fields and a Pattern A rule to 01.3 Department — plan first"</i></div></div>'; }
-function newChat(){ state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; $('input').placeholder='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)'; loadChats(); $('input').focus(); }
-function newBpChat(){ state.chatId=null; state.bp=true; setTab('buildprint'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='🔨 New Buildprint task'; $('input').placeholder='Tell Buildprint what to do on the test branch…'; loadChats(); $('input').focus(); }
-async function openChat(id){ state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); state.bp=chat.bp===true;
+function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; $('input').placeholder='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)'; loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; state.bp=true; setTab('buildprint'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='🔨 New Buildprint task'; $('input').placeholder='Tell Buildprint what to do on the test branch…'; loadChats(); $('input').focus(); }
+const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
+async function openChat(id){
+  bumpView();
+  // Returning to a chat that's still generating? Re-attach the live stream so it
+  // keeps typing right where it left off (instead of a blank view + stuck Stop).
+  if(state.live && !state.live.done && state.live.chatId===id){
+    const live=state.live; live.gen=state.viewGen; state.chatId=id; state.bp=live.bp; showChat();
+    const log=$('chatLog'); log.innerHTML=''; log.appendChild(userMsgEl(live.userText, live.atts)); log.appendChild(live.node);
+    $('centerTitle').textContent=(state.bp?'🔨 ':'')+((state.chatList||[]).find(c=>c.id===id)?.title||'Conversation');
+    $('input').placeholder = state.bp?bpPh:normPh; state.sending=true; setGenerating(true);
+    log.scrollTop=log.scrollHeight; loadChats(); return;
+  }
+  state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); state.bp=chat.bp===true;
   $('centerTitle').textContent=(state.bp?'🔨 ':'')+(chat.title||'Conversation');
-  $('input').placeholder = state.bp ? 'Tell Buildprint what to do on the test branch…' : 'Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
+  $('input').placeholder = state.bp?bpPh:normPh;
   renderChat(chat.messages); loadChats(); }
 async function delChat(id){ await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
 
@@ -721,6 +736,7 @@ function showChat(){ $('chatView').style.display='flex'; $('fileView').style.dis
 
 // ---------- dashboard (home) ----------
 function showDashboard(){
+  bumpView();
   state.chatId=null; state.filePath=null;
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
@@ -882,6 +898,11 @@ async function streamChat(text, opts={}){
   state.sending=true; state.stopped=false;
   const ac=new AbortController(); state.abort=ac;
   setGenerating(true);
+  // Register this stream so it can be re-attached if the user switches chats and
+  // returns, and so it stops touching the composer once it's no longer the view.
+  const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, userText:text, atts:opts.attachmentNames, bp:state.bp===true };
+  state.live=live;
+  const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
   // ---- work blocks: thinking / tool activity, each with a live timer ----
@@ -951,14 +972,14 @@ async function streamChat(text, opts={}){
         const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
         const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
         let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
-        if(ev.type==='meta'){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=ev.title; }
+        if(ev.type==='meta'){ live.chatId=ev.id; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='detail'){ if(activeCard){ activeCard.text += (activeCard.text?'\n':'')+(ev.text||''); activeCard.bodyEl.textContent=activeCard.text; if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight; } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
         else if(ev.type==='delta'){ if(activeCard) finalizeCard(); full+=ev.text; }
-        else if(ev.type==='done'){ state.chatId=ev.id; full=ev.reply||full; streamDone=true; if(ev.title) $('centerTitle').textContent=ev.title; }
-        else if(ev.type==='stopped'){ state.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; }
+        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
+        else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; if(mine()) state.chatId=ev.id; }
         else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
       }
     }
@@ -971,8 +992,11 @@ async function streamChat(text, opts={}){
       answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(e.message); body.appendChild(em); addRetryBar(a,false);
     }
   }finally{
-    state.sending=false; state.abort=null; setGenerating(false); clearInterval(timerIv);
-    loadChats(); loadProgress(); dequeue();
+    live.done=true; clearInterval(timerIv);
+    // Only touch the composer/queue if this stream still owns the active view —
+    // otherwise the user has moved on and a different stream (or none) is in charge.
+    if(mine()){ state.sending=false; state.abort=null; setGenerating(false); dequeue(); }
+    loadChats(); loadProgress();
   }
 }
 
@@ -1019,6 +1043,7 @@ function renderTree(nodes,open){
   return wrap;
 }
 async function openFile(p){
+  bumpView();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('fileView').style.display='flex';
@@ -1236,6 +1261,7 @@ async function bpStatus(){
 // ---------- Sync from Buildprint → update the brain ledger ----------
 async function bpTrack(){
   if(state.sending) return;
+  bumpView();
   state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
