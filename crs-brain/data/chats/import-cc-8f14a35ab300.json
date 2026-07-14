@@ -1,0 +1,23 @@
+{
+  "id": "import-cc-8f14a35ab300",
+  "title": "2026-07-14 06:51 · hu · [Claude Code · Vlads-MacBook-Pro]",
+  "sessionId": null,
+  "imported": {
+    "source": "claude-code",
+    "file": "/Users/vlad/.claude/projects/-Users-vlad-projects-crs-progress/57c4d1c0-af67-4019-bd40-867b55041246.jsonl"
+  },
+  "created": "2026-07-14T06:51:11.276Z",
+  "updated": "2026-07-14T06:51:14.338Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hu",
+      "ts": "2026-07-14T06:51:11.276Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Looks like a typo — did you mean to type something? Let me know what you need (progress update, a question about the CRS spec, brain/ lookup, etc.).",
+      "ts": "2026-07-14T06:51:14.338Z"
+    }
+  ]
+}

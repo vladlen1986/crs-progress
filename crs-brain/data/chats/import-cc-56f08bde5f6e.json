@@ -1,0 +1,248 @@
+{
+  "id": "import-cc-56f08bde5f6e",
+  "title": "2026-04-26 10:31 · Create these two new files. The pricing/ fol · [Claude Code · Vlads-MacBook-Pro]",
+  "sessionId": null,
+  "imported": {
+    "source": "claude-code",
+    "file": "/Users/vlad/.claude/projects/-Users-vlad-projects-crs-progress--claude-worktrees-unruffled-goldstine-4d617c/ebc65063-4d96-4db4-8e89-88df431b611f.jsonl"
+  },
+  "created": "2026-04-26T10:31:37.476Z",
+  "updated": "2026-04-28T10:19:18.383Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Create these two new files. The pricing/ folder doesn't exist yet — create it too.\n\n1. pricing/[tiers.md](http://tiers.md)\n2. [decisions.md](http://decisions.md)\n\nJust create the files empty. Confirm when done and I'll send the content for each.",
+      "ts": "2026-04-26T10:31:37.476Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Both files created empty:\n- [pricing/tiers.md](pricing/tiers.md)\n- [decisions.md](decisions.md)\n\nSend the content whenever you're ready.",
+      "ts": "2026-04-26T10:31:43.093Z"
+    },
+    {
+      "role": "user",
+      "content": "Show me: ls -la ~/projects/crs-progress/pricing/ and ls -la ~/projects/crs-progress/[decisions.md](http://decisions.md)",
+      "ts": "2026-04-26T10:32:54.643Z"
+    },
+    {
+      "role": "assistant",
+      "content": "The files don't exist at `~/projects/crs-progress/` because I'm working in a git worktree, not the main repo. The files are here:",
+      "ts": "2026-04-26T10:33:06.351Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Worktree path: `/Users/vlad/projects/crs-progress/.claude/worktrees/unruffled-goldstine-4d617c/`, branch `claude/unruffled-goldstine-4d617c`.\n\nThe files will land in the main repo when this branch gets merged. Want me to:\n1. Keep working in the worktree (normal flow — merge later), or\n2. Recreate them directly in `~/projects/crs-progress/` outside the worktree?",
+      "ts": "2026-04-26T10:33:11.205Z"
+    },
+    {
+      "role": "user",
+      "content": "Abandon the worktree. Delete it.\n\nThen create the files directly in the main repo at ~/projects/crs-progress/:\n- pricing/[tiers.md](http://tiers.md) (empty)\n- [decisions.md](http://decisions.md) (empty)\n\nWork directly on main from now on for this project. No branches, no worktrees, \nno PRs. This is a solo spec repo, not a multi-developer codebase. Simpler is better.",
+      "ts": "2026-04-26T10:33:56.016Z"
+    },
+    {
+      "role": "assistant",
+      "content": "That tool only handles worktrees it created. I'll remove this one with git directly and then create the files in the main repo.",
+      "ts": "2026-04-26T10:34:17.962Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Worktree removed and branch deleted. Continuing with verification and file creation.",
+      "ts": "2026-04-26T10:34:53.111Z"
+    },
+    {
+      "role": "assistant",
+      "content": "My CWD was inside the deleted worktree. Using absolute paths now.",
+      "ts": "2026-04-26T10:35:00.747Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Leftover is just a `.claude/settings.local.json` from the harness. Removing the whole `worktrees/` subtree per your instruction.",
+      "ts": "2026-04-26T10:35:21.818Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Now saving the workflow preference to memory so this sticks across sessions.",
+      "ts": "2026-04-26T10:35:36.344Z"
+    },
+    {
+      "role": "assistant",
+      "content": "All steps done. Recap:\n\n**Step 1 — worktree list (before):** showed the `unruffled-goldstine-4d617c` worktree alongside main. Already cleaned in the prior turn.\n\n**Step 2 — removed:** `git worktree remove --force` succeeded; branch `claude/unruffled-goldstine-4d617c` deleted (was at `dbdc4ba`).\n\n**Step 3 — verification:**\n- `git worktree list` → only `/Users/vlad/projects/crs-progress  dbdc4ba [main]`\n- `git branch` → only `* main`\n- `.claude/` had a leftover `worktrees/unruffled-goldstine-4d617c/.claude/settings.local.json` (harness per-worktree settings). Removed the whole `worktrees/` subtree per your instruction. `.claude/` is now empty.\n\n**Step 4–5 — files created:**\n- [pricing/tiers.md](pricing/tiers.md) — empty, 0 bytes\n- [decisions.md](decisions.md) — empty, 0 bytes\n\n**Step 6 — saved as memory** so I won't drift back to branches/worktrees: `feedback_workflow.md` says work directly on main for this repo, no branches/worktrees/PRs unless you ask.\n\nReady for content whenever you send it.",
+      "ts": "2026-04-26T10:35:58.410Z"
+    },
+    {
+      "role": "user",
+      "content": "Write the following content to pricing/[tiers.md](http://tiers.md), replacing whatever's there \n(currently empty). Preserve formatting exactly:\n\n---\n\n# CRS Pricing Tiers\n\nAuthoritative pricing reference. All prices in USD. Annual contracts only, \npaid upfront. Setup fee is one-time, 100% upfront, non-refundable after kickoff.\n\n> **Currency note:** USD pricing applies to US, Canadian, Caribbean, Macau, \n> and LATAM prospects. For European customers, quote in EUR (separate sheet \n> when needed).\n\n---\n\n## Tier Overview\n\n| Tier | Per property / month | Annual | Setup fee | Modules |\n|---|---:|---:|---:|---:|\n| **Core** | $1,300 | $15,000 | $3,800 | 6 |\n| **Pro** | $2,200 | $25,000 | $5,500 | 14 |\n| **Enterprise** | $3,500 | $40,000 | $9,500 | All (39) |\n\n### Pricing floor (do not go under)\n\n| Tier | Per property / month | Annual | Setup fee |\n|---|---:|---:|---:|\n| Core floor | $800 | $9,700 | $2,750 |\n| Pro floor | $1,500 | $17,500 | $4,000 |\n| Enterprise floor | $2,500 | $30,000 | $7,000 |\n\n### After 3–5 paying logos (price up)\n\n| Tier | Per property / month | Annual | Setup fee |\n|---|---:|---:|---:|\n| Core | $1,950 | $22,500 | $5,400 |\n| Pro | $3,000 | $35,000 | $7,500 |\n| Enterprise | $5,000 | $55,000 | $12,500 |\n\n---\n\n## Setup Fee Tiers (one-time)\n\n| Tier | Setup fee | Included |\n|---|---:|---|\n| **Basic** | $2,750 | Tenant provisioning, role config, 1 admin training (2h), CSV import (employees + subjects), go-live checklist |\n| **Standard** (recommended default) | $3,800 | Basic + 2 training sessions (admin + end-user), workflow customization (up to 5 tweaks), 30 days hypercare |\n| **Premium** | $7,000 | Standard + extended onboarding, custom report templates, 1 integration assist, 60 days hypercare |\n\n**Hard floor: $1,600.** Below that, the setup fee doesn't cover labor.\n\n### Setup fee math (Standard, $3,800)\n\n- Kickoff + scoping call: 2h\n- Tenant setup, branding, roles/permissions config: 6h\n- Data import (employees, subjects, locations): 4h\n- Admin training + recording: 3h\n- End-user training: 2h\n- Documentation + handover: 2h\n- Hypercare buffer (30 days, ~1h/week): 5h\n- Total: ~24h × $155/h blended = $3,720 → rounded to $3,800\n\n---\n\n## Tier → Module Mapping\n\n### Core (6 modules) — \"Run a surveillance department\"\n\nThe minimum bundle that delivers a complete daily workflow.\n\n1. Users & Auth\n2. Roles & Permissions\n3. Surveillance Reporting\n4. Incident Management (escalation from reports)\n5. Task Manager\n6. Daily Activity Log + End of Shift Report (handover)\n\n**Includes by default:** Employee Directory (read-only, needed for assignments), \nbasic dashboard, audit log, mobile-responsive UI, email notifications.\n\n### Pro (14 modules) — \"Run investigations and compliance\"\n\nCore + 8 modules:\n\n7. Investigation Cases\n8. Watchlist / Subjects (banned patrons, persons of interest)\n9. CCTV Audits\n10. Procedures / SOPs\n11. Lost & Found\n12. Visitor / Contractor Log\n13. Vehicles\n14. Advanced Reporting & Dashboards\n15. Operational Alerts (software-only — see [decisions.md](http://decisions.md) for positioning)\n16. Mobile MVP (5 screens — login, daily brief, incident submit, my tasks, \n    notifications)\n\n### Enterprise (all 39 modules) — \"Run the whole operation\"\n\nPro + remaining ~25 modules across HR/Employees, Compliance, Communication, \nand full Admin/Core.\n\nIncludes:\n- HR lifecycle (onboarding, offboarding, disciplinary actions, training)\n- Scheduling, time & attendance, payroll prep\n- Equipment Inspection Log, Malfunction Log\n- Document Management, Asset & Equipment\n- Internal Comms, Comments & Mentions, Notifications Center\n- Cross-property reporting (multi-site rollup)\n- API access + webhooks\n- SSO (SAML/OIDC)\n- Custom branding\n- SLA: 4h response, 99.9% uptime\n- Floor Alert Stations (hardware add-on — see [decisions.md](http://decisions.md))\n\n---\n\n## Add-Ons (sold à la carte, any tier)\n\n| Add-on | One-time | Recurring |\n|---|---:|---:|\n| Additional property (same tenant) | — | +$900/mo |\n| Operational Alerts (Core add-on) | — | +$200/mo |\n| Custom integration (1 system) | $2,500 | — |\n| Data migration from legacy system | $3,500–$8,000 | — |\n| On-site training (per day + travel) | $2,500 | — |\n| Custom report template (each) | $750 | — |\n| White-label / custom domain | $1,500 | +$200/mo |\n| Dedicated tenant infra | — | +$1,500/mo |\n| Floor Alert Stations (hardware) | $400/device setup | +$20/device/mo |\n\n---\n\n## Hard Rules\n\n- **Annual contracts only.** Casino procurement is annual. Monthly billing \n  kills cash flow and invites churn.\n- **Setup fee always.** Onboarding takes 20–40 hours. Free setup = unprofitable \n  customers + cheap perception.\n- **Per-property pricing**, not per-user. Industry standard. Caps confusion \n  and prevents customers gaming seat counts.\n- **Property definition** must be in the contract: \"A casino with 2 floors \n  in one building = 1 property. Two casinos owned by the same group in \n  different cities = 2 properties.\"\n- **Setup fee 100% upfront**, before any work. Non-negotiable.\n- **Setup fee non-refundable** once kickoff call happens. State in SOW.\n- **Discount the annual to win deals — never the setup fee.** Setup is the \n  protection against unprofitable onboarding.\n- **Don't sell Enterprise in year 1** unless a 5+ property prospect with \n  budget asks. Cannot support solo. List on pricing page to anchor Pro as \n  the reasonable middle option.\n\n---\n\n## Pilot Pricing\n\nThe first casino (pilot) does **not** pay setup fee. Trade is:\n\n- 3–6 month free pilot\n- Auto-converts to paid annual at locked rate (lock at start)\n- Logo + name usage rights\n- Written case study at month 4\n- 2 reference calls with prospects\n- Bi-weekly 30-min feedback sessions\n- Named champion on customer side\n- Exit clause: if no conversion, vendor keeps all IP and learnings\n\nIf the pilot pushes to pay something, label it \"data migration & training fee\" \nand cap at $1,500–$2,000.\n\n---\n\n## Sanity Test (apply to every deal)\n\nAt the proposed Core price, can the deal afford:\n\n- 6h sales\n- 30h onboarding\n- 2h/mo support × 12 = 24h\n- Bubble WU costs at expected usage\n- ≥60% margin\n\nIf no → too low. Walk or raise.\n\n---\n\n*Last updated: 2026-04-26*\n\n---",
+      "ts": "2026-04-26T10:37:16.756Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Written: 184 lines, 6,006 bytes at [pricing/tiers.md](pricing/tiers.md).\n\nTwo judgment calls worth flagging:\n\n1. **`[decisions.md](http://decisions.md)` references** (appeared twice in your text) — these are clearly chat-editor auto-link artifacts. I wrote them as bare text `decisions.md` to avoid broken `http://decisions.md` URLs in the doc. If you'd prefer working relative links (`[decisions.md](../decisions.md)`), say the word.\n\n2. **Pro module count math doesn't add up.** The header says \"Pro (14 modules)\" and \"Core + 8 modules\", but the numbered list under it is items 7–16 = 10 modules, making 16 total. Either the count in the header is wrong, or the list has 2 extras. Likely candidates to drop: items 15 (Operational Alerts — already in Add-Ons as \"Core add-on\") and 16 (Mobile MVP — arguably a deliverable, not a module). I left it as you wrote it. Want me to fix?\n\nSend `decisions.md` content whenever ready.",
+      "ts": "2026-04-26T10:39:01.470Z"
+    },
+    {
+      "role": "user",
+      "content": "Fix two issues in pricing/[tiers.md](http://tiers.md):\n\n1. Pro tier section — fix the module list. The locked 39-module count is \nauthoritative (from data/CRS_Module_OptionSets.xlsx). Mobile MVP is a tier \ncapability, not a module. Operational Alerts is a module from the locked set.\n\nReplace the Pro section's module list with this corrected version (Core's 6 \n+ 8 Pro modules = 14 total):\n\n### Pro (14 modules) — \"Run investigations and compliance\"\n\nAll Core modules plus:\n\n7. Investigation Cases\n8. Watchlist / Subjects\n9. CCTV Audits\n10. Procedures / SOPs\n11. Lost & Found\n12. Visitor / Contractor Log\n13. Vehicles\n14. Advanced Reporting & Dashboards\n\n**Pro tier also includes these capabilities (not module-counted):**\n- Operational Alerts (software-only)\n- Mobile MVP (5 screens: login, daily brief, incident submit, my tasks, \n  notifications)\n\n2. Verify the rest of the file is unchanged. Show me a diff.",
+      "ts": "2026-04-26T10:39:46.733Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Diff is clean — only the Pro section changed, rest of file untouched.\n\n**Changes:**\n- \"Core + 8 modules:\" → \"All Core modules plus:\"\n- Item 8 stripped of parenthetical → just \"Watchlist / Subjects\"\n- Items 15 (Operational Alerts) and 16 (Mobile MVP) removed from the numbered module list\n- New `**Pro tier also includes these capabilities (not module-counted):**` block added with both as bullets\n\nFile grew from 184 → 186 lines.",
+      "ts": "2026-04-26T10:42:30.013Z"
+    },
+    {
+      "role": "user",
+      "content": "Write the following content to [decisions.md](http://decisions.md), replacing whatever's there \n(currently empty). Preserve formatting exactly:\n\n---\n\n# CRS Decisions Log\n\nAppend-only log of architectural and product decisions. Newest at top.\nEach entry: date, decision, why, alternatives considered, required artifacts.\n\nDo not edit historical entries. If a decision is reversed, add a new entry \nexplaining the reversal and link to the original.\n\n---\n\n## 2026-04-26 — Pricing tier structure locked (USD)\n\n**Decided:** Three-tier structure — Core ($15K/yr, 6 modules), Pro ($25K/yr, \n14 modules + Mobile + Operational Alerts), Enterprise ($40K/yr, all 39 modules). \nSetup fees: $3,800 / $5,500 / $9,500. Per-property pricing. Annual contracts \nonly. 100% upfront on setup.\n\n**Why:** Casino procurement is annual. Per-property is industry standard. \nThree tiers anchor Pro as the \"reasonable middle.\" Setup fees protect against \nunprofitable onboarding and signal serious product.\n\n**Alternatives considered:**\n- Per-user pricing (rejected — gameable, unpredictable revenue)\n- Monthly billing (rejected — kills cash flow, invites churn)\n- Free setup (rejected — onboarding eats 20–40h, must be funded)\n- Two tiers only (rejected — no anchor for Pro)\n\n**Required artifacts:** pricing/[tiers.md](http://tiers.md) (locked).\n\n**Constraint:** Don't sell Enterprise in year 1. Cannot support solo. List on \npricing page only as anchor.\n\n---\n\n## 2026-04-26 — Pilot does not pay setup fee\n\n**Decided:** Pilot casino gets free 3–6 month pilot, no setup fee. Trade is \nwritten agreement covering: logo rights, case study at month 4, 2 reference \ncalls, bi-weekly feedback sessions, named champion, auto-conversion to paid \nannual at locked rate, and exit clause for vendor IP retention if no conversion.\n\n**Why:** Pilot is a co-builder, not a customer. Their value (real deployment, \nedge cases, case study, references) exceeds $3,800 setup fee. Charging weakens \nleverage on the asks that actually matter.\n\n**Alternatives considered:**\n- Charge full setup (rejected — wrong trade)\n- Charge token amount $500–1000 (rejected — neither side benefits)\n- Charge \"data migration & training fee\" $1,500–2,000 (acceptable only if \n  pilot pushes to pay something)\n\n**Required artifacts:** Written pilot agreement before any production work.\n\n---\n\n## 2026-04-26 — Floor Alert Stations parked until gates pass\n\n**Decided:** Hardware product (Android tablets at gaming tables for F100/F1000-\ntype alerts) parked at Phase 3, earliest start Q1 2027. Software-only \nOperational Alerts ships first in Pro tier as the validation step.\n\n**Gates (all must pass before hardware build starts):**\n1. Core tier shipped and stable in pilot for 30+ days\n2. Pilot converted to paid OR second paying customer signed\n3. Mobile MVP (5 screens) shipped and used by ≥1 customer\n4. Operational Alerts (software-only) live in Pro for 60+ days\n5. Pilot surveillance director confirmed final alert codes in writing\n6. 2-device borrowed-phone prototype tested 2+ weeks, no critical failures\n7. Written revenue commitment from ≥1 customer\n8. $10K+ capital available without affecting runway\n9. Hardware/MDM partner identified (e.g., Esper, Hexnode)\n\n**Why:** Hardware is a different business (procurement, MDM, replacement, \ncompliance, network). Solo founder cannot run hardware ops + ship SaaS \nsimultaneously. Software-only validation must come first.\n\n**Pricing target when shipped:** $400/device setup + $20/device/mo. Margin \ntarget ≥60%.\n\n**Alternatives considered:**\n- Build hardware in parallel with Core (rejected — distracts from paid logo #1)\n- Skip software-only step (rejected — no validation of alert pipeline before \n  spending hardware capital)\n- White-label per tenant on App Store (rejected — breaks at 10 customers, \n  not 50)\n\n**Required artifacts:** modules/enterprise/[floor-alert-stations.md](http://floor-alert-stations.md) spec when \ngates pass; MSA Operational Alerts Disclaimer clause before any device install.\n\n---\n\n## 2026-04-26 — Operational Alerts positioning: helper, not life-safety\n\n**Decided:** Operational Alerts module (software-only in Pro, hardware add-on \nin Enterprise) is positioned as an operational productivity tool, NOT a \ndistress/panic/life-safety system. UI text, contract clauses, marketing copy, \nand sales conversations must consistently reinforce this framing.\n\n**Why:** Life-safety positioning creates lawsuit risk Bubble's reliability \nprofile cannot defend. Real distress systems are hardwired or use dedicated \nradio (Vingcard, ASSA ABLOY, Inovonics). The \"helper\" framing preserves the \ncompetitive wedge vs iTrak (which lacks this module) without inheriting \nlife-safety liability.\n\n**Required artifacts:**\n- Contract: MSA Operational Alerts Disclaimer clause (drafted, store in \n  pricing/[msa-template.md](http://msa-template.md) when created)\n- UI: small text on alert screens — \"Helper alert — also call pit boss / use \n  phone for emergencies\"\n- Marketing: never use the words \"panic,\" \"distress,\" \"emergency,\" \"life-\n  safety,\" \"police integration\"\n\n**Alternatives considered:**\n- Position as panic button / distress alarm (rejected — life-safety liability)\n- Skip the module entirely (rejected — gives up the wedge vs iTrak)\n- Build proper certified life-safety system (rejected — out of scope, requires \n  hardware partner + regulatory cert in each jurisdiction)\n\n---\n\n## 2026-04-26 — Migrated to Claude Code + GitHub workflow\n\n**Decided:** Project source-of-truth migrated from scattered [claude.ai](http://claude.ai) chats \nto single git repo at github.com/vladlen1986/crs-progress. Cloned to \n~/projects/crs-progress on Mac and Windows. GitHub Desktop for sync. Claude \nCode as primary working assistant.\n\n**Why:** [claude.ai](http://claude.ai) chats are scattered, partial, can't be diffed, and have \nno canonical \"latest.\" Repo gives one source of truth, version history, \ncross-machine sync, and [CLAUDE.md](http://CLAUDE.md) preloaded context.\n\n**Workflow rules:**\n- Work directly on `main`. No branches, worktrees, or PRs unless explicitly \n  requested. Solo spec repo, not production codebase.\n- [claude.ai](http://claude.ai) used only for mobile brainstorming or when away from a machine. \n  Useful outputs must be copied into the repo within 24 hours.\n- Daily ritual: pull at start of session, commit + push at end.\n- [CLAUDE.md](http://CLAUDE.md) is the project context file. Update when major decisions or \n  status changes happen.\n\n**Required artifacts:** [README.md](http://README.md), [CLAUDE.md](http://CLAUDE.md), .gitignore (all present).\n\n---\n\n## 2026-04-17 — Permission-based access control (not role-based)\n\n**Decided:** Role is a Data Type carrying a list of Permission Option Set \nvalues. Privacy rules and UI checks ask \"does this user's role contain \npermission X\" — not \"is this user's role = Admin.\"\n\n**Why:** Enables runtime role management per tenant without redeployment. \nCustomer admins can create custom roles (\"Pit Boss,\" \"Shift Lead\") and \nassign exactly the permissions needed. Hardcoded role enums would force \na deploy for every new role.\n\n**Alternatives considered:**\n- Role enum + hardcoded permission matrix (rejected — every new role \n  requires a deploy)\n- Permissions directly on User (rejected — explodes at scale; 500 users × \n  50 permissions = 25K rows of admin work)\n\n**Required artifacts:** Role DT, Permission OS, per-user \"extras\" field \nfor one-off grants. Documented in specs/CRS_Blueprint.html under Roles & \nPermissions module.\n\n---\n\n## 2026-04-17 — Hybrid GDPR strategy: anonymize / soft-delete / retain\n\n**Decided:** Three distinct data lifecycle paths. (1) Anonymize for personal \nidentifiers when subject exercises right-to-erasure but data must remain for \nlegal/regulatory hold. (2) Soft-delete for normal operational deletion \n(reversible). (3) Retain for required audit/compliance records.\n\n**Why:** Casino regulators require retention windows that conflict with GDPR \nright-to-erasure. Hybrid approach satisfies both — records remain for \ncompliance, personal data is scrubbed.\n\n**Required artifacts:** Documented in specs/CRS_Blueprint.html. Backend \nworkflows: anonymize_user, soft_delete_record, retention_check.\n\n---\n\n## Locked Architecture Decisions (foundational — see [CLAUDE.md](http://CLAUDE.md))\n\nThese are foundational and not re-litigated without strong reason:\n\n1. **Multi-tenant:** Company + Property tenancy. MVP = 1 property per company.\n2. **Permissions:** Custom Role DT + fixed Permission OS + per-user extras.\n3. **GDPR:** Hybrid anonymize / soft-delete / retain.\n4. **Tiers:** Three subscription tiers (Core / Pro / Enterprise). 5 internal \n   tier slots reserved in data model for future flexibility.\n5. **Routing:** Single `App` page (SPA), URL parameter `v` switches module.\n6. **Search:** Hybrid — Native Bubble + Scious Omnisearch + Typesense.\n7. **Audit:** Single `ActivityLog` DT, polymorphic `subject_type`/`subject_id`, \n   async write via Schedule API Workflow.\n\n---\n\n*Append new decisions above this footer. Format: ## YYYY-MM-DD — Decision title.*",
+      "ts": "2026-04-26T10:44:03.969Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Written: 200 lines, 8,814 bytes at [decisions.md](decisions.md).\n\n**One important flag — CLAUDE.md is now out of sync:**\n\nThe new `2026-04-26 — Pricing tier structure locked` decision says **3 tiers** (Core / Pro / Enterprise, with 5 internal slots reserved). But [CLAUDE.md:25](CLAUDE.md:25) still says: *\"Tiers: 5 subscription tiers (module gating roadmap).\"*\n\nThe decisions log itself states \"CLAUDE.md is the project context file. Update when major decisions or status changes happen.\" This pricing lock is exactly that. Want me to update CLAUDE.md to match? The change would be:\n\n- Item 4 in \"Locked architecture decisions\" → `Tiers: 3 subscription tiers (Core / Pro / Enterprise). 5 internal tier slots reserved in data model.`\n- Optionally add a \"When making changes → To pricing/decisions\" section pointing at `pricing/tiers.md` and `decisions.md`.\n\n**Other notes:**\n- Same link-handling convention as `tiers.md`: stripped `[FILE.md](http://FILE.md)` artifacts to bare filenames (e.g., `CLAUDE.md`, `README.md`, `pricing/tiers.md`, `modules/enterprise/floor-alert-stations.md`, `pricing/msa-template.md`).\n- Kept `[claude.ai](http://claude.ai)` as-is — that's a real working URL, not an artifact. Two occurrences in the GitHub workflow entry.\n\nBoth files now committable. Want me to commit `pricing/tiers.md` + `decisions.md` (and optionally the CLAUDE.md update) to main?",
+      "ts": "2026-04-26T10:46:18.623Z"
+    },
+    {
+      "role": "user",
+      "content": "Three actions, in order. Commit between each — three separate commits.\n\nACTION 1 — Update [CLAUDE.md](http://CLAUDE.md)\n\nMake these edits:\n\n(a) In \"Locked architecture decisions\" section, change item 4 from:\n   \"Tiers: 5 subscription tiers (module gating roadmap).\"\nto:\n   \"Tiers: 3 subscription tiers (Core / Pro / Enterprise). 5 internal tier \n    slots reserved in data model for future flexibility. See pricing/[tiers.md](http://tiers.md).\"\n\n(b) Append a new section before \"Things NOT to do\" titled \"Pricing & Commercial\":\n\n## Pricing & Commercial\n\n- Pricing locked in pricing/[tiers.md](http://tiers.md) — three tiers, USD, annual contracts, \n  100% upfront setup fees.\n- Don't sell Enterprise in year 1. List on pricing page only as anchor for Pro.\n- Pilot casino does NOT pay setup fee. Trade is pilot agreement (logo, case \n  study, references, conversion clause). See [decisions.md](http://decisions.md).\n- Floor Alert Stations (hardware add-on) parked until 9 gates pass. Earliest \n  start Q1 2027. See [decisions.md](http://decisions.md) and modules/enterprise/[floor-alert-stations.md](http://floor-alert-stations.md) \n  (when created).\n- Operational Alerts module is positioned as helper, not life-safety. Never use \n  the words panic, distress, emergency, life-safety in UI/marketing/contracts. \n  See [decisions.md](http://decisions.md).\n\n(c) In the \"When making changes\" section, append:\n\n### To pricing or commercial decisions\n- Update pricing/[tiers.md](http://tiers.md)\n- Append a new entry to [decisions.md](http://decisions.md) (newest at top, append-only)\n- Update [CLAUDE.md](http://CLAUDE.md) if a foundational fact changes\n\n(d) In the \"When in doubt\" section, add at the start of the numbered list:",
+      "ts": "2026-04-26T10:49:10.803Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Stopping — your message cut off. Two things I need before proceeding:\n\n1. **Action 1(d) is missing its content** — the line ends with \"add at the start of the numbered list:\" but the actual additions weren't sent.\n2. **Actions 2 and 3** weren't included either (you said \"three actions, three separate commits\").\n\nSend the rest and I'll do all three in order with a commit between each.",
+      "ts": "2026-04-26T10:49:20.667Z"
+    },
+    {
+      "role": "user",
+      "content": "Three actions, in order. Commit between each — three separate commits.\n\nACTION 1 — Update [CLAUDE.md](http://CLAUDE.md)\n\nMake these edits:\n\n(a) In \"Locked architecture decisions\" section, change item 4 from:\n   \"Tiers: 5 subscription tiers (module gating roadmap).\"\nto:\n   \"Tiers: 3 subscription tiers (Core / Pro / Enterprise). 5 internal tier \n    slots reserved in data model for future flexibility. See pricing/[tiers.md](http://tiers.md).\"\n\n(b) Append a new section before \"Things NOT to do\" titled \"Pricing & Commercial\":\n\n## Pricing & Commercial\n\n- Pricing locked in pricing/[tiers.md](http://tiers.md) — three tiers, USD, annual contracts, \n  100% upfront setup fees.\n- Don't sell Enterprise in year 1. List on pricing page only as anchor for Pro.\n- Pilot casino does NOT pay setup fee. Trade is pilot agreement (logo, case \n  study, references, conversion clause). See [decisions.md](http://decisions.md).\n- Floor Alert Stations (hardware add-on) parked until 9 gates pass. Earliest \n  start Q1 2027. See [decisions.md](http://decisions.md) and modules/enterprise/[floor-alert-stations.md](http://floor-alert-stations.md) \n  (when created).\n- Operational Alerts module is positioned as helper, not life-safety. Never use \n  the words panic, distress, emergency, life-safety in UI/marketing/contracts. \n  See [decisions.md](http://decisions.md).\n\n(c) In the \"When making changes\" section, append:\n\n### To pricing or commercial decisions\n- Update pricing/[tiers.md](http://tiers.md)\n- Append a new entry to [decisions.md](http://decisions.md) (newest at top, append-only)\n- Update [CLAUDE.md](http://CLAUDE.md) if a foundational fact changes\n\n(d) In the \"When in doubt\" section, add at the start of the numbered list:\n\n1. Check [decisions.md](http://decisions.md) for prior rulings on architecture or commercial questions\n2. Check pricing/[tiers.md](http://tiers.md) for pricing questions\n\n(renumber existing items accordingly)\n\nShow me a diff of [CLAUDE.md](http://CLAUDE.md) before saving.\n\nACTION 2 — Three sequential commits on main\n\nAfter [CLAUDE.md](http://CLAUDE.md) is updated and saved, run:\n\ngit add pricing/[tiers.md](http://tiers.md)\ngit commit -m \"Add pricing tier structure (Core/Pro/Enterprise, USD)\"\n\ngit add [decisions.md](http://decisions.md)\ngit commit -m \"Add decisions log with foundational and recent rulings\"\n\ngit add [CLAUDE.md](http://CLAUDE.md)\ngit commit -m \"Update [CLAUDE.md](http://CLAUDE.md): 3-tier pricing, link pricing and decisions files\"\n\nACTION 3 — Verify and report\n\nRun:\ngit log --oneline -10\ngit status\n\nShow me the output. Should show three new commits on main, working tree clean.",
+      "ts": "2026-04-26T10:50:03.701Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Applying the three CLAUDE.md edits in order, then showing the diff before committing.",
+      "ts": "2026-04-26T10:52:54.810Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Diff is clean — all four changes applied, nothing else touched. Running the three commits.",
+      "ts": "2026-04-26T10:54:05.075Z"
+    },
+    {
+      "role": "assistant",
+      "content": "All three actions complete.\n\n**Three commits on main, in order:**\n1. `7a84aa9` — Add pricing tier structure (Core/Pro/Enterprise, USD)\n2. `e11572f` — Add decisions log with foundational and recent rulings\n3. `63299d0` — Update CLAUDE.md: 3-tier pricing, link pricing and decisions files\n\n**State:** Working tree clean. Local main is 3 commits ahead of `origin/main` — not pushed yet.\n\n**One judgment call to flag in the new \"When in doubt\" list:** items 1–2 (`decisions.md`, `pricing/tiers.md`) don't have backticks while items 3–5 do (`design/design.md`, etc.). I wrote it literally as you sent it; the rest of the list uses backticks for file paths. Want me to add backticks to items 1–2 for consistency? Quick fix as a 4th commit if so.\n\nWant me to `git push` to publish the 3 commits?",
+      "ts": "2026-04-26T10:54:27.993Z"
+    },
+    {
+      "role": "user",
+      "content": "push all",
+      "ts": "2026-04-26T10:54:41.917Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Push failed — HTTPS remote needs credentials (no terminal auth available here). Checking the remote setup.",
+      "ts": "2026-04-26T10:54:50.835Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Push needs credentials this CLI can't reach. Setup details:\n\n- Remote: `https://github.com/vladlen1986/crs-progress.git` (HTTPS)\n- Credential helper: `osxkeychain` (stores creds in macOS Keychain)\n- `gh` CLI: not installed\n\nThe keychain helper needs an interactive context that this terminal doesn't provide, so git falls back to asking for a username and fails.\n\n**Per your own decisions.md (\"GitHub Desktop for sync. Daily ritual: pull at start of session, commit + push at end.\"), the cleanest path is to push from GitHub Desktop** — open the app, you'll see \"Push 3 commits\" on main, click push.\n\nAlternatives if you'd rather push from CLI:\n1. **Install gh and authenticate** — `brew install gh && gh auth login` (handles HTTPS auth automatically after).\n2. **Switch to SSH** — change remote to `git@github.com:vladlen1986/crs-progress.git`. Requires your SSH key to be on GitHub. I can do this with your OK.\n\nWhich do you want? Or just push from GitHub Desktop and we move on.",
+      "ts": "2026-04-26T10:55:08.453Z"
+    },
+    {
+      "role": "user",
+      "content": "One small fix, one commit:\n\nACTION 1 — Fix backticks consistency in [CLAUDE.md](http://CLAUDE.md)\n\nIn the \"When in doubt\" section, items 1 and 2 are missing backticks around \nthe file paths. Add them so all items match the existing style:\n\n1. Check `[decisions.md](http://decisions.md)` for prior rulings on architecture or commercial questions\n2. Check `pricing/[tiers.md](http://tiers.md)` for pricing questions\n\n(Items 3–5 already use backticks — match that style.)\n\nShow me a diff before saving.\n\nACTION 2 — Commit on main\n\ngit add [CLAUDE.md](http://CLAUDE.md)\ngit commit -m \"Style: add backticks to file paths in [CLAUDE.md](http://CLAUDE.md) When in doubt list\"\n\nACTION 3 — Verify\n\ngit log --oneline -10\ngit status\n\nShow me the output. Should show 4 commits on main, working tree clean, \n4 commits ahead of origin/main.\n\nDO NOT push. I'll push from GitHub Desktop.",
+      "ts": "2026-04-26T10:56:01.104Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Diff is clean — only items 1 and 2 changed, backticks added.",
+      "ts": "2026-04-26T10:56:17.034Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Verified — matches your expected state:\n\n- **4 new commits on main** (top of log): `f0467c9` (backticks fix), `63299d0` (CLAUDE.md update), `e11572f` (decisions log), `7a84aa9` (pricing tiers)\n- **Working tree clean**\n- **4 commits ahead of origin/main**, ready for you to push from GitHub Desktop",
+      "ts": "2026-04-26T10:56:25.773Z"
+    },
+    {
+      "role": "user",
+      "content": "open blueprint",
+      "ts": "2026-04-26T11:03:08.290Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Opened [specs/CRS_Blueprint.html](specs/CRS_Blueprint.html) in your default browser.",
+      "ts": "2026-04-26T11:03:17.228Z"
+    },
+    {
+      "role": "user",
+      "content": "add search functionality to blueprint",
+      "ts": "2026-04-26T11:04:04.481Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Before implementing — quick check on the build pattern, since CLAUDE.md says Blueprint content is generated from Python scripts.",
+      "ts": "2026-04-26T11:04:21.928Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Quick scoping before I dive in — \"search\" can mean a few things and I want to match what you actually want:\n\n**Recommendation:** Add a sidebar-header search input that filters the nav items (modules + platform pages) live as you type. Scope: nav names only, not full content.\n\n**Tradeoff:** Nav filter is small (~30 lines of JS, no indexing), survives a rebuild cleanly via `build_blueprint.py`, and matches how most internal spec docs work. Full-content search across 1MB of HTML would need an index (lunr.js or similar) and is overkill for a spec you browse by section.\n\n**Two questions:**\n1. Nav-filter only, or do you want full-text content search too?\n2. Where should I put it in the build pipeline — patch `build_blueprint.py` so it regenerates correctly (right answer per CLAUDE.md), or one-off edit the HTML for a quick demo?\n\nIf you just say \"go\" I'll do nav-filter via `build_blueprint.py`. That's the minimal, durable version.",
+      "ts": "2026-04-26T11:04:46.097Z"
+    },
+    {
+      "role": "user",
+      "content": "Read data/CRS_Module_OptionSets.xlsx and list every module in the Guests, \nCompliance, and Communication sections. For each, show: label, sort_order, \nstatus, page_route. Don't modify anything.",
+      "ts": "2026-04-26T23:17:02.022Z"
+    },
+    {
+      "role": "assistant",
+      "content": "13 modules total across the three sections. All `status = roadmap` (consistent with the 2026-04-27 reality reset).\n\n**Worth flagging — Compliance has a sort_order gap:** 10, 20, 40, 50 (no `30`). Could be a deleted slot held open intentionally or an oversight. The other two sections increment cleanly by 10.\n\nContext check: per [decisions.md](decisions.md), these are exactly the three sections marked *\"Pending: Guests, Compliance, Communication sections under review tomorrow\"* — i.e., the review you're doing right now. Want me to also pull the Bubble Option Set values for these sections (if there's a separate sheet) so you can reconcile the same way you did for the locked four?",
+      "ts": "2026-04-26T23:18:06.312Z"
+    },
+    {
+      "role": "user",
+      "content": "show me the list",
+      "ts": "2026-04-26T23:18:25.520Z"
+    },
+    {
+      "role": "assistant",
+      "content": "### Guests (6)\n\n| sort | label | status | page_route |\n|---:|---|---|---|\n| 10 | Guest Management | roadmap | guests |\n| 20 | Guest Barring | roadmap | guest-barring |\n| 30 | Guest Watchlist | roadmap | guest-watchlist |\n| 40 | Guest Statistics | roadmap | guest-stats |\n| 50 | VIP / Loyalty Tracking | roadmap | vip |\n| 60 | Visitor Management | roadmap | visitor-management |\n\n### Compliance (4)\n\n| sort | label | status | page_route |\n|---:|---|---|---|\n| 10 | Compliance Register | roadmap | compliance |\n| 20 | Regulatory Reports | roadmap | regulatory |\n| 40 | Policy Library | roadmap | policies |\n| 50 | Inventory / Sensitive Equipment | roadmap | inventory |\n\n### Communication (3)\n\n| sort | label | status | page_route |\n|---:|---|---|---|\n| 10 | Info Board | roadmap | info-board |\n| 20 | Announcements | roadmap | announcements |\n| 30 | Internal Messaging | roadmap | messaging |\n\n**Note:** Compliance is missing `sort_order = 30` (jumps 20 → 40).",
+      "ts": "2026-04-26T23:18:31.693Z"
+    },
+    {
+      "role": "user",
+      "content": "Guest whatchlsit is same as Opportunists List ?",
+      "ts": "2026-04-26T23:20:23.915Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Related but not identical.\n\n- **Watchlist** = umbrella term. Anyone flagged for surveillance attention but not formally barred — opportunists, persons of interest in active investigations, ex-employees, etc.\n- **Opportunists List** = specific industry subset. Known cheats and advantage players (card counters, hole-carders, past-posters, collusion crews, scam artists). Watched but usually not legally barred.\n\nSince your section already has **Guest Barring** as a separate module, your **Guest Watchlist** is the non-barred bucket — which would include Opportunists.\n\nTwo questions to resolve before locking the section:\n\n1. Should \"Watchlist\" be one module with a `type` field (Opportunist / POI / Ex-employee / Other)? Or split into multiple modules?\n2. Is \"Opportunists\" the term your pilot uses, or is \"Watchlist\" the term they use? Whichever they say in daily ops should be the module label — terminology mismatch is the #1 reason surveillance staff stop using a tool.",
+      "ts": "2026-04-26T23:20:44.518Z"
+    },
+    {
+      "role": "user",
+      "content": "@/Users/vlad/projects/crs-progress build me full working prototype of Breaklist module in html.",
+      "ts": "2026-04-28T10:12:46.950Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Quick orientation on conventions before I propose scope.",
+      "ts": "2026-04-28T10:13:24.700Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Stopping to scope before I build — per [decisions.md](decisions.md), the Break List entry explicitly flags four open questions for build phase, and \"full working prototype\" can mean very different things. I want one round of confirmation, not 30 minutes of unnecessary work.\n\n**Proposed scope (please pick):**\n\n1. **View** — table-grid (each gaming table as a card showing current dealer, next-up, time on, time-to-rotation; pit-boss-floor-view) **OR** list view (rows of dealers with status pills, simpler)?\n2. **State** — fully client-side interactive (drag-drop reassignment, 20-min rotation timer, mark on-break / back-from-break, end-of-shift summary) **OR** static visual demo only?\n3. **Rotation interval** — fixed 20 min, fixed 30 min, or settings dropdown that defaults to 20 and persists in `localStorage`?\n\n**My default if you just say \"go\":**\n- Table-grid view (more authentic to pit boss workflow than a list)\n- Fully interactive (drag-drop, rotation timer, break toggle, shift summary)\n- 20 min default, configurable in a settings popover, persisted in `localStorage`\n- Single self-contained file at `demos/CRS_BreakList.html` using `design/tokens.css`\n- Demo data: 1 property, 12 active gaming tables (BJ + Roulette + Baccarat mix), 16 dealers including 2 supervisors\n\nWant my default, or specify?",
+      "ts": "2026-04-28T10:13:38.401Z"
+    },
+    {
+      "role": "user",
+      "content": "go",
+      "ts": "2026-04-28T10:14:00.949Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Building the prototype now.",
+      "ts": "2026-04-28T10:15:47.882Z"
+    },
+    {
+      "role": "assistant",
+      "content": "[demos/CRS_BreakList.html](demos/CRS_BreakList.html) is now visible in the Launch preview panel.\n\n**What's in it:**\n- **Sidebar** mocked with Operations modules, Break List active\n- **Topbar** with property chip, live shift clock, settings gear\n- **Summary** — On floor / On break / Available / Rotations / Shift duration\n- **Tables grid** — 12 tables with current dealer, time on table, countdown to rotation, color-coded warning at 2 min, red pulse when overdue\n- **Available bench** + **On break** sections, drag-and-drop between zones\n- **Settings modal** — rotation interval (20/25/30 min), break duration (15/20/30 min), persisted in `localStorage`\n- **Picker modal** — click \"Rotate\" on a table to pick a replacement; warns if dealer lacks the game skill\n- **Tap-to-select fallback** for touch (tap dealer in bench → tap a table)\n- **Reset shift** button restores demo state\n\n**Demo data:** 1 property (Pilot Casino · Floor A), 12 tables (BJ × 5, BC × 2, RL × 3, PK, CR), 16 dealers including 2 supervisors. Initial state is 12 on tables with varied time-on-table so timers look alive, 1 on break, 3 available, 8 rotations done in a 95-min shift.\n\n**Open questions deferred** (per [decisions.md](decisions.md) Break List entry):\n- *How does Break List read from Scheduling?* — not wired (this prototype is standalone)\n- *List view vs grid view?* — went with grid only\n- *Break tracking: separate \"on break\" status vs implied gaps?* — went with explicit \"On break\" section + timer\n\nWant me to commit this as a new commit on main?",
+      "ts": "2026-04-28T10:19:18.383Z"
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "import-cc-7722cf18bd61",
+  "title": "2026-07-14 00:38 · are Which backend workflows are still pendin · [Claude Code · Vlads-MacBook-Pro]",
+  "sessionId": null,
+  "imported": {
+    "source": "claude-code",
+    "file": "/Users/vlad/.claude/projects/-Users-vlad-projects-crs-progress/e5221177-8d20-4cfd-8ee9-e1795663977b.jsonl"
+  },
+  "created": "2026-07-14T00:38:27.540Z",
+  "updated": "2026-07-14T00:38:51.290Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "are\nWhich backend workflows are still pending for Casino Settings, and what is the very next migration step?",
+      "ts": "2026-07-14T00:38:27.540Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Let me search the repo for Casino Settings and any migration/workflow tracking.",
+      "ts": "2026-07-14T00:38:30.977Z"
+    },
+    {
+      "role": "assistant",
+      "content": "The `brain/` directory has the relevant tracking files. Let me read them.",
+      "ts": "2026-07-14T00:38:39.669Z"
+    },
+    {
+      "role": "assistant",
+      "content": "**Pending Casino Settings backend workflows (4, all ❌ in `RE_CasinoSettings`):**\n\n1. Save Company — button on Identity card\n2. Save Property — button on Properties tab\n3. Add Property — button on Properties tab\n4. Logo upload — file uploader\n\nNone are built yet in the new architecture (`brain/workflows.md:14-17`).\n\n**Very next migration step:** Not the workflows yet. Migration queue #1 (\"Finish Casino Settings build\") is in progress — Identity card done, **Locale & Operations card is the active step**. The locked sequence (decisions.md 2026-05-02) is:\n\nLocale & Operations → Contact → Status toggle → Properties tab → **4 workflows** → Pattern A privacy rules.\n\nSo the immediate next action is finishing the Locale & Operations card in Buildprint Build mode (dev branch); the 4 workflows come after the Properties tab is in place (`brain/migrations.md:7-10`).\n\nOne open flag worth noting: the cutover status is unconfirmed — the May 31 \"never run Buildprint on live\" rule predates today (2026-07-14), and `brain/migrations.md:40` lists confirming whether cutover executed as still pending.",
+      "ts": "2026-07-14T00:38:51.290Z"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "id": "import-cc-35d47b4296eb",
+  "title": "2026-07-14 02:06 · where is the buttons / UI components prototy · [Claude Code · Vlads-MacBook-Pro]",
+  "sessionId": null,
+  "imported": {
+    "source": "claude-code",
+    "file": "/Users/vlad/.claude/projects/-Users-vlad-projects-crs-progress/28ac1376-7c46-4467-9d62-1e8c678ff02a.jsonl"
+  },
+  "created": "2026-07-14T02:06:55.014Z",
+  "updated": "2026-07-14T02:07:06.505Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "where is the buttons / UI components prototype?\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T02:06:55.014Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Let me check the brain index and look for UI component prototypes.",
+      "ts": "2026-07-14T02:06:58.321Z"
+    },
+    {
+      "role": "assistant",
+      "content": "The buttons / UI components prototype is the **CRS UI Kit**:\n\n**`design/CRS_UI_Kit.html`** (136 KB) — the component library / prototype.\n\nSupporting design files in the same folder:\n- **`design/tokens.css`** — the color/spacing token source of truth (use these, never hard-code)\n- **`design/Styles.txt`** — plain-text style reference\n- **`design/design.md`** — design system rules and reasoning\n\nBrain pointer: **`brain/design.md`** (maps design questions → the files above).\n\nThat's the one to open for buttons and UI components. Want me to verify what component variants (button states, etc.) it actually contains?",
+      "ts": "2026-07-14T02:07:06.505Z"
+    }
+  ]
+}

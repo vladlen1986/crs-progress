@@ -1,0 +1,33 @@
+{
+  "id": "import-cc-6249b577dd0e",
+  "title": "2026-07-14 06:50 · In Buildprint, what does a stale branch erro · [Claude Code · Vlads-MacBook-Pro]",
+  "sessionId": null,
+  "imported": {
+    "source": "claude-code",
+    "file": "/Users/vlad/.claude/projects/-Users-vlad-projects-crs-progress/28b8d568-54ad-488e-8b1f-827da4a327d8.jsonl"
+  },
+  "created": "2026-07-14T06:50:33.026Z",
+  "updated": "2026-07-14T06:50:50.563Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "In Buildprint, what does a stale branch error mean and can Build mode edit database records?\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T06:50:33.026Z"
+    },
+    {
+      "role": "assistant",
+      "content": "I'll check the Buildprint knowledge base, starting with its index.",
+      "ts": "2026-07-14T06:50:35.612Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Two files to read: the troubleshooting page (stale branch) and the permissions/data-safety page (DB records).",
+      "ts": "2026-07-14T06:50:39.139Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Both answers are grounded in the scraped manual.\n\n**Stale branch error** — Bubble has changed since Buildprint's last sync of that branch. Buildprint agents work from point-in-time snapshots, so any edit you (or another agent) made directly in the Bubble editor isn't visible until re-synced. Fix: ask the agent to sync the branch and resolve conflicts if prompted. A stale branch is also one of the listed causes of a \"cannot apply changes\" failure.\n- `brain/buildprint/troubleshooting-faqs.md:17-18` (stale branch), `:20-31` (as an apply-blocker)\n- `brain/buildprint/permissions-and-data-safety.md:114-120` (snapshots / why staleness happens)\n\n**Can Build mode edit database records?** — No. Build mode edits app *structure* only (pages, reusable elements, workflows, data types, option sets, styles, settings, supported API Connector config). It **cannot edit Bubble database Things**. All Buildprint database tools are read-only — agents can search/fetch/aggregate records but never create, modify, or delete them. Caution: that database read access **bypasses your Bubble privacy rules** (it uses editor access), so treat any returned records as sensitive.\n- `brain/buildprint/permissions-and-data-safety.md:64` (Build mode cannot edit Things), `:101-106` (read-only DB tools + privacy-rule bypass)\n\nRouting map: `brain/buildprint/INDEX.md`. Project-specific Buildprint rules (dev-branch-only, Plan-mode-first) that override generic advice: `decisions.md` 2026-05-01, summarized in `CLAUDE.md`.",
+      "ts": "2026-07-14T06:50:50.563Z"
+    }
+  ]
+}
