@@ -287,6 +287,60 @@ const BP_PROMPT = (ws) => [
   'workspace + brain/ without running mutating commands.',
 ].join(' ');
 
+// ---- Buildprint → Brain tracking -------------------------------------------
+// Sync the workspace from Bubble, diff the snapshot, and have the brain update
+// its ledger files to reflect whatever changed in Buildprint (site/agent/editor).
+const BP_TRACK_FILE = path.join(DATA_DIR, 'buildprint', 'last-tracked.txt');
+const BP_TRACK_PROMPT = [
+  'BUILDPRINT → BRAIN SYNC. The user just made changes to the CRS Bubble app in Buildprint. The changed',
+  'files are listed in the message (git name-status). They live under your cwd (the cloned Test branch).',
+  'READ the changed files you need, then UPDATE the CRS brain ledger to reflect reality —',
+  `write to files under ${REPO_ROOT}/brain/:`,
+  'data_types/* → database.md (fields/types, company+property presence) AND security.md (privacy_role rules & gaps);',
+  'option_sets/* → option-sets.md; styles/* → design.md (colors, fonts, tokens — but design/tokens.css is the source',
+  'of truth, so note deltas as pointers); pages/*/workflows → workflows.md; settings/* → the right file.',
+  'Move items from "Pending" to "Current state" when they are now built. Append ONE dated entry to changelog.md.',
+  'Cite exact Bubble entity names. Reflect ONLY real changes shown in the diff — never invent. Respect Pattern A',
+  '(company + property + both-field privacy rule on every business DT) and flag any changed DT that violates it.',
+  'End with a short "Brain updated:" list, file by file, plus anything that needs Vlad\'s decision.',
+].join(' ');
+
+function runBuildprint(args, ws) {
+  return new Promise((resolve) => {
+    const c = spawn('buildprint', args, { cwd: ws.dir });
+    let out = '', err = '';
+    c.stdout.on('data', (d) => (out += d)); c.stderr.on('data', (d) => (err += d));
+    c.on('error', (e) => resolve({ ok: false, out: '', err: e.message }));
+    c.on('close', (code) => resolve({ ok: code === 0, out: out.trim(), err: err.trim() }));
+  });
+}
+function bpGit(ws, args) {
+  return new Promise((resolve) => {
+    const c = spawn('git', args, { cwd: ws.dir });
+    let out = '', err = '';
+    c.stdout.on('data', (d) => (out += d)); c.stderr.on('data', (d) => (err += d));
+    c.on('error', () => resolve({ ok: false, out: '', err: 'git missing' }));
+    c.on('close', (code) => resolve({ ok: code === 0, out: out.trim(), err: err.trim() }));
+  });
+}
+// Sync + diff. Returns {ok, first, changed:[name-status lines], base, head} or {error}.
+async function bpSyncDiff() {
+  const ws = findBpWorkspace();
+  if (!ws) return { error: 'workspace not found' };
+  await runBuildprint(['sync'], ws);   // pull latest Bubble snapshot into the worktree
+  const head = (await bpGit(ws, ['rev-parse', 'HEAD'])).out;
+  if (!head) return { error: 'could not read workspace HEAD' };
+  let base = null;
+  try { base = fs.readFileSync(BP_TRACK_FILE, 'utf8').trim(); } catch {}
+  if (!base || !/^[0-9a-f]{7,}$/.test(base)) {
+    fs.writeFileSync(BP_TRACK_FILE, head);
+    return { ok: true, first: true, ws, head };
+  }
+  const ns = (await bpGit(ws, ['diff', '--name-status', base, head])).out;
+  const changed = ns ? ns.split('\n').filter(Boolean) : [];
+  return { ok: true, first: false, ws, base, head, changed };
+}
+
 // ---- helpers ---------------------------------------------------------------
 function send(res, code, body, headers = {}) {
   const data = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body);
@@ -771,7 +825,45 @@ const server = http.createServer(async (req, res) => {
     // ---- Buildprint copilot ----
     if (p === '/api/bp/status' && req.method === 'GET') {
       const ws = findBpWorkspace();
-      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null });
+      let tracked = null; try { tracked = fs.existsSync(BP_TRACK_FILE); } catch {}
+      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null, baseline: !!tracked });
+    }
+
+    // Sync from Buildprint and update the brain ledger to match (streaming).
+    if (p === '/api/bp/track' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+      const ac = new AbortController();
+      let clientGone = false;
+      req.on('close', () => { clientGone = true; ac.abort(); });
+      const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
+      sse({ type: 'status', text: 'syncing from Bubble' });
+      const r = await bpSyncDiff();
+      if (r.error) { sse({ type: 'error', error: r.error === 'workspace not found' ? 'Buildprint workspace not found — link the CLI and clone the Test branch first.' : r.error }); return res.end(); }
+      if (r.first) { sse({ type: 'delta', text: '**Baseline set.** I synced the current Bubble state and marked it as the starting point.\n\nFrom now on: make your changes in Buildprint, then hit **Sync from Buildprint** and I\'ll update the brain (database, design, security, workflows…) to match.' }); sse({ type: 'done', reply: 'baseline set' }); return res.end(); }
+      if (!r.changed.length) { sse({ type: 'delta', text: '**No changes** in Bubble since the last sync — the brain is already up to date.' }); sse({ type: 'done', reply: 'no changes' }); return res.end(); }
+      // Real changes → let the brain ingest them into the ledger.
+      const listShown = r.changed.slice(0, 150);
+      const more = r.changed.length > 150 ? `\n…and ${r.changed.length - 150} more files` : '';
+      const chat = { id: crypto.randomUUID(), title: 'Buildprint sync — ' + nowIso().slice(0, 16).replace('T', ' '), bp: true, sessionId: null, created: nowIso(), updated: nowIso(), messages: [{ role: 'user', content: `Sync ${r.changed.length} change(s) from Buildprint into the brain.`, ts: nowIso() }] };
+      const message = `Changed in the CRS Bubble app (test) since last sync — git name-status ${r.base.slice(0, 7)}..${r.head.slice(0, 7)}:\n\n${listShown.join('\n')}${more}\n\nUpdate the brain ledger to reflect these changes.`;
+      let streamed = '';
+      try {
+        const cfg = loadSettings();
+        const result = await runClaudeStream(message, null, {
+          onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
+          onThink: (t) => sse({ type: 'think', text: t }),
+          onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
+          onDetail: (t) => sse({ type: 'detail', text: t }),
+          onStatus: (s) => sse({ type: 'status', text: s }),
+        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
+        chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso() });
+        chat.sessionId = result.sessionId; saveChat(chat);
+        fs.writeFileSync(BP_TRACK_FILE, r.head);   // advance baseline only on success
+        autoCommit('buildprint sync → brain');
+        sse({ type: 'done', id: chat.id, reply: result.text || streamed });
+      } catch (e) { sse({ type: 'error', error: e.message }); }
+      return res.end();
     }
     if (p === '/api/bp/history' && req.method === 'GET') {
       const c = loadBpChat();
@@ -990,6 +1082,37 @@ function maybeSyncManuals() {
 }
 setTimeout(maybeSyncManuals, 90 * 1000);          // shortly after boot
 setInterval(maybeSyncManuals, 3600 * 1000);        // hourly gate, weekly action
+
+// ---- auto-track Buildprint changes into the brain (opt-in, default on) ------
+// Every 20 min: sync the workspace; only spend a Claude turn if Bubble actually
+// changed. Keeps the ledger current without you clicking. Toggle via settings.
+let bpTracking = false;
+async function maybeTrackBuildprint() {
+  if (bpTracking) return;
+  const s = loadSettings();
+  if (s.bpAutoTrack === false) return;
+  const ws = findBpWorkspace();
+  if (!ws) return;
+  bpTracking = true;
+  try {
+    const r = await bpSyncDiff();
+    if (!r || r.error || r.first || !r.changed || !r.changed.length) { bpTracking = false; return; }
+    console.log(`  ⟳ Buildprint changed (${r.changed.length} file(s)) — updating brain ledger…`);
+    const listShown = r.changed.slice(0, 150);
+    const message = `Changed in the CRS Bubble app (test) since last sync — git name-status ${r.base.slice(0, 7)}..${r.head.slice(0, 7)}:\n\n${listShown.join('\n')}\n\nUpdate the brain ledger to reflect these changes.`;
+    const chat = { id: crypto.randomUUID(), title: 'Buildprint sync (auto) — ' + nowIso().slice(0, 16).replace('T', ' '), bp: true, sessionId: null, created: nowIso(), updated: nowIso(), messages: [{ role: 'user', content: `Auto-sync ${r.changed.length} change(s) from Buildprint.`, ts: nowIso() }] };
+    const cfg = loadSettings();
+    const result = await runClaudeStream(message, null, {}, { model: cfg.model, effort: cfg.effort, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
+    chat.messages.push({ role: 'assistant', content: result.text || '', ts: nowIso() });
+    saveChat(chat);
+    fs.writeFileSync(BP_TRACK_FILE, r.head);
+    autoCommit('buildprint auto-sync → brain');
+    console.log('  ⟳ Brain ledger updated from Buildprint.');
+  } catch (e) { console.log('  ⟳ auto-track failed:', e.message); }
+  bpTracking = false;
+}
+setTimeout(maybeTrackBuildprint, 150 * 1000);      // ~2.5 min after boot
+setInterval(maybeTrackBuildprint, 20 * 60 * 1000); // every 20 min; only ingests on real change
 
 // Open the app in the default browser (Windows / macOS / Linux).
 function openBrowser(url) {

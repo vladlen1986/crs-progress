@@ -429,6 +429,7 @@
     </div>
     <div id="bpActions" style="display:none">
       <button class="newbtn" onclick="newBpChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New Buildprint task</button>
+      <button class="newbtn" onclick="bpTrack()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> Sync from Buildprint → brain</button>
       <div class="bp-conn" id="bpConn">checking Buildprint…</div>
     </div>
     <div class="pane" id="paneChats"></div>
@@ -1231,6 +1232,36 @@ async function bpStatus(){
       ? `<span class="bp-ok"></span> ${esc(s.app)} · ${esc(s.branch)} branch`
       : '<span class="bp-off"></span> not connected — link the CLI first';
   }catch{ el.textContent='offline'; }
+}
+// ---------- Sync from Buildprint → update the brain ledger ----------
+async function bpTrack(){
+  if(state.sending) return;
+  state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
+  const log=$('chatLog'); log.innerHTML='';
+  $('centerTitle').textContent='🔨 Buildprint sync';
+  log.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
+  const a=botMsgEl(); const body=a.querySelector('.body'); body.classList.add('md');
+  body.innerHTML='<span class="dim">syncing from Bubble…</span>'; log.appendChild(a); log.scrollTop=log.scrollHeight;
+  state.sending=true; $('sendBtn').disabled=true;
+  let full='';
+  try{
+    const res=await fetch('/api/bp/track',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:$('modelSel')?.value,effort:$('effortSel')?.value})});
+    const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){ const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true}); let i;
+      while((i=buf.indexOf('\n\n'))>=0){ const chunk=buf.slice(0,i); buf=buf.slice(i+2);
+        const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
+        let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
+        if(ev.type==='status'){ if(!full) body.innerHTML=`<span class="dim">${esc(ev.text)}…</span>`; }
+        else if(ev.type==='delta'){ full+=ev.text; body.innerHTML=renderMd(full); log.scrollTop=log.scrollHeight; }
+        else if(ev.type==='done'){ full=ev.reply||full; body.innerHTML=renderMd(full); if(ev.id) state.chatId=ev.id; }
+        else if(ev.type==='error'){ body.classList.add('err'); body.textContent='⚠ '+ev.error; }
+      }
+    }
+    if(full && !body.classList.contains('err')) body.innerHTML=renderMd(full);
+    loadChats(); loadProgress(); loadFiles();
+  }catch(e){ body.classList.add('err'); body.textContent='⚠ '+e.message; }
+  finally{ state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight; }
 }
 
 // ---------- boot ----------
