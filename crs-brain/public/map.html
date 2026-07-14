@@ -391,17 +391,17 @@ function buildGraph(){
       if(n.type!=='dir'){ rootFiles.push(n); continue; }
       const big=[], rest=[];
       for(const c of n.children){ (c.type==='dir'&&cntFiles(c.children)>=PROMOTE ? big : rest).push(c); }
-      for(const b of big) depts.push({name:b.name, children:b.children});
-      if(cntFiles(rest)) depts.push({name:n.name, children:rest});
+      for(const b of big) depts.push({name:b.name, folder:b.path, children:b.children});
+      if(cntFiles(rest)) depts.push({name:n.name, folder:n.path, children:rest});
     }
-    if(rootFiles.length) depts.push({name:'root', children:rootFiles});
+    if(rootFiles.length) depts.push({name:'root', folder:'', children:rootFiles});
     let gi=0;
-    const mkDept=(name,children)=>{
+    const mkDept=(name,children,folder)=>{
       const files=[]; (function walk(c){ for(const x of c){ x.type==='dir'?walk(x.children):files.push(x); } })(children);
       if(!files.length) return;
       const color=MEMC[gi++%MEMC.length];
       const ang=gi*2.399, R=320+140*rnd();
-      const hub=addNode({id:'#'+name, kind:'hub', label:name.toUpperCase(), color, r:Math.min(20,9+files.length*.12), count:files.length,
+      const hub=addNode({id:'#'+name, kind:'hub', label:name.toUpperCase(), color, folder, r:Math.min(20,9+files.length*.12), count:files.length,
         x:Math.cos(ang)*R, y:Math.sin(ang)*R-120});
       hubs.push(hub); link(hub.id,'@center',230+90*rnd(),.5);
       // big reference clusters (manuals) open COLLAPSED so they don't flood the map
@@ -412,7 +412,7 @@ function buildGraph(){
         link(f.path, hub.id, 26+60*rnd(), .8);
       });
     };
-    for(const d of depts) mkDept(d.name, d.children);
+    for(const d of depts) mkDept(d.name, d.children, d.folder);
   } else { // folders: nested hierarchy
     let gi=0;
     const walkDir=(dirNode, parentId, depth, color)=>{
@@ -420,7 +420,7 @@ function buildGraph(){
       const files=dirNode.children.filter(c=>c.type==='file');
       const dirs=dirNode.children.filter(c=>c.type==='dir');
       let total=0; (function cnt(c){for(const x of c){x.type==='dir'?cnt(x.children):total++;}})(dirNode.children);
-      const hub=addNode({id:'#'+dirNode.path, kind:'hub', label:dirNode.name.toUpperCase(), color:myColor,
+      const hub=addNode({id:'#'+dirNode.path, kind:'hub', label:dirNode.name.toUpperCase(), color:myColor, folder:dirNode.path,
         r:Math.min(18,7+total*.1), count:total, depth});
       hubs.push(hub); link(hub.id, parentId, depth===0?260:110, .6);
       files.forEach(f=>{ fileCount++;
@@ -917,7 +917,11 @@ cv.addEventListener('pointermove',e=>{
     } else ui.tip.style.display='none';
   }});
 function openNode(n){
-  if(!n||n.kind!=='file'||!n.path) return;
+  if(!n) return;
+  if(n.kind==='hub' && n.folder!==undefined){   // folder node → open the file explorer for that folder
+    window.open('/#explore='+encodeURIComponent(n.folder),'crsbrain'); flash('Opening '+(n.label||'folder')+' …'); return;
+  }
+  if(n.kind!=='file'||!n.path) return;
   if(/\.html?$/i.test(n.path)){ // html → the user's default browser
     fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:n.path})})
       .then(()=>flash('Opened in your browser · '+n.label)).catch(()=>flash('Could not open'));

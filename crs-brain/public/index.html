@@ -324,6 +324,35 @@
   .recent .rf .ago{margin-left:auto;color:var(--muted);font-size:10px;flex:0 0 auto}
   .recent .rempty{color:var(--muted);font-size:11.5px;padding:5px 8px;font-style:italic}
 
+  /* file-type icon tiles */
+  .ftile{display:inline-flex;align-items:center;justify-content:center;width:18px;height:22px;border-radius:3px;font-size:7px;font-weight:800;color:#fff;letter-spacing:.2px;flex:0 0 auto;line-height:1;box-shadow:inset 0 -1px 0 rgba(0,0,0,.25)}
+  .ftile.lg{width:46px;height:56px;border-radius:7px;font-size:13px}
+  .ftile.folder{background:none;box-shadow:none;color:var(--accent2)}
+  .ftile.folder svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6}
+  .ftile.lg.folder svg{stroke-width:1.3}
+  .ftile img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+
+  /* Finder/Explorer-style modal */
+  .expl-wrap{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:70;display:none;align-items:center;justify-content:center}
+  .expl-wrap.show{display:flex}
+  .expl{width:min(860px,94vw);height:min(600px,88vh);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
+  .expl-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .expl-crumb{display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--secondary);overflow:hidden;flex:1;flex-wrap:wrap}
+  .expl-crumb b{color:var(--primary)}
+  .expl-crumb a{color:var(--accent2);cursor:pointer}
+  .expl-crumb .sep{color:var(--muted)}
+  .expl-head .sel{font-size:11.5px}
+  .expl-x{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);width:30px;height:30px;border-radius:7px;font-size:14px;cursor:pointer;flex:0 0 auto}
+  .expl-x:hover{color:var(--primary);border-color:var(--line2)}
+  .expl-grid{flex:1;overflow:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;align-content:start}
+  .expl-group{grid-column:1/-1;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
+  .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
+  .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 6px 10px;border-radius:9px;cursor:pointer;text-align:center;transition:.12s}
+  .expl-item:hover{background:var(--panel2)}
+  .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .expl-item:hover .nm{color:var(--primary)}
+  .expl-empty{grid-column:1/-1;color:var(--muted);font-size:12.5px;padding:30px;text-align:center}
+
   /* ───── mobile (≤900px): columns become slide-in drawers ───── */
   .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
   @media (max-width:900px){
@@ -519,6 +548,18 @@
   </div>
 </div>
 <div class="mscrim" id="mscrim" onclick="mob(null)"></div>
+<div class="expl-wrap" id="explWrap" onclick="if(event.target===this)closeExpl()">
+  <div class="expl">
+    <div class="expl-head">
+      <div class="expl-crumb" id="explCrumb"></div>
+      <select class="sel" id="explSort" title="Sort" onchange="renderExpl()">
+        <option value="name">Name</option><option value="date">Date</option><option value="type">Type</option>
+      </select>
+      <button class="expl-x" title="Close" onclick="closeExpl()">✕</button>
+    </div>
+    <div class="expl-grid" id="explGrid"></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 <div class="pal-wrap" id="palWrap" onclick="if(event.target===this)closePal()">
   <div class="pal">
@@ -806,7 +847,7 @@ async function renderDashboard(){
       ${A('i-logo','Galaxy map','Explore the brain visually','window.open(\'/map\',\'crsmap\')')}
       ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
       ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
-      ${A('i-folder','Browse files','Open the file tree','setTab(\'files\')')}
+      ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')')}
     </div></section>
 
     <section><div class="dash-cols">
@@ -1037,7 +1078,7 @@ async function runDigest(){
 
 // ---------- files ----------
 async function loadFiles(){
-  const {root,tree}=await api('/api/files'); $('repoName').textContent=root;
+  const {root,tree}=await api('/api/files'); $('repoName').textContent=root; state.repoName=root;
   const shown=filterTree(tree);
   const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(shown,true));
   state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(shown);
@@ -1065,7 +1106,7 @@ function renderTree(nodes,open){
 function agoTxt(ms){ const s=Math.round((Date.now()-ms)/1000); if(s<60)return s+'s'; const m=Math.round(s/60); if(m<60)return m+'m'; const h=Math.round(m/60); if(h<24)return h+'h'; return Math.round(h/24)+'d'; }
 function rfEl(pth, ago){ const d=document.createElement('div'); d.className='rf'; d.title=pth;
   const nm=pth.split('/').pop();
-  d.innerHTML=`${svg(isImg(pth)?'i-doc-sm':'i-doc-sm','sm')}<span class="nm">${esc(nm)}</span>${ago?`<span class="ago">${ago}</span>`:''}`;
+  d.innerHTML=`${fileTileFor(pth)}<span class="nm">${esc(nm)}</span>${ago?`<span class="ago">${ago}</span>`:''}`;
   d.onclick=()=>{ if(isHtml(pth)) apiOpen(pth); else openFile(pth); };
   return d; }
 function pushRecentOpened(p){ let a=[]; try{ a=JSON.parse(localStorage.getItem('recentOpened')||'[]'); }catch{}
@@ -1079,6 +1120,47 @@ async function loadRecentEdited(){ const box=$('recentEdited'); if(!box) return;
     box.innerHTML = files.length? '' : '<div class="rempty">—</div>';
     for(const f of files) box.appendChild(rfEl(f.path, agoTxt(f.mtime)));
   }catch{ box.innerHTML='<div class="rempty">—</div>'; } }
+
+// ---------- file-type icons ----------
+const EXT_COLOR={md:'#8B5CF6',html:'#F97316',htm:'#F97316',css:'#3B82F6',js:'#EAB308',ts:'#3178C6',py:'#22C55E',json:'#9CA3AF',csv:'#16A34A',xlsx:'#16A34A',xls:'#16A34A',pdf:'#EF4444',png:'#EC4899',jpg:'#EC4899',jpeg:'#EC4899',gif:'#EC4899',svg:'#EC4899',webp:'#EC4899',txt:'#6B7280',yml:'#06B6D4',yaml:'#06B6D4'};
+function extOf(name){ return (name.split('.').pop()||'').toLowerCase(); }
+function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftile'+(big?' lg':'');
+  if(isImg(name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(pth)}"></span>`;
+  const ext=extOf(name); return `<span class="${cls}" style="background:${EXT_COLOR[ext]||'#565656'}">${(ext.slice(0,4).toUpperCase())||'?'}</span>`; }
+function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
+
+// ---------- Finder/Explorer-style file browser ----------
+let explTree=[], explPath='';
+async function openExpl(dir){ try{ explTree=(await api('/api/files')).tree; }catch{ explTree=[]; }
+  explPath=dir||''; $('explWrap').classList.add('show'); renderExpl(); }
+function closeExpl(){ $('explWrap').classList.remove('show'); }
+function explGoto(p){ explPath=p; renderExpl(); }
+function explNodeAt(pathStr){ const root=filterTree(explTree);
+  if(!pathStr) return {children:root};
+  let nodes=root, node=null;
+  for(const part of pathStr.split('/')){ node=(nodes||[]).find(n=>n.type==='dir'&&n.name===part); if(!node) return {children:[]}; nodes=node.children; }
+  return node; }
+function dateGroup(ms){ if(!ms) return 'Older'; const d=Date.now()-ms, day=864e5; if(d<day)return 'Today'; if(d<2*day)return 'Yesterday'; if(d<7*day)return 'This week'; if(d<30*day)return 'This month'; return 'Older'; }
+function explOpen(p){ closeExpl(); if(isHtml(p)) apiOpen(p); else openFile(p); }
+function renderExpl(){
+  const node=explNodeAt(explPath), grid=$('explGrid'); grid.innerHTML='';
+  const crumb=$('explCrumb'); const parts=explPath?explPath.split('/'):[];
+  crumb.innerHTML=`<a onclick="explGoto('')">${esc(state.repoName||'Project')}</a>`; let acc='';
+  parts.forEach((p,i)=>{ acc=acc?acc+'/'+p:p; crumb.innerHTML+=`<span class="sep">›</span>`+(i===parts.length-1?`<b>${esc(p)}</b>`:`<a onclick="explGoto('${acc.replace(/'/g,"")}')">${esc(p)}</a>`); });
+  const kids=(node&&node.children)||[];
+  const dirs=kids.filter(c=>c.type==='dir').sort((a,b)=>a.name.localeCompare(b.name));
+  let files=kids.filter(c=>c.type==='file'); const sort=$('explSort').value;
+  if(sort==='date') files.sort((a,b)=>(b.mtime||0)-(a.mtime||0));
+  else if(sort==='type') files.sort((a,b)=>extOf(a.name).localeCompare(extOf(b.name))||a.name.localeCompare(b.name));
+  else files.sort((a,b)=>a.name.localeCompare(b.name));
+  if(!dirs.length&&!files.length){ grid.innerHTML='<div class="expl-empty">This folder is empty.</div>'; return; }
+  const add=(html)=>{ const t=document.createElement('template'); t.innerHTML=html.trim(); grid.appendChild(t.content.firstChild); };
+  for(const d of dirs) add(`<div class="expl-item" onclick="explGoto('${d.path.replace(/'/g,"")}')" title="${esc(d.path)}">${folderTile(true)}<span class="nm">${esc(d.name)}</span></div>`);
+  const gk = sort==='type'? (f=>extOf(f.name).toUpperCase()||'FILE') : sort==='date'? (f=>dateGroup(f.mtime)) : null;
+  let lastG=null;
+  for(const f of files){ if(gk){ const g=gk(f); if(g!==lastG){ const gd=document.createElement('div'); gd.className='expl-group'; gd.textContent=g; grid.appendChild(gd); lastG=g; } }
+    add(`<div class="expl-item" onclick="explOpen('${f.path.replace(/'/g,"\\'")}')" title="${esc(f.path)}">${fileTileFor(f.path,true)}<span class="nm">${esc(f.name)}</span></div>`); }
+}
 
 async function openFile(p){
   bumpView();
@@ -1335,10 +1417,13 @@ function openFromHash(){
   if(location.hash.startsWith('#file=')){
     const p=decodeURIComponent(location.hash.slice(6));
     setTab('files'); openFile(p);
+  } else if(location.hash.startsWith('#explore=')){
+    openExpl(decodeURIComponent(location.hash.slice(9)));
   }
 }
+addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('explWrap').classList.contains('show')) closeExpl(); });
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

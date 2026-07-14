@@ -388,9 +388,9 @@ function walk(dir, baseRel = '') {
     } else {
       const ext = path.extname(e.name).toLowerCase();
       if (!ALLOWED_EXT.has(ext)) continue;
-      let size = 0;
-      try { size = fs.statSync(path.join(dir, e.name)).size; } catch {}
-      out.push({ type: 'file', name: e.name, path: rel, ext, size });
+      let size = 0, mtime = 0;
+      try { const st = fs.statSync(path.join(dir, e.name)); size = st.size; mtime = st.mtimeMs; } catch {}
+      out.push({ type: 'file', name: e.name, path: rel, ext, size, mtime });
     }
   }
   return out;
