@@ -198,6 +198,26 @@
 
   .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
 
+  /* ───── mobile (≤900px): columns become slide-in drawers ───── */
+  .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
+  @media (max-width:900px){
+    .app{grid-template-columns:1fr}
+    .col.left,.col.right{position:fixed;top:0;bottom:0;width:min(84vw,320px);z-index:40;transition:transform .25s ease;box-shadow:0 0 60px rgba(0,0,0,.55)}
+    .col.left{left:0;transform:translateX(-105%);border-right:1px solid var(--line2)}
+    .col.right{right:0;transform:translateX(105%);border-left:1px solid var(--line2)}
+    .col.left.show,.col.right.show{transform:translateX(0)}
+    .mbtn{display:inline-flex;align-items:center;justify-content:center}
+    .center-head{padding:0 10px;gap:8px}
+    .center-head .title{font-size:13px}
+    .sel{padding:6px 20px 6px 6px;font-size:11px;max-width:86px}
+    .chat{padding:16px 10px 10px}
+    .composer-wrap{padding:8px 10px 12px}
+    .ingest-btn.show{padding:0 10px;font-size:11px}
+    .doc{padding:16px 14px}
+    .mscrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:35}
+    .mscrim.show{display:block}
+  }
+
   /* progress */
   .right h2{font-size:12px;text-transform:uppercase;letter-spacing:.7px;color:var(--muted);margin:0;padding:18px 16px 10px;display:flex;align-items:center;font-weight:700}
   .cols{padding:0 14px 14px;overflow:auto;flex:1;min-height:0}
@@ -300,8 +320,10 @@
   <!-- CENTER -->
   <div class="col center">
     <div class="center-head">
+      <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
+      <button class="mbtn" title="Usage & progress" onclick="mob('right')">▤</button>
       <a class="ghost" href="/map" target="crsmap" title="Second-brain galaxy map" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</a>
       <select class="sel" id="modelSel" title="Model" onchange="applyModelSettings()">
         <option value="claude-opus-4-8">Opus 4.8</option>
@@ -350,6 +372,7 @@
     <div class="cols" id="progress"></div>
   </div>
 </div>
+<div class="mscrim" id="mscrim" onclick="mob(null)"></div>
 <div class="toast" id="toast"></div>
 <div class="pal-wrap" id="palWrap" onclick="if(event.target===this)closePal()">
   <div class="pal">
@@ -413,6 +436,21 @@ function smartOpen(p){ if(isHtml(p)) apiOpen(p); else { setTab('files'); openFil
 // Clickable file paths inside chat replies and rendered docs.
 document.addEventListener('click',(e)=>{ const a=e.target.closest('a[data-path]'); if(!a) return;
   e.preventDefault(); smartOpen(a.dataset.path); });
+
+// ---------- mobile drawers ----------
+function mob(side){
+  const L=document.querySelector('.col.left'), R=document.querySelector('.col.right');
+  const openL = side==='left' && !L.classList.contains('show');
+  const openR = side==='right' && !R.classList.contains('show');
+  L.classList.toggle('show', openL);
+  R.classList.toggle('show', openR);
+  $('mscrim').classList.toggle('show', openL||openR);
+}
+// picking a chat/file on mobile closes the drawer
+document.addEventListener('click',e=>{
+  if(innerWidth>900) return;
+  if(e.target.closest('.item')||e.target.closest('.tree .file')) setTimeout(()=>mob(null),150);
+});
 
 // ---------- tabs ----------
 function setTab(t){ state.tab=t;

@@ -138,6 +138,37 @@ function populateUsage() {
 }
 
 const PORT = process.env.CRS_BRAIN_PORT || 4317;
+// Mobile/LAN mode: CRS_BRAIN_HOST=0.0.0.0 exposes the app on your network,
+// gated by a PIN (CRS_BRAIN_PIN, or auto-generated and printed at startup).
+// Localhost clients never need the PIN.
+const HOST = process.env.CRS_BRAIN_HOST || '127.0.0.1';
+const LAN = HOST !== '127.0.0.1';
+const PIN = LAN ? (process.env.CRS_BRAIN_PIN || String(100000 + Math.floor(Math.random() * 900000))) : null;
+
+function isLocalReq(req) {
+  const a = req.socket.remoteAddress || '';
+  return a === '127.0.0.1' || a === '::1' || a === '::ffff:127.0.0.1';
+}
+function pinOk(req) {
+  if (!LAN || isLocalReq(req)) return true;
+  const cookies = Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=')));
+  return cookies.crsbrain === PIN;
+}
+const PIN_PAGE = (wrong) => `<!doctype html><meta name="viewport" content="width=device-width,initial-scale=1">
+<body style="margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#181818;font-family:Inter,-apple-system,sans-serif">
+<form method="GET" action="/" style="text-align:center">
+<div style="width:46px;height:46px;border-radius:12px;background:#3B82F6;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:22px">🧠</div>
+<div style="color:#E0E0E0;font-size:16px;font-weight:600;margin-bottom:4px">CRS Brain</div>
+<div style="color:#6B6B6B;font-size:12px;margin-bottom:14px">${wrong ? 'Wrong PIN — try again' : 'Enter the PIN shown in the Mac terminal'}</div>
+<input name="pin" inputmode="numeric" autofocus style="background:#242424;border:1px solid #333;border-radius:8px;color:#E0E0E0;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:6px;width:170px;outline:none">
+</form></body>`;
+
+function lanIps() {
+  const out = [];
+  for (const ifs of Object.values(os.networkInterfaces()))
+    for (const i of ifs || []) if (i.family === 'IPv4' && !i.internal) out.push(i.address);
+  return out;
+}
 
 // Which files the brain lists in the file browser.
 const ALLOWED_EXT = new Set([
@@ -469,6 +500,17 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://localhost:${PORT}`);
   const p = u.pathname;
 
+  // PIN gate for non-localhost clients (mobile/LAN mode)
+  if (!pinOk(req)) {
+    const tryPin = u.searchParams.get('pin');
+    if (tryPin === PIN) {
+      res.writeHead(302, { 'Set-Cookie': `crsbrain=${PIN}; Path=/; Max-Age=2592000; SameSite=Lax`, Location: '/' });
+      return res.end();
+    }
+    res.writeHead(tryPin ? 401 : 200, { 'Content-Type': 'text/html; charset=utf-8' });
+    return res.end(PIN_PAGE(!!tryPin));
+  }
+
   try {
     // ---- API ----
     if (p === '/api/files' && req.method === 'GET') {
@@ -733,10 +775,15 @@ server.on('error', (e) => {
   process.exit(1);
 });
 
-server.listen(PORT, '127.0.0.1', () => {
+server.listen(PORT, HOST, () => {
   console.log(`\n  CRS Brain running →  ${URL_}\n`);
   console.log(`  Repo:   ${REPO_ROOT}`);
   console.log(`  Uses your Claude subscription (no per-token billing).`);
+  if (LAN) {
+    console.log(`\n  📱 MOBILE ACCESS (same Wi-Fi):`);
+    for (const ip of lanIps()) console.log(`     http://${ip}:${PORT}`);
+    console.log(`     PIN: ${PIN}\n`);
+  }
   console.log(`  This window is the app. Close it to quit.\n`);
   if (process.env.CRS_BRAIN_NOOPEN !== '1') openBrowser(URL_);
 });
