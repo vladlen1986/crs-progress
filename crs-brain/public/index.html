@@ -428,8 +428,12 @@ const CRS_ROOT_FILES=new Set(['CLAUDE.md','decisions.md']);
 state.crsOnly = localStorage.getItem('crsOnly')==='1';
 function setFileFilter(crs){ state.crsOnly=crs; localStorage.setItem('crsOnly',crs?'1':'0');
   $('ffAll').classList.toggle('on',!crs); $('ffCrs').classList.toggle('on',crs); loadFiles(); }
+const MANUAL_DIRS=new Set(['bubble','buildprint']);   // reference manuals — hidden in CRS-only mode
 function filterTree(tree){ if(!state.crsOnly) return tree;
-  return tree.filter(n=> n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name)); }
+  return tree.filter(n=> n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name))
+    .map(n=> n.type==='dir'&&n.name==='brain'
+      ? {...n, children:n.children.filter(c=>!(c.type==='dir'&&MANUAL_DIRS.has(c.name)))}
+      : n); }
 
 // ---------- chats ----------
 async function loadChats(){

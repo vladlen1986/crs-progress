@@ -274,9 +274,13 @@ const S = Object.assign({
 // CRS-only mode: product knowledge only — hide the tool internals & pipeline.
 const CRS_DIRS = new Set(['brain','specs','design','data','demos','pricing','audits']);
 const CRS_ROOT_FILES = new Set(['CLAUDE.md','decisions.md']);
+const MANUAL_DIRS=new Set(['bubble','buildprint']);   // reference manuals — hidden in CRS-only mode
 function contentTree(){
   if(!tree || S.content!=='crs') return tree;
-  return tree.filter(n => n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name));
+  return tree.filter(n => n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name))
+    .map(n => n.type==='dir'&&n.name==='brain'
+      ? {...n, children:n.children.filter(c=>!(c.type==='dir'&&MANUAL_DIRS.has(c.name)))}
+      : n);
 }
 function bake(){ localStorage.setItem('crsmap', JSON.stringify(S)); flash('Settings baked'); }
 let flashT=0, flashMsg='';
@@ -533,14 +537,35 @@ function step(dt){
   const vis=nodes.filter(visible);
   if(S.layout==='force'){
     const springK=S.spring/100;
-    // pairwise repulsion (fine at this scale)
-    for(let i=0;i<vis.length;i++){ const a=vis[i];
-      for(let j=i+1;j<vis.length;j++){ const b=vis[j];
+    // Tiered repulsion — dense clusters (600+ files) would make all-pairs O(n²)
+    // explode, so: file↔file is LOCAL only (80px, fine grid); the ~40 non-file
+    // nodes (hubs/anchors/skills/…) interact long-range with everything.
+    const files=[], big=[];
+    for(const n of vis) (n.kind==='file'?files:big).push(n);
+    // file↔file: fine grid, 80px cutoff
+    const FC=80, fgrid=new Map();
+    for(let i=0;i<files.length;i++){ const n=files[i]; n._gi=i;
+      const k=Math.floor(n.x/FC)+'|'+Math.floor(n.y/FC);
+      let b=fgrid.get(k); if(!b){ b=[]; fgrid.set(k,b); } b.push(n); }
+    for(const a of files){
+      const cx=Math.floor(a.x/FC), cy=Math.floor(a.y/FC);
+      for(let gx=cx-1;gx<=cx+1;gx++) for(let gy=cy-1;gy<=cy+1;gy++){
+        const cell=fgrid.get(gx+'|'+gy); if(!cell) continue;
+        for(const b of cell){ if(b._gi<=a._gi) continue;
+          let dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy+40; if(d2>6400) continue;
+          const f=520/d2, d=Math.sqrt(d2); dx/=d; dy/=d;
+          a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f;
+        }}}
+    // big↔big and big↔file: long-range (300px), big count is tiny
+    for(let i=0;i<big.length;i++){ const a=big[i];
+      for(let j=i+1;j<big.length;j++){ const b=big[j];
         let dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy+40; if(d2>90000) continue;
-        const f=(a.kind==='file'&&b.kind==='file'?520:2600)/d2;
-        const d=Math.sqrt(d2); dx/=d; dy/=d;
-        a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f;
-      }}
+        const f=2600/d2, d=Math.sqrt(d2); dx/=d; dy/=d;
+        a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f; }
+      for(const b of files){
+        let dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy+40; if(d2>90000) continue;
+        const f=2600/d2, d=Math.sqrt(d2); dx/=d; dy/=d;
+        a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f; }}
     for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
       let dx=b.x-a.x, dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||1;
       const f=(d-l.len)*0.028*springK*l.k; dx/=d; dy/=d;
@@ -666,22 +691,30 @@ function draw(){
     ctx.restore();
   }
 
-  // links — backbone lines carry marching energy dashes; leaf links stay faint
+  // links — backbone lines carry marching energy dashes; leaf links batched into
+  // two path strokes (dim + normal) so 700+ links cost 2 draw calls, not 700.
+  ctx.lineWidth=1/cam.k;
+  ctx.beginPath();
   for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
-    const both=dim(a)&&dim(b);
-    if(a.kind!=='file'&&b.kind!=='file'){                       // trunk: hub/anchor/center
-      ctx.save();
-      ctx.strokeStyle=both?'rgba(255,255,255,.015)':(b.color||a.color)+'2E';
-      ctx.lineWidth=1.1/cam.k;
-      ctx.setLineDash([3/cam.k,11/cam.k]);
-      ctx.lineDashOffset=-(now*0.014*sp)%(14/cam.k);
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-      ctx.restore();
-    } else {
-      ctx.lineWidth=1/cam.k;
-      ctx.strokeStyle=both?'rgba(255,255,255,.015)':'rgba(255,255,255,.05)';
-      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-    }}
+    if(a.kind!=='file'&&b.kind!=='file') continue;
+    if(dim(a)&&dim(b)) continue;
+    ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); }
+  ctx.strokeStyle='rgba(255,255,255,.05)'; ctx.stroke();
+  if(matches){ ctx.beginPath();
+    for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
+      if(a.kind!=='file'&&b.kind!=='file') continue;
+      if(!(dim(a)&&dim(b))) continue;
+      ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); }
+    ctx.strokeStyle='rgba(255,255,255,.015)'; ctx.stroke(); }
+  for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
+    if(a.kind==='file'||b.kind==='file') continue;              // trunk: hub/anchor/center
+    ctx.save();
+    ctx.strokeStyle=(dim(a)&&dim(b))?'rgba(255,255,255,.015)':(b.color||a.color)+'2E';
+    ctx.lineWidth=1.1/cam.k;
+    ctx.setLineDash([3/cam.k,11/cam.k]);
+    ctx.lineDashOffset=-(now*0.014*sp)%(14/cam.k);
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    ctx.restore(); }
 
   // data pulses with comet tails — every connection exchanges light
   const want=Math.round(44*sp);
@@ -720,11 +753,13 @@ function draw(){
     const z=n.zd||1;
     const ox=(z-1)*cam.x*0.06/cam.k, oy=(z-1)*cam.y*0.06/cam.k;
     const nx=n.x+ox, ny=n.y+oy;
-    // breathing glow
+    // breathing glow — LOD: skip glow sprite for subpixel file nodes when zoomed out
     const pulse=1+0.16*Math.sin(now*0.0011*sp+hash(n.id)%628/100);
     const r=n.r*ease*(hover===n?1.28:1);
-    const g=glow(n.color, r*1.7*pulse*z);
-    ctx.drawImage(g, nx-g.width/2, ny-g.height/2, g.width, g.height);
+    if(!(n.kind==='file' && r*cam.k<2.4)){
+      const g=glow(n.color, r*1.7*pulse*z);
+      ctx.drawImage(g, nx-g.width/2, ny-g.height/2, g.width, g.height);
+    }
     ctx.fillStyle=n.color;
     if(n.kind==='skill'){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00018*sp*(hash(n.id)%2?1:-1));
       starPath(0,0,r*1.5*pulse); ctx.fill(); ctx.restore(); }
