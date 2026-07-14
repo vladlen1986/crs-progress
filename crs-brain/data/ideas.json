@@ -7,7 +7,13 @@
         "ts": "2026-07-14"
       }
     ],
-    "exploring": [],
+    "exploring": [
+      {
+        "id": "1784011000316831",
+        "text": "prototype breaklist drag #breaklist !med",
+        "ts": "2026-07-14T06:36:40.316Z"
+      }
+    ],
     "planned": [],
     "done": []
   }
