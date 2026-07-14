@@ -14,6 +14,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 | Change history | [changelog.md](changelog.md) | Append-only: every ingest, date + summary |
 | Buildprint manual | [buildprint/INDEX.md](buildprint/INDEX.md) | Scraped official docs — how Buildprint works: modes, agents, prompts, troubleshooting |
 | Bubble manual | [bubble/INDEX.md](bubble/INDEX.md) | COMPLETE official manual (583 pages, verbatim) — data, privacy rules, workflows, API, elements, workload, security |
+| Bubble forum (curated) | [bubble-forum/INDEX.md](bubble-forum/INDEX.md) | 87 top community threads: WU optimization, privacy rules, multi-tenant, bulk ops, performance — community advice, manual overrides |
 
 ## Authoritative sources elsewhere (do NOT restate here)
 
@@ -32,6 +33,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
    **Privacy rules** → security.md. **Workflows/buttons** → workflows.md.
    **"What do I migrate next / how"** → migrations.md. **Buildprint how-to** → buildprint/INDEX.md.
    **Bubble platform how-to** (privacy rules, WU, API, elements…) → bubble/INDEX.md.
+   **Community patterns/workarounds** → bubble-forum/INDEX.md (or live: forum.bubble.io/search.json?q=…+in:solved).
 2. Every brain file uses the same skeleton: **Current state / Pending / Where in Bubble / Links** — jump to the section, don't read whole files.
 3. If a fact isn't in brain/ or its linked sources, say so — never guess.
 

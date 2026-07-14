@@ -1,0 +1,20 @@
+{
+  "id": "3a17f916-2c0e-4ef0-a7ff-a2bbaa8e6901",
+  "title": "Map — What do experienced Bubble builders in the communi",
+  "sessionId": "26616b0d-e63f-4330-ae4f-b6136f1ca765",
+  "created": "2026-07-14T07:28:37.202Z",
+  "updated": "2026-07-14T07:29:20.206Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What do experienced Bubble builders in the community recommend for cutting workload units on repeating group searches?\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T07:28:37.202Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Grounded in the curated forum threads under `brain/bubble-forum/`. Here's what experienced builders actually recommend for cutting WU on RG searches — with the corrections the experts posted, since the popular advice has errors.\n\n## Community consensus (with expert corrections)\n\n**1. Never run a search *inside* a RG cell.**\nIf each cell fires its own `Do a search for…`, WU scales with row count. Calculate the data once (custom state or backend workflow) and have the cell reference that.\n`brain/bubble-forum/performance--the-bubble-lag-your-app-was-fast-at-10-users-but-now-at-500--382185.md:11`\n\n**2. Constrain in the search, not with client-side filters — but know which is which.**\nThe popular \"avoid `:filtered`\" advice is wrong and two experts (georgecollier, ahmed.elkaffas) corrected it in-thread: `:filtered` runs **server-side**. It's `:filtered` **Advanced** that runs client-side — that's the one that pulls the whole list to the browser and burns WU. Put constraints in the `Do a search for…` itself; use plain `:filtered` freely; avoid the *Advanced* option.\n`brain/bubble-forum/performance--the-bubble-lag-your-app-was-fast-at-10-users-but-now-at-500--382185.md:36-51`\n\n**3. Load only when the element is visible + paginate.**\nFor an SPA (which is exactly your single `App` page pattern), gate each RG's data source on `When ThisElement is visible`, so switching modules doesn't load every table at once. Combine with pagination so you fetch a page of rows, not the whole set.\n`brain/bubble-forum/workload-units--optimizing-data-loading-in-a-single-page-application-352720.md:18-24`\n\n**4. `:count` / `:sum` are NOT the expensive villain they're made out to be.**\ngeorgecollier's correction: an aggregate search is *cheaper* in WU than one that returns rows, and only slows down past ~500k rows. Precompute a stored total only if you need to **sort** by it (you can't sort by an aggregate). Don't prematurely denormalize.\n`brain/bubble-forum/performance--the-bubble-lag-your-app-was-fast-at-10-users-but-now-at-500--382185.md:28-30`\n\n**5. Loading spinner ≠ WU fix.** The long \"Loading Repeating Groups\" thread concluded the perceived RG lag is a *rendering/UX* problem, not a data-fetch one — spinner tricks don't cut WU. Fix the search, not the animation.\n`brain/bubble-forum/performance--loading-repeating-groups-lets-fix-this-once-and-for-all-85726.md`\n\n## How this maps to CRS\n\nYour `CLAUDE.md` sidebar pattern already says every RG must constrain by `Current User's property`, not just company — that's exactly recommendation #2 (server-side constraint) and keeps result sets small. The `App`-page-SPA design makes #3 (visibility-gated loading) the highest-leverage win: gate each module's RG on `v = <route>` **and** element visibility so switching modules doesn't fan out searches.\n\n## Caveat\n\nAll of the above is **community advice, not official docs** — the threads themselves contain disputed claims that got corrected in replies. For the authoritative WU model (what each operation actually costs), the official manual under `brain/bubble/` overrides. Want me to pull the official workload-units page to confirm the aggregate-vs-row cost claim before you build against it?\n\nRelevant files: `brain/INDEX.md`, `brain/bubble-forum/INDEX.md`, and the four thread files cited above.",
+      "ts": "2026-07-14T07:29:20.206Z"
+    }
+  ]
+}
