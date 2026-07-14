@@ -3,7 +3,7 @@
   "title": "Map — Give me list of all design prototypes in html",
   "sessionId": "fb936d99-f5c4-4285-a245-6d098b639562",
   "created": "2026-07-14T09:37:03.993Z",
-  "updated": "2026-07-14T09:40:50.993Z",
+  "updated": "2026-07-14T09:42:18.516Z",
   "messages": [
     {
       "role": "user",
@@ -37,6 +37,19 @@
       "role": "assistant",
       "content": "Done — I just ran an extended reasoning pass, so the **Thinking** card above this answer should show a clearly non-trivial timer (several seconds rather than a blink). Things to verify in your UI:\n\n1. **Live tick while running** — the stopwatch counts up (blue/pulsing `.wblock.run`).\n2. **Frozen final time** — when the answer starts streaming, the timer stops and the card greys out.\n3. **Expandable reasoning** — click the card; the chevron rotates and the `.wbody` reveals the actual thinking text.\n4. **Typewriter answer** — this text reveals token-by-token with the blinking caret, then re-renders as formatted markdown on finalize.\n\nIf all four happen, the thinking-time feature is working correctly. If the timer showed only `0s`/`1s`, tell me what your **effort** selector is set to — bump it toward `high` for longer, more visible thinking blocks.\n\nAnything else you want to stress-test — tool cards (Reading/Building), multi-block sequences, or the error path?",
       "ts": "2026-07-14T09:40:50.993Z"
+    },
+    {
+      "role": "user",
+      "content": "",
+      "ts": "2026-07-14T09:41:11.447Z",
+      "attachments": [
+        "crs-brain/data/attachments/1617734a-Screenshot_20260714-134103.png"
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "The CLI test needs your approval to run (it spawns a nested `claude`). But I don't actually need to run it to explain the screenshot — the result is clear.\n\n**What the screenshot shows:** your reply rendered fine, but there is **no Thinking card above it**. So the thinking-time UI never appeared. Two independent causes, and both are real:\n\n**1. Thinking cards are never saved — they vanish on reload / on mobile.**\n`saveChat` only stores `{role, content, ts}` for the assistant (`crs-brain/server.js:618`). The `think`/`block` SSE events are live-only DOM. So when your phone loads the saved chat (or you reload), there's nothing to show — exactly what the screenshot is. Even a perfect live render disappears the moment the message is persisted.\n\n**2. Headless `claude -p` likely isn't emitting thinking blocks at all.**\nThe `onThink`/`onBlock` hooks (`server.js:346-350`) only fire on `content_block` type `thinking` / `thinking_delta`. In print mode those events generally aren't streamed unless extended thinking is explicitly enabled — `--effort` sets reasoning depth but doesn't guarantee the thinking *deltas* appear in `stream-json`. That's what the CLI test above would confirm.\n\nSo \"it shall show thinking time\" currently can't work reliably: even if cause #2 emits blocks live, cause #1 throws them away.\n\n**To actually fix it**, I'd:\n- Persist work blocks into each assistant message (e.g. `msg.blocks = [{kind, tool, label, ms, text}]`) in `server.js`, and\n- Re-render saved blocks when a chat loads in `index.html`.\n- Then confirm the CLI emits thinking (run that test) — if it doesn't, surface the tool cards (Reading/Building) at minimum, which *do* fire.\n\nWant me to approve-and-run the CLI test first to confirm whether thinking deltas come through, then implement the persistence fix? Or go straight to persisting blocks and rendering them on reload?",
+      "ts": "2026-07-14T09:42:18.516Z"
     }
   ]
 }
