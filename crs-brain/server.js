@@ -49,6 +49,7 @@ const CHATS_DIR = path.join(DATA_DIR, 'chats');
 const ATTACH_DIR = path.join(DATA_DIR, 'attachments');
 const DOCS_DIR = path.join(DATA_DIR, 'docs');
 const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
+const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
 for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
@@ -589,6 +590,18 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
+    if (p === '/api/ideas' && req.method === 'GET') {
+      try { return send(res, 200, JSON.parse(fs.readFileSync(IDEAS_FILE, 'utf8'))); }
+      catch { return send(res, 200, { columns: { inbox: [], exploring: [], planned: [], done: [] } }); }
+    }
+    if (p === '/api/ideas' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      fs.writeFileSync(IDEAS_FILE, JSON.stringify(body, null, 2));
+      autoCommit('ideas board');
+      return send(res, 200, { ok: true });
     }
 
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
