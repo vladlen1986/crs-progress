@@ -1,0 +1,20 @@
+{
+  "id": "85e748e2-ba56-4b89-8f44-111c0933575b",
+  "title": "Map — do i have a roadmap file",
+  "sessionId": "77a53770-0fb5-4bb5-8678-c10f1c001fbe",
+  "created": "2026-07-14T15:51:38.557Z",
+  "updated": "2026-07-14T15:51:56.073Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "do i have a roadmap file\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T15:51:38.557Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "No — you don't have a dedicated `roadmap.md` file. Nothing is named \"roadmap.\" Instead, the roadmap lives inside existing files as a **status field**:\n\n- **`data/CRS_Module_OptionSets.xlsx`** — the authoritative roadmap. Per CLAUDE.md: *\"Status field in Excel = roadmap for all rows.\"* All 46 modules currently sit at `roadmap` status (nothing shipped).\n- **`specs/CRS_Blueprint.html`** — contains the roadmap table (mirrors the Excel; you're told to update both together).\n- **`decisions.md`** — the append-only log of *why* the roadmap looks the way it does (module adds/renames/deletes).\n\nSo \"the roadmap\" = the module status column in the xlsx, rendered as a table in the Blueprint. There's no separate timeline/roadmap doc with dates or milestones.\n\nWant me to generate one? I could build a visual roadmap board (grouped by the 7 sections, showing all 46 modules + status) as a self-contained HTML under `crs-brain/data/docs/` using `design/tokens.css`.",
+      "ts": "2026-07-14T15:51:56.073Z"
+    }
+  ]
+}
