@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CRS — Break List (Operations)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ═══════════════════════════════════════════════════════════════
+   CRS DESIGN TOKENS — mirrored from design/tokens.css
+═══════════════════════════════════════════════════════════════ */
+:root {
+  --bg:#181818; --surface-1:#1E1E1E; --surface-2:#242424; --surface-3:#2A2A2A;
+  --border:#242424; --border-hover:#333333; --border-active:#3D3D3D;
+  --accent:#3B82F6; --accent-hover:#2563EB; --accent-soft:#60A5FA;
+  --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
+  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
+  --success:#22C55E; --success-soft:#4ADE80; --error:#EF4444; --warning:#F59E0B;
+  --purple:#8B5CF6; --cyan:#06B6D4;
+  --tag-coming-bg:#1A1025; --tag-coming-border:#3D2D6E; --tag-coming-text:#C084FC;
+  --tag-roadmap-bg:#111827; --tag-roadmap-border:#1F2D45; --tag-roadmap-text:#60A5FA;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r-badge:4px; --r-input:6px; --r-button:6px; --r-card:10px; --r-modal:12px; --r-pill:999px;
+  --h-button-sm:28px; --h-button:32px; --h-input:36px;
+  --shadow-modal:0 24px 60px rgba(0,0,0,0.60); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.55);
+  --ease:160ms cubic-bezier(.4,0,.2,1);
+  --sidebar-width:256px;
+}
+
+*,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+html,body {
+  background:var(--bg); color:var(--text-secondary);
+  font-family:var(--font-sans); font-size:13px;
+  -webkit-font-smoothing:antialiased; min-height:100vh;
+}
+button { font-family:inherit; cursor:pointer; background:none; border:none; color:inherit; }
+input { font-family:inherit; }
+::selection { background:var(--accent-tint); }
+
+/* ═══════════════════════════════════════════════════════════════
+   APP SHELL
+═══════════════════════════════════════════════════════════════ */
+.app { display:flex; min-height:100vh; }
+
+/* Sidebar (mock — module nav, current route highlighted) */
+.sidebar {
+  width:var(--sidebar-width); flex-shrink:0;
+  background:var(--bg); border-right:1px solid var(--border);
+  position:sticky; top:0; height:100vh;
+  display:flex; flex-direction:column;
+}
+.sidebar-header {
+  padding:14px 16px 12px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-logo {
+  font-size:22px; font-weight:800; letter-spacing:-0.05em;
+  color:var(--text-primary);
+}
+.sidebar-tag {
+  font-size:9.5px; font-weight:600; letter-spacing:0.06em; text-transform:uppercase;
+  padding:3px 6px; border-radius:var(--r-badge);
+  background:var(--tag-roadmap-bg); color:var(--tag-roadmap-text);
+  border:1px solid var(--tag-roadmap-border);
+}
+.sidebar-section-label {
+  font-size:10px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase;
+  color:var(--text-muted); padding:14px 16px 6px;
+}
+.nav-list { display:flex; flex-direction:column; padding:0 8px 8px; gap:1px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 10px; border-radius:6px;
+  font-size:12.5px; color:var(--text-secondary); font-weight:500;
+  cursor:pointer; transition:background var(--ease), color var(--ease);
+}
+.nav-item:hover { background:var(--surface-2); color:var(--text-primary); }
+.nav-item.active { background:var(--accent-tint); color:var(--accent-soft); font-weight:600; }
+.nav-item svg { width:15px; height:15px; flex-shrink:0; }
+.sidebar-footer {
+  margin-top:auto; padding:12px 14px; border-top:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.user-chip { display:flex; align-items:center; gap:9px; }
+.user-avatar {
+  width:30px; height:30px; border-radius:50%;
+  background:var(--surface-2); display:flex; align-items:center; justify-content:center;
+  color:var(--text-primary); font-weight:600; font-size:11px;
+  border:1px solid var(--border-hover);
+}
+.user-meta { display:flex; flex-direction:column; line-height:1.25; }
+.user-name { color:var(--text-primary); font-size:12px; font-weight:600; }
+.user-role { color:var(--text-muted); font-size:10.5px; }
+
+/* Main */
+.main { flex:1; min-width:0; display:flex; flex-direction:column; }
+
+/* Topbar */
+.topbar {
+  height:56px; flex-shrink:0;
+  border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:18px;
+  padding:0 22px; background:var(--bg);
+  position:sticky; top:0; z-index:5;
+}
+.module-title { font-size:14.5px; font-weight:600; color:var(--text-primary); }
+.crumb { color:var(--text-muted); font-size:12.5px; }
+.crumb-sep { color:var(--text-disabled); margin:0 4px; }
+.topbar-spacer { flex:1; }
+.prop-chip {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:5px 9px; border-radius:var(--r-pill);
+  background:var(--surface-1); border:1px solid var(--border-hover);
+  font-size:11.5px; color:var(--text-secondary);
+}
+.prop-chip-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--success);
+  box-shadow:0 0 0 3px rgba(34,197,94,0.18);
+}
+.shift-clock {
+  font-family:var(--font-mono); font-size:12.5px;
+  color:var(--text-secondary); padding:5px 9px;
+  background:var(--surface-1); border:1px solid var(--border-hover);
+  border-radius:var(--r-pill);
+}
+.shift-clock b { color:var(--text-primary); font-weight:600; }
+.icon-btn {
+  width:32px; height:32px; border-radius:var(--r-button);
+  display:inline-flex; align-items:center; justify-content:center;
+  color:var(--text-secondary); transition:all var(--ease);
+  border:1px solid transparent;
+}
+.icon-btn:hover { background:var(--surface-2); color:var(--text-primary); border-color:var(--border-hover); }
+
+/* Content scroll */
+.content {
+  flex:1; overflow-y:auto;
+  padding:20px 22px 60px;
+  display:flex; flex-direction:column; gap:18px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SUMMARY ROW
+═══════════════════════════════════════════════════════════════ */
+.summary-row {
+  display:grid; grid-template-columns:repeat(5, minmax(0,1fr));
+  gap:10px;
+}
+.summary-card {
+  background:var(--surface-1); border:1px solid var(--border);
+  border-radius:var(--r-card); padding:13px 15px;
+  display:flex; flex-direction:column; gap:4px;
+  transition:border-color var(--ease);
+}
+.summary-card:hover { border-color:var(--border-hover); }
+.summary-label {
+  font-size:10.5px; font-weight:600; letter-spacing:0.06em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.summary-value {
+  font-size:24px; font-weight:700; color:var(--text-primary); line-height:1.05;
+  font-feature-settings:'tnum';
+}
+.summary-sub { font-size:11px; color:var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════════════════════════════ */
+.section-head {
+  display:flex; align-items:center; gap:12px;
+  padding:2px 2px 0;
+}
+.section-title {
+  font-size:13px; font-weight:600; color:var(--text-primary);
+  letter-spacing:-0.01em;
+}
+.section-count {
+  font-size:11px; color:var(--text-muted); font-feature-settings:'tnum';
+  padding:2px 7px; border-radius:var(--r-pill);
+  background:var(--surface-1); border:1px solid var(--border);
+}
+.section-head-spacer { flex:1; }
+.btn {
+  height:var(--h-button-sm); padding:0 11px;
+  border-radius:var(--r-button);
+  font-size:12px; font-weight:500; color:var(--text-secondary);
+  border:1px solid var(--border-hover); background:var(--surface-1);
+  display:inline-flex; align-items:center; gap:6px;
+  transition:all var(--ease);
+}
+.btn:hover { background:var(--surface-2); color:var(--text-primary); border-color:var(--border-active); }
+.btn.danger:hover { color:var(--error); border-color:var(--error); }
+.btn svg { width:13px; height:13px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   TABLES GRID
+═══════════════════════════════════════════════════════════════ */
+.tables-grid {
+  display:grid;
+  grid-template-columns:repeat(auto-fill, minmax(255px, 1fr));
+  gap:12px;
+}
+.table-card {
+  background:var(--surface-1); border:1px solid var(--border);
+  border-radius:var(--r-card); padding:13px 14px;
+  display:flex; flex-direction:column; gap:11px;
+  transition:border-color var(--ease), background var(--ease);
+  position:relative;
+}
+.table-card:hover { border-color:var(--border-hover); }
+.table-card.warn { border-color:rgba(245,158,11,0.5); }
+.table-card.due { border-color:rgba(239,68,68,0.6); background:linear-gradient(180deg,rgba(239,68,68,0.04),transparent); }
+.table-card.empty { background:repeating-linear-gradient(135deg,var(--surface-1) 0 12px,#1B1B1B 12px 24px); }
+.table-card.drag-target { border-color:var(--accent); background:var(--accent-tint); }
+
+.table-head { display:flex; align-items:center; gap:8px; }
+.table-name {
+  font-size:13.5px; font-weight:600; color:var(--text-primary);
+  letter-spacing:-0.01em;
+}
+.table-game-pill {
+  font-size:10px; font-weight:600; letter-spacing:0.04em;
+  padding:2px 7px; border-radius:var(--r-pill);
+  background:var(--surface-3); color:var(--text-secondary);
+  border:1px solid var(--border-hover);
+}
+.table-game-pill.bj { background:rgba(59,130,246,0.10); color:var(--accent-soft); border-color:rgba(59,130,246,0.30); }
+.table-game-pill.bc { background:rgba(139,92,246,0.10); color:var(--purple); border-color:rgba(139,92,246,0.30); }
+.table-game-pill.rl { background:rgba(34,197,94,0.10); color:var(--success-soft); border-color:rgba(34,197,94,0.30); }
+.table-game-pill.pk { background:rgba(245,158,11,0.10); color:var(--warning); border-color:rgba(245,158,11,0.30); }
+.table-game-pill.cr { background:rgba(6,182,212,0.10); color:var(--cyan); border-color:rgba(6,182,212,0.30); }
+.table-status-spacer { flex:1; }
+.table-status-dot {
+  width:7px; height:7px; border-radius:50%; background:var(--success);
+}
+.table-status-dot.warn { background:var(--warning); }
+.table-status-dot.due { background:var(--error); animation:pulse 1.4s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%,100% { box-shadow:0 0 0 0 rgba(239,68,68,0.5); }
+  50% { box-shadow:0 0 0 6px rgba(239,68,68,0); }
+}
+
+/* Dealer block on table */
+.table-dealer {
+  display:flex; align-items:center; gap:10px;
+}
+.dealer-avatar {
+  width:34px; height:34px; border-radius:50%;
+  background:var(--surface-3); border:1px solid var(--border-hover);
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-primary); font-size:11.5px; font-weight:600;
+  flex-shrink:0;
+}
+.dealer-avatar.sup { background:linear-gradient(135deg,#8B5CF6,#3B82F6); color:#fff; border-color:transparent; }
+.dealer-info { display:flex; flex-direction:column; min-width:0; flex:1; }
+.dealer-name {
+  font-size:12.5px; font-weight:600; color:var(--text-primary);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.dealer-meta { font-size:11px; color:var(--text-muted); }
+.sup-tag {
+  font-size:9px; font-weight:600; letter-spacing:0.06em;
+  padding:1px 5px; border-radius:var(--r-badge);
+  color:var(--purple); background:rgba(139,92,246,0.12);
+  border:1px solid rgba(139,92,246,0.30);
+  margin-left:6px; vertical-align:middle;
+}
+
+/* Time / countdown */
+.timer-row {
+  display:flex; align-items:center; gap:10px;
+  font-feature-settings:'tnum';
+}
+.timer-main {
+  font-family:var(--font-mono); font-size:14px; font-weight:600;
+  color:var(--text-primary);
+}
+.timer-main.warn { color:var(--warning); }
+.timer-main.due { color:var(--error); }
+.timer-sub { font-size:10.5px; color:var(--text-muted); }
+.timer-bar {
+  height:3px; flex:1; background:var(--surface-3); border-radius:2px;
+  overflow:hidden; min-width:30px;
+}
+.timer-fill {
+  height:100%; background:var(--accent);
+  transition:width 1s linear, background-color var(--ease);
+}
+.timer-fill.warn { background:var(--warning); }
+.timer-fill.due { background:var(--error); }
+
+/* Empty table block */
+.empty-table {
+  display:flex; align-items:center; justify-content:center;
+  padding:14px 0; color:var(--text-muted); font-size:12px;
+  border:1px dashed var(--border-hover); border-radius:var(--r-button);
+}
+
+/* Table actions */
+.table-actions { display:flex; gap:6px; }
+.table-actions .btn { flex:1; justify-content:center; }
+.btn-rotate {
+  background:var(--accent); border-color:var(--accent);
+  color:#fff; font-weight:600;
+}
+.btn-rotate:hover { background:var(--accent-hover); border-color:var(--accent-hover); color:#fff; }
+.btn-break { /* default styling */ }
+
+/* ═══════════════════════════════════════════════════════════════
+   BENCH (available + on-break)
+═══════════════════════════════════════════════════════════════ */
+.bench-grid {
+  display:grid; grid-template-columns:repeat(auto-fill, minmax(220px,1fr));
+  gap:10px;
+}
+.dealer-card {
+  background:var(--surface-1); border:1px solid var(--border);
+  border-radius:var(--r-card); padding:11px 12px;
+  display:flex; align-items:center; gap:10px;
+  transition:all var(--ease);
+  cursor:grab;
+}
+.dealer-card:hover { border-color:var(--border-hover); }
+.dealer-card.dragging { opacity:0.4; cursor:grabbing; }
+.dealer-card.selected { border-color:var(--accent); background:var(--accent-tint); }
+.dealer-card.on-break { background:linear-gradient(180deg,rgba(245,158,11,0.04),var(--surface-1)); }
+.dealer-card .dealer-info { gap:1px; }
+.dealer-skills {
+  display:flex; gap:4px; margin-top:3px;
+}
+.skill-chip {
+  font-size:9px; font-weight:600; letter-spacing:0.04em;
+  padding:1px 5px; border-radius:var(--r-badge);
+  background:var(--surface-3); color:var(--text-muted);
+  border:1px solid var(--border-hover);
+}
+.break-timer {
+  font-family:var(--font-mono); font-size:13px; font-weight:600;
+  color:var(--warning); margin-left:auto; flex-shrink:0;
+}
+.break-timer.over { color:var(--error); }
+.break-back-btn {
+  height:26px; padding:0 10px; border-radius:var(--r-button);
+  background:var(--success); color:#fff; font-size:11px; font-weight:600;
+  margin-left:auto; flex-shrink:0;
+  transition:background var(--ease);
+}
+.break-back-btn:hover { background:#16A34A; }
+
+/* Drop zones */
+.dropzone {
+  border:1px dashed var(--border-hover); border-radius:var(--r-card);
+  padding:12px; min-height:62px;
+  display:flex; align-items:center; justify-content:center;
+  color:var(--text-muted); font-size:11.5px;
+  transition:all var(--ease);
+}
+.dropzone.drag-over {
+  border-color:var(--accent); background:var(--accent-tint); color:var(--accent-soft);
+}
+
+/* Empty state inline */
+.muted-empty { color:var(--text-muted); font-size:12px; padding:6px 2px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   POPOVER / MODAL
+═══════════════════════════════════════════════════════════════ */
+.scrim {
+  position:fixed; inset:0; background:rgba(0,0,0,0.55);
+  display:flex; align-items:center; justify-content:center;
+  z-index:50; opacity:0; pointer-events:none;
+  transition:opacity var(--ease);
+}
+.scrim.open { opacity:1; pointer-events:auto; }
+.modal {
+  background:var(--surface-1); border:1px solid var(--border-hover);
+  border-radius:var(--r-modal); box-shadow:var(--shadow-modal);
+  width:min(420px, calc(100vw - 24px));
+  padding:18px 18px 16px;
+  transform:translateY(8px); transition:transform var(--ease);
+}
+.scrim.open .modal { transform:translateY(0); }
+.modal-title {
+  font-size:14.5px; font-weight:600; color:var(--text-primary); margin-bottom:4px;
+}
+.modal-sub { font-size:11.5px; color:var(--text-muted); margin-bottom:14px; }
+.field { display:flex; flex-direction:column; gap:6px; margin-bottom:12px; }
+.field-label {
+  font-size:11px; font-weight:600; letter-spacing:0.04em;
+  text-transform:uppercase; color:var(--text-muted);
+}
+.radio-row { display:flex; gap:6px; }
+.radio-pill {
+  flex:1; height:34px; border-radius:var(--r-button);
+  background:var(--surface-2); border:1px solid var(--border-hover);
+  color:var(--text-secondary); font-size:12px; font-weight:500;
+  display:flex; align-items:center; justify-content:center;
+  transition:all var(--ease);
+}
+.radio-pill:hover { border-color:var(--border-active); color:var(--text-primary); }
+.radio-pill.active { background:var(--accent-tint); color:var(--accent-soft); border-color:var(--accent); }
+.modal-foot {
+  display:flex; justify-content:flex-end; gap:8px; margin-top:6px;
+  padding-top:12px; border-top:1px solid var(--border);
+}
+.btn-primary {
+  height:var(--h-button); padding:0 14px; border-radius:var(--r-button);
+  background:var(--accent); color:#fff; font-size:12.5px; font-weight:600;
+  transition:background var(--ease);
+}
+.btn-primary:hover { background:var(--accent-hover); }
+.btn-ghost {
+  height:var(--h-button); padding:0 12px; border-radius:var(--r-button);
+  color:var(--text-secondary); font-size:12.5px; font-weight:500;
+  border:1px solid transparent;
+}
+.btn-ghost:hover { color:var(--text-primary); background:var(--surface-2); }
+
+/* Picker list */
+.picker-list {
+  max-height:300px; overflow-y:auto; display:flex; flex-direction:column; gap:4px;
+  padding:4px 0; margin:-4px -4px 4px;
+}
+.picker-row {
+  display:flex; align-items:center; gap:10px;
+  padding:8px 8px; border-radius:var(--r-button);
+  cursor:pointer; transition:background var(--ease);
+}
+.picker-row:hover { background:var(--surface-2); }
+.picker-row.no-skill { opacity:0.6; }
+.picker-row .dealer-info { flex:1; min-width:0; }
+.picker-row .skill-chip { background:var(--surface-3); }
+
+/* Toast */
+.toast-host {
+  position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+  z-index:60; display:flex; flex-direction:column; gap:6px; align-items:center;
+  pointer-events:none;
+}
+.toast {
+  background:var(--surface-3); border:1px solid var(--border-hover);
+  color:var(--text-primary); font-size:12.5px;
+  padding:9px 14px; border-radius:var(--r-pill);
+  box-shadow:var(--shadow-dropdown);
+  animation:toast-in 200ms ease-out, toast-out 200ms ease-in 2.4s forwards;
+}
+@keyframes toast-in { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes toast-out { to { opacity:0; transform:translateY(-4px); } }
+
+/* ═══════════════════════════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════════════════════════ */
+@media (max-width: 880px) {
+  .sidebar { display:none; }
+  .summary-row { grid-template-columns:repeat(3, minmax(0,1fr)); }
+  .topbar { padding:0 14px; gap:10px; }
+  .content { padding:14px 14px 50px; }
+}
+@media (max-width: 520px) {
+  .summary-row { grid-template-columns:repeat(2, minmax(0,1fr)); }
+  .summary-row .summary-card:nth-child(5) { grid-column:1 / span 2; }
+  .prop-chip span:not(.prop-chip-dot) { display:none; }
+}
+
+.hidden { display:none !important; }
+.kbd {
+  font-family:var(--font-mono); font-size:10.5px;
+  padding:1px 5px; border-radius:3px;
+  background:var(--surface-3); border:1px solid var(--border-hover);
+  color:var(--text-secondary);
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- ═══ Sidebar (mock — current = Break List) ═══ -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">CRS</span>
+      <span class="sidebar-tag">Demo</span>
+    </div>
+    <div class="sidebar-section-label">Operations</div>
+    <div class="nav-list">
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><rect x="2" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="2" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="2" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/><rect x="9" y="9" width="5" height="5" rx="1" stroke="currentColor" stroke-width="1.4"/></svg>
+        Dashboard
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M2 4h12M2 8h12M2 12h8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Reporting
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10v9H3zM6 2v3M10 2v3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Task Manager
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.4"/><path d="M8 5v3l2 2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Malfunction Log
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M5 2v3M11 2v3M3 6h10v7H3zM5.5 9h2M9 9h1.5M5.5 11h2M9 11h1.5" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        Break List
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 4h10v3H3zM3 9h10v3H3z" stroke="currentColor" stroke-width="1.4"/></svg>
+        Lost &amp; Found
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M4 3h6l2.5 2.5V13H4z" stroke="currentColor" stroke-width="1.4"/><path d="M9 3v3h3" stroke="currentColor" stroke-width="1.4"/></svg>
+        Policies &amp; Procedures
+      </button>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-chip">
+        <div class="user-avatar">VK</div>
+        <div class="user-meta">
+          <span class="user-name">Vlad K.</span>
+          <span class="user-role">Pit Boss · Floor A</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ═══ Main ═══ -->
+  <main class="main">
+    <header class="topbar">
+      <span class="crumb">Operations</span>
+      <span class="crumb-sep">/</span>
+      <span class="module-title">Break List</span>
+      <div class="topbar-spacer"></div>
+      <span class="prop-chip">
+        <span class="prop-chip-dot"></span>
+        <span>Pilot Casino · Floor A</span>
+      </span>
+      <span class="shift-clock" id="shiftClock"><b>00:00</b> · shift</span>
+      <button class="icon-btn" id="settingsBtn" title="Rotation settings">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="2.2" stroke="currentColor" stroke-width="1.4"/><path d="M8 1.5v1.8M8 12.7v1.8M14.5 8h-1.8M3.3 8H1.5M12.6 3.4l-1.27 1.27M4.67 11.33L3.4 12.6M12.6 12.6l-1.27-1.27M4.67 4.67L3.4 3.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="content">
+
+      <!-- Summary -->
+      <section class="summary-row" id="summaryRow">
+        <!-- rendered -->
+      </section>
+
+      <!-- Tables grid -->
+      <div>
+        <div class="section-head">
+          <span class="section-title">Tables</span>
+          <span class="section-count" id="tablesCount">0</span>
+          <div class="section-head-spacer"></div>
+          <button class="btn" id="resetBtn">
+            <svg viewBox="0 0 16 16" fill="none"><path d="M3 8a5 5 0 119 3.5M3 12V8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Reset shift
+          </button>
+        </div>
+        <div class="tables-grid" id="tablesGrid"><!-- rendered --></div>
+      </div>
+
+      <!-- Available bench -->
+      <div>
+        <div class="section-head">
+          <span class="section-title">Available</span>
+          <span class="section-count" id="availableCount">0</span>
+          <span class="muted-empty" style="margin-left:8px;">drag to a table to assign</span>
+        </div>
+        <div class="bench-grid dropzone" id="benchGrid" data-zone="bench">
+          <span class="muted-empty hidden" id="benchEmpty">No dealers on bench</span>
+        </div>
+      </div>
+
+      <!-- On break -->
+      <div>
+        <div class="section-head">
+          <span class="section-title">On break</span>
+          <span class="section-count" id="breakCount">0</span>
+        </div>
+        <div class="bench-grid" id="breakGrid"><!-- rendered --></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- Settings modal -->
+<div class="scrim" id="settingsScrim">
+  <div class="modal" role="dialog" aria-labelledby="settingsTitle">
+    <div class="modal-title" id="settingsTitle">Rotation settings</div>
+    <div class="modal-sub">Defaults reset on shift reset. Saved to this device.</div>
+    <div class="field">
+      <span class="field-label">Rotation interval</span>
+      <div class="radio-row" id="rotateRadio">
+        <button class="radio-pill" data-val="20">20 min</button>
+        <button class="radio-pill" data-val="25">25 min</button>
+        <button class="radio-pill" data-val="30">30 min</button>
+      </div>
+    </div>
+    <div class="field">
+      <span class="field-label">Break duration</span>
+      <div class="radio-row" id="breakRadio">
+        <button class="radio-pill" data-val="15">15 min</button>
+        <button class="radio-pill" data-val="20">20 min</button>
+        <button class="radio-pill" data-val="30">30 min</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="settingsClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Picker modal (rotate / assign) -->
+<div class="scrim" id="pickerScrim">
+  <div class="modal" role="dialog" aria-labelledby="pickerTitle">
+    <div class="modal-title" id="pickerTitle">Assign dealer</div>
+    <div class="modal-sub" id="pickerSub">Pick a dealer to assign to this table.</div>
+    <div class="picker-list" id="pickerList"><!-- rendered --></div>
+    <div class="modal-foot">
+      <button class="btn-ghost" id="pickerCancel">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-host" id="toastHost"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   CRS Break List — prototype
+   Single-file, client-only. Persisted to localStorage.
+═══════════════════════════════════════════════════════════════ */
+
+const STORAGE_KEY = 'crs_breaklist_v1';
+
+const GAME_CLASS = { Blackjack:'bj', Baccarat:'bc', Roulette:'rl', Poker:'pk', Craps:'cr' };
+const GAME_CODE  = { Blackjack:'BJ', Baccarat:'BC', Roulette:'RL', Poker:'PK', Craps:'CR' };
+
+const DEFAULT_TABLES = [
+  { id:'t1',  name:'BJ-1', game:'Blackjack' },
+  { id:'t2',  name:'BJ-2', game:'Blackjack' },
+  { id:'t3',  name:'BJ-3', game:'Blackjack' },
+  { id:'t4',  name:'BJ-4', game:'Blackjack' },
+  { id:'t5',  name:'BJ-5', game:'Blackjack' },
+  { id:'t6',  name:'BC-1', game:'Baccarat'  },
+  { id:'t7',  name:'BC-2', game:'Baccarat'  },
+  { id:'t8',  name:'RL-1', game:'Roulette'  },
+  { id:'t9',  name:'RL-2', game:'Roulette'  },
+  { id:'t10', name:'RL-3', game:'Roulette'  },
+  { id:'t11', name:'PK-1', game:'Poker'     },
+  { id:'t12', name:'CR-1', game:'Craps'     },
+];
+
+const DEFAULT_DEALERS = [
+  { id:'d1',  name:'Diana Khan',   sup:true,  skills:['Blackjack','Baccarat','Roulette'] },
+  { id:'d2',  name:'Marcus Lee',   sup:true,  skills:['Blackjack','Roulette','Craps']    },
+  { id:'d3',  name:'Sarah Chen',   sup:false, skills:['Blackjack','Baccarat']            },
+  { id:'d4',  name:'Hassan Ali',   sup:false, skills:['Blackjack','Roulette']            },
+  { id:'d5',  name:'Ana Torres',   sup:false, skills:['Blackjack','Baccarat','Roulette'] },
+  { id:'d6',  name:'James Park',   sup:false, skills:['Blackjack']                       },
+  { id:'d7',  name:'Lily Wong',    sup:false, skills:['Baccarat','Roulette']             },
+  { id:'d8',  name:'Omar Reyes',   sup:false, skills:['Blackjack','Poker']               },
+  { id:'d9',  name:'Priya Singh',  sup:false, skills:['Roulette','Baccarat']             },
+  { id:'d10', name:'Tom Foster',   sup:false, skills:['Poker','Craps']                   },
+  { id:'d11', name:'Ying Liu',     sup:false, skills:['Blackjack','Baccarat']            },
+  { id:'d12', name:'Karim Aziz',   sup:false, skills:['Blackjack','Roulette','Baccarat'] },
+  { id:'d13', name:'Elena Petrov', sup:false, skills:['Blackjack','Baccarat']            },
+  { id:'d14', name:'David Kim',    sup:false, skills:['Roulette','Craps']                },
+  { id:'d15', name:'Sofia Cruz',   sup:false, skills:['Blackjack','Roulette','Poker']    },
+  { id:'d16', name:'Bilal Khan',   sup:false, skills:['Blackjack']                       },
+];
+
+/* Build initial demo state — varies time-on-table so the demo looks alive. */
+function buildInitialState() {
+  const now = Date.now();
+  const min = (m) => m * 60 * 1000;
+  // 12 tables filled, 1 dealer on break, 3 on bench available.
+  const offsets = [18, 5, 21, 12, 8, 14, 3, 19, 6, 10, 16, 11]; // mins on table
+  const assignments = {};
+  DEFAULT_TABLES.forEach((t, i) => {
+    assignments[t.id] = {
+      dealer_id: DEFAULT_DEALERS[i].id,
+      started_at: now - min(offsets[i]),
+    };
+  });
+  return {
+    tables: DEFAULT_TABLES.slice(),
+    dealers: DEFAULT_DEALERS.slice(),
+    assignments,                              // tableId -> {dealer_id, started_at}
+    breaks:   { d13: now - min(7) },          // dealer_id -> started_at
+    bench:    ['d14','d15','d16'],            // available dealer ids
+    rotations_done: 8,
+    shift_start: now - min(95),
+    settings: { rotation_min:20, break_min:20 },
+  };
+}
+
+let S; // state
+let selectedDealerId = null;
+let pickerContext = null; // {kind:'rotate'|'assign-table', tableId} or {kind:'send-bench', dealerId}
+
+/* ───── persistence ───── */
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(S)); } catch(e) {}
+}
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (parsed && parsed.tables && parsed.dealers && parsed.assignments) return parsed;
+    }
+  } catch(e) {}
+  return null;
+}
+function resetShift() {
+  S = buildInitialState();
+  save(); render();
+  toast('Shift reset — demo state restored');
+}
+
+/* ───── helpers ───── */
+function fmtMS(ms) {
+  if (ms < 0) ms = 0;
+  const total = Math.floor(ms / 1000);
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2,'0')}`;
+}
+function dealerById(id) { return S.dealers.find(d => d.id === id); }
+function tableById(id)  { return S.tables.find(t => t.id === id); }
+function initials(name) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '')).toUpperCase();
+}
+function dealersOnTables() {
+  return new Set(Object.values(S.assignments).map(a => a.dealer_id));
+}
+function dealersOnBreak() { return new Set(Object.keys(S.breaks)); }
+function isAvailable(dealerId) { return S.bench.includes(dealerId); }
+
+/* ───── actions ───── */
+function assignDealer(tableId, dealerId) {
+  // Remove dealer from wherever they were (other table assignment, bench, break).
+  for (const tid of Object.keys(S.assignments)) {
+    if (tid !== tableId && S.assignments[tid]?.dealer_id === dealerId) {
+      delete S.assignments[tid]; // leave that table empty
+    }
+  }
+  S.bench = S.bench.filter(id => id !== dealerId);
+  delete S.breaks[dealerId];
+
+  // If target table has someone, send them to bench (free).
+  const cur = S.assignments[tableId];
+  if (cur && cur.dealer_id !== dealerId) {
+    if (!S.bench.includes(cur.dealer_id)) S.bench.push(cur.dealer_id);
+    S.rotations_done++;
+  }
+  S.assignments[tableId] = { dealer_id: dealerId, started_at: Date.now() };
+  save(); render();
+  toast(`${dealerById(dealerId).name} → ${tableById(tableId).name}`);
+}
+function clearTable(tableId) {
+  const cur = S.assignments[tableId];
+  if (!cur) return;
+  if (!S.bench.includes(cur.dealer_id)) S.bench.push(cur.dealer_id);
+  delete S.assignments[tableId];
+  save(); render();
+}
+function sendOnBreak(dealerId) {
+  for (const tid of Object.keys(S.assignments)) {
+    if (S.assignments[tid].dealer_id === dealerId) delete S.assignments[tid];
+  }
+  S.bench = S.bench.filter(id => id !== dealerId);
+  S.breaks[dealerId] = Date.now();
+  S.rotations_done++;
+  save(); render();
+  toast(`${dealerById(dealerId).name} on break`);
+}
+function backFromBreak(dealerId) {
+  delete S.breaks[dealerId];
+  if (!S.bench.includes(dealerId)) S.bench.push(dealerId);
+  save(); render();
+  toast(`${dealerById(dealerId).name} back from break`);
+}
+function sendDealerOnBreakFromTable(tableId) {
+  const cur = S.assignments[tableId];
+  if (!cur) return;
+  sendOnBreak(cur.dealer_id);
+}
+
+/* ───── settings ───── */
+function setSetting(key, val) {
+  S.settings[key] = val;
+  save(); renderSettings();
+}
+
+/* ───── render ───── */
+function render() {
+  renderSummary();
+  renderTables();
+  renderBench();
+  renderBreaks();
+  renderShiftClock();
+  document.getElementById('tablesCount').textContent = S.tables.length;
+  renderSettings();
+}
+
+function renderSummary() {
+  const onTable = Object.keys(S.assignments).length;
+  const onBreak = Object.keys(S.breaks).length;
+  const avail   = S.bench.length;
+  const empty   = S.tables.length - onTable;
+  const html = [
+    sumCard('On floor', onTable, `${empty} empty table${empty===1?'':'s'}`),
+    sumCard('On break', onBreak, `breaks running`),
+    sumCard('Available', avail, `ready to assign`),
+    sumCard('Rotations', S.rotations_done, `since shift start`),
+    sumCard('Shift', shiftElapsed(), `started ${shiftStartedLabel()}`, true),
+  ].join('');
+  document.getElementById('summaryRow').innerHTML = html;
+}
+function sumCard(label, value, sub, mono) {
+  const v = mono ? `<span class="summary-value" style="font-family:var(--font-mono);font-size:20px">${value}</span>`
+                 : `<span class="summary-value">${value}</span>`;
+  return `<div class="summary-card">
+    <span class="summary-label">${label}</span>
+    ${v}
+    <span class="summary-sub">${sub}</span>
+  </div>`;
+}
+function shiftElapsed() {
+  const ms = Date.now() - S.shift_start;
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  return `${h}:${String(m).padStart(2,'0')}`;
+}
+function shiftStartedLabel() {
+  const d = new Date(S.shift_start);
+  return d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+}
+
+function renderTables() {
+  const grid = document.getElementById('tablesGrid');
+  const intervalMs = S.settings.rotation_min * 60000;
+  const html = S.tables.map(t => {
+    const a = S.assignments[t.id];
+    const gameCls  = GAME_CLASS[t.game];
+    const gameCode = GAME_CODE[t.game];
+    if (!a) {
+      return `<div class="table-card empty" data-table-id="${t.id}" data-zone="table">
+        <div class="table-head">
+          <span class="table-name">${t.name}</span>
+          <span class="table-game-pill ${gameCls}">${gameCode}</span>
+          <div class="table-status-spacer"></div>
+        </div>
+        <div class="empty-table">Drop a dealer here</div>
+        <div class="table-actions">
+          <button class="btn btn-rotate" onclick="openPicker('rotate','${t.id}')">Assign</button>
+        </div>
+      </div>`;
+    }
+    const d = dealerById(a.dealer_id);
+    const elapsed = Date.now() - a.started_at;
+    const remain  = intervalMs - elapsed;
+    const overdue = remain <= 0;
+    const warn    = !overdue && remain <= 2 * 60000;
+    const fillPct = Math.min(100, (elapsed / intervalMs) * 100);
+    const tCls = overdue ? 'due' : (warn ? 'warn' : '');
+    const dotCls = overdue ? 'due' : (warn ? 'warn' : '');
+    const timerCls = overdue ? 'due' : (warn ? 'warn' : '');
+    const timerText = overdue ? `+${fmtMS(-remain)}` : fmtMS(remain);
+    const timerSub  = overdue ? 'rotation due' : (warn ? 'rotate soon' : 'on table');
+    const supTag = d.sup ? '<span class="sup-tag">SUP</span>' : '';
+    return `<div class="table-card ${tCls}" data-table-id="${t.id}" data-zone="table">
+      <div class="table-head">
+        <span class="table-name">${t.name}</span>
+        <span class="table-game-pill ${gameCls}">${gameCode}</span>
+        <div class="table-status-spacer"></div>
+        <span class="table-status-dot ${dotCls}"></span>
+      </div>
+      <div class="table-dealer" draggable="true" data-dealer-id="${d.id}" data-from="table" data-from-table="${t.id}">
+        <div class="dealer-avatar ${d.sup?'sup':''}">${initials(d.name)}</div>
+        <div class="dealer-info">
+          <span class="dealer-name">${d.name}${supTag}</span>
+          <span class="dealer-meta">${d.skills.length} games · on ${fmtMS(elapsed)}</span>
+        </div>
+      </div>
+      <div class="timer-row">
+        <span class="timer-main ${timerCls}">${timerText}</span>
+        <div class="timer-bar"><div class="timer-fill ${timerCls}" style="width:${fillPct}%"></div></div>
+        <span class="timer-sub">${timerSub}</span>
+      </div>
+      <div class="table-actions">
+        <button class="btn btn-rotate" onclick="openPicker('rotate','${t.id}')">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M3 8a5 5 0 119 3.5M3 12V8h4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Rotate
+        </button>
+        <button class="btn btn-break" onclick="sendDealerOnBreakFromTable('${t.id}')">
+          <svg viewBox="0 0 16 16" fill="none"><path d="M4 8h6a3 3 0 010 6H4zM4 4h6M4 8V4M10 8V4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          On break
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+  grid.innerHTML = html;
+}
+
+function renderBench() {
+  const grid = document.getElementById('benchGrid');
+  document.getElementById('availableCount').textContent = S.bench.length;
+  if (!S.bench.length) {
+    grid.innerHTML = `<span class="muted-empty">No dealers on bench — drag here to free up a dealer</span>`;
+    return;
+  }
+  grid.innerHTML = S.bench.map(id => {
+    const d = dealerById(id);
+    const supTag = d.sup ? '<span class="sup-tag">SUP</span>' : '';
+    const skills = d.skills.map(g => `<span class="skill-chip">${GAME_CODE[g]}</span>`).join('');
+    return `<div class="dealer-card ${selectedDealerId===id?'selected':''}" draggable="true"
+         data-dealer-id="${id}" data-from="bench"
+         onclick="toggleSelect('${id}')">
+      <div class="dealer-avatar ${d.sup?'sup':''}">${initials(d.name)}</div>
+      <div class="dealer-info">
+        <span class="dealer-name">${d.name}${supTag}</span>
+        <div class="dealer-skills">${skills}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderBreaks() {
+  const grid = document.getElementById('breakGrid');
+  const ids = Object.keys(S.breaks);
+  document.getElementById('breakCount').textContent = ids.length;
+  if (!ids.length) {
+    grid.innerHTML = `<span class="muted-empty">No one on break</span>`;
+    return;
+  }
+  const breakMs = S.settings.break_min * 60000;
+  grid.innerHTML = ids.map(id => {
+    const d = dealerById(id);
+    const elapsed = Date.now() - S.breaks[id];
+    const remain  = breakMs - elapsed;
+    const over = remain <= 0;
+    const supTag = d.sup ? '<span class="sup-tag">SUP</span>' : '';
+    const right = over
+      ? `<button class="break-back-btn" onclick="backFromBreak('${id}')">Back</button>`
+      : `<span class="break-timer">${fmtMS(remain)}</span>`;
+    const subText = over ? 'break ended — bring back' : `on break · ${fmtMS(elapsed)} taken`;
+    return `<div class="dealer-card on-break">
+      <div class="dealer-avatar ${d.sup?'sup':''}">${initials(d.name)}</div>
+      <div class="dealer-info">
+        <span class="dealer-name">${d.name}${supTag}</span>
+        <span class="dealer-meta">${subText}</span>
+      </div>
+      ${right}
+    </div>`;
+  }).join('');
+}
+
+function renderShiftClock() {
+  document.getElementById('shiftClock').innerHTML = `<b>${shiftElapsed()}</b> · shift`;
+}
+
+function renderSettings() {
+  document.querySelectorAll('#rotateRadio .radio-pill').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.val) === S.settings.rotation_min);
+  });
+  document.querySelectorAll('#breakRadio .radio-pill').forEach(b => {
+    b.classList.toggle('active', Number(b.dataset.val) === S.settings.break_min);
+  });
+}
+
+/* ───── tap-to-select fallback (no drag on touch) ───── */
+function toggleSelect(dealerId) {
+  selectedDealerId = (selectedDealerId === dealerId) ? null : dealerId;
+  renderBench();
+}
+
+/* ───── drag/drop ───── */
+function setupDragDrop() {
+  document.addEventListener('dragstart', (e) => {
+    const el = e.target.closest('[draggable="true"]');
+    if (!el) return;
+    const dealerId = el.dataset.dealerId;
+    const from     = el.dataset.from;
+    const fromTbl  = el.dataset.fromTable || '';
+    e.dataTransfer.setData('text/plain', JSON.stringify({ dealerId, from, fromTbl }));
+    e.dataTransfer.effectAllowed = 'move';
+    el.classList.add('dragging');
+  });
+  document.addEventListener('dragend', (e) => {
+    document.querySelectorAll('.dragging').forEach(n => n.classList.remove('dragging'));
+    document.querySelectorAll('.drag-target,.drag-over').forEach(n => {
+      n.classList.remove('drag-target'); n.classList.remove('drag-over');
+    });
+  });
+  document.addEventListener('dragover', (e) => {
+    const zone = e.target.closest('[data-zone]');
+    if (!zone) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (zone.dataset.zone === 'table') zone.classList.add('drag-target');
+    if (zone.dataset.zone === 'bench') zone.classList.add('drag-over');
+  });
+  document.addEventListener('dragleave', (e) => {
+    const zone = e.target.closest('[data-zone]');
+    if (zone) {
+      zone.classList.remove('drag-target');
+      zone.classList.remove('drag-over');
+    }
+  });
+  document.addEventListener('drop', (e) => {
+    const zone = e.target.closest('[data-zone]');
+    if (!zone) return;
+    e.preventDefault();
+    let payload;
+    try { payload = JSON.parse(e.dataTransfer.getData('text/plain')); } catch { return; }
+    if (!payload || !payload.dealerId) return;
+    if (zone.dataset.zone === 'table') {
+      assignDealer(zone.dataset.tableId, payload.dealerId);
+    } else if (zone.dataset.zone === 'bench') {
+      // drop into bench → free dealer (clear from any table or break)
+      for (const tid of Object.keys(S.assignments)) {
+        if (S.assignments[tid].dealer_id === payload.dealerId) delete S.assignments[tid];
+      }
+      delete S.breaks[payload.dealerId];
+      if (!S.bench.includes(payload.dealerId)) S.bench.push(payload.dealerId);
+      save(); render();
+    }
+  });
+  // Tap-to-select fallback: tap dealer in bench, then tap a table card.
+  document.addEventListener('click', (e) => {
+    if (!selectedDealerId) return;
+    const tableCard = e.target.closest('.table-card[data-zone="table"]');
+    if (tableCard && !e.target.closest('button')) {
+      const tid = tableCard.dataset.tableId;
+      assignDealer(tid, selectedDealerId);
+      selectedDealerId = null;
+      renderBench();
+    }
+  });
+}
+
+/* ───── picker modal (rotate / assign) ───── */
+function openPicker(kind, tableId) {
+  pickerContext = { kind, tableId };
+  const t = tableById(tableId);
+  const cur = S.assignments[tableId];
+  document.getElementById('pickerTitle').textContent =
+    cur ? `Rotate ${t.name}` : `Assign to ${t.name}`;
+  document.getElementById('pickerSub').textContent =
+    cur ? `Currently: ${dealerById(cur.dealer_id).name}. Pick replacement.` :
+          `Pick a dealer for ${t.game} (${t.name}).`;
+  // Available + on-break dealers shown; mark whether they have the game skill.
+  const availIds = S.bench.slice();
+  const breakIds = Object.keys(S.breaks);
+  const onTableElsewhere = S.tables
+    .filter(tt => tt.id !== tableId && S.assignments[tt.id])
+    .map(tt => S.assignments[tt.id].dealer_id);
+  const ids = [...availIds, ...breakIds, ...onTableElsewhere];
+  const seen = new Set();
+  const list = ids.filter(id => !seen.has(id) && seen.add(id));
+
+  document.getElementById('pickerList').innerHTML = list.map(id => {
+    const d = dealerById(id);
+    const hasSkill = d.skills.includes(t.game);
+    const where = isAvailable(id) ? 'Available'
+                : (S.breaks[id] ? 'On break' : 'On another table');
+    return `<button class="picker-row ${hasSkill?'':'no-skill'}" onclick="pickerChoose('${id}')">
+      <div class="dealer-avatar ${d.sup?'sup':''}">${initials(d.name)}</div>
+      <div class="dealer-info">
+        <span class="dealer-name">${d.name}${d.sup?'<span class="sup-tag">SUP</span>':''}</span>
+        <span class="dealer-meta">${where} · ${d.skills.map(g => GAME_CODE[g]).join(' · ')}</span>
+      </div>
+      ${hasSkill ? '' : '<span class="skill-chip" style="color:var(--warning);border-color:rgba(245,158,11,0.3)">no skill</span>'}
+    </button>`;
+  }).join('') || `<span class="muted-empty">No dealers available</span>`;
+  document.getElementById('pickerScrim').classList.add('open');
+}
+function pickerChoose(dealerId) {
+  if (!pickerContext) return;
+  assignDealer(pickerContext.tableId, dealerId);
+  closePicker();
+}
+function closePicker() {
+  pickerContext = null;
+  document.getElementById('pickerScrim').classList.remove('open');
+}
+
+/* ───── settings modal ───── */
+function openSettings() { document.getElementById('settingsScrim').classList.add('open'); }
+function closeSettings() { document.getElementById('settingsScrim').classList.remove('open'); }
+
+/* ───── toast ───── */
+function toast(msg) {
+  const host = document.getElementById('toastHost');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.textContent = msg;
+  host.appendChild(el);
+  setTimeout(() => el.remove(), 2700);
+}
+
+/* ───── tick (every second) ───── */
+function tick() {
+  // Lightweight: re-render only the timer-affected sections
+  renderTables();
+  renderBreaks();
+  renderShiftClock();
+  renderSummary();
+}
+
+/* ───── wiring ───── */
+function wire() {
+  document.getElementById('settingsBtn').addEventListener('click', openSettings);
+  document.getElementById('settingsClose').addEventListener('click', closeSettings);
+  document.getElementById('settingsScrim').addEventListener('click', (e) => {
+    if (e.target.id === 'settingsScrim') closeSettings();
+  });
+  document.getElementById('pickerCancel').addEventListener('click', closePicker);
+  document.getElementById('pickerScrim').addEventListener('click', (e) => {
+    if (e.target.id === 'pickerScrim') closePicker();
+  });
+  document.querySelectorAll('#rotateRadio .radio-pill').forEach(b => {
+    b.addEventListener('click', () => setSetting('rotation_min', Number(b.dataset.val)));
+  });
+  document.querySelectorAll('#breakRadio .radio-pill').forEach(b => {
+    b.addEventListener('click', () => setSetting('break_min', Number(b.dataset.val)));
+  });
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    if (confirm('Reset shift? This restores the demo state.')) resetShift();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { closePicker(); closeSettings(); }
+  });
+}
+
+/* ───── init ───── */
+(function init() {
+  S = load() || buildInitialState();
+  // Migration: ensure required fields if loaded an older shape.
+  if (!S.settings) S.settings = { rotation_min:20, break_min:20 };
+  if (!S.tables)   S.tables   = DEFAULT_TABLES.slice();
+  if (!S.dealers)  S.dealers  = DEFAULT_DEALERS.slice();
+  wire();
+  setupDragDrop();
+  render();
+  setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
