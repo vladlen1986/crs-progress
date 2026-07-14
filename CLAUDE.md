@@ -2,6 +2,8 @@
 
 This file pre-loads context for Claude Code so the AI assistant understands the project structure and conventions.
 
+> **Building the CRS Brain app?** The local second-brain tool lives in `crs-brain/` (Node server + `public/index.html` + `public/map.html`). Its build state, in-progress tasks, locked decisions, and gotchas are in **`PROGRESS.md`** (repo root) — read it first for any work on the app. Key locked rules: spawn `claude` WITHOUT `shell:true` (use `spawnClaude()`); the cloned Bubble workspace lives OUTSIDE this repo at `~/projects/crs-bubble/…`; Buildprint edits are TEST-branch-only with plan-before-apply; project-only file view is the default. Do NOT commit `crs-brain/node_modules` changes (breaks Windows).
+
 ---
 
 ## Project: CRS (Casino Reporting Suite)

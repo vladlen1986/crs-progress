@@ -433,6 +433,21 @@
   .usage .disable{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:9px}
   .usage .disable:hover{color:var(--primary)}
 
+  /* sidebar nav (Map / Kanban) */
+  .sidenav{display:flex;gap:6px;margin:2px 12px 8px}
+  .sidenav button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+  .sidenav button:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  /* sidebar resizer */
+  .col.left{position:relative}
+  .lresizer{position:absolute;top:0;right:0;width:6px;height:100%;cursor:col-resize;z-index:25}
+  .lresizer:hover,.lresizer.drag{background:var(--accent-tint)}
+  /* equal-height controls inside the composer row */
+  .composer-row button,.composer-row .sel{height:34px}
+  .composer-row .attach-btn,.composer-row .send{width:34px}
+  /* clickable dashboard cards */
+  .stat.clk,.dcard.clk{cursor:pointer;transition:.15s}
+  .stat.clk:hover,.dcard.clk:hover{border-color:var(--line2);background:var(--elev)}
+
   @keyframes sp{to{transform:rotate(360deg)}}
   @keyframes tokIn{from{opacity:0}to{opacity:1}}
   @keyframes blink{50%{opacity:0}}
