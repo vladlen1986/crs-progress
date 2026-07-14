@@ -3,7 +3,7 @@
   "title": "side bar on the left and right must have button to collapse",
   "sessionId": "8a0ab176-f193-4fbe-874c-1e0e4dc8c84f",
   "created": "2026-07-14T15:53:54.441Z",
-  "updated": "2026-07-14T16:05:19.196Z",
+  "updated": "2026-07-14T16:26:27.897Z",
   "messages": [
     {
       "role": "user",
@@ -52,6 +52,17 @@
       "role": "assistant",
       "content": "Done. The queued items now stack vertically — one below another — as full-width rows directly above the input, with the `×` remove button on the right of each. Reload the page to see it (static file change, no server restart needed).",
       "ts": "2026-07-14T16:05:19.196Z"
+    },
+    {
+      "role": "user",
+      "content": "The hide sidebar buttons are barely visible fix that",
+      "ts": "2026-07-14T16:25:32.427Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Fixed. The core problem was the chevron `<polyline>` had no `stroke:currentColor` / `fill:none`, so it rendered as a filled dark blob rather than a visible arrow. I gave both the collapse buttons and the expand handles proper stroked icons, plus the buttons now have a filled `--elev` background, brighter `--secondary` icon color, and an accent border on hover.\n\nReload the page to see it (static file change, no server restart needed).",
+      "ts": "2026-07-14T16:26:27.897Z"
     }
   ]
 }
