@@ -220,7 +220,9 @@ function walk(dir, baseRel = '') {
     } else {
       const ext = path.extname(e.name).toLowerCase();
       if (!ALLOWED_EXT.has(ext)) continue;
-      out.push({ type: 'file', name: e.name, path: rel, ext });
+      let size = 0;
+      try { size = fs.statSync(path.join(dir, e.name)).size; } catch {}
+      out.push({ type: 'file', name: e.name, path: rel, ext, size });
     }
   }
   return out;
@@ -633,6 +635,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ---- static ----
+    if (p === '/map' && req.method === 'GET') return serveStatic(res, '/map.html');
     if (req.method === 'GET') return serveStatic(res, p);
 
     return send(res, 404, { error: 'not found' });

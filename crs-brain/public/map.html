@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CRS Brain — Map</title>
+<style>
+  :root{
+    --bg:#0A0A0C; --panel:#141417; --panel2:#1C1C21; --line:#26262C; --line2:#35353D;
+    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
+    --accent:#3B82F6; --accent2:#60A5FA;
+    --c-mem1:#8B5CF6; --c-mem2:#C084FC; --c-mem3:#A78BFA; --c-mem4:#D8B4FE; --c-mem5:#7C3AED;
+    --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  }
+  *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
+  body{background:var(--bg);font-family:var(--sans);color:var(--secondary);font-size:13px;-webkit-font-smoothing:antialiased}
+  canvas{display:block;cursor:grab} canvas.dragging{cursor:grabbing} canvas.pointing{cursor:pointer}
+
+  .brand{position:fixed;top:16px;left:20px;display:flex;align-items:center;gap:10px;z-index:10;pointer-events:none;user-select:none}
+  .brand .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center}
+  .brand .mark svg{width:15px;height:15px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .brand b{color:var(--primary);font-weight:700;letter-spacing:2.5px;font-size:13px}
+  .brand span{color:var(--muted);letter-spacing:2.5px;font-size:13px;font-weight:300}
+  .brand .by{position:absolute;top:29px;left:36px;font-size:9.5px;letter-spacing:1.5px;color:var(--c-skill);opacity:.85}
+
+  .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--panel);border:1px solid var(--line2);color:var(--primary);border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit}
+  .menu-btn:hover{border-color:var(--c-skill)}
+
+  .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:rgba(20,20,23,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;padding:13px;display:flex;flex-direction:column;gap:10px}
+  .panel.hide{display:none}
+  .panel input[type=search]{width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--primary);padding:7px 10px;font-size:12px;font-family:inherit;outline:none}
+  .panel input[type=search]:focus{border-color:var(--accent)}
+  .panel .lbl{font-size:9.5px;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;margin:2px 0 -4px}
+  .seg{display:flex;gap:4px}
+  .seg button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:6px;padding:6px 0;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+  .seg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .seg button:hover:not(.on){color:var(--primary)}
+  .row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--secondary)}
+  .row .val{margin-left:auto;color:var(--c-skill);font-variant-numeric:tabular-nums;font-size:10.5px}
+  input[type=range]{flex:1;accent-color:var(--c-skill);height:14px}
+  .chk{display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;user-select:none}
+  .chk input{accent-color:var(--accent)}
+  .btns{display:flex;gap:6px}
+  .btns button{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:6px;padding:6px 0;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btns button:hover{color:var(--primary);border-color:var(--line2)}
+  .bake{background:none;border:1px solid var(--c-skill);color:var(--c-skill);border-radius:6px;padding:6px 0;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit}
+  .bake:hover{background:rgba(249,115,22,.12)}
+
+  .tip{position:fixed;pointer-events:none;background:rgba(20,20,23,.95);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:11.5px;color:var(--primary);z-index:20;display:none;max-width:300px}
+  .tip .sub{color:var(--muted);font-size:10px;margin-top:2px}
+  .hint{position:fixed;bottom:14px;left:20px;color:var(--muted);font-size:10.5px;z-index:10;pointer-events:none;letter-spacing:.3px}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div class="brand">
+  <div class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></svg></div>
+  <div><b>CRS BRAIN</b> <span>SECOND BRAIN</span><div class="by">CASINO REPORTING SUITE</div></div>
+</div>
+<button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
+<div class="panel" id="panel">
+  <input type="search" id="q" placeholder="Search files… ( / )">
+  <div class="lbl">Layout</div>
+  <div class="seg" id="layoutSeg">
+    <button data-l="force" class="on">Force</button><button data-l="circle">Circle</button><button data-l="hex">Hex</button><button data-l="rings">Rings</button>
+  </div>
+  <div class="lbl">View</div>
+  <div class="seg" id="viewSeg">
+    <button data-v="departments" class="on">Departments</button><button data-v="folders">Folders</button>
+  </div>
+  <div class="lbl">Ring spin</div>
+  <div class="row"><input type="range" id="spin" min="0" max="100" value="18"></div>
+  <label class="chk"><input type="checkbox" id="names"> File names</label>
+  <div class="row">Link springs<span class="val" id="springV">0.38</span></div>
+  <div class="row"><input type="range" id="spring" min="1" max="100" value="38"></div>
+  <div class="row">Node size<span class="val" id="sizeV">0.50</span></div>
+  <div class="row"><input type="range" id="size" min="10" max="100" value="50"></div>
+  <div class="btns"><button onclick="setCollapsed(false)">Expand all</button><button onclick="setCollapsed(true)">Collapse all</button></div>
+  <button class="bake" onclick="bake()">Bake settings</button>
+</div>
+<div class="tip" id="tip"></div>
+<div class="hint">drag to pan · wheel to zoom · click a file to open it · double-click a hub to collapse</div>
+
+<script>
+'use strict';
+// ═══════════════════════════════ CRS BRAIN MAP ═══════════════════════════════
+// A live galaxy of the real repo: Memory (files) in department clusters around
+// CLAUDE.MD, plus the agentic layers — Applications, Routines, Skills (ARMS).
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const ui = { panel: document.getElementById('panel'), tip: document.getElementById('tip'), q: document.getElementById('q') };
+let W=0,H=0,DPR=1;
+function resize(){ DPR=Math.min(2,window.devicePixelRatio||1); W=innerWidth; H=innerHeight; cv.width=W*DPR; cv.height=H*DPR; cv.style.width=W+'px'; cv.style.height=H+'px'; }
+addEventListener('resize',resize); resize();
+
+// ---- settings (bakeable) ----------------------------------------------------
+const S = Object.assign({
+  layout:'force', view:'departments', spin:18, names:false, spring:38, size:50, collapsed:{},
+}, JSON.parse(localStorage.getItem('crsmap')||'{}'));
+function bake(){ localStorage.setItem('crsmap', JSON.stringify(S)); flash('Settings baked'); }
+let flashT=0, flashMsg='';
+function flash(m){ flashMsg=m; flashT=performance.now(); }
+
+// ---- palette ----------------------------------------------------------------
+const MEMC = ['#8B5CF6','#C084FC','#A78BFA','#D8B4FE','#7C3AED','#E879F9','#9333EA','#C4B5FD'];
+const COL = { skill:'#F97316', routine:'#EAB308', app:'#60A5FA', center:'#F97316' };
+
+// ---- the agentic layers (real, from this app + workflow) ---------------------
+const APPS = [
+  ['Claude Code','C'],['Bubble.io','B'],['Buildprint','BP'],['GitHub','G'],
+  ['Node.js','N'],['Excel','X'],['Typesense','T'],
+];
+const ROUTINES = ['Weekly digest','Auto-commit memory','Live usage tracking','Buildprint → Ingest cycle'];
+const SKILLS = ['Ingest & route reports','Grounded retrieval (INDEX-first)','Progress board updates',
+  'Open reply as doc','Buildprint prompt writing','Migration planning','Pattern A guardrails'];
+
+// ---- graph state --------------------------------------------------------------
+let nodes=[], links=[], hubs=[], byId={}, tree=null, fileCount=0;
+let cam={x:0,y:0,k:1}, hover=null, dragN=null, panning=false, ringAngle=0;
+const rnd = (seed=>()=> (seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff)(42);
+
+function nSize(bytes){ const r=2.2+Math.min(5.5,Math.log10(Math.max(100,bytes||500))-1.6); return r*(0.5+S.size/100); }
+function hash(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffff; return h; }
+
+function addNode(n){ n.x=n.x??(rnd()-0.5)*900; n.y=n.y??(rnd()-0.5)*700; n.vx=0; n.vy=0; nodes.push(n); byId[n.id]=n; return n; }
+function link(a,b,len,k){ links.push({a,b,len:len||90,k:k||1}); }
+
+function buildGraph(){
+  nodes=[]; links=[]; hubs=[]; byId={}; fileCount=0;
+  const center = addNode({id:'@center', kind:'center', label:'CLAUDE.MD', r:15, color:COL.center, x:0, y:0});
+
+  // ARMS anchors
+  const aSkill = addNode({id:'@skills', kind:'anchor', label:'SKILLS', color:COL.skill, r:12, x:-560, y:340});
+  const aRout  = addNode({id:'@routines', kind:'anchor', label:'ROUTINES', color:COL.routine, r:12, x:420, y:420});
+  const aApp   = addNode({id:'@apps', kind:'anchor', label:'APPLICATIONS', color:COL.app, r:12, x:-60, y:560});
+  link('@center','@skills',330,.4); link('@center','@routines',330,.4); link('@center','@apps',380,.4);
+  SKILLS.forEach((s,i)=>{ addNode({id:'sk'+i, kind:'skill', label:s, color:COL.skill, r:5, cluster:'@skills'}); link('sk'+i,'@skills',46+18*rnd(),1); });
+  ROUTINES.forEach((s,i)=>{ addNode({id:'rt'+i, kind:'routine', label:s, color:COL.routine, r:6.5, cluster:'@routines'}); link('rt'+i,'@routines',52+16*rnd(),1); });
+  APPS.forEach(([s,g],i)=>{ addNode({id:'ap'+i, kind:'app', label:s, glyph:g, color:COL.app, r:11, cluster:'@apps'}); link('ap'+i,'@apps',60+22*rnd(),1); });
+
+  // Memory: department clusters (top-level dirs) or full folder hierarchy
+  if(!tree) return;
+  if(S.view==='departments'){
+    const groups={}; const rootFiles=[];
+    for(const n of tree){ if(n.type==='dir') groups[n.name]=n; else rootFiles.push(n); }
+    let gi=0;
+    const mkDept=(name,children)=>{
+      const files=[]; (function walk(c){ for(const x of c){ x.type==='dir'?walk(x.children):files.push(x); } })(children);
+      if(!files.length) return;
+      const color=MEMC[gi++%MEMC.length];
+      const ang=gi*2.399, R=300+120*rnd();
+      const hub=addNode({id:'#'+name, kind:'hub', label:name.toUpperCase(), color, r:Math.min(20,9+files.length*.12), count:files.length,
+        x:Math.cos(ang)*R, y:Math.sin(ang)*R-120});
+      hubs.push(hub); link(hub.id,'@center',230+90*rnd(),.5);
+      files.forEach(f=>{ fileCount++;
+        addNode({id:f.path, kind:'file', label:f.name, path:f.path, color, r:nSize(f.size),
+          planet:(hash(f.path)%9)===0, cluster:hub.id, hidden:!!S.collapsed[hub.id]});
+        link(f.path, hub.id, 26+60*rnd(), .8);
+      });
+    };
+    for(const [name,d] of Object.entries(groups)) mkDept(name, d.children);
+    if(rootFiles.length) mkDept('root', rootFiles);
+  } else { // folders: nested hierarchy
+    let gi=0;
+    const walkDir=(dirNode, parentId, depth, color)=>{
+      const myColor = depth===0 ? MEMC[gi++%MEMC.length] : color;
+      const files=dirNode.children.filter(c=>c.type==='file');
+      const dirs=dirNode.children.filter(c=>c.type==='dir');
+      let total=0; (function cnt(c){for(const x of c){x.type==='dir'?cnt(x.children):total++;}})(dirNode.children);
+      const hub=addNode({id:'#'+dirNode.path, kind:'hub', label:dirNode.name.toUpperCase(), color:myColor,
+        r:Math.min(18,7+total*.1), count:total, depth});
+      hubs.push(hub); link(hub.id, parentId, depth===0?260:110, .6);
+      files.forEach(f=>{ fileCount++;
+        addNode({id:f.path, kind:'file', label:f.name, path:f.path, color:myColor, r:nSize(f.size),
+          planet:(hash(f.path)%9)===0, cluster:hub.id, hidden:!!S.collapsed[hub.id]});
+        link(f.path, hub.id, 24+46*rnd(), .8);
+      });
+      dirs.forEach(d=>walkDir(d, hub.id, depth+1, myColor));
+    };
+    const rootFiles=tree.filter(c=>c.type==='file');
+    rootFiles.forEach(f=>{ fileCount++;
+      addNode({id:f.path, kind:'file', label:f.name, path:f.path, color:'#C4B5FD', r:nSize(f.size), cluster:'@center'});
+      link(f.path,'@center',120,.6);
+    });
+    tree.filter(c=>c.type==='dir').forEach(d=>walkDir(d,'@center',0));
+  }
+  ui.q.placeholder=`Search ${fileCount.toLocaleString()} files… ( / )`;
+  applyLayout(true);
+}
+
+// ---- layouts ------------------------------------------------------------------
+function visible(n){ return !n.hidden; }
+function applyLayout(scatter){
+  for(const n of nodes){ n.fx=undefined; n.fy=undefined; }
+  if(S.layout==='force'){ if(scatter) for(const n of nodes){ if(n.kind==='file'){ const h=byId[n.cluster]; if(h){ n.x=h.x+(rnd()-0.5)*160; n.y=h.y+(rnd()-0.5)*160; } } } return; }
+  computeTargets();
+}
+function computeTargets(){
+  const vis=nodes.filter(visible);
+  if(S.layout==='circle'){
+    // hubs on a wide circle; each cluster is a golden-spiral disc around its hub
+    const R=Math.min(W,H)*0.62;
+    const ring=[...hubs.filter(visible)];
+    ring.forEach((h,i)=>{ const a=ringAngle+i*2*Math.PI/ring.length; h.tx=Math.cos(a)*R; h.ty=Math.sin(a)*R*0.72; });
+    byId['@center'].tx=0; byId['@center'].ty=0;
+    byId['@skills'].tx=-R*0.45; byId['@skills'].ty=R*0.5;
+    byId['@routines'].tx=R*0.45; byId['@routines'].ty=R*0.5;
+    byId['@apps'].tx=0; byId['@apps'].ty=R*0.78;
+    for(const grp of ['@skills','@routines','@apps']){
+      const kids=vis.filter(n=>n.cluster===grp);
+      kids.forEach((n,i)=>{ const a=i*2.399, r=(10+S.size/6)*Math.sqrt(i+1); n.tx=byId[grp].tx+Math.cos(a)*r; n.ty=byId[grp].ty+Math.sin(a)*r; });
+    }
+    for(const h of ring){ const kids=vis.filter(n=>n.cluster===h.id);
+      kids.forEach((n,i)=>{ const a=i*2.399, r=(9+S.size/7)*Math.sqrt(i+1); n.tx=h.tx+Math.cos(a)*r; n.ty=h.ty+Math.sin(a)*r; }); }
+  }
+  if(S.layout==='hex'){
+    // one big hex lattice, packed cluster by cluster
+    const step=(16+S.size*0.36), cols=Math.ceil(Math.sqrt(vis.length*1.9));
+    const order=[byId['@center'],...hubs.filter(visible).flatMap(h=>[h,...vis.filter(n=>n.cluster===h.id)]),
+      byId['@skills'],...vis.filter(n=>n.cluster==='@skills'), byId['@routines'],...vis.filter(n=>n.cluster==='@routines'),
+      byId['@apps'],...vis.filter(n=>n.cluster==='@apps')].filter(Boolean);
+    order.forEach((n,i)=>{ const c=i%cols, r=Math.floor(i/cols);
+      n.tx=(c-cols/2)*step+(r%2?step/2:0); n.ty=(r-order.length/cols/2)*step*0.87; });
+  }
+  if(S.layout==='rings'){
+    // concentric ARMS rings: center → skills → memory arcs → routines → applications
+    const R1=120, R2a=185, R2b=330, R3=430, R4=520;
+    byId['@center'].tx=0; byId['@center'].ty=0;
+    byId['@skills'].tx=0; byId['@skills'].ty=-R1;
+    byId['@routines'].tx=0; byId['@routines'].ty=-R3;
+    byId['@apps'].tx=0; byId['@apps'].ty=-R4;
+    const sk=vis.filter(n=>n.kind==='skill');
+    sk.forEach((n,i)=>{ const a=ringAngle*1.4+i*2*Math.PI/sk.length; n.tx=Math.cos(a)*R1; n.ty=Math.sin(a)*R1; });
+    const rt=vis.filter(n=>n.kind==='routine');
+    rt.forEach((n,i)=>{ const a=-ringAngle+i*2*Math.PI/Math.max(24,rt.length*6); n.tx=Math.cos(a)*R3; n.ty=Math.sin(a)*R3; });
+    const ap=vis.filter(n=>n.kind==='app');
+    ap.forEach((n,i)=>{ const a=ringAngle*0.6+i*2*Math.PI/Math.max(18,ap.length*2.6); n.tx=Math.cos(a)*R4; n.ty=Math.sin(a)*R4; });
+    // memory: each dept is an arc sector of dotted spiral rows between R2a..R2b
+    const hs=hubs.filter(visible); let a0=ringAngle*0.5;
+    const totalFiles=hs.reduce((s,h)=>s+(h.count||1),0)||1;
+    for(const h of hs){
+      const span=Math.max(.35, 2*Math.PI*(h.count/totalFiles));
+      const kids=vis.filter(n=>n.cluster===h.id);
+      const rows=Math.max(2,Math.ceil(kids.length/22));
+      h.tx=Math.cos(a0+span/2)*((R2a+R2b)/2); h.ty=Math.sin(a0+span/2)*((R2a+R2b)/2);
+      kids.forEach((n,i)=>{ const row=i%rows, j=Math.floor(i/rows), perRow=Math.ceil(kids.length/rows);
+        const a=a0+0.06+ (span-0.12)*(j/Math.max(1,perRow-1||1));
+        const r=R2a+ (R2b-R2a)*(row/(rows-1||1)) + Math.sin(i*2.7)*4;
+        n.tx=Math.cos(a)*r; n.ty=Math.sin(a)*r; });
+      a0+=span;
+    }
+  }
+}
+
+// ---- physics -------------------------------------------------------------------
+function step(dt){
+  const vis=nodes.filter(visible);
+  if(S.layout==='force'){
+    const springK=S.spring/100;
+    // pairwise repulsion (fine at this scale)
+    for(let i=0;i<vis.length;i++){ const a=vis[i];
+      for(let j=i+1;j<vis.length;j++){ const b=vis[j];
+        let dx=a.x-b.x, dy=a.y-b.y, d2=dx*dx+dy*dy+40; if(d2>90000) continue;
+        const f=(a.kind==='file'&&b.kind==='file'?520:2600)/d2;
+        const d=Math.sqrt(d2); dx/=d; dy/=d;
+        a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f;
+      }}
+    for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
+      let dx=b.x-a.x, dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||1;
+      const f=(d-l.len)*0.028*springK*l.k; dx/=d; dy/=d;
+      a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f; }
+    for(const n of vis){ n.vx-=n.x*0.00035; n.vy-=n.y*0.00035;   // gentle gravity to origin
+      n.vx=Math.max(-14,Math.min(14,n.vx)); n.vy=Math.max(-14,Math.min(14,n.vy));
+      if(n!==dragN){ n.x+=n.vx; n.y+=n.vy; } n.vx*=0.86; n.vy*=0.86; }
+  } else {
+    computeTargets();
+    for(const n of vis){ if(n.tx===undefined||n===dragN) continue;
+      n.x+=(n.tx-n.x)*0.08; n.y+=(n.ty-n.y)*0.08; }
+  }
+  ringAngle+=(S.spin/100)*dt*0.00025*(S.layout==='force'?0:1);
+}
+
+// ---- glow sprites ----------------------------------------------------------------
+const sprites={};
+function glow(color,r){
+  const key=color+'|'+Math.round(r);
+  if(sprites[key]) return sprites[key];
+  const pad=Math.ceil(r*3.4), s=document.createElement('canvas'); s.width=s.height=pad*2;
+  const c=s.getContext('2d'); const g=c.createRadialGradient(pad,pad,0,pad,pad,pad);
+  g.addColorStop(0,color+'CC'); g.addColorStop(0.35,color+'55'); g.addColorStop(1,color+'00');
+  c.fillStyle=g; c.fillRect(0,0,pad*2,pad*2);
+  return sprites[key]=s;
+}
+
+// ---- drawing -----------------------------------------------------------------------
+function hexPath(x,y,r){ ctx.beginPath(); for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3; const px=x+Math.cos(a)*r, py=y+Math.sin(a)*r; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.closePath(); }
+function starPath(x,y,r){ ctx.beginPath(); for(let i=0;i<8;i++){ const a=i*Math.PI/4-Math.PI/2, rr=i%2?r*0.38:r; const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.closePath(); }
+
+function drawBackdrop(){
+  // faint hex lattice
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.022)'; ctx.lineWidth=1;
+  const s=46;
+  for(let y=-1;y<H/s/0.87+1;y++){ for(let x=-1;x<W/s+1;x++){
+    const px=x*s+(y%2?s/2:0), py=y*s*0.87;
+    ctx.beginPath(); for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3; const hx=px+Math.cos(a)*s*0.56, hy=py+Math.sin(a)*s*0.56; i?ctx.lineTo(hx,hy):ctx.moveTo(hx,hy);} ctx.closePath(); ctx.stroke();
+  }} ctx.restore();
+}
+
+let matches=null;
+function draw(){
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  ctx.fillStyle='#0A0A0C'; ctx.fillRect(0,0,W,H);
+  drawBackdrop();
+  ctx.translate(W/2+cam.x, H/2+cam.y); ctx.scale(cam.k,cam.k);
+  const dim=(n)=> matches && !matches.has(n.id);
+
+  // ring guides for rings layout
+  if(S.layout==='rings'){
+    ctx.save(); ctx.lineWidth=1/cam.k;
+    for(const [r,c] of [[120,'rgba(249,115,22,.28)'],[430,'rgba(234,179,8,.30)'],[520,'rgba(96,165,250,.28)']]){
+      ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.stroke(); }
+    ctx.fillStyle='rgba(255,255,255,.5)'; ctx.textAlign='center';
+    ctx.font=`600 ${15/cam.k}px Inter,sans-serif`; ctx.letterSpacing='3px';
+    ctx.fillStyle='#60A5FA'; ctx.fillText('APPLICATIONS',0,-520-12/cam.k);
+    ctx.fillStyle='#EAB308'; ctx.fillText('ROUTINES',0,-430-12/cam.k);
+    ctx.fillStyle='#A78BFA'; ctx.fillText('MEMORY',0,-330-12/cam.k);
+    ctx.fillStyle='#F97316'; ctx.fillText('SKILLS',0,-120-12/cam.k);
+    ctx.restore();
+  }
+
+  // links
+  ctx.lineWidth=1/cam.k;
+  for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
+    if(dim(a)&&dim(b)){ ctx.strokeStyle='rgba(255,255,255,.015)'; } else ctx.strokeStyle='rgba(255,255,255,.05)';
+    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+
+  // nodes
+  for(const n of nodes){ if(n.hidden) continue;
+    if(S.layout==='rings'&&n.kind==='anchor') continue;   // ring labels replace anchors
+    const alpha=dim(n)?0.10:1; ctx.globalAlpha=alpha;
+    const r=n.r*(n.kind==='file'?1:1)* (hover===n?1.25:1);
+    const g=glow(n.color, r*1.7); ctx.drawImage(g, n.x-g.width/2/1, n.y-g.height/2, g.width, g.height);
+    ctx.fillStyle=n.color;
+    if(n.kind==='skill'){ starPath(n.x,n.y,r*1.5); ctx.fill(); }
+    else if(n.kind==='app'){ hexPath(n.x,n.y,r); ctx.fillStyle='rgba(30,41,59,.9)'; ctx.fill(); ctx.strokeStyle=n.color; ctx.lineWidth=1.4/cam.k; hexPath(n.x,n.y,r); ctx.stroke();
+      ctx.fillStyle='#DBEAFE'; ctx.font=`700 ${r*0.8}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.glyph||'?',n.x,n.y+0.5); }
+    else if(n.kind==='routine'){ ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fillStyle='rgba(234,179,8,.16)'; ctx.fill();
+      ctx.strokeStyle=n.color; ctx.lineWidth=1.3/cam.k; ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.arc(n.x,n.y,r*0.4,0,7); ctx.fillStyle=n.color; ctx.fill();
+      const oa=performance.now()*0.001+hash(n.id); ctx.beginPath(); ctx.arc(n.x+Math.cos(oa)*r, n.y+Math.sin(oa)*r, 1.6/Math.sqrt(cam.k),0,7); ctx.fill(); }
+    else { // center / anchor / hub / file
+      ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fill();
+      if(n.planet){ ctx.save(); ctx.translate(n.x,n.y); ctx.rotate(-0.5+ (hash(n.id)%10)/10);
+        ctx.strokeStyle=n.color+'AA'; ctx.lineWidth=1.1/cam.k; ctx.beginPath(); ctx.ellipse(0,0,r*1.9,r*0.62,0,0,7); ctx.stroke(); ctx.restore(); }
+      if(n.kind==='center'){ ctx.fillStyle='#0A0A0C'; hexPath(n.x,n.y,r*0.55); ctx.fill(); }
+    }
+    // labels
+    ctx.textAlign='center'; ctx.textBaseline='top';
+    if(n.kind==='hub'||n.kind==='center'||n.kind==='anchor'){
+      ctx.font=`700 ${11/cam.k}px Inter,sans-serif`; ctx.fillStyle= dim(n)?'rgba(224,224,224,.15)':'#E0E0E0';
+      ctx.fillText(n.label, n.x, n.y+r+5/cam.k);
+      if(n.count){ // count badge
+        const bw=ctx.measureText(String(n.count)).width+12/cam.k;
+        const bx=n.x+r*0.9+10/cam.k, by=n.y-r-14/cam.k;
+        ctx.fillStyle='rgba(255,255,255,.08)'; ctx.strokeStyle='rgba(255,255,255,.2)'; ctx.lineWidth=1/cam.k;
+        ctx.beginPath(); ctx.roundRect(bx-bw/2,by-8/cam.k,bw,16/cam.k,8/cam.k); ctx.fill(); ctx.stroke();
+        ctx.fillStyle='#E0E0E0'; ctx.font=`600 ${10/cam.k}px Inter,sans-serif`; ctx.textBaseline='middle'; ctx.fillText(String(n.count),bx,by); ctx.textBaseline='top';
+      }
+    } else if((S.names&&n.kind==='file'&&cam.k>0.7)||(n.kind!=='file'&&S.layout!=='rings'&&cam.k>0.8&&(n.kind==='skill'||n.kind==='routine'||n.kind==='app'))){
+      ctx.font=`400 ${9.5/cam.k}px Inter,sans-serif`; ctx.fillStyle=dim(n)?'rgba(166,166,166,.12)':'rgba(166,166,166,.75)';
+      ctx.fillText(n.label, n.x, n.y+r+3.5/cam.k);
+    }
+    ctx.globalAlpha=1;
+  }
+  // flash toast
+  const ft=performance.now()-flashT;
+  if(ft<1600){ ctx.setTransform(DPR,0,0,DPR,0,0); ctx.globalAlpha=Math.min(1,(1600-ft)/400);
+    ctx.font='600 12px Inter,sans-serif'; ctx.textAlign='center'; ctx.fillStyle='#F97316';
+    ctx.fillText(flashMsg, W/2, H-26); ctx.globalAlpha=1; }
+}
+
+// ---- main loop ----------------------------------------------------------------------
+let last=performance.now();
+function loop(now){ const dt=Math.min(50,now-last); last=now; step(dt); draw(); requestAnimationFrame(loop); }
+
+// ---- interaction ----------------------------------------------------------------------
+function toWorld(px,py){ return { x:(px-W/2-cam.x)/cam.k, y:(py-H/2-cam.y)/cam.k }; }
+function pick(px,py){ const p=toWorld(px,py);
+  for(let i=nodes.length-1;i>=0;i--){ const n=nodes[i]; if(n.hidden) continue;
+    const rr=Math.max(n.r*1.6, 6/cam.k); const dx=p.x-n.x, dy=p.y-n.y;
+    if(dx*dx+dy*dy<rr*rr) return n; } return null; }
+
+let downAt=null;
+cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId); downAt={x:e.clientX,y:e.clientY,moved:false};
+  const n=pick(e.clientX,e.clientY);
+  if(n && S.layout==='force'){ dragN=n; } else panning=true; cv.classList.add('dragging'); });
+cv.addEventListener('pointermove',e=>{
+  if(downAt){ const dx=e.clientX-downAt.x, dy=e.clientY-downAt.y;
+    if(Math.abs(dx)+Math.abs(dy)>3) downAt.moved=true;
+    if(dragN){ const p=toWorld(e.clientX,e.clientY); dragN.x=p.x; dragN.y=p.y; dragN.vx=0; dragN.vy=0; }
+    else if(panning){ cam.x+=e.movementX; cam.y+=e.movementY; }
+  } else {
+    hover=pick(e.clientX,e.clientY);
+    cv.classList.toggle('pointing', !!hover && (hover.kind==='file'||hover.kind==='hub'));
+    if(hover){ ui.tip.style.display='block'; ui.tip.style.left=(e.clientX+14)+'px'; ui.tip.style.top=(e.clientY+12)+'px';
+      ui.tip.innerHTML= hover.kind==='file' ? `${hover.label}<div class="sub">${hover.path} · click to open</div>`
+        : hover.kind==='hub' ? `${hover.label}<div class="sub">${hover.count} files · double-click to ${S.collapsed[hover.id]?'expand':'collapse'}</div>`
+        : `${hover.label}`;
+    } else ui.tip.style.display='none';
+  }});
+cv.addEventListener('pointerup',e=>{
+  cv.classList.remove('dragging');
+  if(downAt && !downAt.moved){ const n=pick(e.clientX,e.clientY);
+    if(n&&n.kind==='file'&&n.path) window.open('/#file='+encodeURIComponent(n.path),'crsbrain');
+  }
+  dragN=null; panning=false; downAt=null; });
+cv.addEventListener('dblclick',e=>{ const n=pick(e.clientX,e.clientY);
+  if(n&&n.kind==='hub'){ S.collapsed[n.id]=!S.collapsed[n.id];
+    for(const x of nodes) if(x.cluster===n.id) x.hidden=!!S.collapsed[n.id]; }});
+cv.addEventListener('wheel',e=>{ e.preventDefault();
+  const f=Math.exp(-e.deltaY*0.0012), k2=Math.min(4,Math.max(0.18,cam.k*f));
+  const p=toWorld(e.clientX,e.clientY);
+  cam.x-=(p.x)*(k2-cam.k); cam.y-=(p.y)*(k2-cam.k); cam.k=k2; },{passive:false});
+
+// ---- panel wiring -----------------------------------------------------------------------
+document.getElementById('layoutSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  S.layout=b.dataset.l; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); applyLayout(); });
+document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  S.view=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph(); });
+const bindRange=(id,key,out,fmt)=>{ const el=document.getElementById(id); el.value=S[key];
+  const show=()=>{ if(out) document.getElementById(out).textContent=fmt(S[key]); };
+  el.addEventListener('input',()=>{ S[key]=+el.value; show(); }); show(); };
+bindRange('spin','spin');
+bindRange('spring','spring','springV',v=>(v/100).toFixed(2));
+bindRange('size','size','sizeV',v=>(v/100).toFixed(2));
+document.getElementById('size').addEventListener('input',()=>{ for(const n of nodes) if(n.kind==='file') n.r=nSize(n.bytes||600); });
+const namesEl=document.getElementById('names'); namesEl.checked=S.names;
+namesEl.addEventListener('change',()=>S.names=namesEl.checked);
+function setCollapsed(v){ for(const h of hubs){ S.collapsed[h.id]=v; for(const n of nodes) if(n.cluster===h.id) n.hidden=v; } }
+ui.q.addEventListener('input',()=>{ const q=ui.q.value.trim().toLowerCase();
+  if(!q){ matches=null; return; }
+  matches=new Set(nodes.filter(n=>(n.label||'').toLowerCase().includes(q)||(n.path||'').toLowerCase().includes(q)).map(n=>n.id));
+  for(const n of nodes) if(matches.has(n.id)&&n.cluster) matches.add(n.cluster); });
+addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ e.preventDefault(); ui.q.focus(); }
+  if(e.key==='Escape'){ ui.q.value=''; ui.q.dispatchEvent(new Event('input')); ui.q.blur(); }});
+
+// restore baked seg states
+document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
+document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+
+// ---- boot ----------------------------------------------------------------------------
+fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); })
+  .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#A6A6A6">Could not load the repo tree — is the CRS Brain server running?</div>'); });
+</script>
+</body>
+</html>

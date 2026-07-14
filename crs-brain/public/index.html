@@ -277,6 +277,7 @@
     <div class="center-head">
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
+      <a class="ghost" href="/map" target="crsmap" title="Second-brain galaxy map" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</a>
       <select class="sel" id="modelSel" title="Model" onchange="applyModelSettings()">
         <option value="claude-opus-4-8">Opus 4.8</option>
         <option value="claude-opus-4-7">Opus 4.7</option>
@@ -745,7 +746,15 @@ async function enableUsage(){
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
 
 // ---------- boot ----------
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); newChat(); })();
+// Deep link: /#file=<path> opens that file (used by the Map's click-to-open).
+function openFromHash(){
+  if(location.hash.startsWith('#file=')){
+    const p=decodeURIComponent(location.hash.slice(6));
+    setTab('files'); openFile(p);
+  }
+}
+addEventListener('hashchange',openFromHash);
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else newChat(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>
