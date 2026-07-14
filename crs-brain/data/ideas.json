@@ -1,0 +1,14 @@
+{
+  "columns": {
+    "inbox": [
+      {
+        "id": "t1",
+        "text": "test idea #ux !high",
+        "ts": "2026-07-14"
+      }
+    ],
+    "exploring": [],
+    "planned": [],
+    "done": []
+  }
+}
