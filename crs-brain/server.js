@@ -19,6 +19,27 @@ const path = require('path');
 const { spawn } = require('child_process');
 const crypto = require('crypto');
 
+// macOS/Linux: apps launched by double-click get a minimal PATH that misses
+// user-local installs (claude lives in ~/.local/bin). Extend PATH up front so
+// every spawn('claude'|'git'|…) below works regardless of how we were started.
+if (process.platform !== 'win32') {
+  const home = os.homedir();
+  const extra = [
+    path.join(home, '.local', 'bin'),
+    '/opt/homebrew/bin', '/usr/local/bin',
+    path.join(home, '.npm-global', 'bin'),
+  ];
+  const cur = (process.env.PATH || '').split(':').filter(Boolean);
+  process.env.PATH = [...new Set([...cur, ...extra])].join(':');
+  // The claude CLI needs USER/LOGNAME to find its keychain credentials —
+  // some launch contexts (cron, stripped shells) omit them.
+  try {
+    const uname = os.userInfo().username;
+    if (!process.env.USER) process.env.USER = uname;
+    if (!process.env.LOGNAME) process.env.LOGNAME = uname;
+  } catch {}
+}
+
 // ---- paths -----------------------------------------------------------------
 const BRAIN_DIR = __dirname;                       // .../crs-brain
 const REPO_ROOT = path.resolve(BRAIN_DIR, '..');   // .../crs-progress
@@ -320,9 +341,20 @@ function launchLogin() {
   if (process.platform === 'win32') {
     spawn('cmd.exe', ['/c', 'start', 'CRS Brain — Sign in to Claude', 'cmd', '/k', 'claude', 'auth', 'login'],
       { detached: true, windowsHide: false });
+  } else if (process.platform === 'darwin') {
+    // macOS: open a visible Terminal window running the interactive login
+    // (Terminal uses a login shell, so the user's full PATH applies).
+    const child = spawn('osascript', [
+      '-e', 'tell application "Terminal" to do script "claude auth login"',
+      '-e', 'tell application "Terminal" to activate',
+    ], { detached: true, stdio: 'ignore' });
+    child.on('error', () => {});   // never crash the server on a failed spawn
+    child.unref();
   } else {
-    // macOS/Linux: run it directly; it prints a URL / opens the browser.
-    spawn('claude', ['auth', 'login'], { detached: true, stdio: 'ignore' });
+    // Linux: run it directly; it prints a URL / opens the browser.
+    const child = spawn('claude', ['auth', 'login'], { detached: true, stdio: 'ignore' });
+    child.on('error', () => {});
+    child.unref();
   }
 }
 
