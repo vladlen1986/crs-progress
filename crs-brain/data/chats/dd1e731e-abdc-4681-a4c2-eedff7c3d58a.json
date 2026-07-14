@@ -1,0 +1,21 @@
+{
+  "id": "dd1e731e-abdc-4681-a4c2-eedff7c3d58a",
+  "title": "List the 7 CRS sections and one line about each. Take your t",
+  "sessionId": "4f80463f-5195-4fc2-ae18-08b1bbd3568b",
+  "bp": false,
+  "created": "2026-07-14T21:57:00.863Z",
+  "updated": "2026-07-14T21:57:15.842Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "List the 7 CRS sections and one line about each. Take your time.",
+      "ts": "2026-07-14T21:57:00.863Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The 7 CRS sections (locked, 46 modules total):\n\n1. **Admin / Core (11)** — Tenant setup, users, roles, permissions, billing, Import & Export, Support Center — the platform backbone.\n2. **Operations (9)** — Day-to-day floor running: Tasks, Break List, Malfunction Log, Meetings, Chain of Command Chart, Lost & Found.\n3. **Surveillance (6)** — Monitoring and incidents: Investigation Cases, Alert Center, Vehicles, Gaming Day Report.\n4. **Guests (6)** — Guest-facing records: Visitor Management, Guest Opportunist List, Blackbook Network.\n5. **HR / Employees (9)** — Workforce: Onboarding, Job Board, Disciplinary Actions, Scheduling.\n6. **Compliance (3)** — Regulatory: Policy Library, House Rules.\n7. **Communication (2)** — Internal comms: Intercom, Info Board.\n\nSection composition is locked as of 2026-04-28; `data/CRS_Module_OptionSets.xlsx` (mirrored in the Bubble Option Set) is authoritative for the full module list.",
+      "ts": "2026-07-14T21:57:15.842Z"
+    }
+  ]
+}
