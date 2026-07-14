@@ -12,6 +12,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 | Migrations | [migrations.md](migrations.md) | What's migrated, what's pending, HOW each migration runs, order, risks |
 | Design system | [design.md](design.md) | Pointer → design/tokens.css, design/design.md (source of truth stays there) |
 | Change history | [changelog.md](changelog.md) | Append-only: every ingest, date + summary |
+| Buildprint manual | [buildprint/INDEX.md](buildprint/INDEX.md) | Scraped official docs — how Buildprint works: modes, agents, prompts, troubleshooting |
 
 ## Authoritative sources elsewhere (do NOT restate here)
 
@@ -28,7 +29,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 
 1. Question about **schema/fields** → database.md. **Option sets** → option-sets.md.
    **Privacy rules** → security.md. **Workflows/buttons** → workflows.md.
-   **"What do I migrate next / how"** → migrations.md.
+   **"What do I migrate next / how"** → migrations.md. **Buildprint how-to** → buildprint/INDEX.md.
 2. Every brain file uses the same skeleton: **Current state / Pending / Where in Bubble / Links** — jump to the section, don't read whole files.
 3. If a fact isn't in brain/ or its linked sources, say so — never guess.
 
