@@ -1,0 +1,20 @@
+{
+  "id": "3c0b2876-695a-4730-9739-61105baf7b7c",
+  "title": "Map — give me buttons html file",
+  "sessionId": "053f2761-c015-4e94-902d-643aadeed577",
+  "created": "2026-07-14T02:29:29.978Z",
+  "updated": "2026-07-14T02:30:22.352Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "give me buttons html file\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T02:29:29.978Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Created `crs-brain/data/docs/buttons.html` — a self-contained button showcase (open/click it to render).\n\nIt mirrors the locked spec in `design/CRS_UI_Kit.html` §3 and pulls its values from `design/tokens.css`:\n- **Variants**: primary, secondary, danger, ghost, link\n- **Sizes**: sm 28px / default 32px / lg 40px\n- **Icon buttons** and **disabled** states\n\nActive states change background + text only (no border), per the rules in `CLAUDE.md`. If you'd rather I point buttons at a live `tokens.css` `<link>` instead of inlining the values, say so — I inlined them so the file renders standalone.",
+      "ts": "2026-07-14T02:30:22.352Z"
+    }
+  ]
+}
