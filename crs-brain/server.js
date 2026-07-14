@@ -161,6 +161,12 @@ const SYSTEM_PROMPT = [
   'BUBBLE: any question about how Bubble itself works (data, privacy rules, workflows, API, elements,',
   'workload, security, performance) → brain/bubble/INDEX.md — the COMPLETE official manual (583 pages,',
   'verbatim) lives locally under brain/bubble/. Cite the exact page file when answering.',
+  'OPERATING BUILDPRINT: you can run the Buildprint CLI directly via Bash (buildprint …) — it turns',
+  'Bubble branches into editable files (sync → edit → check → apply). BEFORE any operation read',
+  'brain/buildprint/crs-brain-operations.md and obey its HARD GUARDRAILS: dev/test branch only (never',
+  'live), always sync first, check must pass, never --force-apply/--no-check/sync --reset without the',
+  'user approving in this conversation, show the plan before the first apply, ingest results into brain/',
+  'afterwards. If the CLI is not linked yet, say so and point at the Connection status checklist.',
   'FORUM: community patterns/workarounds → brain/bubble-forum/ (87 curated threads). For topics not',
   'covered there, you may search LIVE via WebFetch: https://forum.bubble.io/search.json?q=<query>+in:solved',
   'then fetch https://forum.bubble.io/t/<topic_id>.json — always label forum content as community advice',
@@ -268,7 +274,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch',   // live forum/docs lookups
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)',   // live lookups + Buildprint CLI ops
       '--append-system-prompt', SYSTEM_PROMPT,
     ];
     if (opts.model) args.push('--model', opts.model);
