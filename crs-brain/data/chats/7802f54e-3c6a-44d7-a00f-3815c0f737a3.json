@@ -1,0 +1,20 @@
+{
+  "id": "7802f54e-3c6a-44d7-a00f-3815c0f737a3",
+  "title": "Who is marina",
+  "sessionId": "7aef4056-2afc-4fd8-86e0-1de44e08f178",
+  "created": "2026-07-14T17:40:17.150Z",
+  "updated": "2026-07-14T17:40:30.651Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Who is marina",
+      "ts": "2026-07-14T17:40:17.150Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "No mention of \"marina\" anywhere in the CRS knowledge base — not in `brain/`, `decisions.md`, `data/`, specs, or any project file.\n\nI don't have anyone named Marina on record. If she's a person you want tracked (a contact, pilot casino stakeholder, team member), tell me who she is and I'll note it. Otherwise, no fabrication — she's not in the project.",
+      "ts": "2026-07-14T17:40:30.651Z"
+    }
+  ]
+}
