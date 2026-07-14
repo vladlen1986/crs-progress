@@ -1,0 +1,21 @@
+{
+  "id": "d3103539-ba71-44c1-b671-cbfdf2df52f3",
+  "title": "stop",
+  "sessionId": "2291f90c-c61e-4be0-a5c5-cdf803f44c6f",
+  "bp": true,
+  "created": "2026-07-14T21:46:08.030Z",
+  "updated": "2026-07-14T21:46:18.559Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "stop",
+      "ts": "2026-07-14T21:46:08.030Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Stopped. Nothing is running and no changes are pending. Let me know what you'd like to do next.",
+      "ts": "2026-07-14T21:46:18.559Z"
+    }
+  ]
+}
