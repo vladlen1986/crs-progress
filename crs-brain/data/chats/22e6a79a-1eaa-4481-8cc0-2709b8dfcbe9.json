@@ -1,0 +1,20 @@
+{
+  "id": "22e6a79a-1eaa-4481-8cc0-2709b8dfcbe9",
+  "title": "hu",
+  "sessionId": "57c4d1c0-af67-4019-bd40-867b55041246",
+  "created": "2026-07-14T06:51:10.574Z",
+  "updated": "2026-07-14T06:51:14.889Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "hu",
+      "ts": "2026-07-14T06:51:10.574Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Looks like a typo — did you mean to type something? Let me know what you need (progress update, a question about the CRS spec, brain/ lookup, etc.).",
+      "ts": "2026-07-14T06:51:14.889Z"
+    }
+  ]
+}
