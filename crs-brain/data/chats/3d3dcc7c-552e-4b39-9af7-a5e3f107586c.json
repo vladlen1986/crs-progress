@@ -3,7 +3,7 @@
   "title": "side bar on the left and right must have button to collapse",
   "sessionId": "8a0ab176-f193-4fbe-874c-1e0e4dc8c84f",
   "created": "2026-07-14T15:53:54.441Z",
-  "updated": "2026-07-14T16:04:35.871Z",
+  "updated": "2026-07-14T16:05:19.196Z",
   "messages": [
     {
       "role": "user",
@@ -39,6 +39,19 @@
       "role": "assistant",
       "content": "Done. The queued section already sat above the input in markup, but its strip was full-width and left-aligned while the input is centered at 830px — so the chips didn't line up over the box. I constrained `.queue-strip` to the same `max-width:830px` centered width as the composer (index.html:159), so now every queued item sits directly above the input, aligned with it.\n\nJust reload the page (it's a static-file change, no server restart needed).\n\nOne check on intent: the queued items render as wrapped chips (each truncated to ~240px with a `×` to remove). If by \"all of them\" you meant each queued prompt shown in full on its own row (stacked list) rather than compact chips, say so and I'll switch it to full-width rows.",
       "ts": "2026-07-14T16:04:35.871Z"
+    },
+    {
+      "role": "user",
+      "content": "one one below another",
+      "ts": "2026-07-14T16:04:36.386Z",
+      "attachments": [
+        "crs-brain/data/attachments/ff616eed-Screenshot 2026-07-14 at 19.56.03.png"
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The queued items now stack vertically — one below another — as full-width rows directly above the input, with the `×` remove button on the right of each. Reload the page to see it (static file change, no server restart needed).",
+      "ts": "2026-07-14T16:05:19.196Z"
     }
   ]
 }
