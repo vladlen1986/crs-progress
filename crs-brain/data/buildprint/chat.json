@@ -20,6 +20,16 @@
       "role": "assistant",
       "content": "Yes, I'm here. Ready when you are.",
       "ts": "2026-07-14T18:24:55.870Z"
+    },
+    {
+      "role": "user",
+      "content": "are you buildprint.io",
+      "ts": "2026-07-14T18:25:05.391Z"
+    },
+    {
+      "role": "assistant",
+      "content": "No. I'm Claude (Claude Code), acting as your CRS Brain Buildprint copilot. I *use* the Buildprint CLI (`buildprint sync/check/apply`) to operate your CRS Bubble app on the `test` branch — but I'm not Buildprint itself, and I'm not affiliated with buildprint.io. Buildprint is the tool; I'm the operator driving it for you.",
+      "ts": "2026-07-14T18:25:13.756Z"
     }
   ]
 }
