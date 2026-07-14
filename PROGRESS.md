@@ -20,7 +20,7 @@ Core app (`crs-brain/`):
 - **Manual auto-updater** `scripts/update_bubble_manual.py`, `scripts/update_buildprint_manual.py`, `scripts/update-manuals.sh` — server runs weekly (`server.js` `maybeSyncManuals`).
 - **Buildprint integration** — CLI linked (`buildprint`, `~/.local/bin`), Test branch cloned to `~/projects/crs-bubble/casinoreportingsystem/test` (OUTSIDE the repo). Buildprint = a full chat mode (`chat.bp:true` runs `runClaudeStream` in the workspace w/ `BP_PROMPT` + `--add-dir REPO_ROOT`). **Buildprint→Brain tracking**: `bpSyncDiff()` + `/api/bp/track` + 20-min `maybeTrackBuildprint()` — syncs Bubble, diffs snapshot vs `crs-brain/data/buildprint/last-tracked.txt`, feeds changed files to the brain (`BP_TRACK_PROMPT`) which updates `brain/*.md`.
 - **Mobile** — LAN PIN gate (`crs-brain/.pin`, gitignored, current PIN persisted), responsive drawers, Tailscale (Mac IP `100.114.97.93:4317`).
-- Recent bug fixes: mid-stream chat-switch no longer strands reply / sticks Stop (view-generation guard + live re-attach, `streamChat` in index.html); project-only file view default; Finder/Explorer popup + file-type icon tiles; map folder-node → explorer (`#explore=` hash); composer = Claude-app style (model+effort inside); Chats tab clears an open file; **usage fixed** (node-pty `spawn-helper` chmod +x; Claude Code 2.1.209 dropped `rate_limits` → panel now shows context window+cost); **sidebar chat search** (`/api/search-chats` + `#chatSearch`).
+- Recent bug fixes: mid-stream chat-switch no longer strands reply / sticks Stop (view-generation guard + live re-attach, `streamChat` in index.html); project-only file view default; Finder/Explorer popup + file-type icon tiles; map folder-node → explorer (`#explore=` hash); composer = Claude-app style (model+effort inside); Chats tab clears an open file; **usage fixed** (node-pty `spawn-helper` chmod +x; 5h/7d rate-limit bars restored 2026-07-15 — capture bug, not a Claude Code removal; see §7); **sidebar chat search** (`/api/search-chats` + `#chatSearch`).
 
 ## 3. DONE — 5-request UI batch (all implemented + verified in-browser 2026-07-15)
 Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shipped and checked in a live browser (no console errors; server on :4317).
@@ -54,7 +54,7 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 
 ## 7. Gotchas
 - **node-pty `spawn-helper` needs `chmod +x`** on this Mac (was `-rw-r--r--` → `posix_spawnp failed`). After any `npm install`/rebuild in `crs-brain/`, re-run `chmod +x node_modules/node-pty/prebuilds/darwin-*/spawn-helper`. NOT committed (would churn/break Windows).
-- **Claude Code 2.1.209 dropped `rate_limits` from the statusline** — the old 5h/7d usage bars cannot be restored; panel now shows context-window% + session cost from `context_window`/`cost`.
+- **~~Claude Code 2.1.209 dropped `rate_limits`~~ — WRONG (corrected 2026-07-15).** 2.1.209 still emits `rate_limits` (its own embedded statusline schema: *"Only present for subscribers after first API response"*). The 5h/7d bars were lost to a **capture bug**, now fixed: (a) the statusline used to overwrite `usage.json` on every render, so a fresh session's startup render (no rate_limits yet) wiped the bars → statusline now **merges**, carrying last-known `rate_limits` forward (+`rate_limits_at`); (b) "Fetch fresh reading" spawned the probe with `--model haiku` (→ panel showed "Haiku 4.5") and captured the pre-response startup render → probe now uses the **default model** and polls until a reading with **fresh** `rate_limits` (post-response) appears. Bars + correct model confirmed live (5h/7d/context all rendering).
 - **Do NOT commit `crs-brain/node_modules` changes** — the rebuild deletes Windows-only files (`conpty.dll`, `OpenConsole.exe`); committing those breaks node-pty on the office Windows PC.
 - **The running server dies when the Claude Code session that started it ends** — for persistent use Vlad double-clicks `start.command` / `start-mobile.command` himself.
 - **Mobile needs the Mac awake + `start-mobile.command` running + Tailscale on the phone.** Address: `http://100.114.97.93:4317`.
@@ -63,6 +63,11 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 ---
 
 ## Decisions log (append-only)
+
+### 2026-07-15 — Session: usage bars fixed (5h/7d restored)
+- Root-caused the missing session/weekly bars + wrong "Haiku 4.5" model. NOT a Claude Code removal (2.1.209 still emits `rate_limits`) — it was a capture bug (see corrected §7 gotcha).
+- Fixes: `statusline.js` now **merges** (preserves last-known `rate_limits` + records `rate_limits_at`) so a fresh render can't wipe the bars; `server.js populateUsage()` drops the `--model haiku` override (uses the user's **default** model → correct label) and polls until a **post-response** reading with fresh `rate_limits` lands (grace-fallback to newer model/cost if an account never exposes limits); `index.html` shows "Limits read Xm ago" for the bars.
+- Verified live: real capture returned Opus 4.8 (1M context), Session 5h ~0–1%, Weekly 7d 63%, context 3%. Restarted the orphaned :4317 server on the fixed code. Committed.
 
 ### 2026-07-15 — Session: finished the 5-request UI batch
 - Shipped all 5 UI items (§3): left-sidebar Map/Kanban nav, taller composer, clickable dashboard stat cards, drag-resizable left sidebar (persisted), and Progress removed from the right panel. Touches `crs-brain/public/index.html` + `map.html` only.

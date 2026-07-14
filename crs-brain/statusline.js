@@ -24,15 +24,25 @@ process.stdin.on('end', () => {
   let j = {};
   try { j = JSON.parse(raw); } catch {}
 
-  // 1. persist usage for the app. Newer Claude Code dropped rate_limits from the
-  //    statusline and exposes context_window + cost instead; persist whatever's here.
+  // 1. persist usage for the app. `rate_limits` is present ONLY for subscribers
+  //    AFTER the first API response (per Claude Code's own statusline schema), so
+  //    a session's startup render — and any short/headless-ish turn — arrives
+  //    WITHOUT it. Naively overwriting usage.json on every render therefore wipes
+  //    the 5h/7d bars the moment any fresh session renders. So MERGE: always
+  //    refresh model/context/cost, but carry the last-known rate_limits forward
+  //    when this payload doesn't include one. `rate_limits_at` records when the
+  //    limits themselves were actually read (distinct from the render time `at`).
   try {
     const out = path.join(__dirname, 'data', 'usage.json');
     fs.mkdirSync(path.dirname(out), { recursive: true });
-    const payload = { at: Date.now(), model: (j.model && (j.model.display_name || j.model.id)) || null };
-    if (j.rate_limits) payload.rate_limits = j.rate_limits;
-    if (j.context_window) payload.context_window = j.context_window;
-    if (j.cost) payload.cost = j.cost;
+    let prev = {};
+    try { prev = JSON.parse(fs.readFileSync(out, 'utf8')) || {}; } catch {}
+    const hasRL = j.rate_limits && (j.rate_limits.five_hour || j.rate_limits.seven_day);
+    const payload = { at: Date.now(), model: (j.model && (j.model.display_name || j.model.id)) || prev.model || null };
+    if (hasRL) { payload.rate_limits = j.rate_limits; payload.rate_limits_at = Date.now(); }
+    else if (prev.rate_limits) { payload.rate_limits = prev.rate_limits; payload.rate_limits_at = prev.rate_limits_at || prev.at; }
+    payload.context_window = j.context_window || prev.context_window || undefined;
+    payload.cost = j.cost || prev.cost || undefined;
     fs.writeFileSync(out, JSON.stringify(payload, null, 2));
   } catch {}
 

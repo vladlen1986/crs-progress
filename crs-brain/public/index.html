@@ -1406,7 +1406,8 @@ async function loadUsage(){
     return;
   }
   let rows='';
-  // Newer Claude Code: rate_limits gone → show context window + session cost.
+  // rate_limits (5h session + 7d weekly) show for subscribers once a reading was
+  // captured after an API response; context window + cost render alongside/below.
   if(d.rate_limits){
     if(d.rate_limits.five_hour) rows+=usageRow('Session · 5h', d.rate_limits.five_hour);
     if(d.rate_limits.seven_day) rows+=usageRow('Weekly · 7d', d.rate_limits.seven_day);
@@ -1423,7 +1424,11 @@ async function loadUsage(){
     rows+=`<div class="sub" style="margin-top:8px">Session: ${d.cost.total_cost_usd?('$'+d.cost.total_cost_usd.toFixed(2)+' · '):''}+${d.cost.total_lines_added||0}/-${d.cost.total_lines_removed||0} lines</div>`;
   }
   if(!rows) rows='<div class="note">Waiting for your next Claude Code render…</div>';
-  box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} Updated ${fmtAgo(d.at)}</div>`+
+  // For the 5h/7d bars the meaningful timestamp is when the limits were read, which
+  // can trail the last render (limits carry forward until a fresh post-response read).
+  const stamp = d.rate_limits ? (d.rate_limits_at||d.at) : d.at;
+  const stampLbl = d.rate_limits ? 'Limits read' : 'Updated';
+  box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} ${stampLbl} ${fmtAgo(stamp)}</div>`+
     `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
     `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
 }

@@ -114,12 +114,18 @@ function populateUsage() {
     try { pty = require('node-pty'); }
     catch { return resolve({ ok: false, error: 'node-pty not installed (run npm install in crs-brain)' }); }
 
-    const before = (loadUsage() || {}).at || 0;
+    const prevUsage = loadUsage() || {};
+    const before = prevUsage.at || 0;
+    const beforeRLAt = prevUsage.rate_limits_at || 0;
     const isWin = process.platform === 'win32';
     // node-pty's posix_spawnp doesn't reliably resolve 'claude' via PATH — use the
     // full binary path (found via extended PATH) so the pty can exec it.
     const file = isWin ? 'cmd.exe' : (resolveBin('claude') || 'claude');
-    const args = (isWin ? ['/c', 'claude'] : []).concat(['--model', 'claude-haiku-4-5-20251001']);
+    // Use the user's DEFAULT model — don't force Haiku. Forcing a model made the
+    // usage panel report that model (e.g. "Haiku 4.5") instead of what the user
+    // actually runs. rate_limits are subscription-wide, so the probe model doesn't
+    // change the numbers; the honest thing is to reflect their real default.
+    const args = (isWin ? ['/c', 'claude'] : []);
 
     let term;
     try {
@@ -128,7 +134,10 @@ function populateUsage() {
 
     term.onData(() => {});
     let done = false;
-    const sendTimer = setTimeout(() => { try { term.write('hi\r'); } catch {} }, 3500);
+    // Send a cheap turn to force an API response; the statusline only emits
+    // rate_limits AFTER that response. Resend a couple times in case the TUI
+    // wasn't ready to accept input on the first write.
+    const sendTimers = [3500, 7000, 11000].map((ms) => setTimeout(() => { try { term.write('hi\r'); } catch {} }, ms));
     const cleanup = () => {
       try {
         if (isWin && term.pid) spawn('taskkill', ['/PID', String(term.pid), '/T', '/F'], { windowsHide: true });
@@ -137,15 +146,26 @@ function populateUsage() {
     };
     const finish = (ok, error) => {
       if (done) return; done = true;
-      clearTimeout(sendTimer); clearInterval(poll); clearTimeout(killTimer);
+      sendTimers.forEach(clearTimeout); clearInterval(poll); clearTimeout(killTimer);
       cleanup();
       resolve({ ok, error, data: loadUsage() });
     };
+    // Wait for a reading whose rate_limits are NEWLY read (post-response) — not the
+    // session's startup render, which arrives before the first API response and so
+    // carries no fresh limits. If the account never returns rate_limits (e.g. API-key
+    // users), the grace fallback below still accepts the newer model/context/cost.
+    let sawWrite = false;
     const poll = setInterval(() => {
       const u = loadUsage();
-      if (u && u.at && u.at > before) finish(true);
+      if (!u || !u.at || u.at <= before) return;
+      sawWrite = true;  // we captured *a* newer render
+      const freshRL = u.rate_limits && (u.rate_limits.five_hour || u.rate_limits.seven_day)
+        && (u.rate_limits_at || 0) > beforeRLAt;
+      if (freshRL) finish(true);
     }, 700);
-    const killTimer = setTimeout(() => finish(false, 'timed out waiting for a reading'), 45000);
+    // Grace fallback: if we saw a render but no fresh rate_limits within the window,
+    // accept the latest reading rather than reporting failure.
+    const killTimer = setTimeout(() => finish(sawWrite, sawWrite ? undefined : 'timed out waiting for a reading'), 45000);
   });
 }
 
