@@ -26,9 +26,14 @@
     color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit;cursor:pointer}
-  ::-webkit-scrollbar{width:9px;height:9px}
-  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,.09);border-radius:6px}
-  ::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.16)}
+  /* scrollbars — CRS tokens: track surface-1, thumb border→border-active, accent when dragging */
+  *{scrollbar-width:thin;scrollbar-color:#333333 #1E1E1E}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:var(--panel);border-radius:10px}
+  ::-webkit-scrollbar-thumb{background:#333333;border-radius:10px;border:2px solid var(--panel)}
+  ::-webkit-scrollbar-thumb:hover{background:#3D3D3D}
+  ::-webkit-scrollbar-thumb:active{background:var(--accent)}
+  ::-webkit-scrollbar-corner{background:transparent}
 
   .app{display:grid;grid-template-columns:274px 1fr 330px;height:100vh}
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
