@@ -67,6 +67,50 @@
   .bcard .nm{overflow:hidden;text-overflow:ellipsis}
   body.board-open .dock{bottom:calc(38vh + 26px)}
   body.board-open .hint{display:none}
+  .bhead .bseg{display:flex;gap:3px;margin-left:14px}
+  .bhead .bseg button{background:var(--panel2);border:1px solid var(--line);color:var(--muted);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
+  .bhead .bseg button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* preview panel — floats above the board */
+  .pv{position:fixed;left:16px;right:16px;bottom:calc(38vh + 12px);top:64px;z-index:13;background:rgba(14,14,17,.97);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:12px;display:none;flex-direction:column;overflow:hidden}
+  .pv.open{display:flex}
+  .pv .pvhead{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .pv .pvhead .nm{color:var(--primary);font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pv .pvhead .sp{flex:1}
+  .pv .pvhead button{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .pv .pvhead button:hover{color:var(--primary);border-color:var(--line2)}
+  .pv .pvhead button.on{background:var(--accent-soft, rgba(59,130,246,.13));color:var(--primary);border-color:var(--line)}
+  .pv .pvhead .x{border:none;background:none;font-size:15px;color:var(--muted)}
+  .pv .pvhead .x:hover{color:var(--primary)}
+  .pv iframe{flex:1;border:none;background:#fff}
+  .pv iframe.dark{background:#181818}
+  .pv .pvbody{flex:1;overflow:auto;padding:18px 26px;display:none}
+  .pv .pvbody.show{display:block}
+  .pv .pvbody pre.raw{white-space:pre-wrap;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:12px;line-height:1.6;color:var(--secondary);margin:0}
+  .pv .pvbody img{max-width:100%;border-radius:10px;border:1px solid var(--line)}
+  /* rich md */
+  .pv .mdtabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .pv .mdtabs.hide,.pv .pvhead .mdonly.hide{display:none}
+  .pv .mdtabs button{background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--tc,#8B5CF6);color:var(--secondary);border-radius:6px;padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+  .pv .mdtabs button.on{color:var(--primary);background:rgba(255,255,255,.07)}
+  .pv .mdtabs input{margin-left:auto;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:180px}
+  .pv .mdtabs input:focus{border-color:var(--accent)}
+  .pv .md{line-height:1.65;font-size:13.5px;color:var(--secondary);max-width:860px}
+  .pv .md h1,.pv .md h2,.pv .md h3{color:var(--primary);margin:1.2em 0 .5em;line-height:1.3}
+  .pv .md h1{font-size:20px}.pv .md h2{font-size:16px;padding-left:10px;border-left:4px solid var(--sc,#8B5CF6)}.pv .md h3{font-size:13.5px}
+  .pv .md p{margin:.5em 0}
+  .pv .md strong{color:var(--primary)}
+  .pv .md code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#60A5FA}
+  .pv .md pre{background:#0b0b0e;border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto}
+  .pv .md pre code{background:none;color:#d5d5da}
+  .pv .md table{border-collapse:collapse;margin:.8em 0;font-size:12.5px;width:100%}
+  .pv .md th,.pv .md td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+  .pv .md th{color:var(--primary);background:var(--panel2)}
+  .pv .md blockquote{border-left:3px solid var(--sc,#3B82F6);margin:.8em 0;padding:2px 0 2px 12px;color:var(--muted)}
+  .pv .md ul,.pv .md ol{padding-left:20px}
+  .pv .md a{color:#60A5FA;text-decoration:none}
+  .pv .md mark{background:rgba(249,115,22,.35);color:#fff;border-radius:3px;padding:0 2px}
+  .pv .md .secbadge{display:inline-block;font-size:9.5px;letter-spacing:1.2px;font-weight:700;color:var(--sc);border:1px solid var(--sc);border-radius:10px;padding:1px 9px;margin-bottom:4px;text-transform:uppercase}
 
   .tip{position:fixed;pointer-events:none;background:rgba(20,20,23,.95);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:11.5px;color:var(--primary);z-index:20;display:none;max-width:300px}
   .tip .sub{color:var(--muted);font-size:10px;margin-top:2px}
@@ -98,8 +142,26 @@
 <button class="menu-btn" id="fsBtn" style="right:118px" title="Fullscreen" onclick="toggleFS()">⛶</button>
 <button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
 <div class="board" id="board">
-  <div class="bhead">▦ FOLDER BOARD <span class="n" id="boardN"></span><button class="close" onclick="toggleBoard()">✕</button></div>
+  <div class="bhead">▦ FOLDER BOARD
+    <span class="bseg" id="boardSeg">
+      <button data-c="all" class="on">ALL</button><button data-c="crs">CRS ONLY</button>
+    </span>
+    <span class="n" id="boardN"></span><button class="close" onclick="toggleBoard()">✕</button></div>
   <div class="cols" id="boardCols"></div>
+</div>
+<div class="pv" id="pv">
+  <div class="pvhead">
+    <span class="nm" id="pvName"></span>
+    <span class="sp"></span>
+    <button id="pvRendered" class="mdonly on" onclick="pvMode('rendered')">Rendered</button>
+    <button id="pvText" class="mdonly" onclick="pvMode('text')">Text</button>
+    <button id="pvNewTab" onclick="pvOpenTab()">Open in new tab ↗</button>
+    <button id="pvBrowser" onclick="pvOpenBrowser()">Default browser</button>
+    <button class="x" onclick="closePv()">✕</button>
+  </div>
+  <div class="mdtabs" id="pvTabs"></div>
+  <iframe id="pvFrame" style="display:none"></iframe>
+  <div class="pvbody" id="pvBody"></div>
 </div>
 <div class="panel" id="panel">
   <input type="search" id="q" placeholder="Search files… ( / )">
@@ -497,7 +559,9 @@ document.getElementById('layoutSeg').addEventListener('click',e=>{ const b=e.tar
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
   S.view=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph(); });
 document.getElementById('contentSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
-  S.content=b.dataset.c; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph();
+  S.content=b.dataset.c; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('#boardSeg button').forEach(x=>x.classList.toggle('on',x.dataset.c===S.content));
+  buildGraph();
   flash(S.content==='crs'?'CRS content only':'Showing everything'); });
 // fullscreen
 function toggleFS(){
@@ -527,6 +591,7 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
 document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
 document.querySelectorAll('#contentSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
+document.querySelectorAll('#boardSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
 
 // ---- kanban board: folders as columns, files as clickable cards ----------------------
 let boardOpen=false, searchMatches=null;
@@ -534,7 +599,7 @@ function toggleBoard(){ boardOpen=!boardOpen;
   document.getElementById('board').classList.toggle('open',boardOpen);
   document.body.classList.toggle('board-open',boardOpen);
   document.getElementById('boardBtn').classList.toggle('on',boardOpen);
-  if(boardOpen) renderBoard(); }
+  if(boardOpen) renderBoard(); else closePv(); }
 function renderBoard(){
   const cols=document.getElementById('boardCols'); cols.innerHTML='';
   const T=contentTree()||[]; let total=0;
@@ -547,8 +612,8 @@ function renderBoard(){
       const c=document.createElement('div'); c.className='bcard'; c.style.setProperty('--cc',color);
       const ext=(f.name.split('.').pop()||'').slice(0,4);
       c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
-      c.title=f.path+' — click to open';
-      c.onclick=()=>openNode({kind:'file',path:f.path,label:f.name});
+      c.title=f.path+' — click to preview';
+      c.onclick=()=>openPreview({path:f.path,label:f.name});
       c.onmouseenter=()=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); } };
       c.onmouseleave=()=>{ matches=searchMatches; };
       cards.appendChild(c);
@@ -569,6 +634,104 @@ function renderBoard(){
   mkCol('root', rootFiles, rootHub?rootHub.color:'#C4B5FD');
   document.getElementById('boardN').textContent='· '+total+' files · click to open · hover to locate in the galaxy';
 }
+
+// ---- preview panel: html iframe · rich md with section tabs · text -------------------
+const pv={ el:document.getElementById('pv'), frame:document.getElementById('pvFrame'),
+  body:document.getElementById('pvBody'), tabs:document.getElementById('pvTabs'),
+  name:document.getElementById('pvName') };
+let pvFile=null, pvRaw='', pvSecs=[], pvSec=0, pvQ='', pvM='rendered';
+const escH=s=>s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function miniInline(s){
+  return escH(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+}
+function miniMd(src){
+  const L=src.replace(/\r/g,'').split('\n'); let h='',i=0;
+  while(i<L.length){ const l=L[i];
+    if(/^```/.test(l)){ let c=''; i++; while(i<L.length&&!/^```/.test(L[i])){c+=L[i]+'\n';i++;} i++; h+='<pre><code>'+escH(c)+'</code></pre>'; continue; }
+    if(/^#{1,6}\s/.test(l)){ const n=l.match(/^#+/)[0].length; h+=`<h${n}>${miniInline(l.replace(/^#+\s/,''))}</h${n}>`; i++; continue; }
+    if(/^\s*>/.test(l)){ let q=''; while(i<L.length&&/^\s*>/.test(L[i])){q+=L[i].replace(/^\s*>\s?/,'')+' ';i++;} h+='<blockquote>'+miniInline(q)+'</blockquote>'; continue; }
+    if(/^\s*[-*+]\s/.test(l)){ h+='<ul>'; while(i<L.length&&/^\s*[-*+]\s/.test(L[i])){h+='<li>'+miniInline(L[i].replace(/^\s*[-*+]\s/,''))+'</li>';i++;} h+='</ul>'; continue; }
+    if(/^\s*\d+\.\s/.test(l)){ h+='<ol>'; while(i<L.length&&/^\s*\d+\.\s/.test(L[i])){h+='<li>'+miniInline(L[i].replace(/^\s*\d+\.\s/,''))+'</li>';i++;} h+='</ol>'; continue; }
+    if(/^\s*\|.*\|\s*$/.test(l)&&i+1<L.length&&/^\s*\|[-:\s|]+\|\s*$/.test(L[i+1])){
+      const row=x=>x.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      const head=row(l); i+=2; let b='';
+      while(i<L.length&&/^\s*\|.*\|\s*$/.test(L[i])){ b+='<tr>'+row(L[i]).map(c=>'<td>'+miniInline(c)+'</td>').join('')+'</tr>'; i++; }
+      h+='<table><thead><tr>'+head.map(c=>'<th>'+miniInline(c)+'</th>').join('')+'</tr></thead><tbody>'+b+'</tbody></table>'; continue; }
+    if(l.trim()===''){ i++; continue; }
+    let p=l; i++;
+    while(i<L.length&&L[i].trim()!==''&&!/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+\.\s|\s*>|\s*\|)/.test(L[i])){ p+=' '+L[i]; i++; }
+    h+='<p>'+miniInline(p)+'</p>';
+  }
+  return h;
+}
+function openPreview(f){ // f: {path,label}
+  pvFile=f; pv.el.classList.add('open');
+  pv.name.textContent=f.path;
+  const html=/\.html?$/i.test(f.path), md=/\.md$/i.test(f.path), img=/\.(png|jpe?g|gif|svg|webp)$/i.test(f.path);
+  document.querySelectorAll('.pv .mdonly').forEach(b=>b.classList.toggle('hide',!md));
+  document.getElementById('pvBrowser').style.display = html?'':'none';
+  pv.tabs.classList.add('hide');
+  if(html){ pv.frame.style.display=''; pv.body.classList.remove('show');
+    pv.frame.src='/api/raw?path='+encodeURIComponent(f.path); return; }
+  pv.frame.style.display='none'; pv.frame.src='about:blank'; pv.body.classList.add('show');
+  if(img){ pv.body.innerHTML='<img src="/api/raw?path='+encodeURIComponent(f.path)+'">'; return; }
+  pv.body.innerHTML='<pre class="raw" style="color:var(--muted)">loading…</pre>';
+  fetch('/api/file?path='+encodeURIComponent(f.path)).then(r=>r.json()).then(d=>{
+    pvRaw=d.content||'';
+    if(md){ pvParseSecs(); pvM='rendered'; pvQ=''; pvRenderMd(); }
+    else pv.body.innerHTML='<pre class="raw">'+escH(pvRaw)+'</pre>';
+  }).catch(()=>pv.body.innerHTML='<pre class="raw">could not load</pre>');
+}
+function pvParseSecs(){
+  const L=pvRaw.replace(/\r/g,'').split('\n');
+  pvSecs=[]; let cur={title:'Top', body:[]};
+  for(const l of L){
+    if(/^##\s/.test(l)){ if(cur.body.join('').trim()||pvSecs.length===0&&cur.body.length) pvSecs.push(cur);
+      cur={title:l.replace(/^##\s/,'').trim(), body:[]}; }
+    else cur.body.push(l);
+  }
+  pvSecs.push(cur);
+  pvSecs=pvSecs.filter(s=>s.title==='Top'?s.body.join('').trim():true);
+  pvSec=0;
+}
+function pvHits(s){ return pvQ ? (s.title+'\n'+s.body.join('\n')).toLowerCase().includes(pvQ.toLowerCase()) : true; }
+function pvRenderMd(){
+  document.getElementById('pvRendered').classList.toggle('on',pvM==='rendered');
+  document.getElementById('pvText').classList.toggle('on',pvM==='text');
+  if(pvM==='text'){ pv.tabs.classList.add('hide'); pv.body.innerHTML='<pre class="raw">'+escH(pvRaw)+'</pre>'; return; }
+  // tabs: one per ## section, colored
+  pv.tabs.classList.remove('hide'); pv.tabs.innerHTML='';
+  const visible=pvSecs.map((s,i)=>({s,i})).filter(x=>pvHits(x.s));
+  if(!visible.find(x=>x.i===pvSec)) pvSec=visible.length?visible[0].i:0;
+  visible.forEach(({s,i})=>{
+    const b=document.createElement('button'); b.textContent=s.title; b.style.setProperty('--tc',MEMC[i%MEMC.length]);
+    b.classList.toggle('on',i===pvSec); b.onclick=()=>{pvSec=i;pvRenderMd();};
+    pv.tabs.appendChild(b);
+  });
+  const inp=document.createElement('input'); inp.placeholder='Search sections…'; inp.value=pvQ;
+  inp.oninput=()=>{pvQ=inp.value;pvRenderMd();setTimeout(()=>{const el=pv.tabs.querySelector('input');el&&el.focus();},0)};
+  pv.tabs.appendChild(inp);
+  const sec=pvSecs[pvSec]||{title:'',body:[]};
+  const color=MEMC[pvSec%MEMC.length];
+  let html='<div class="md" style="--sc:'+color+'">'
+    +(sec.title!=='Top'?'<span class="secbadge">'+escH(sec.title)+'</span>':'')
+    +miniMd((sec.title!=='Top'?'## '+sec.title+'\n':'')+sec.body.join('\n'))+'</div>';
+  if(pvQ){ const re=new RegExp('('+pvQ.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','gi');
+    html=html.replace(/>([^<]+)</g,(m,t)=>'>'+t.replace(re,'<mark>$1</mark>')+'<'); }
+  pv.body.innerHTML=html;
+}
+function pvMode(m){ pvM=m; pvRenderMd(); }
+function pvOpenTab(){ if(pvFile) window.open('/api/raw?path='+encodeURIComponent(pvFile.path),'_blank'); }
+function pvOpenBrowser(){ if(pvFile) fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:pvFile.path})}).then(()=>flash('Opened in your browser')); }
+function closePv(){ pv.el.classList.remove('open'); pv.frame.src='about:blank'; pvFile=null; }
+document.getElementById('boardSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  S.content=b.dataset.c;
+  document.querySelectorAll('#boardSeg button').forEach(x=>x.classList.toggle('on',x===b));
+  document.querySelectorAll('#contentSeg button').forEach(x=>x.classList.toggle('on',x.dataset.c===S.content));
+  buildGraph(); });
 
 // ---- chat dock: ask the brain, highlight what it points at ---------------------------
 const dockBody=document.getElementById('dockBody'), dockQ=document.getElementById('dockQ'),
