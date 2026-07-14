@@ -161,6 +161,10 @@ const SYSTEM_PROMPT = [
   'BUBBLE: any question about how Bubble itself works (data, privacy rules, workflows, API, elements,',
   'workload, security, performance) → brain/bubble/INDEX.md — the COMPLETE official manual (583 pages,',
   'verbatim) lives locally under brain/bubble/. Cite the exact page file when answering.',
+  'FORUM: community patterns/workarounds → brain/bubble-forum/ (87 curated threads). For topics not',
+  'covered there, you may search LIVE via WebFetch: https://forum.bubble.io/search.json?q=<query>+in:solved',
+  'then fetch https://forum.bubble.io/t/<topic_id>.json — always label forum content as community advice',
+  '(not official), cite the thread URL, and prefer the official manual when they conflict.',
   'You have full read/write access to the repo. Ground every answer in the actual files',
   '(brain/, CLAUDE.md, decisions.md, design/, data/, specs/, and any *.md the user adds). Never fabricate modules or facts.',
   'The progress board lives at crs-brain/data/progress.json. When the user asks you to update progress,',
@@ -264,6 +268,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
+      '--allowedTools', 'WebFetch', 'WebSearch',   // live forum/docs lookups
       '--append-system-prompt', SYSTEM_PROMPT,
     ];
     if (opts.model) args.push('--model', opts.model);
