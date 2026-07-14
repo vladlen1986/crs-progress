@@ -143,7 +143,17 @@ const PORT = process.env.CRS_BRAIN_PORT || 4317;
 // Localhost clients never need the PIN.
 const HOST = process.env.CRS_BRAIN_HOST || '127.0.0.1';
 const LAN = HOST !== '127.0.0.1';
-const PIN = LAN ? (process.env.CRS_BRAIN_PIN || String(100000 + Math.floor(Math.random() * 900000))) : null;
+// Stable PIN so phones stay logged in across Mac reboots/relaunches:
+// env override → else a persisted PIN in crs-brain/.pin (gitignored, generated once).
+function resolvePin() {
+  if (process.env.CRS_BRAIN_PIN) return process.env.CRS_BRAIN_PIN;
+  const f = path.join(__dirname, '.pin');
+  try { const v = fs.readFileSync(f, 'utf8').trim(); if (/^\d{4,}$/.test(v)) return v; } catch {}
+  const v = String(100000 + Math.floor(Math.random() * 900000));
+  try { fs.writeFileSync(f, v); } catch {}
+  return v;
+}
+const PIN = LAN ? resolvePin() : null;
 
 function isLocalReq(req) {
   const a = req.socket.remoteAddress || '';
