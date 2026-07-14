@@ -1,0 +1,20 @@
+{
+  "id": "6885c1de-ceaf-4cfd-9f60-5d9c1b0f9861",
+  "title": "Hi",
+  "sessionId": "48ba07cb-2b60-409a-8a32-246903c0501b",
+  "created": "2026-07-14T09:35:06.722Z",
+  "updated": "2026-07-14T09:35:10.170Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hi",
+      "ts": "2026-07-14T09:35:06.722Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Hi Vlad. What do you need?",
+      "ts": "2026-07-14T09:35:10.170Z"
+    }
+  ]
+}
