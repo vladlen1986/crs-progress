@@ -100,6 +100,24 @@
   .iadd input{flex:1;background:var(--panel2);border:1px solid var(--line);border-radius:6px;color:var(--primary);padding:6px 9px;font-size:11px;font-family:inherit;outline:none;min-width:0}
   .iadd input:focus{border-color:var(--accent)}
   .iadd button{background:var(--accent);border:none;color:#fff;border-radius:6px;width:26px;font-weight:700;cursor:pointer;font-family:inherit}
+  /* tile view — sneak-peek thumbnails */
+  .bcol.tiles{flex-basis:246px}
+  .bcol.tiles .cards{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}
+  .tile{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:8px;background:var(--panel2);overflow:hidden;cursor:pointer;transition:border-color .15s}
+  .tile:hover{border-color:var(--cc,var(--accent))}
+  .tile iframe{width:520%;height:520%;transform:scale(.192);transform-origin:0 0;border:none;background:#0f0f12;pointer-events:none}
+  .tile .snip{padding:7px 8px;font-size:6.5px;line-height:1.5;color:var(--muted);overflow:hidden;height:100%;word-break:break-word}
+  .tile .snip b{color:var(--secondary);font-size:7.5px;display:block;margin-bottom:2px}
+  .tile img{width:100%;height:100%;object-fit:cover}
+  .tile .cap{position:absolute;left:0;right:0;bottom:0;background:rgba(10,10,12,.88);color:var(--secondary);font-size:9px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--line)}
+  /* floating hover focus — big enough to understand, not huge */
+  .hpv{position:fixed;width:360px;height:300px;z-index:30;background:#101014;border:1px solid var(--line2);border-radius:10px;overflow:hidden;display:none;pointer-events:none;box-shadow:0 18px 50px rgba(0,0,0,.6)}
+  .hpv.show{display:block}
+  .hpv iframe{width:250%;height:250%;transform:scale(.4);transform-origin:0 0;border:none;background:#0f0f12}
+  .hpv .snip{padding:14px 16px;font-size:10.5px;line-height:1.6;color:var(--secondary);overflow:hidden;height:100%}
+  .hpv .snip b{color:var(--primary);display:block;margin-bottom:6px;font-size:11.5px}
+  .hpv img{width:100%;height:100%;object-fit:contain}
+  .hpv .hcap{position:absolute;left:0;right:0;bottom:0;background:rgba(10,10,12,.9);color:var(--primary);font-size:10px;padding:4px 10px;border-top:1px solid var(--line)}
 
   /* preview panel — floats above the board */
   .pv{position:fixed;left:16px;right:16px;bottom:calc(38vh + 12px);top:64px;z-index:13;background:rgba(14,14,17,.97);backdrop-filter:blur(12px);border:1px solid var(--line2);border-radius:12px;display:none;flex-direction:column;overflow:hidden}
@@ -184,6 +202,7 @@
   <div class="bfilters" id="boardFilters"></div>
   <div class="cols" id="boardCols"></div>
 </div>
+<div class="hpv" id="hpv"></div>
 <div class="pv" id="pv">
   <div class="pvhead">
     <span class="nm" id="pvName"></span>
@@ -201,8 +220,11 @@
 <div class="panel" id="panel">
   <input type="search" id="q" placeholder="Search files… ( / )">
   <div class="lbl">Layout</div>
-  <div class="seg" id="layoutSeg">
+  <div class="seg" id="layoutSeg" style="flex-wrap:wrap">
     <button data-l="force" class="on">Force</button><button data-l="circle">Circle</button><button data-l="hex">Hex</button><button data-l="rings">Rings</button>
+  </div>
+  <div class="seg" id="layoutSeg2" style="flex-wrap:wrap">
+    <button data-l="orbit">Orbit</button><button data-l="spiral">Spiral</button><button data-l="grid">Grid</button><button data-l="tree">Tree</button><button data-l="sphere">Sphere</button>
   </div>
   <div class="lbl">View</div>
   <div class="seg" id="viewSeg">
@@ -409,6 +431,73 @@ function computeTargets(){
     order.forEach((n,i)=>{ const c=i%cols, r=Math.floor(i/cols);
       n.tx=(c-cols/2)*step+(r%2?step/2:0); n.ty=(r-order.length/cols/2)*step*0.87; });
   }
+  const hubsV=hubs.filter(visible);
+  const filesOf=h=>vis.filter(n=>n.cluster===h.id&&n.kind==='file');
+  const grp=k=>vis.filter(n=>n.kind===k);
+  if(S.layout==='orbit'){
+    // solar system — minimal: each department is a planet on its own orbit
+    byId['@center'].tx=0; byId['@center'].ty=0;
+    grp('skill').forEach((n,i,arr)=>{ const a=ringAngle*1.1+i*6.283/arr.length; n.tx=Math.cos(a)*82; n.ty=Math.sin(a)*82*0.9; });
+    byId['@skills'].tx=0; byId['@skills'].ty=-82;
+    hubsV.forEach((h,i)=>{ const R=170+i*56; const a=ringAngle*(0.5+0.9/(i+2))+i*1.9;
+      h.tx=Math.cos(a)*R; h.ty=Math.sin(a)*R*0.92;
+      const kids=filesOf(h);
+      kids.forEach((n,j)=>{ const ma=ringAngle*2+j*6.283/Math.max(6,kids.length); const mr=17+(j%3)*8;
+        n.tx=h.tx+Math.cos(ma)*mr*1.35; n.ty=h.ty+Math.sin(ma)*mr; }); });
+    const RR=170+hubsV.length*56;
+    grp('routine').forEach((n,i,arr)=>{ const a=-ringAngle*0.7+i*6.283/arr.length; n.tx=Math.cos(a)*RR; n.ty=Math.sin(a)*RR*0.92; });
+    byId['@routines'].tx=0; byId['@routines'].ty=-RR;
+    grp('app').forEach((n,i,arr)=>{ const a=ringAngle*0.4+i*6.283/arr.length; n.tx=Math.cos(a)*(RR+58); n.ty=Math.sin(a)*(RR+58)*0.92; });
+    byId['@apps'].tx=0; byId['@apps'].ty=-(RR+58);
+  }
+  if(S.layout==='spiral'){
+    // one galaxy arm — everything flows along a golden spiral out of the core
+    byId['@center'].tx=0; byId['@center'].ty=0;
+    let idx=0; const put=n=>{ const a=idx*0.43+ringAngle*0.8, r=42+idx*5.1;
+      n.tx=Math.cos(a)*r; n.ty=Math.sin(a)*r*0.9; idx++; };
+    grp('skill').forEach(put); byId['@skills'].tx=0; byId['@skills'].ty=-40;
+    hubsV.forEach(h=>{ const kids=filesOf(h);
+      const mid=idx+Math.floor(kids.length/2);
+      kids.forEach(put);
+      const a=mid*0.43+ringAngle*0.8, r=42+mid*5.1+30;
+      h.tx=Math.cos(a)*r; h.ty=Math.sin(a)*r*0.9; });
+    grp('routine').forEach(put);
+    grp('app').forEach(put);
+    const last=idx*0.43+ringAngle*0.8, lr=42+idx*5.1+40;
+    byId['@routines'].tx=Math.cos(last)*lr; byId['@routines'].ty=Math.sin(last)*lr*0.9;
+    byId['@apps'].tx=Math.cos(last+0.4)*(lr+30); byId['@apps'].ty=Math.sin(last+0.4)*(lr+30)*0.9;
+  }
+  if(S.layout==='grid'){
+    // constellation matrix — clean columns, one per department + ARMS columns
+    const groups=[...hubsV.map(h=>({hub:h,items:filesOf(h)})),
+      {hub:byId['@skills'],items:grp('skill')},{hub:byId['@routines'],items:grp('routine')},{hub:byId['@apps'],items:grp('app')}];
+    const gw=132, x0=-(groups.length-1)/2*gw;
+    byId['@center'].tx=0; byId['@center'].ty=-Math.min(H*0.34,300)-64;
+    groups.forEach((g,i)=>{ const x=x0+i*gw, top=-Math.min(H*0.34,300)+36;
+      if(g.hub){ g.hub.tx=x; g.hub.ty=top-30; }
+      g.items.forEach((n,j)=>{ n.tx=x+((j%2)?15:-15); n.ty=top+14+j*25; }); });
+  }
+  if(S.layout==='tree'){
+    // mind map — brain at the left, branches to the right
+    byId['@center'].tx=-Math.min(W*0.36,560); byId['@center'].ty=0;
+    const branches=[...hubsV.map(h=>({hub:h,items:filesOf(h)})),
+      {hub:byId['@skills'],items:grp('skill')},{hub:byId['@routines'],items:grp('routine')},{hub:byId['@apps'],items:grp('app')}];
+    const rows=branches.map(b=>Math.max(1,Math.ceil(b.items.length/6)));
+    const total=rows.reduce((s,r)=>s+r*30+44,0); let y=-total/2;
+    branches.forEach((b,i)=>{ const bh=rows[i]*30+44; const cy=y+bh/2; y+=bh;
+      if(b.hub){ b.hub.tx=-190; b.hub.ty=cy; }
+      b.items.forEach((n,j)=>{ const col=j%6, row=Math.floor(j/6);
+        n.tx=-40+col*52; n.ty=cy+(row-(rows[i]-1)/2)*30; }); });
+  }
+  if(S.layout==='sphere'){
+    // rotating 3D fibonacci sphere — the whole brain as an orb
+    byId['@center'].tx=0; byId['@center'].ty=0;
+    const items=vis.filter(n=>n.kind!=='center');
+    const N=items.length, R=Math.min(W,H)*0.42;
+    items.forEach((n,i)=>{ const y=1-2*(i+0.5)/N, rr=Math.sqrt(Math.max(0,1-y*y));
+      const th=i*2.399963+ringAngle*1.6;
+      n.tx=Math.cos(th)*rr*R; n.ty=y*R*0.86+Math.sin(th)*rr*26; });
+  }
   if(S.layout==='rings'){
     // concentric ARMS rings: center → skills → memory arcs → routines → applications
     const R1=120, R2a=185, R2b=330, R3=430, R4=520;
@@ -544,6 +633,25 @@ function draw(){
   }
   ctx.globalAlpha=1;
 
+  // orbit guides — thin, minimal
+  if(S.layout==='orbit'){
+    ctx.save(); ctx.lineWidth=1/cam.k; ctx.strokeStyle='rgba(255,255,255,.045)';
+    const nH=hubs.filter(h=>!h.hidden).length;
+    ctx.beginPath(); ctx.ellipse(0,0,82,82*0.9,0,0,7); ctx.stroke();
+    for(let i=0;i<nH;i++){ const R=170+i*56; ctx.beginPath(); ctx.ellipse(0,0,R,R*0.92,0,0,7); ctx.stroke(); }
+    const RR=170+nH*56;
+    ctx.strokeStyle='rgba(234,179,8,.10)'; ctx.beginPath(); ctx.ellipse(0,0,RR,RR*0.92,0,0,7); ctx.stroke();
+    ctx.strokeStyle='rgba(96,165,250,.10)'; ctx.beginPath(); ctx.ellipse(0,0,RR+58,(RR+58)*0.92,0,0,7); ctx.stroke();
+    ctx.restore();
+  }
+  if(S.layout==='sphere'){
+    ctx.save(); ctx.lineWidth=1/cam.k; ctx.strokeStyle='rgba(139,92,246,.09)';
+    const R=Math.min(W,H)*0.42;
+    ctx.beginPath(); ctx.ellipse(0,0,R,R*0.86,0,0,7); ctx.stroke();
+    ctx.strokeStyle='rgba(255,255,255,.03)';
+    ctx.beginPath(); ctx.ellipse(0,0,R,R*0.28,0,0,7); ctx.stroke();
+    ctx.restore();
+  }
   // ring guides for rings layout
   if(S.layout==='rings'){
     ctx.save(); ctx.lineWidth=1/cam.k;
@@ -724,8 +832,11 @@ cv.addEventListener('wheel',e=>{ e.preventDefault();
   cam.x-=(p.x)*(k2-cam.k); cam.y-=(p.y)*(k2-cam.k); cam.k=k2; },{passive:false});
 
 // ---- panel wiring -----------------------------------------------------------------------
-document.getElementById('layoutSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
-  S.layout=b.dataset.l; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); applyLayout(); });
+function setLayout(l){ S.layout=l;
+  document.querySelectorAll('#layoutSeg button,#layoutSeg2 button').forEach(x=>x.classList.toggle('on',x.dataset.l===l));
+  applyLayout(); }
+document.getElementById('layoutSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setLayout(b.dataset.l); });
+document.getElementById('layoutSeg2').addEventListener('click',e=>{ const b=e.target.closest('button'); if(b) setLayout(b.dataset.l); });
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
   S.view=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph(); });
 document.getElementById('contentSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
@@ -758,7 +869,7 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
   if(e.key==='Escape'){ ui.q.value=''; ui.q.dispatchEvent(new Event('input')); ui.q.blur(); }});
 
 // restore baked seg states
-document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
+document.querySelectorAll('#layoutSeg button,#layoutSeg2 button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
 document.querySelectorAll('#contentSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
 document.querySelectorAll('#boardSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
@@ -790,10 +901,39 @@ function chip(label,on,cb){ const b=document.createElement('button'); b.classNam
 function renderBoard(keepFocus){
   if(boardTab==='ideas') return renderIdeas(keepFocus);
   renderFiles(); }
+const SNIPCACHE={};   // path → first ~400 chars, for md/text tiles
+async function snippet(p){
+  if(SNIPCACHE[p]!==undefined) return SNIPCACHE[p];
+  try{ const d=await (await fetch('/api/file?path='+encodeURIComponent(p))).json();
+    return SNIPCACHE[p]=(d.content||'').replace(/[#>*`|-]/g,' ').replace(/\s+/g,' ').trim().slice(0,420); }
+  catch{ return SNIPCACHE[p]=''; }
+}
+const hpv=document.getElementById('hpv');
+function showHover(f,x,y){
+  const html=/\.html?$/i.test(f.path), img=/\.(png|jpe?g|gif|svg|webp)$/i.test(f.path);
+  if(html) hpv.innerHTML='<iframe src="/api/raw?path='+encodeURIComponent(f.path)+'"></iframe>';
+  else if(img) hpv.innerHTML='<img src="/api/raw?path='+encodeURIComponent(f.path)+'">';
+  else { hpv.innerHTML='<div class="snip"><b>'+f.name.replace(/</g,'&lt;')+'</b>…</div>';
+    snippet(f.path).then(s=>{ const el=hpv.querySelector('.snip'); if(el) el.innerHTML='<b>'+f.name.replace(/</g,'&lt;')+'</b>'+s.replace(/</g,'&lt;'); }); }
+  hpv.innerHTML+='<div class="hcap">'+f.path.replace(/</g,'&lt;')+'</div>';
+  moveHover(x,y); hpv.classList.add('show');
+}
+function moveHover(x,y){
+  hpv.style.left=Math.min(innerWidth-372,x+18)+'px';
+  hpv.style.top=Math.max(10,Math.min(innerHeight-312,y-310))+'px';
+}
+function hideHover(){ hpv.classList.remove('show'); hpv.innerHTML=''; }
+// lazy-load tile iframes only when scrolled into view
+const tileObs=new IntersectionObserver(es=>{ for(const e of es){ if(e.isIntersecting){ const el=e.target;
+  if(el.dataset.src&&!el.querySelector('iframe')){ const ifr=document.createElement('iframe'); ifr.loading='lazy'; ifr.src=el.dataset.src; el.prepend(ifr); }
+  tileObs.unobserve(el); } } },{root:null,threshold:0.05});
 function renderFiles(){
   document.getElementById('boardSeg').style.display='';
-  // filter chips: file extensions (native)
+  // filter chips: view mode + file extensions (native)
   const fbox=document.getElementById('boardFilters'); fbox.innerHTML='';
+  const vl=document.createElement('span'); vl.className='fl'; vl.textContent='view'; fbox.appendChild(vl);
+  fbox.appendChild(chip('☰ text', !S.btiles, ()=>{ S.btiles=false; renderBoard(); }));
+  fbox.appendChild(chip('▦ tiles', !!S.btiles, ()=>{ S.btiles=true; renderBoard(); }));
   const fl=document.createElement('span'); fl.className='fl'; fl.textContent='type'; fbox.appendChild(fl);
   for(const ext of ['md','html','css','js','py','json','txt']){
     fbox.appendChild(chip('.'+ext, extFilter===ext, ()=>{ extFilter=extFilter===ext?null:ext; renderBoard(); })); }
@@ -803,17 +943,30 @@ function renderFiles(){
     files=files.filter(f=> (!extFilter || f.name.toLowerCase().endsWith('.'+extFilter))
       && (!boardQ || (f.path||f.name).toLowerCase().includes(boardQ)));
     if(!files.length) return; total+=files.length;
-    const col=document.createElement('div'); col.className='bcol';
+    const col=document.createElement('div'); col.className='bcol'+(S.btiles?' tiles':'');
     col.innerHTML=`<div class="chead"><span class="dot" style="background:${color};color:${color}"></span>${name.toUpperCase()}<span class="cnt">${files.length}</span></div><div class="cards"></div>`;
     const cards=col.querySelector('.cards');
     files.sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>{
-      const c=document.createElement('div'); c.className='bcard'; c.style.setProperty('--cc',color);
-      const ext=(f.name.split('.').pop()||'').slice(0,4);
-      c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
+      const html=/\.html?$/i.test(f.name), img=/\.(png|jpe?g|gif|svg|webp)$/i.test(f.name);
+      let c;
+      if(S.btiles){
+        c=document.createElement('div'); c.className='tile'; c.style.setProperty('--cc',color);
+        if(html){ c.dataset.src='/api/raw?path='+encodeURIComponent(f.path); tileObs.observe(c); }
+        else if(img){ c.innerHTML='<img loading="lazy" src="/api/raw?path='+encodeURIComponent(f.path)+'">'; }
+        else { c.innerHTML='<div class="snip"><b>'+f.name.replace(/</g,'&lt;')+'</b></div>';
+          snippet(f.path).then(s=>{ const el=c.querySelector('.snip'); if(el) el.innerHTML='<b>'+f.name.replace(/</g,'&lt;')+'</b>'+s.replace(/</g,'&lt;'); }); }
+        c.innerHTML+='<div class="cap">'+f.name.replace(/</g,'&lt;')+'</div>';
+      } else {
+        c=document.createElement('div'); c.className='bcard'; c.style.setProperty('--cc',color);
+        const ext=(f.name.split('.').pop()||'').slice(0,4);
+        c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
+      }
       c.title=f.path+' — click to preview';
       c.onclick=()=>openPreview({path:f.path,label:f.name});
-      c.onmouseenter=()=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); } };
-      c.onmouseleave=()=>{ matches=searchMatches; };
+      c.onmouseenter=(e)=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); }
+        showHover({path:f.path,name:f.name},e.clientX,e.clientY); };
+      c.onmousemove=(e)=>moveHover(e.clientX,e.clientY);
+      c.onmouseleave=()=>{ matches=searchMatches; hideHover(); };
       cards.appendChild(c);
     });
     cols.appendChild(col);
@@ -927,6 +1080,7 @@ function miniMd(src){
   return h;
 }
 function openPreview(f){ // f: {path,label}
+  if(typeof hideHover==='function') hideHover();
   pvFile=f; pv.el.classList.add('open');
   pv.name.textContent=f.path;
   const html=/\.html?$/i.test(f.path), md=/\.md$/i.test(f.path), img=/\.(png|jpe?g|gif|svg|webp)$/i.test(f.path);
