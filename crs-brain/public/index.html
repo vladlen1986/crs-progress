@@ -40,6 +40,9 @@
   .col.left{border-right:1px solid var(--line);background:var(--panel)}
   .col.right{border-left:1px solid var(--line);background:var(--panel)}
   .col.center{background:transparent;position:relative}
+  /* swappable views (chat/dashboard/file/map) fill the space above the persistent composer */
+  .content-area{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
+  .content-area > *{min-height:0}
 
   /* sidebar collapse (desktop only) */
   @media (min-width:901px){
@@ -481,7 +484,7 @@
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="sidenav">
-      <button onclick="window.open('/map','crsmap')" title="Second-brain galaxy map"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
+      <button onclick="showMap()" title="Second-brain galaxy map"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
       <button onclick="openKanban()" title="Folder kanban board"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg> Kanban</button>
     </div>
     <div class="tabs">
@@ -518,15 +521,31 @@
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
       <button class="mbtn" title="Usage & progress" onclick="mob('right')">▤</button>
-      <a class="ghost" href="/map" target="crsmap" title="Second-brain galaxy map" style="text-decoration:none;display:inline-flex;align-items:center;gap:6px"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</a>
+      <button class="ghost" onclick="showMap()" title="Second-brain galaxy map" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
       <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
-    <!-- chat view -->
-    <div id="chatView" style="flex:1;display:flex;flex-direction:column;overflow:hidden">
-      <div class="chat" id="chatLog"></div>
-      <div class="composer-wrap">
+    <!-- swappable content area (chat log / dashboard / file / map) — sits ABOVE the persistent composer -->
+    <div id="contentArea" class="content-area">
+      <!-- chat view -->
+      <div id="chatView" style="flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0">
+        <div class="chat" id="chatLog"></div>
+      </div>
+      <!-- dashboard (home) -->
+      <div id="dashView" class="dash" style="display:none"></div>
+      <!-- file view -->
+      <div id="fileView" class="editor" style="display:none">
+        <div class="doc md" id="fileDoc"></div>
+        <textarea id="fileEdit" style="display:none"></textarea>
+      </div>
+      <!-- embedded galaxy map (was a separate /map page; now lives above the chat input) -->
+      <div id="mapView" style="display:none;flex:1;min-height:0">
+        <iframe id="mapFrame" title="Galaxy map" style="width:100%;height:100%;border:0;display:block"></iframe>
+      </div>
+    </div>
+    <!-- persistent composer — always visible on every view -->
+    <div class="composer-wrap">
         <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
         <div class="composer">
@@ -554,14 +573,6 @@
           </div>
         </div>
         <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesPicked(event)">
-      </div>
-    </div>
-    <!-- dashboard (home) -->
-    <div id="dashView" class="dash" style="display:none"></div>
-    <!-- file view -->
-    <div id="fileView" class="editor" style="display:none">
-      <div class="doc md" id="fileDoc"></div>
-      <textarea id="fileEdit" style="display:none"></textarea>
     </div>
   </div>
 
@@ -661,8 +672,8 @@ async function apiOpen(p){ if(!p) return;
   catch(e){ toast('Could not open: '+e.message); } }
 // Route any file reference to the right opener.
 function smartOpen(p){ if(isHtml(p)) apiOpen(p); else { setTab('files'); openFile(p); } }
-// Open the galaxy map straight to the folder kanban board.
-function openKanban(){ window.open('/map#board','crsmap'); }
+// Open the embedded galaxy map straight to the folder kanban board.
+function openKanban(){ showMap('board'); }
 // ---------- resizable left sidebar ----------
 (function(){
   const root=document.documentElement, saved=localStorage.leftW;
@@ -857,13 +868,33 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+// The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
+// If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
+function ensureChatView(){
+  if($('chatView').style.display!=='none') return;
+  if(state.chatId) showChat(); else newChat();
+}
+// Embedded galaxy map — same page, shown above the persistent chat input (no more popup window).
+let mapLoaded=false;
+function showMap(mode){
+  bumpView();
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('mapView').style.display='flex';
+  $('centerTitle').textContent='Galaxy map';
+  const fr=$('mapFrame');
+  const hash = mode==='board' ? '#board' : mode==='ideas' ? '#ideas' : '';
+  if(!mapLoaded){ fr.src='/map'+hash; mapLoaded=true; }
+  else if(mode){ try{ fr.contentWindow.location.hash=mode; }catch{} }
+  if(innerWidth<=900) mob(null);
+}
 
 // ---------- dashboard (home) ----------
 function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('centerTitle').textContent='Dashboard';
   if(innerWidth<=900) mob(null);
@@ -901,7 +932,7 @@ async function renderDashboard(){
     <section><div class="lbl">Overview</div><div class="stats">
       ${stat(nFiles.toLocaleString(),'files','#8B5CF6',"openExpl('')")}
       ${stat(chats.length,'conversations','#3B82F6',"setTab('chats')")}
-      ${stat(ideaCount,'ideas','#F59E0B',"window.open('/map#ideas','crsmap')")}
+      ${stat(ideaCount,'ideas','#F59E0B',"showMap('ideas')")}
       ${stat(done.length,'done','#22C55E',"openFile('brain/changelog.md')")}
       ${stat((bubble+build+forum).toLocaleString(),'manual pages','#60A5FA',"openExpl('brain/bubble')")}
     </div></section>
@@ -909,7 +940,7 @@ async function renderDashboard(){
     <section><div class="lbl">Quick actions</div><div class="actions">
       ${A('i-plus','New conversation','Ask anything about CRS','newChat()')}
       ${A('i-ingest','Buildprint task','Operate your Bubble app','newBpChat()')}
-      ${A('i-logo','Galaxy map','Explore the brain visually','window.open(\'/map\',\'crsmap\')')}
+      ${A('i-logo','Galaxy map','Explore the brain visually','showMap()')}
       ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
       ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')')}
@@ -938,6 +969,7 @@ function sendMsg(ingest){
   const input=$('input'); const text=input.value.trim();
   const atts=(state.pending||[]).filter(a=>a.path);
   if(!text && !atts.length) return;
+  ensureChatView();  // sending from map/file/dashboard drops into the conversation
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   input.value=''; input.style.height='auto';
   state.pending=[]; renderChips();
@@ -1232,7 +1264,7 @@ async function openFile(p){
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('fileView').style.display='flex';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex';
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');

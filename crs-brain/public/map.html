@@ -290,6 +290,10 @@
 // ═══════════════════════════════ CRS BRAIN MAP ═══════════════════════════════
 // A live galaxy of the real repo: Memory (files) in department clusters around
 // CLAUDE.MD, plus the agentic layers — Applications, Routines, Skills (ARMS).
+// EMBED: true when the map runs inside the main app's iframe (above the chat input).
+// In that mode the app's own composer is the single chat, so we hide the map's
+// "Ask the Brain" dock and route node clicks to the parent app instead of a popup.
+const EMBED = (() => { try { return window.self !== window.top; } catch { return true; } })();
 const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
 const ui = { panel: document.getElementById('panel'), tip: document.getElementById('tip'), q: document.getElementById('q') };
 let W=0,H=0,DPR=1;
@@ -919,9 +923,12 @@ cv.addEventListener('pointermove',e=>{
 function openNode(n){
   if(!n) return;
   if(n.kind==='hub' && n.folder!==undefined){   // folder node → open the file explorer for that folder
+    if(EMBED && window.parent.openExpl){ window.parent.openExpl(n.folder); flash('Opening '+(n.label||'folder')+' …'); return; }
     window.open('/#explore='+encodeURIComponent(n.folder),'crsbrain'); flash('Opening '+(n.label||'folder')+' …'); return;
   }
   if(n.kind!=='file'||!n.path) return;
+  // Embedded: hand off to the parent app so files open in the same window, above the chat input.
+  if(EMBED && window.parent.smartOpen){ window.parent.smartOpen(n.path); flash('Opening · '+n.label); return; }
   if(/\.html?$/i.test(n.path)){ // html → the user's default browser
     fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:n.path})})
       .then(()=>flash('Opened in your browser · '+n.label)).catch(()=>flash('Could not open'));
@@ -1300,6 +1307,8 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
 });
 
 // ---- boot ----------------------------------------------------------------------------
+// Embedded in the app: the app's composer is the one chat, so drop the map's own dock.
+if(EMBED){ const dk=document.getElementById('dock'); if(dk) dk.style.display='none'; }
 fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); openFromHash(); })
   .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#A6A6A6">Could not load the repo tree — is the CRS Brain server running?</div>'); });
 // Deep links from the main app: #board opens the folder board, #ideas opens it on the Ideas tab.

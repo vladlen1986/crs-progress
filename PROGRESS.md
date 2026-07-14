@@ -58,11 +58,16 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 - **Do NOT commit `crs-brain/node_modules` changes** — the rebuild deletes Windows-only files (`conpty.dll`, `OpenConsole.exe`); committing those breaks node-pty on the office Windows PC.
 - **The running server dies when the Claude Code session that started it ends** — for persistent use Vlad double-clicks `start.command` / `start-mobile.command` himself.
 - **Mobile needs the Mac awake + `start-mobile.command` running + Tailscale on the phone.** Address: `http://100.114.97.93:4317`.
-- Map is a separate page (`map.html`); it talks to the app via `window.open('/#file=…'|'/#explore=…','crsbrain')` deep links handled by `openFromHash()`.
+- **Map is now EMBEDDED in the main app** (2026-07-15), not a popup. `index.html` has a persistent composer (moved OUT of `chatView` to be a direct child of `.col.center`) + a `#contentArea` that swaps chatView/dashView/fileView/**mapView** above it. `mapView` is an `<iframe id="mapFrame" src="/map">`; `showMap(mode)` shows it (lazy-loads once; `mode='board'|'ideas'` deep-links via `contentWindow.location.hash`). `map.html` detects `EMBED = window.self!==window.top`: hides its "Ask the Brain" dock and routes node clicks to `window.parent.smartOpen/openExpl` (same-origin) instead of `window.open(...,'crsbrain')`. Standalone `/map` still works (dock shows, window.open fallback) for the deep-link path. Sending from any view calls `ensureChatView()` → drops into the conversation; the composer never leaves.
 
 ---
 
 ## Decisions log (append-only)
+
+### 2026-07-15 — Session: unified chat + embedded map
+- Vlad: "chat shall be same everywhere … maps page shall not be separate page, it shall be above chat input. chat input always stays." Restructured the center column so the **composer is a permanent bottom bar** (pulled out of `chatView`) with a swappable `#contentArea` (chat/dashboard/file/map) above it. The composer now shows on every view.
+- **Map is no longer a popup** — it's an `<iframe src="/map">` (`#mapView`) shown above the chat input via `showMap()`. In embed mode (`window.self!==window.top`) the map hides its own "Ask the Brain" dock and routes node clicks to `window.parent.smartOpen/openExpl`, so there's ONE chat everywhere and files open in the same window. All Map/Kanban/ideas buttons + dashboard actions now call `showMap()` instead of `window.open(...,'crsmap')`. Standalone `/map` still works (backward-compat).
+- Verified live: composer persists on dashboard/map/file/chat; embedded map renders with dock hidden; send-from-map → conversation; node click → file view; Kanban → board open; `/map` standalone still shows its dock. No console errors. Committed.
 
 ### 2026-07-15 — Session: usage bars fixed (5h/7d restored)
 - Root-caused the missing session/weekly bars + wrong "Haiku 4.5" model. NOT a Claude Code removal (2.1.209 still emits `rate_limits`) — it was a capture bug (see corrected §7 gotcha).
