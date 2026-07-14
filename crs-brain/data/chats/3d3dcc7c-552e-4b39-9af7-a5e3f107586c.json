@@ -1,0 +1,20 @@
+{
+  "id": "3d3dcc7c-552e-4b39-9af7-a5e3f107586c",
+  "title": "side bar on the left and right must have button to collapse",
+  "sessionId": "8a0ab176-f193-4fbe-874c-1e0e4dc8c84f",
+  "created": "2026-07-14T15:53:54.441Z",
+  "updated": "2026-07-14T15:58:47.531Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "side bar on the left and right must have button to collapse",
+      "ts": "2026-07-14T15:53:54.441Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "All pieces are wired consistently. I couldn't drive the live browser (server probes needed approval), so I verified the markup, CSS, and JS statically instead — I have not visually confirmed it in the running app.\n\nWhat I added to `crs-brain/public/index.html`:\n\n- **Collapse buttons** — a `«` chevron in the left sidebar's brand row (`toggleCol('left')`) and a `»` chevron in the right sidebar's \"Usage\" header (`toggleCol('right')`).\n- **Expand handles** — thin edge buttons pinned inside the center column that appear only when a side is collapsed, so you can bring it back.\n- **Grid behavior** — collapsing sets `lcol`/`rcol` on `.app`, which zeros that column's grid track and hides the panel; center reflows to fill the space.\n- **Persistence** — state saved to `localStorage` and restored on load.\n- **Mobile-safe** — collapse rules are scoped to `min-width:901px`; on ≤900px the existing hamburger drawers take over and the new controls are hidden, so nothing conflicts.\n\nTo see it live, reload the CRS Brain app (server on port 4317). Want me to run through it in a browser if you can confirm the server's running?",
+      "ts": "2026-07-14T15:58:47.531Z"
+    }
+  ]
+}
