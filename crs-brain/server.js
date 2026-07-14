@@ -128,11 +128,28 @@ const SYSTEM_PROMPT = [
   'You are "CRS Brain", the persistent assistant for Vlad\'s CRS (Casino Reporting Suite) project.',
   'You run inside a local second-brain app. The project root is this working directory.',
   'Your job: help track progress, remember decisions, and answer "what is next / what is missing".',
+  'RETRIEVAL: the knowledge base lives in brain/. ALWAYS read brain/INDEX.md first — it maps every',
+  'domain (database, option-sets, security, workflows, migrations, design) to its file and its',
+  'authoritative sources. Jump straight to the mapped file/section instead of grepping the repo.',
   'You have full read/write access to the repo. Ground every answer in the actual files',
-  '(CLAUDE.md, decisions.md, design/, data/, specs/, and any *.md the user adds). Never fabricate modules or facts.',
+  '(brain/, CLAUDE.md, decisions.md, design/, data/, specs/, and any *.md the user adds). Never fabricate modules or facts.',
   'The progress board lives at crs-brain/data/progress.json. When the user asks you to update progress,',
   'record what is next, or note something missing, READ that file, then EDIT it (keep the same JSON shape),',
   'and briefly confirm what you changed. Be direct and concise, per the project\'s CLAUDE.md style.',
+].join(' ');
+
+// Extra steer for Ingest mode (📥): route a Buildprint/session report into brain/.
+const INGEST_PROMPT = [
+  'INGEST MODE. The attached file(s) are a work report (usually from a Buildprint session in Bubble).',
+  'Follow the ingest rules in brain/INDEX.md exactly:',
+  '1) Read the report fully. 2) Route every fact into exactly ONE brain/ file',
+  '(database.md, option-sets.md, security.md, workflows.md, migrations.md, design.md pointer rules).',
+  'Update "Current state" and "Pending" sections; move completed items appropriately; never silently delete history.',
+  '3) If the report contains an architectural/commercial DECISION, do NOT write it into brain/ —',
+  'flag it to the user to append to decisions.md.',
+  '4) Append one dated entry to brain/changelog.md summarizing this ingest.',
+  '5) Update crs-brain/data/progress.json if the report changes what is now/next/done.',
+  '6) Reply with a compact "what I updated" list, file by file, plus anything the report left ambiguous.',
 ].join(' ');
 
 // ---- helpers ---------------------------------------------------------------
@@ -272,7 +289,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
 function autoCommit(title) {
   if (process.env.CRS_BRAIN_AUTOCOMMIT === '0') return;
   const msg = 'brain: ' + String(title || 'update').replace(/[\r\n]+/g, ' ').slice(0, 60);
-  const add = spawn('git', ['add', 'crs-brain/data'], { cwd: REPO_ROOT, windowsHide: true });
+  const add = spawn('git', ['add', 'crs-brain/data', 'brain'], { cwd: REPO_ROOT, windowsHide: true });
   add.on('error', () => {});
   add.on('close', () => {
     const commit = spawn('git', ['commit', '-q', '--no-verify', '-m', msg], { cwd: REPO_ROOT, windowsHide: true });
@@ -433,7 +450,7 @@ const server = http.createServer(async (req, res) => {
       if (!chat) {
         chat = {
           id: crypto.randomUUID(),
-          title: forcedTitle || message.slice(0, 60) || 'Attached files',
+          title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
           sessionId: null,
           created: nowIso(),
           updated: nowIso(),
@@ -443,11 +460,16 @@ const server = http.createServer(async (req, res) => {
       chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
 
       // Give Claude the attachment paths so it can open them with its own tools.
+      const ingest = body.ingest === true;
       let promptToClaude = message;
       if (attachments.length) {
         const list = attachments.map((a) => `- ${a}`).join('\n');
-        promptToClaude =
-          `The user attached the following file(s) in the repo — read them as needed to answer:\n${list}\n\n${message}`;
+        promptToClaude = ingest
+          ? `${INGEST_PROMPT}\n\nAttached report file(s):\n${list}\n\n${message || 'Ingest this report into the brain.'}`
+          : `The user attached the following file(s) in the repo — read them as needed to answer:\n${list}\n\n${message}`;
+      } else if (ingest) {
+        // Ingest of pasted text (no file): treat the message itself as the report.
+        promptToClaude = `${INGEST_PROMPT}\n\nThe report is the user message below.\n\n${message}`;
       }
 
       // Stream Server-Sent Events back to the browser.

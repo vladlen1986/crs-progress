@@ -173,11 +173,16 @@ See `decisions.md` 2026-05-01 for full rule set and prompt patterns.
 
 ---
 
+## Knowledge base — brain/ (added 2026-07-14)
+
+`brain/` is the living infrastructure ledger. **Read `brain/INDEX.md` first** for any question about database schema, option sets, privacy rules, backend workflows, or migrations — it maps every domain to its file and links the authoritative sources. One fact lives in exactly one file; brain/ links to decisions.md / design/ / specs/, never duplicates them. After each Buildprint session, ingest the session report via CRS Brain's "Ingest to Brain" button (attach the .md → Ingest) — it routes facts into the right brain/ files and appends brain/changelog.md.
+
 ## When in doubt
 
-1. Check `decisions.md` for prior rulings on architecture or commercial questions
-2. Check `pricing/tiers.md` for pricing questions
-3. Check `design/design.md` for design questions
-4. Check `data/CRS_Module_OptionSets.xlsx` for module data
-5. Check `specs/CRS_Blueprint.html` for spec details
-6. Ask the user — don't guess
+1. Check `brain/INDEX.md` for infrastructure state (schema, OS, security, workflows, migrations)
+2. Check `decisions.md` for prior rulings on architecture or commercial questions
+3. Check `pricing/tiers.md` for pricing questions
+4. Check `design/design.md` for design questions
+5. Check `data/CRS_Module_OptionSets.xlsx` for module data
+6. Check `specs/CRS_Blueprint.html` for spec details
+7. Ask the user — don't guess

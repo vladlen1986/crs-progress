@@ -5,15 +5,16 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain</title>
 <style>
+  /* CRS design tokens — mirrors design/tokens.css (source of truth). */
   :root{
-    --bg:#0e0e12; --panel:#131318; --panel2:#1a1a21; --elev:#23232c;
-    --line:rgba(255,255,255,.07); --line2:rgba(255,255,255,.13);
-    --primary:#ECECEF; --secondary:#A6A6A6; --muted:#6c6c78;
-    --accent:#5b87ff; --accent2:#49b6ff; --accent-soft:rgba(91,135,255,.14);
-    --good:#4ec98a; --warn:#e0b84a; --danger:#e8746b;
-    --grad:linear-gradient(135deg,#6a7dff,#49b6ff);
-    --mono:ui-monospace,"Cascadia Code",Consolas,monospace;
-    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,sans-serif;
+    --bg:#181818; --panel:#1E1E1E; --panel2:#242424; --elev:#2A2A2A;
+    --line:#242424; --line2:#333333; --line3:#3D3D3D;
+    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
+    --accent:#3B82F6; --accent2:#60A5FA; --accent-soft:rgba(59,130,246,.13); --accent-tint:rgba(59,130,246,.08);
+    --good:#22C55E; --warn:#F59E0B; --danger:#EF4444;
+    --grad:#3B82F6; /* flat — CRS is border-only, no gradients or glows */
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
   }
   *{box-sizing:border-box}
   .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex:0 0 auto}
@@ -21,7 +22,7 @@
   .ic.spinning{animation:sp .7s linear infinite}
   html,body{height:100%;margin:0}
   body{
-    background:radial-gradient(1100px 560px at 72% -12%, rgba(91,135,255,.07), transparent), var(--bg);
+    background:var(--bg);
     color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit;cursor:pointer}
@@ -37,7 +38,7 @@
 
   /* brand */
   .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:11px}
-  .brand .logo{width:30px;height:30px;border-radius:9px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;box-shadow:0 4px 14px rgba(91,135,255,.42);flex:0 0 30px}
+  .brand .logo{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex:0 0 30px}
   .brand h1{font-size:15px;margin:0;color:var(--primary);font-weight:650;letter-spacing:.2px}
   .brand .sub{font-size:11px;color:var(--muted);margin-top:1px}
 
@@ -50,8 +51,8 @@
   .account .aplan{color:var(--muted);font-size:11px}
   .account .alink{margin-left:auto;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;transition:.15s}
   .account .alink:hover{color:var(--primary)}
-  .account .connect{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:9px;padding:9px;font-size:12.5px;cursor:pointer;box-shadow:0 3px 12px rgba(91,135,255,.3);transition:.15s}
-  .account .connect:hover{filter:brightness(1.07)}
+  .account .connect{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:6px;padding:9px;font-size:12.5px;cursor:pointer;transition:.15s}
+  .account .connect:hover{background:#2563EB}
 
   /* tabs (segmented) */
   .tabs{display:flex;gap:3px;margin:6px 12px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:3px}
@@ -61,7 +62,7 @@
   .pane.hide{display:none}
 
   .newbtn{margin:0 12px 6px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:11px;font-size:12.5px;font-weight:500;width:calc(100% - 24px);text-align:left;display:flex;align-items:center;gap:8px;transition:.15s}
-  .newbtn:hover{border-color:rgba(91,135,255,.45);color:var(--primary);background:var(--elev)}
+  .newbtn:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
 
   .item{padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:.12s;margin:1px 0}
   .item:hover{background:var(--panel2)}
@@ -86,10 +87,10 @@
   .center-head .title{color:var(--primary);font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .center-head .spacer{margin-left:auto}
   .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:.15s}
-  .ghost:hover{border-color:rgba(91,135,255,.45);color:var(--primary)}
-  .ghost.on{border-color:var(--accent);color:var(--primary);background:var(--accent-soft)}
+  .ghost:hover{border-color:var(--line3);color:var(--primary)}
+  .ghost.on{color:var(--primary);background:var(--accent-soft)} /* active = bg+text only (CRS rule) */
   .sel{background:var(--panel2) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="%236c6c78" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 9px center;border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 26px 6px 10px;font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;transition:.15s;-webkit-appearance:none;appearance:none}
-  .sel:hover{border-color:rgba(91,135,255,.45);color:var(--primary)}
+  .sel:hover{border-color:var(--line3);color:var(--primary)}
   .sel:focus{outline:none;border-color:var(--accent)}
   .sel option{background:var(--panel2);color:var(--primary)}
 
@@ -97,10 +98,10 @@
   .chat{flex:1;overflow:auto;padding:26px 18px 10px}
   .msg{display:flex;gap:14px;max-width:830px;margin:0 auto 22px;animation:msgIn .45s cubic-bezier(.2,.7,.2,1) both}
   .avatar{width:30px;height:30px;border-radius:9px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;font-weight:600;margin-top:1px}
-  .avatar.bot{background:var(--grad);color:#fff;font-size:14px;box-shadow:0 3px 12px rgba(91,135,255,.35)}
+  .avatar.bot{background:var(--grad);color:#fff;font-size:14px}
   .avatar.you{background:var(--panel2);border:1px solid var(--line2);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.3px}
   .content{min-width:0;flex:1}
-  .msg.user .bubble{background:var(--accent-soft);border:1px solid rgba(91,135,255,.2);border-radius:5px 14px 14px 14px;padding:10px 14px;color:var(--primary);display:inline-block;max-width:100%}
+  .msg.user .bubble{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:10px 14px;color:var(--primary);display:inline-block;max-width:100%}
   .body{color:var(--secondary)}
   .dim{color:var(--muted)}
 
@@ -116,16 +117,20 @@
 
   /* composer */
   .composer-wrap{padding:12px 18px 18px}
-  .composer{display:flex;gap:6px;align-items:flex-end;background:var(--panel2);border:1px solid var(--line2);border-radius:16px;padding:7px;box-shadow:0 8px 30px rgba(0,0,0,.3);transition:border-color .15s,box-shadow .15s;max-width:830px;margin:0 auto}
-  .composer:focus-within{border-color:rgba(91,135,255,.55);box-shadow:0 8px 32px rgba(91,135,255,.13)}
+  .composer{display:flex;gap:6px;align-items:flex-end;background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:7px;transition:border-color .15s;max-width:830px;margin:0 auto}
+  .composer:focus-within{border-color:var(--accent)}
   .composer textarea{flex:1;resize:none;background:none;border:none;color:var(--primary);padding:9px 6px;font-family:inherit;font-size:14.5px;max-height:200px;min-height:26px;line-height:1.5}
   .composer textarea:focus{outline:none}
   .composer textarea::placeholder{color:var(--muted)}
   .attach-btn{background:none;border:none;color:var(--muted);width:38px;height:38px;border-radius:11px;font-size:16px;flex:0 0 auto;transition:.15s}
   .attach-btn:hover{background:var(--elev);color:var(--primary)}
-  .send{background:var(--grad);border:none;color:#fff;font-weight:700;border-radius:12px;width:38px;height:38px;font-size:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.15s;box-shadow:0 3px 12px rgba(91,135,255,.32)}
-  .send:hover{filter:brightness(1.08)}
-  .send:disabled{opacity:.4;box-shadow:none;cursor:default}
+  .send{background:var(--grad);border:none;color:#fff;font-weight:700;border-radius:8px;width:38px;height:38px;font-size:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:.15s}
+  .send:hover{background:#2563EB}
+  .send:disabled{opacity:.4;cursor:default}
+  .ingest-btn{display:none;align-items:center;gap:7px;background:var(--accent-tint);border:1px solid var(--line2);color:var(--accent2);font-weight:600;border-radius:8px;height:38px;padding:0 14px;font-size:12.5px;flex:0 0 auto;transition:.15s;white-space:nowrap}
+  .ingest-btn.show{display:inline-flex}
+  .ingest-btn:hover{background:var(--accent-soft);color:var(--primary)}
+  .ingest-btn:disabled{opacity:.4;cursor:default}
   .attach-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 22px 10px;max-width:830px;margin:0 auto}
   .attach-chips:empty{display:none}
   .chip{display:inline-flex;align-items:center;gap:7px;background:var(--panel2);border:1px solid var(--line2);border-radius:9px;padding:5px 10px;font-size:12px;color:var(--secondary)}
@@ -138,11 +143,11 @@
   .msg-acts{display:flex;gap:8px;margin-top:10px;opacity:0;transition:opacity .2s}
   .msg:hover .msg-acts{opacity:1}
   .msg-acts button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 11px;font-size:11px;cursor:pointer;transition:.15s}
-  .msg-acts button:hover{border-color:rgba(91,135,255,.45);color:var(--primary);background:var(--panel2)}
+  .msg-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
 
   /* hero / empty */
   .hero{max-width:460px;margin:12vh auto 0;text-align:center;animation:msgIn .5s ease both}
-  .hero-mark{width:54px;height:54px;border-radius:16px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 18px;box-shadow:0 8px 28px rgba(91,135,255,.4)}
+  .hero-mark{width:54px;height:54px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 18px}
   .hero-t{color:var(--primary);font-size:20px;font-weight:650;margin-bottom:8px}
   .hero-s{color:var(--muted);font-size:13.5px;line-height:1.6}
 
@@ -160,7 +165,7 @@
   .md h2{font-size:18px}.md h3{font-size:15px}
   .md p,.md li{color:var(--secondary)}
   .md strong{color:var(--primary)}
-  .md code{background:rgba(255,255,255,.07);padding:1.5px 6px;border-radius:5px;font-family:var(--mono);font-size:12.5px;color:#e0b088}
+  .md code{background:rgba(255,255,255,.07);padding:1.5px 6px;border-radius:4px;font-family:var(--mono);font-size:12.5px;color:var(--accent2)}
   .md pre{background:#0b0b0e;border:1px solid var(--line);border-radius:11px;padding:14px 16px;overflow:auto;margin:.9em 0}
   .md pre code{background:none;padding:0;color:#d5d5da}
   .md a{color:var(--accent2);text-decoration:none}
@@ -184,7 +189,7 @@
   .card:hover{border-color:var(--line2);transform:translateY(-1px)}
   .card .t{color:var(--primary)}
   .card .n{color:var(--muted);font-size:12px;margin-top:2px}
-  .missing .card{--cardc:#c9633b}
+  .missing .card{--cardc:#EF4444}
   .empty{color:var(--muted);font-size:12px;padding:5px 4px;font-style:italic}
   .refresh{background:none;border:none;color:var(--muted);font-size:13px;margin-left:auto;cursor:pointer;transition:.15s;border-radius:6px;width:24px;height:24px}
   .refresh:hover{color:var(--primary);background:var(--panel2)}
@@ -216,8 +221,8 @@
   .usage .sub{color:var(--muted);font-size:11px;margin-top:5px;display:flex}
   .usage .sub .reset{margin-left:auto}
   .usage .updated{color:var(--muted);font-size:11px;margin-top:10px;display:flex;align-items:center;gap:6px}
-  .usage .enable{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:9px;padding:9px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px;box-shadow:0 3px 12px rgba(91,135,255,.3)}
-  .usage .enable:hover{filter:brightness(1.07)}
+  .usage .enable{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:6px;padding:9px;font-size:12px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:7px}
+  .usage .enable:hover{background:#2563EB}
   .usage .note{color:var(--muted);font-size:11px;line-height:1.5;margin-top:9px}
   .usage .off{color:var(--secondary);display:flex;align-items:center;gap:7px;margin-bottom:9px}
   .usage .disable{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:9px}
@@ -248,6 +253,7 @@
   <symbol id="i-doc-sm" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/></symbol>
   <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 20a8 8 0 1 1 16 0"/><line x1="12" y1="20" x2="15.5" y2="12.5"/></symbol>
   <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3l9 16H3z"/><line x1="12" y1="10" x2="12" y2="14"/><line x1="12" y1="17" x2="12" y2="17.2"/></symbol>
+  <symbol id="i-ingest" viewBox="0 0 24 24"><path d="M3 14h5l2 3h4l2-3h5"/><path d="M5 8l-2 6v5a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-5l-2-6"/><line x1="12" y1="3" x2="12" y2="10"/><polyline points="9 7.5 12 10.5 15 7.5"/></symbol>
 </defs></svg>
 <div class="app">
   <!-- LEFT -->
@@ -296,6 +302,7 @@
         <div class="composer">
           <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
+          <button class="ingest-btn" id="ingestBtn" title="Route this report into brain/ — updates database, security, workflows, migrations, changelog" onclick="sendMsg(true)"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-ingest"/></svg> Ingest to Brain</button>
           <button class="send" id="sendBtn" title="Send" onclick="sendMsg()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-send"/></svg></button>
         </div>
         <input type="file" id="fileInput" multiple style="display:none" onchange="onFilesPicked(event)">
@@ -377,7 +384,7 @@ async function loadChats(){
     $('paneChats').appendChild(d);
   }
 }
-function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing. Attach files, or ask for anything in markdown and open it as a document.</div></div>'; }
+function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure. Finished a Buildprint session? Attach the report and hit <b style="color:var(--accent2)">Ingest to Brain</b> — every fact gets routed to its file.</div></div>'; }
 function newChat(){ state.chatId=null; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; loadChats(); $('input').focus(); }
 async function openChat(id){ state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); $('centerTitle').textContent=chat.title||'Conversation'; renderChat(chat.messages); loadChats(); }
 async function delChat(id){ await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
@@ -425,19 +432,21 @@ async function openReplyDoc(text, title){
 }
 function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
 
-function sendMsg(){
+function sendMsg(ingest){
   const input=$('input'); const text=input.value.trim();
   const atts=(state.pending||[]).filter(a=>a.path);
   if((!text && !atts.length)||state.sending) return;
   input.value=''; input.style.height='auto';
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   state.pending=[]; renderChips();
-  streamChat(text,{attachments,attachmentNames});
+  streamChat(text,{attachments,attachmentNames,ingest:ingest===true});
 }
 
 // ---------- attachments ----------
 function pickFiles(){ $('fileInput').click(); }
 function renderChips(){
+  // Ingest appears once at least one file is uploaded — same rail as attach.
+  $('ingestBtn').classList.toggle('show',(state.pending||[]).some(a=>a.path));
   const box=$('attachChips'); box.innerHTML='';
   (state.pending||[]).forEach((a,i)=>{
     const c=document.createElement('span'); c.className='chip'+(a.path?'':' up');
@@ -507,7 +516,7 @@ async function streamChat(text, opts={}){
   setTimeout(pump, 16);
 
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],model:$('modelSel')?.value,effort:$('effortSel')?.value})});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],ingest:opts.ingest===true,model:$('modelSel')?.value,effort:$('effortSel')?.value})});
     if(!res.body) throw new Error('no stream');
     const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
     while(true){
@@ -602,7 +611,7 @@ async function saveFile(){
 }
 
 // ---------- progress ----------
-const COLS=[['now','Now','#5b87ff'],['next','Next','#e0b84a'],['later','Later','#6c6c78'],['done','Done','#4ec98a']];
+const COLS=[['now','Now','#3B82F6'],['next','Next','#F59E0B'],['later','Later','#6B6B6B'],['done','Done','#22C55E']];
 async function loadProgress(){
   const p=await api('/api/progress'); const box=$('progress'); box.innerHTML='';
   for(const [key,label,color] of COLS){
@@ -615,7 +624,7 @@ async function loadProgress(){
   }
   const missing=(p.missing||[]);
   const m=document.createElement('div'); m.className='pcol missing';
-  m.innerHTML=`<div class="hdr"><span class="pill" style="background:#c9633b"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
+  m.innerHTML=`<div class="hdr"><span class="pill" style="background:#EF4444"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
   if(!missing.length) m.innerHTML+='<div class="empty">—</div>';
   for(const x of missing){ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="t">${esc(typeof x==='string'?x:(x.title||''))}</div>`; m.appendChild(c); }
   box.appendChild(m);
@@ -675,7 +684,7 @@ async function applyModelSettings(){
 // ---------- live usage / limits ----------
 function fmtAgo(ms){ const s=Math.max(0,Math.round((Date.now()-ms)/1000)); if(s<60)return s+'s ago'; const m=Math.round(s/60); if(m<60)return m+'m ago'; const h=Math.round(m/60); return h+'h ago'; }
 function fmtReset(sec){ const ms=sec*1000-Date.now(); if(ms<=0) return 'resetting…'; const m=Math.round(ms/60000); if(m<60) return 'resets in '+m+'m'; const h=Math.floor(m/60), mm=m%60; if(h<24) return 'resets in '+h+'h '+mm+'m'; const d=Math.floor(h/24); return 'resets in '+d+'d '+(h%24)+'h'; }
-function barColor(p){ return p>=90?'#e8746b':p>=70?'#e0b84a':'#4ec98a'; }
+function barColor(p){ return p>=90?'#EF4444':p>=70?'#F59E0B':'#22C55E'; }
 function usageRow(label, w){
   const p=Math.min(100,Math.max(0,w.used_percentage||0));
   return `<div class="urow"><div class="ulabel"><b>${label}</b><span class="pctv">${Math.round(p)}%</span></div>`+
