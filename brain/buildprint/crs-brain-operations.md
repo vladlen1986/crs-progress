@@ -7,8 +7,8 @@
 ## Connection status
 
 - [x] CLI installed (`buildprint --version`)
-- [ ] **Linked** — requires Vlad's one-time action: Buildprint → **Integrations → CLI** → create token → `buildprint link <token>`. The token is a password — never paste it into chat; run the link command yourself in Terminal.
-- [ ] App cloned — after linking: `buildprint project clone <appId> --branch dev` (into a folder OUTSIDE this repo, e.g. `~/projects/crs-bubble/`)
+- [x] **Linked** (2026-07-14) — requires Vlad's one-time action: Buildprint → **Integrations → CLI** → create token → `buildprint link <token>`. The token is a password — never paste it into chat; run the link command yourself in Terminal.
+- [x] App cloned: casinoreportingsystem Test branch → ~/projects/crs-bubble/casinoreportingsystem/test — after linking: `buildprint project clone <appId> --branch dev` (into a folder OUTSIDE this repo, e.g. `~/projects/crs-bubble/`)
 - [ ] Optional MCP: Buildprint → Integrations → MCP → create server, then `claude mcp add --transport http --header "Authorization: Bearer <TOKEN>" buildprint <ENDPOINT>` (adds data search, logs, WU usage, automations, tests to every Claude session)
 
 ## The operating loop (Bubble-as-code)
