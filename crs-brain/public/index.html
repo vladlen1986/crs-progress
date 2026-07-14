@@ -284,6 +284,32 @@
   .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
   @media (max-width:760px){.dash{padding:20px 15px}.dash-cols{grid-template-columns:1fr}}
 
+  /* ───── Buildprint copilot (right panel) ───── */
+  .rtabs{display:flex;gap:3px;padding:10px 12px 8px;align-items:center;border-bottom:1px solid var(--line)}
+  .rtabs button{background:none;border:none;color:var(--muted);padding:5px 10px;font-size:11.5px;font-weight:700;letter-spacing:.4px;border-radius:6px;cursor:pointer;font-family:inherit}
+  .rtabs button.on{color:var(--primary);background:var(--panel2)}
+  .rtabs .col-collapse{margin-left:auto}
+  .bp-panel{flex:1;display:flex;flex-direction:column;min-height:0}
+  .bp-head{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
+  .bp-head .bp-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 7px}
+  .bp-head .bp-dot.on{background:var(--success);box-shadow:0 0 8px var(--success)}
+  .bp-head #bpWs{color:var(--secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .bp-head .refresh{margin-left:auto}
+  .bp-log{flex:1;overflow:auto;padding:12px 12px 6px;min-height:0}
+  .bp-msg{margin-bottom:14px;font-size:12.5px;line-height:1.55}
+  .bp-msg.user{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:8px 11px;color:var(--primary)}
+  .bp-msg.bot .who{font-size:9.5px;letter-spacing:1px;color:var(--accent2);font-weight:700;margin-bottom:4px;text-transform:uppercase}
+  .bp-msg.bot .body{color:var(--secondary)}
+  .bp-msg.bot .body.err{color:#e8938b}
+  .bp-status{color:var(--muted);font-style:italic;font-size:11.5px;padding:2px 0}
+  .bp-hero{color:var(--muted);font-size:12px;line-height:1.6;padding:14px 6px;text-align:center}
+  .bp-hero b{color:var(--secondary)}
+  .bp-hero .chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;margin:4px 3px 0;color:var(--secondary);cursor:pointer;font-size:11px;text-align:left}
+  .bp-hero .chip:hover{border-color:var(--line2);color:var(--primary)}
+  .bp-composer{display:flex;gap:6px;align-items:flex-end;padding:9px 11px 12px;border-top:1px solid var(--line)}
+  .bp-composer textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--primary);padding:9px 11px;font-family:inherit;font-size:13px;max-height:120px;min-height:20px;line-height:1.5;outline:none}
+  .bp-composer textarea:focus{border-color:var(--accent)}
+
   /* ───── mobile (≤900px): columns become slide-in drawers ───── */
   .mbtn{display:none;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:6px;width:34px;height:34px;font-size:15px;flex:0 0 auto}
   @media (max-width:900px){
@@ -459,10 +485,28 @@
 
   <!-- RIGHT -->
   <div class="col right">
-    <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
-    <div class="usage" id="usage"></div>
-    <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
-    <div class="cols" id="progress"></div>
+    <div class="rtabs">
+      <button id="rtBp" class="on" onclick="setRPanel('bp')">🔨 Buildprint</button>
+      <button id="rtStatus" onclick="setRPanel('status')">📊 Status</button>
+      <button class="col-collapse" title="Collapse panel" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
+    </div>
+    <!-- Buildprint copilot -->
+    <div id="bpPanel" class="bp-panel">
+      <div class="bp-head"><span class="bp-dot" id="bpDot"></span><span id="bpWs">checking…</span><button class="refresh" title="New Buildprint session" onclick="bpReset()"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-plus"/></svg></button></div>
+      <div class="bp-log" id="bpLog"></div>
+      <div class="bp-composer">
+        <textarea id="bpInput" rows="1" placeholder="Tell Buildprint what to do…  (e.g. add privacy rules to Division on test)"></textarea>
+        <button class="send" id="bpSend" title="Send" onclick="bpSendMsg()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-send"/></svg></button>
+        <button class="send stop" id="bpStop" title="Stop" style="display:none" onclick="bpStopGen()"><svg viewBox="0 0 24 24" style="width:15px;height:15px;fill:currentColor"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg></button>
+      </div>
+    </div>
+    <!-- Status: usage + progress -->
+    <div id="statusPanel" style="display:none;flex:1;overflow:auto;min-height:0">
+      <h2>Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+      <div class="usage" id="usage"></div>
+      <h2>Progress <button class="refresh" onclick="loadProgress()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+      <div class="cols" id="progress"></div>
+    </div>
   </div>
 </div>
 <div class="mscrim" id="mscrim" onclick="mob(null)"></div>
@@ -1176,6 +1220,86 @@ async function enableUsage(){
 }
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
 
+// ---------- Buildprint copilot (right panel) ----------
+let bpSending=false, bpAbort=null;
+function setRPanel(which){
+  $('rtBp').classList.toggle('on',which==='bp'); $('rtStatus').classList.toggle('on',which==='status');
+  $('bpPanel').style.display=which==='bp'?'flex':'none';
+  $('statusPanel').style.display=which==='status'?'block':'none';
+}
+async function bpInit(){
+  try{ const s=await api('/api/bp/status');
+    $('bpDot').classList.toggle('on',s.ready);
+    $('bpWs').textContent = s.ready ? `${s.app} · ${s.branch} branch` : 'not connected';
+  }catch{ $('bpWs').textContent='offline'; }
+  await bpLoad();
+}
+function bpHero(){
+  return '<div class="bp-hero">Operate your CRS Bubble app without leaving here. I run Buildprint on the <b>test</b> branch — sync, edit, check, apply — and log results to the brain.'
+    +'<div style="margin-top:10px">'
+    +['what changed on test since my last apply?','run a security audit','list data types with no privacy rules','sync the test branch']
+      .map(q=>`<span class="chip" onclick="bpAsk(this.textContent)">${q}</span>`).join('')
+    +'</div></div>';
+}
+async function bpLoad(){
+  const log=$('bpLog');
+  try{ const {messages}=await api('/api/bp/history');
+    if(!messages.length){ log.innerHTML=bpHero(); return; }
+    log.innerHTML='';
+    for(const m of messages){
+      if(m.role==='user') log.appendChild(bpUserEl(m.content));
+      else { const el=bpBotEl(); el.querySelector('.body').innerHTML=renderMd(m.content||''); log.appendChild(el); }
+    }
+    log.scrollTop=log.scrollHeight;
+  }catch{ log.innerHTML=bpHero(); }
+}
+function bpUserEl(t){ const d=document.createElement('div'); d.className='bp-msg user'; d.textContent=t; return d; }
+function bpBotEl(){ const d=document.createElement('div'); d.className='bp-msg bot'; d.innerHTML='<div class="who">Buildprint</div><div class="body"></div>'; return d; }
+function bpAsk(t){ $('bpInput').value=t; bpSendMsg(); }
+function bpStopGen(){ if(bpAbort) bpAbort.abort(); }
+function bpSendMsg(){
+  const inp=$('bpInput'); const text=inp.value.trim();
+  if(!text||bpSending) return;
+  inp.value=''; inp.style.height='auto';
+  bpStream(text);
+}
+async function bpStream(text){
+  const log=$('bpLog');
+  if(log.querySelector('.bp-hero')) log.innerHTML='';
+  log.appendChild(bpUserEl(text));
+  const el=bpBotEl(); const body=el.querySelector('.body');
+  body.innerHTML='<span class="bp-status">working…</span>';
+  log.appendChild(el); log.scrollTop=log.scrollHeight;
+  bpSending=true; $('bpSend').style.display='none'; $('bpStop').style.display='';
+  bpAbort=new AbortController();
+  let full='';
+  try{
+    const res=await fetch('/api/bp/chat',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({message:text,model:$('modelSel')?.value,effort:$('effortSel')?.value}),signal:bpAbort.signal});
+    const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
+    while(true){ const {value,done}=await reader.read(); if(done) break;
+      buf+=dec.decode(value,{stream:true}); let i;
+      while((i=buf.indexOf('\n\n'))>=0){ const chunk=buf.slice(0,i); buf=buf.slice(i+2);
+        const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
+        let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
+        if(ev.type==='status'){ if(!full) body.innerHTML=`<span class="bp-status">${esc(ev.text)}…</span>`; }
+        else if(ev.type==='delta'){ full+=ev.text; body.innerHTML=renderMd(full); log.scrollTop=log.scrollHeight; }
+        else if(ev.type==='done'||ev.type==='stopped'){ full=ev.reply||full; body.innerHTML=renderMd(full); }
+        else if(ev.type==='error'){ body.classList.add('err'); body.textContent='⚠ '+ev.error; }
+      }
+    }
+    if(full && !body.classList.contains('err')) body.innerHTML=renderMd(full);
+    loadProgress(); // audit/apply may have updated the board
+  }catch(e){ if(e.name!=='AbortError'){ body.classList.add('err'); body.textContent='⚠ '+e.message; } }
+  finally{ bpSending=false; $('bpSend').style.display=''; $('bpStop').style.display='none'; bpAbort=null; log.scrollTop=log.scrollHeight; }
+}
+async function bpReset(){ if(!confirm('Start a fresh Buildprint session? (history is saved in git)')) return;
+  try{ await api('/api/bp/reset',{method:'POST'}); }catch{} $('bpLog').innerHTML=bpHero(); }
+{ const bi=$('bpInput');
+  bi.addEventListener('input',()=>{bi.style.height='auto';bi.style.height=Math.min(bi.scrollHeight,120)+'px';});
+  bi.addEventListener('keydown',e=>{ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();bpSendMsg();} });
+}
+
 // ---------- boot ----------
 // Deep link: /#file=<path> opens that file (used by the Map's click-to-open).
 function openFromHash(){
@@ -1185,7 +1309,7 @@ function openFromHash(){
   }
 }
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpInit(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

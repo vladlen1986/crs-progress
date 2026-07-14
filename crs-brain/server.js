@@ -237,6 +237,56 @@ const INGEST_PROMPT = [
   '6) Reply with a compact "what I updated" list, file by file, plus anything the report left ambiguous.',
 ].join(' ');
 
+// ---- Buildprint copilot (right-panel chat) ---------------------------------
+// Detect the cloned Bubble workspace (app root has .buildprint/, branch is a subdir).
+function findBpWorkspace() {
+  const root = path.join(os.homedir(), 'projects', 'crs-bubble');
+  try {
+    for (const app of fs.readdirSync(root)) {
+      const appDir = path.join(root, app);
+      if (!fs.existsSync(path.join(appDir, '.buildprint'))) continue;
+      for (const b of ['test', 'dev']) {
+        const w = path.join(appDir, b);
+        if (fs.existsSync(w)) return { app, branch: b, dir: w };
+      }
+      // fall back to first branch subdir
+      for (const b of fs.readdirSync(appDir)) {
+        const w = path.join(appDir, b);
+        if (b !== '.buildprint' && fs.statSync(w).isDirectory()) return { app, branch: b, dir: w };
+      }
+    }
+  } catch {}
+  return null;
+}
+const BP_CHAT_FILE = path.join(DATA_DIR, 'buildprint', 'chat.json');
+fs.mkdirSync(path.dirname(BP_CHAT_FILE), { recursive: true });
+function loadBpChat() {
+  try { return JSON.parse(fs.readFileSync(BP_CHAT_FILE, 'utf8')); }
+  catch { return { sessionId: null, messages: [] }; }
+}
+function saveBpChat(c) { fs.writeFileSync(BP_CHAT_FILE, JSON.stringify(c, null, 2)); }
+
+const BP_PROMPT = (ws) => [
+  'You are the CRS Brain BUILDPRINT COPILOT. You operate the CRS Bubble app directly via the Buildprint CLI',
+  `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
+  `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
+  'pages/, option_sets/, styles/, api/, settings/…).',
+  'THE LOOP: `buildprint sync` FIRST (pull latest Bubble snapshot) → edit the files → `buildprint check`',
+  '(must pass) → `buildprint apply` (push to Bubble). Useful: `buildprint audit` (security scan),',
+  '`buildprint sync status`, `buildprint changelog <a> <b>`.',
+  'HARD GUARDRAILS (from brain/buildprint/crs-brain-operations.md and decisions.md 2026-05-01):',
+  '(1) TEST branch only — NEVER live. (2) Always sync before working. (3) check must pass before apply.',
+  '(4) NEVER use --force-apply / --no-check / sync --reset without Vlad approving in THIS chat.',
+  '(5) Before the FIRST apply of a request, state the exact plan (files/entities + expected Bubble effect)',
+  'and get Vlad\'s go-ahead. (6) Pattern A: every business Data Type needs company + property fields and a',
+  'privacy rule checking BOTH. (7) If anything looks off (stale branch, conflicts, suspicious shrink) — STOP',
+  'and surface it.',
+  'AFTER applying changes, write a short summary into the CRS repo brain/ files (database.md / security.md /',
+  `workflows.md / changelog.md at ${REPO_ROOT}/brain/) so the ledger stays current.`,
+  'Be concise and direct (CLAUDE.md style). When the user just asks about progress/status, answer from the',
+  'workspace + brain/ without running mutating commands.',
+].join(' ');
+
 // ---- helpers ---------------------------------------------------------------
 function send(res, code, body, headers = {}) {
   const data = typeof body === 'string' || Buffer.isBuffer(body) ? body : JSON.stringify(body);
@@ -302,12 +352,33 @@ function spawnClaude(args, opts = {}) {
   }
   return spawn('claude', args, opts);   // PATH extended at startup
 }
+// Turn a tool_use input object into readable lines for the work-block body,
+// so "Reading / Building / Working" cards show WHAT the tool did (which file,
+// which command, which pattern) instead of an empty "(no details)".
+function formatToolInput(name, input) {
+  const p = input && typeof input === 'object' ? input : {};
+  const order = ['description', 'file_path', 'path', 'pattern', 'glob', 'command',
+    'url', 'prompt', 'query', 'old_string', 'new_string', 'content'];
+  const fmt = (k, v) => {
+    let s = typeof v === 'string' ? v : JSON.stringify(v);
+    if (s.length > 800) s = s.slice(0, 800) + ' …';
+    return `${k}: ${s}`;
+  };
+  const seen = new Set();
+  const lines = [];
+  for (const k of order) if (p[k] != null && p[k] !== '') { lines.push(fmt(k, p[k])); seen.add(k); }
+  for (const k of Object.keys(p)) if (!seen.has(k) && p[k] != null && p[k] !== '') lines.push(fmt(k, p[k]));
+  return lines.join('\n') || '(no parameters)';
+}
 // Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
 // text deltas as they arrive. Uses the Max subscription (no API key).
 // hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
 function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onDelta = hooks.onDelta || (() => {});
   const onStatus = hooks.onStatus || (() => {});
+  const onThink = hooks.onThink || (() => {});   // extended-thinking text
+  const onBlock = hooks.onBlock || (() => {});    // work-block boundary: {kind:'thinking'|'tool', tool?}
+  const onDetail = hooks.onDetail || (() => {});  // tool parameters for the current work block
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -316,33 +387,67 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
       '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)',   // live lookups + Buildprint CLI ops
-      '--append-system-prompt', SYSTEM_PROMPT,
+      '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
+    for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
     if (opts.model) args.push('--model', opts.model);
     if (opts.effort) args.push('--effort', opts.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
-    const child = spawnClaude(args, { cwd: REPO_ROOT });
+    const child = spawnClaude(args, { cwd: opts.cwd || REPO_ROOT });
 
     let buf = '';
     let stderr = '';
     let finalText = '';
     let sawResult = false;
+    let aborted = false;
 
-    const timer = setTimeout(() => {
-      child.kill();
-      reject(new Error('claude timed out after 5 minutes'));
-    }, 5 * 60 * 1000);
+    // Stop button / client disconnect: kill the claude child, keep partial output.
+    if (opts.signal) {
+      const onAbort = () => { aborted = true; try { child.kill('SIGTERM'); } catch {} };
+      if (opts.signal.aborted) onAbort();
+      else opts.signal.addEventListener('abort', onAbort, { once: true });
+    }
 
+    // Inactivity timeout (NOT a wall-clock cap): only give up after a long
+    // stretch of zero output. A long-but-active thinking/tool run keeps resetting
+    // this, so deep reasoning is never killed just for taking a while.
+    let timedOut = false;
+    let timer = null;
+    const IDLE_MS = 10 * 60 * 1000;
+    const bumpIdle = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => { timedOut = true; try { child.kill('SIGTERM'); } catch {} }, IDLE_MS);
+    };
+    bumpIdle();
+
+    let toolAcc = null;   // { name, json } — accumulates streamed tool-input JSON
+    function flushTool() {
+      if (!toolAcc) return;
+      let input = {}; try { input = JSON.parse(toolAcc.json || '{}'); } catch {}
+      onDetail(formatToolInput(toolAcc.name, input));
+      toolAcc = null;
+    }
     function handleEvent(ev) {
       if (!ev || !ev.type) return;
       if (ev.type === 'stream_event' && ev.event) {
         const e = ev.event;
-        if (e.type === 'content_block_delta' && e.delta && e.delta.type === 'text_delta') {
-          onDelta(e.delta.text || '');
-        } else if (e.type === 'content_block_start' && e.content_block && e.content_block.type === 'tool_use') {
-          onStatus(e.content_block.name || 'working');
+        if (e.type === 'content_block_start' && e.content_block) {
+          flushTool();   // safety: emit prior tool detail if its stop was missed
+          const cb = e.content_block;
+          if (cb.type === 'thinking') onBlock({ kind: 'thinking' });
+          else if (cb.type === 'tool_use') {
+            toolAcc = { name: cb.name || '', json: '' };
+            onBlock({ kind: 'tool', tool: cb.name || '' });
+            onStatus(cb.name || 'working');
+          }
+        } else if (e.type === 'content_block_delta' && e.delta) {
+          if (e.delta.type === 'text_delta') onDelta(e.delta.text || '');
+          else if (e.delta.type === 'thinking_delta') onThink(e.delta.thinking || '');
+          else if (e.delta.type === 'input_json_delta' && toolAcc) toolAcc.json += e.delta.partial_json || '';
+        } else if (e.type === 'content_block_stop' || e.type === 'message_stop') {
+          flushTool();
         }
       } else if (ev.type === 'result') {
         sawResult = true;
@@ -352,6 +457,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     }
 
     child.stdout.on('data', (d) => {
+      bumpIdle();   // any output means it's alive — reset the inactivity clock
       buf += d;
       let nl;
       while ((nl = buf.indexOf('\n')) >= 0) {
@@ -365,7 +471,14 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     child.on('error', (e) => { clearTimeout(timer); reject(e); });
     child.on('close', (code) => {
       clearTimeout(timer);
+      flushTool();
       if (buf.trim()) { try { handleEvent(JSON.parse(buf.trim())); } catch {} }
+      if (aborted) return resolve({ text: finalText, sessionId, aborted: true });
+      if (timedOut) {
+        // Genuine hang — no output for IDLE_MS. Keep any partial we did get.
+        if (finalText.trim()) return resolve({ text: finalText, sessionId, aborted: true });
+        return reject(new Error('claude stopped responding (no output for 10 minutes)'));
+      }
       if (!sawResult && code !== 0) {
         return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 500)}`));
       }
@@ -553,24 +666,35 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/chat' && req.method === 'POST') {
       const body = await readJsonBody(req);
-      const message = (body.message || '').toString();
-      const attachments = Array.isArray(body.attachments) ? body.attachments.filter(Boolean) : [];
-      if (!message.trim() && !attachments.length) return send(res, 400, { error: 'empty message' });
+      let message = (body.message || '').toString();
+      let attachments = Array.isArray(body.attachments) ? body.attachments.filter(Boolean) : [];
+      const regenerate = body.regenerate === true;
+      if (!regenerate && !message.trim() && !attachments.length) return send(res, 400, { error: 'empty message' });
       // `title` lets the caller (e.g. digest) set a friendly name distinct from the prompt.
       const forcedTitle = (body.title || '').toString().trim();
 
       let chat = body.id ? loadChat(body.id) : null;
-      if (!chat) {
-        chat = {
-          id: crypto.randomUUID(),
-          title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
-          sessionId: null,
-          created: nowIso(),
-          updated: nowIso(),
-          messages: [],
-        };
+      if (regenerate) {
+        // "Try again": drop the last reply and re-run the preceding user turn.
+        if (!chat || !chat.messages.length) return send(res, 400, { error: 'nothing to regenerate' });
+        while (chat.messages.length && chat.messages[chat.messages.length - 1].role === 'assistant') chat.messages.pop();
+        const lastUser = [...chat.messages].reverse().find((m) => m.role === 'user');
+        if (!lastUser) return send(res, 400, { error: 'nothing to regenerate' });
+        message = lastUser.content || '';
+        attachments = Array.isArray(lastUser.attachments) ? lastUser.attachments.filter(Boolean) : [];
+      } else {
+        if (!chat) {
+          chat = {
+            id: crypto.randomUUID(),
+            title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
+            sessionId: null,
+            created: nowIso(),
+            updated: nowIso(),
+            messages: [],
+          };
+        }
+        chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
       }
-      chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
 
       // Give Claude the attachment paths so it can open them with its own tools.
       const ingest = body.ingest === true;
@@ -591,7 +715,11 @@ const server = http.createServer(async (req, res) => {
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
       });
-      const sse = (o) => res.write(`data: ${JSON.stringify(o)}\n\n`);
+      // Abort the claude run if the browser hits Stop (fetch aborted → socket closes).
+      const ac = new AbortController();
+      let clientGone = false;
+      req.on('close', () => { clientGone = true; ac.abort(); });
+      const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       sse({ type: 'meta', id: chat.id, title: chat.title });
 
       let streamed = '';
@@ -600,18 +728,24 @@ const server = http.createServer(async (req, res) => {
         const runOpts = {
           model: (body.model || cfg.model || '').toString() || undefined,
           effort: (body.effort || cfg.effort || '').toString() || undefined,
+          signal: ac.signal,
         };
         const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
+          onThink: (t) => sse({ type: 'think', text: t }),
+          onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
+          onDetail: (t) => sse({ type: 'detail', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, runOpts);
         const finalText = result.text || streamed;
-        chat.sessionId = result.sessionId;
+        chat.sessionId = result.sessionId || chat.sessionId;
         chat.updated = nowIso();
-        chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso() });
+        // Persist whatever was produced — even a partial reply from Stop — so it
+        // survives reload and can be continued from the same session.
+        chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         saveChat(chat);
         autoCommit(chat.title);
-        sse({ type: 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
+        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
       } catch (e) {
         sse({ type: 'error', error: e.message });
       }
@@ -622,6 +756,62 @@ const server = http.createServer(async (req, res) => {
       const id = u.searchParams.get('id');
       try { fs.unlinkSync(chatPath(id)); } catch {}
       return send(res, 200, { ok: true });
+    }
+
+    // ---- Buildprint copilot ----
+    if (p === '/api/bp/status' && req.method === 'GET') {
+      const ws = findBpWorkspace();
+      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null });
+    }
+    if (p === '/api/bp/history' && req.method === 'GET') {
+      const c = loadBpChat();
+      return send(res, 200, { messages: c.messages || [] });
+    }
+    if (p === '/api/bp/reset' && req.method === 'POST') {
+      saveBpChat({ sessionId: null, messages: [] });
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/bp/chat' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const message = (body.message || '').toString();
+      if (!message.trim()) return send(res, 400, { error: 'empty message' });
+      const ws = findBpWorkspace();
+      res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
+      const ac = new AbortController();
+      let clientGone = false;
+      req.on('close', () => { clientGone = true; ac.abort(); });
+      const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
+      if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
+      const chat = loadBpChat();
+      chat.messages.push({ role: 'user', content: message, ts: nowIso() });
+      sse({ type: 'meta' });
+      let streamed = '';
+      try {
+        const cfg = loadSettings();
+        const result = await runClaudeStream(message, chat.sessionId, {
+          onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
+          onThink: (t) => sse({ type: 'think', text: t }),
+          onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
+          onDetail: (t) => sse({ type: 'detail', text: t }),
+          onStatus: (s) => sse({ type: 'status', text: s }),
+        }, {
+          model: (body.model || cfg.model || '').toString() || undefined,
+          effort: (body.effort || cfg.effort || '').toString() || undefined,
+          signal: ac.signal,
+          cwd: ws.dir,
+          systemPrompt: BP_PROMPT(ws),
+          addDirs: [REPO_ROOT],
+        });
+        const finalText = result.text || streamed;
+        chat.sessionId = result.sessionId || chat.sessionId;
+        chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
+        saveBpChat(chat);
+        autoCommit('buildprint chat');
+        sse({ type: result.aborted ? 'stopped' : 'done', reply: finalText });
+      } catch (e) {
+        sse({ type: 'error', error: e.message });
+      }
+      return res.end();
     }
 
     if (p === '/api/usage' && req.method === 'GET') {
