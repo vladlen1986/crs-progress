@@ -381,25 +381,36 @@ function buildGraph(){
   if(!tree) return;
   const T = contentTree();
   if(S.view==='departments'){
-    const groups={}; const rootFiles=[];
-    for(const n of T){ if(n.type==='dir') groups[n.name]=n; else rootFiles.push(n); }
+    const PROMOTE=50;   // a subfolder this big (e.g. brain/bubble manual) gets its own cluster
+    const cntFiles=(ch)=>{ let n=0; (function w(c){for(const x of c){x.type==='dir'?w(x.children):n++;}})(ch); return n; };
+    // department list: promote large subfolders (manuals) out of their parent
+    const depts=[]; const rootFiles=[];
+    for(const n of T){
+      if(n.type!=='dir'){ rootFiles.push(n); continue; }
+      const big=[], rest=[];
+      for(const c of n.children){ (c.type==='dir'&&cntFiles(c.children)>=PROMOTE ? big : rest).push(c); }
+      for(const b of big) depts.push({name:b.name, children:b.children});
+      if(cntFiles(rest)) depts.push({name:n.name, children:rest});
+    }
+    if(rootFiles.length) depts.push({name:'root', children:rootFiles});
     let gi=0;
     const mkDept=(name,children)=>{
       const files=[]; (function walk(c){ for(const x of c){ x.type==='dir'?walk(x.children):files.push(x); } })(children);
       if(!files.length) return;
       const color=MEMC[gi++%MEMC.length];
-      const ang=gi*2.399, R=300+120*rnd();
+      const ang=gi*2.399, R=320+140*rnd();
       const hub=addNode({id:'#'+name, kind:'hub', label:name.toUpperCase(), color, r:Math.min(20,9+files.length*.12), count:files.length,
         x:Math.cos(ang)*R, y:Math.sin(ang)*R-120});
       hubs.push(hub); link(hub.id,'@center',230+90*rnd(),.5);
+      // big reference clusters (manuals) open COLLAPSED so they don't flood the map
+      if(files.length>=PROMOTE && S.collapsed[hub.id]===undefined) S.collapsed[hub.id]=true;
       files.forEach(f=>{ fileCount++;
         addNode({id:f.path, kind:'file', label:f.name, path:f.path, color, r:nSize(f.size),
           planet:(hash(f.path)%9)===0, cluster:hub.id, hidden:!!S.collapsed[hub.id]});
         link(f.path, hub.id, 26+60*rnd(), .8);
       });
     };
-    for(const [name,d] of Object.entries(groups)) mkDept(name, d.children);
-    if(rootFiles.length) mkDept('root', rootFiles);
+    for(const d of depts) mkDept(d.name, d.children);
   } else { // folders: nested hierarchy
     let gi=0;
     const walkDir=(dirNode, parentId, depth, color)=>{
