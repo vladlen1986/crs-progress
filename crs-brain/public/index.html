@@ -286,6 +286,10 @@
     </div>
     <div class="pane" id="paneChats"></div>
     <div class="pane hide tree" id="paneFiles"></div>
+    <div class="tabs" id="fileFilter" style="display:none;margin-top:0">
+      <button id="ffAll" class="on" onclick="setFileFilter(false)">All files</button>
+      <button id="ffCrs" onclick="setFileFilter(true)">CRS only</button>
+    </div>
   </div>
 
   <!-- CENTER -->
@@ -410,7 +414,17 @@ function setTab(t){ state.tab=t;
   $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files');
   $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files');
   $('chatActions').style.display = t==='chats' ? '' : 'none';
+  $('fileFilter').style.display = t==='files' ? '' : 'none';
 }
+
+// ---------- CRS-only content filter ----------
+const CRS_DIRS=new Set(['brain','specs','design','data','demos','pricing','audits']);
+const CRS_ROOT_FILES=new Set(['CLAUDE.md','decisions.md']);
+state.crsOnly = localStorage.getItem('crsOnly')==='1';
+function setFileFilter(crs){ state.crsOnly=crs; localStorage.setItem('crsOnly',crs?'1':'0');
+  $('ffAll').classList.toggle('on',!crs); $('ffCrs').classList.toggle('on',crs); loadFiles(); }
+function filterTree(tree){ if(!state.crsOnly) return tree;
+  return tree.filter(n=> n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name)); }
 
 // ---------- chats ----------
 async function loadChats(){
@@ -603,8 +617,10 @@ async function runDigest(){
 // ---------- files ----------
 async function loadFiles(){
   const {root,tree}=await api('/api/files'); $('repoName').textContent=root;
-  const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(tree,true));
-  state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(tree);
+  const shown=filterTree(tree);
+  const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(shown,true));
+  state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(shown);
+  $('ffAll').classList.toggle('on',!state.crsOnly); $('ffCrs').classList.toggle('on',state.crsOnly);
 }
 function renderTree(nodes,open){
   const wrap=document.createElement('div');

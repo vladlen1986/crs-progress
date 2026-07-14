@@ -73,6 +73,7 @@
   <div class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></svg></div>
   <div><b>CRS BRAIN</b> <span>SECOND BRAIN</span><div class="by">CASINO REPORTING SUITE</div></div>
 </div>
+<button class="menu-btn" id="fsBtn" style="right:118px" title="Fullscreen" onclick="toggleFS()">⛶</button>
 <button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
 <div class="panel" id="panel">
   <input type="search" id="q" placeholder="Search files… ( / )">
@@ -83,6 +84,10 @@
   <div class="lbl">View</div>
   <div class="seg" id="viewSeg">
     <button data-v="departments" class="on">Departments</button><button data-v="folders">Folders</button>
+  </div>
+  <div class="lbl">Content</div>
+  <div class="seg" id="contentSeg">
+    <button data-c="all" class="on">All</button><button data-c="crs">CRS only</button>
   </div>
   <div class="lbl">Ring spin</div>
   <div class="row"><input type="range" id="spin" min="0" max="100" value="18"></div>
@@ -118,8 +123,16 @@ addEventListener('resize',resize); resize();
 
 // ---- settings (bakeable) ----------------------------------------------------
 const S = Object.assign({
-  layout:'force', view:'departments', spin:18, names:false, spring:38, size:50, collapsed:{},
+  layout:'force', view:'departments', content:'all', spin:18, names:false, spring:38, size:50, collapsed:{},
 }, JSON.parse(localStorage.getItem('crsmap')||'{}'));
+
+// CRS-only mode: product knowledge only — hide the tool internals & pipeline.
+const CRS_DIRS = new Set(['brain','specs','design','data','demos','pricing','audits']);
+const CRS_ROOT_FILES = new Set(['CLAUDE.md','decisions.md']);
+function contentTree(){
+  if(!tree || S.content!=='crs') return tree;
+  return tree.filter(n => n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name));
+}
 function bake(){ localStorage.setItem('crsmap', JSON.stringify(S)); flash('Settings baked'); }
 let flashT=0, flashMsg='';
 function flash(m){ flashMsg=m; flashT=performance.now(); }
@@ -163,9 +176,10 @@ function buildGraph(){
 
   // Memory: department clusters (top-level dirs) or full folder hierarchy
   if(!tree) return;
+  const T = contentTree();
   if(S.view==='departments'){
     const groups={}; const rootFiles=[];
-    for(const n of tree){ if(n.type==='dir') groups[n.name]=n; else rootFiles.push(n); }
+    for(const n of T){ if(n.type==='dir') groups[n.name]=n; else rootFiles.push(n); }
     let gi=0;
     const mkDept=(name,children)=>{
       const files=[]; (function walk(c){ for(const x of c){ x.type==='dir'?walk(x.children):files.push(x); } })(children);
@@ -200,12 +214,12 @@ function buildGraph(){
       });
       dirs.forEach(d=>walkDir(d, hub.id, depth+1, myColor));
     };
-    const rootFiles=tree.filter(c=>c.type==='file');
+    const rootFiles=T.filter(c=>c.type==='file');
     rootFiles.forEach(f=>{ fileCount++;
       addNode({id:f.path, kind:'file', label:f.name, path:f.path, color:'#C4B5FD', r:nSize(f.size), cluster:'@center'});
       link(f.path,'@center',120,.6);
     });
-    tree.filter(c=>c.type==='dir').forEach(d=>walkDir(d,'@center',0));
+    T.filter(c=>c.type==='dir').forEach(d=>walkDir(d,'@center',0));
   }
   ui.q.placeholder=`Search ${fileCount.toLocaleString()} files… ( / )`;
   applyLayout(true);
@@ -455,6 +469,15 @@ document.getElementById('layoutSeg').addEventListener('click',e=>{ const b=e.tar
   S.layout=b.dataset.l; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); applyLayout(); });
 document.getElementById('viewSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
   S.view=b.dataset.v; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph(); });
+document.getElementById('contentSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  S.content=b.dataset.c; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b)); buildGraph();
+  flash(S.content==='crs'?'CRS content only':'Showing everything'); });
+// fullscreen
+function toggleFS(){
+  if(document.fullscreenElement){ document.exitFullscreen(); }
+  else document.documentElement.requestFullscreen().catch(()=>flash('Fullscreen blocked by browser'));
+}
+document.addEventListener('fullscreenchange',()=>{ document.getElementById('fsBtn').textContent=document.fullscreenElement?'⛶ EXIT':'⛶'; });
 const bindRange=(id,key,out,fmt)=>{ const el=document.getElementById(id); el.value=S[key];
   const show=()=>{ if(out) document.getElementById(out).textContent=fmt(S[key]); };
   el.addEventListener('input',()=>{ S[key]=+el.value; show(); }); show(); };
@@ -475,6 +498,7 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
 // restore baked seg states
 document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+document.querySelectorAll('#contentSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
 
 // ---- chat dock: ask the brain, highlight what it points at ---------------------------
 const dockBody=document.getElementById('dockBody'), dockQ=document.getElementById('dockQ'),
