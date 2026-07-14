@@ -23,7 +23,7 @@
   ::-webkit-scrollbar-thumb:active{background:var(--accent)}
   ::-webkit-scrollbar-corner{background:transparent}
   body{background:var(--bg);font-family:var(--sans);color:var(--secondary);font-size:13px;-webkit-font-smoothing:antialiased}
-  canvas{display:block;cursor:grab} canvas.dragging{cursor:grabbing} canvas.pointing{cursor:pointer}
+  canvas{display:block;cursor:grab;touch-action:none} canvas.dragging{cursor:grabbing} canvas.pointing{cursor:pointer}
 
   .brand{position:fixed;top:16px;left:20px;display:flex;align-items:center;gap:10px;z-index:10;pointer-events:none;user-select:none}
   .brand .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:flex;align-items:center;justify-content:center}
@@ -178,6 +178,34 @@
   .dock input:focus{border-color:var(--accent)}
   .dock button.ask{background:var(--accent);border:none;color:#fff;border-radius:6px;padding:0 14px;font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
   .dock button.ask:disabled{opacity:.4}
+
+  /* ── mobile / touch ─────────────────────────────────────────────────────── */
+  @media (hover:none){ .tip,.hpv{display:none!important} }   /* no hover previews on touch */
+  @media (max-width:720px){
+    .hint{display:none}
+    .brand{top:11px;left:13px}
+    .brand span,.brand .by{display:none}
+    .brand b{font-size:12px;letter-spacing:1.4px}
+    .brand .mark{width:23px;height:23px}
+    .menu-btn{top:11px;padding:6px 11px;font-size:11px;letter-spacing:1px}
+    #fsBtn{display:none}                        /* fullscreen is awkward on mobile browsers */
+    #boardBtn{right:104px!important}
+    .menu-btn:not([id]){right:13px!important}
+    .panel{top:50px;right:12px;left:auto;width:min(84vw,290px);max-height:calc(100dvh - 140px);overflow-y:auto}
+    .dock{left:11px;right:11px;width:auto;bottom:11px}
+    .dock .dbody{max-height:32vh}
+    body.board-open .dock{bottom:calc(54vh + 18px)}
+    .board{height:54vh;min-height:0}
+    .board .bhead{flex-wrap:wrap;gap:8px;padding:10px 13px 6px}
+    .board .bhead .bseg,.board .bhead .bsearch{margin-left:0}
+    .board .bhead .bsearch{width:auto;flex:1 1 120px;min-width:110px}
+    .board .cols{padding:6px 13px 14px}
+    .bcol,.bcol.tiles{flex-basis:80vw;max-width:88vw}
+    .pv{left:10px;right:10px;top:54px;bottom:calc(54vh + 10px)}
+    .pv .pvhead{flex-wrap:wrap;gap:8px}
+    .pv .pvhead .sp{display:none}
+    .pv .pvbody{padding:14px 15px}
+  }
 </style>
 </head>
 <body>
@@ -570,13 +598,15 @@ function step(dt){
       let dx=b.x-a.x, dy=b.y-a.y; const d=Math.sqrt(dx*dx+dy*dy)||1;
       const f=(d-l.len)*0.028*springK*l.k; dx/=d; dy/=d;
       a.vx+=dx*f; a.vy+=dy*f; b.vx-=dx*f; b.vy-=dy*f; }
-    for(const n of vis){ n.vx-=n.x*0.00035; n.vy-=n.y*0.00035;   // gentle gravity to origin
+    for(const n of vis){
+      if(n.id==='@center'){ n.x=0; n.y=0; n.vx=0; n.vy=0; continue; }   // pin the brain dead-center
+      n.vx-=n.x*0.00035; n.vy-=n.y*0.00035;   // gentle gravity to origin
       n.vx=Math.max(-14,Math.min(14,n.vx)); n.vy=Math.max(-14,Math.min(14,n.vy));
       if(n!==dragN){ n.x+=n.vx; n.y+=n.vy; } n.vx*=0.86; n.vy*=0.86; }
     // galactic rotation — whole system revolves; files also orbit their hub
     const sp=ambientSpeed();
     const G=0.0000115*sp*dt, cg=Math.cos(G), sg=Math.sin(G);
-    for(const n of vis){ if(n===dragN) continue;
+    for(const n of vis){ if(n===dragN||n.id==='@center') continue;
       const x=n.x, y=n.y; n.x=x*cg-y*sg; n.y=x*sg+y*cg;
       if(n.kind==='file'&&n.cluster){ const h=byId[n.cluster];
         if(h&&!h.hidden){ const w=(0.00006+(hash(n.id)%17)*0.000006)*sp*dt*((hash(n.id)%2)?1:-1);
@@ -741,8 +771,11 @@ function draw(){
   }
   ctx.globalAlpha=1;
 
-  // nodes — depth parallax, entrance stagger, pulsing glow, rotation, ripples
-  for(const n of nodes){ if(n.hidden) continue;
+  // nodes — draw files first, structural (hubs/anchors/center) on top so the
+  // brain and hubs never get buried under a big cluster like the Bubble manual.
+  const _f=[],_s=[];
+  for(const n of nodes){ if(n.hidden) continue; (n.kind==='file'?_f:_s).push(n); }
+  for(const n of _f.concat(_s)){
     if(S.layout==='rings'&&n.kind==='anchor') continue;   // ring labels replace anchors
     const alpha=dim(n)?0.10:1; ctx.globalAlpha=alpha;
     // entrance: scale in with stagger
@@ -778,13 +811,17 @@ function draw(){
         ctx.globalAlpha=alpha*0.85; ctx.beginPath(); ctx.arc(nx+Math.cos(ma)*mr, ny+Math.sin(ma)*mr*0.5, 1.7/Math.sqrt(cam.k),0,7); ctx.fill(); ctx.globalAlpha=alpha; }
       if(n.kind==='center'){
         ctx.fillStyle='#0A0A0C'; hexPath(nx,ny,r*0.55); ctx.fill();
-        // rotating dashed orbit — the brain is thinking
-        ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00028*sp);
-        ctx.strokeStyle=n.color+'66'; ctx.lineWidth=1.2/cam.k; ctx.setLineDash([5/cam.k,9/cam.k]);
-        ctx.beginPath(); ctx.arc(0,0,r*1.85,0,7); ctx.stroke();
-        ctx.rotate(-now*0.0006*sp); ctx.setLineDash([2/cam.k,14/cam.k]);
-        ctx.beginPath(); ctx.arc(0,0,r*2.6,0,7); ctx.stroke();
-        ctx.restore(); ctx.fillStyle=n.color;
+        // rotating dashed orbit — the brain is thinking. Skip when zoomed out:
+        // sub-pixel dashes shimmer/alias, which read as "glitching".
+        if(cam.k>0.5){
+          ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00028*sp);
+          ctx.strokeStyle=n.color+'66'; ctx.lineWidth=1.2/cam.k; ctx.setLineDash([5/cam.k,9/cam.k]);
+          ctx.beginPath(); ctx.arc(0,0,r*1.85,0,7); ctx.stroke();
+          ctx.rotate(-now*0.0006*sp); ctx.setLineDash([2/cam.k,14/cam.k]);
+          ctx.beginPath(); ctx.arc(0,0,r*2.6,0,7); ctx.stroke();
+          ctx.restore();
+        }
+        ctx.fillStyle=n.color;
       }
     }
     // hover ripple
@@ -828,14 +865,33 @@ function pick(px,py){ const p=toWorld(px,py);
     if(dx*dx+dy*dy<rr*rr) return n; } return null; }
 
 let downAt=null;
-cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId); downAt={x:e.clientX,y:e.clientY,moved:false};
+const pointers=new Map();      // live pointers → pinch-zoom on touch
+let pinch=null, panLast=null;
+cv.addEventListener('pointerdown',e=>{ cv.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pointers.size===2){                       // second finger → pinch; cancel any drag/click
+    dragN=null; panning=false; downAt=null; panLast=null;
+    const p=[...pointers.values()];
+    pinch={ d:Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y), cx:(p[0].x+p[1].x)/2, cy:(p[0].y+p[1].y)/2 };
+    return; }
+  downAt={x:e.clientX,y:e.clientY,moved:false};
   const n=pick(e.clientX,e.clientY);
-  if(n && S.layout==='force'){ dragN=n; } else panning=true; cv.classList.add('dragging'); });
+  if(n && S.layout==='force'){ dragN=n; } else { panning=true; panLast={x:e.clientX,y:e.clientY}; }
+  cv.classList.add('dragging'); });
 cv.addEventListener('pointermove',e=>{
+  if(pointers.has(e.pointerId)) pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+  if(pinch && pointers.size>=2){               // pinch-zoom + two-finger pan
+    const p=[...pointers.values()];
+    const d=Math.hypot(p[0].x-p[1].x,p[0].y-p[1].y), cx=(p[0].x+p[1].x)/2, cy=(p[0].y+p[1].y)/2;
+    const f=d/(pinch.d||d), k2=Math.min(4,Math.max(0.18,cam.k*f));
+    const wp=toWorld(cx,cy);
+    cam.x-=wp.x*(k2-cam.k); cam.y-=wp.y*(k2-cam.k); cam.k=k2;
+    cam.x+=cx-pinch.cx; cam.y+=cy-pinch.cy;
+    pinch.d=d; pinch.cx=cx; pinch.cy=cy; return; }
   if(downAt){ const dx=e.clientX-downAt.x, dy=e.clientY-downAt.y;
     if(Math.abs(dx)+Math.abs(dy)>3) downAt.moved=true;
     if(dragN){ const p=toWorld(e.clientX,e.clientY); dragN.x=p.x; dragN.y=p.y; dragN.vx=0; dragN.vy=0; }
-    else if(panning){ cam.x+=e.movementX; cam.y+=e.movementY; }
+    else if(panning){ cam.x+=e.clientX-panLast.x; cam.y+=e.clientY-panLast.y; panLast={x:e.clientX,y:e.clientY}; }
   } else {
     const prev=hover;
     hover=pick(e.clientX,e.clientY);
@@ -855,9 +911,13 @@ function openNode(n){
   } else window.open('/#file='+encodeURIComponent(n.path),'crsbrain');
 }
 cv.addEventListener('pointerup',e=>{
+  pointers.delete(e.pointerId); if(pointers.size<2) pinch=null;
   cv.classList.remove('dragging');
-  if(downAt && !downAt.moved){ const n=pick(e.clientX,e.clientY); openNode(n); }
-  dragN=null; panning=false; downAt=null; });
+  if(downAt && !downAt.moved && !pinch){ const n=pick(e.clientX,e.clientY); openNode(n); }
+  dragN=null; panning=false; downAt=null; panLast=null; });
+cv.addEventListener('pointercancel',e=>{
+  pointers.delete(e.pointerId); if(pointers.size<2) pinch=null;
+  dragN=null; panning=false; downAt=null; panLast=null; cv.classList.remove('dragging'); });
 cv.addEventListener('dblclick',e=>{ const n=pick(e.clientX,e.clientY);
   if(n&&n.kind==='hub'){ S.collapsed[n.id]=!S.collapsed[n.id];
     for(const x of nodes) if(x.cluster===n.id) x.hidden=!!S.collapsed[n.id]; }});
