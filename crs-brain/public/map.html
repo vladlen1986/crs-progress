@@ -258,10 +258,20 @@ const STARS=[]; (function(){ for(let i=0;i<260;i++) STARS.push({
 const FLOWS=[];              // particles travelling along links toward the center
 function ambientSpeed(){ return 0.35+S.spin/40; }                    // Ring-spin slider = life intensity
 function spawnFlow(){
-  const cand=links.filter(l=>{ const a=byId[l.a],b=byId[l.b]; return a&&b&&!a.hidden&&!b.hidden&&a.kind==='file'; });
+  // data exchange on ANY connection, both directions — the universe talks
+  const cand=links.filter(l=>{ const a=byId[l.a],b=byId[l.b]; return a&&b&&!a.hidden&&!b.hidden; });
   if(!cand.length) return;
   const l=cand[Math.floor(Math.random()*cand.length)];
-  FLOWS.push({a:l.a,b:l.b,t:0,sp:0.004+Math.random()*0.007,color:byId[l.a].color});
+  const rev=Math.random()<0.45;
+  const from=rev?l.b:l.a, to=rev?l.a:l.b;
+  FLOWS.push({a:from,b:to,t:0,sp:0.004+Math.random()*0.008,color:byId[from].color,tail:0.10+Math.random()*0.12});
+}
+// shooting stars across the deep background
+const METEORS=[]; let nextMeteor=0;
+function spawnMeteor(now){
+  const a=Math.random()*6.28;
+  METEORS.push({x:Math.random()*W,y:Math.random()*H*0.7,dx:Math.cos(a)*7,dy:Math.sin(a)*7,t:0});
+  nextMeteor=now+2600+Math.random()*4800;
 }
 
 function nSize(bytes){ const r=2.2+Math.min(5.5,Math.log10(Math.max(100,bytes||500))-1.6); return r*(0.5+S.size/100); }
@@ -422,6 +432,15 @@ function step(dt){
     for(const n of vis){ n.vx-=n.x*0.00035; n.vy-=n.y*0.00035;   // gentle gravity to origin
       n.vx=Math.max(-14,Math.min(14,n.vx)); n.vy=Math.max(-14,Math.min(14,n.vy));
       if(n!==dragN){ n.x+=n.vx; n.y+=n.vy; } n.vx*=0.86; n.vy*=0.86; }
+    // galactic rotation — whole system revolves; files also orbit their hub
+    const sp=ambientSpeed();
+    const G=0.0000115*sp*dt, cg=Math.cos(G), sg=Math.sin(G);
+    for(const n of vis){ if(n===dragN) continue;
+      const x=n.x, y=n.y; n.x=x*cg-y*sg; n.y=x*sg+y*cg;
+      if(n.kind==='file'&&n.cluster){ const h=byId[n.cluster];
+        if(h&&!h.hidden){ const w=(0.00006+(hash(n.id)%17)*0.000006)*sp*dt*((hash(n.id)%2)?1:-1);
+          const cw=Math.cos(w), sw=Math.sin(w), dx=n.x-h.x, dy=n.y-h.y;
+          n.x=h.x+dx*cw-dy*sw; n.y=h.y+dx*sw+dy*cw; } } }
   } else {
     computeTargets();
     for(const n of vis){ if(n.tx===undefined||n===dragN) continue;
@@ -467,6 +486,15 @@ function drawBackdrop(now){
     ctx.beginPath(); ctx.arc(px,py,st.r*(0.7+st.z*0.6)*Math.min(1.5,cam.k),0,7); ctx.fill();
   }
   ctx.restore(); ctx.globalAlpha=1;
+  // shooting stars
+  if(now>nextMeteor) spawnMeteor(now);
+  for(let i=METEORS.length-1;i>=0;i--){ const m=METEORS[i]; m.t+=0.016; m.x+=m.dx*sp; m.y+=m.dy*sp;
+    if(m.t>1.4||m.x<-60||m.x>W+60||m.y<-60||m.y>H+60){ METEORS.splice(i,1); continue; }
+    const fade=Math.sin(Math.min(1,m.t/1.4)*Math.PI);
+    const grad=ctx.createLinearGradient(m.x,m.y,m.x-m.dx*9,m.y-m.dy*9);
+    grad.addColorStop(0,'rgba(190,205,255,'+(0.75*fade)+')'); grad.addColorStop(1,'rgba(190,205,255,0)');
+    ctx.strokeStyle=grad; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(m.x-m.dx*9,m.y-m.dy*9); ctx.stroke();
+  }
 }
 
 let matches=null;
@@ -503,15 +531,26 @@ function draw(){
     ctx.restore();
   }
 
-  // links
-  ctx.lineWidth=1/cam.k;
+  // links — backbone lines carry marching energy dashes; leaf links stay faint
   for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
-    if(dim(a)&&dim(b)){ ctx.strokeStyle='rgba(255,255,255,.015)'; } else ctx.strokeStyle='rgba(255,255,255,.05)';
-    ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
+    const both=dim(a)&&dim(b);
+    if(a.kind!=='file'&&b.kind!=='file'){                       // trunk: hub/anchor/center
+      ctx.save();
+      ctx.strokeStyle=both?'rgba(255,255,255,.015)':(b.color||a.color)+'2E';
+      ctx.lineWidth=1.1/cam.k;
+      ctx.setLineDash([3/cam.k,11/cam.k]);
+      ctx.lineDashOffset=-(now*0.014*sp)%(14/cam.k);
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.lineWidth=1/cam.k;
+      ctx.strokeStyle=both?'rgba(255,255,255,.015)':'rgba(255,255,255,.05)';
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+    }}
 
-  // flow particles — thoughts streaming file → hub → brain
-  const want=Math.round(30*sp);
-  while(FLOWS.length<want && Math.random()<0.4) spawnFlow();
+  // data pulses with comet tails — every connection exchanges light
+  const want=Math.round(44*sp);
+  while(FLOWS.length<want && Math.random()<0.5) spawnFlow();
   for(let i=FLOWS.length-1;i>=0;i--){ const f=FLOWS[i];
     const a=byId[f.a], b=byId[f.b];
     if(!a||!b||a.hidden||b.hidden){ FLOWS.splice(i,1); continue; }
@@ -519,11 +558,18 @@ function draw(){
     if(f.t>=1){ FLOWS.splice(i,1); continue; }
     const e=f.t*f.t*(3-2*f.t);                                  // smoothstep
     const x=a.x+(b.x-a.x)*e, y=a.y+(b.y-a.y)*e;
+    const et=Math.max(0,e-f.tail), tx=a.x+(b.x-a.x)*et, ty=a.y+(b.y-a.y)*et;
     const fade=Math.sin(f.t*Math.PI);
-    ctx.globalAlpha=(matches?0.06:0.55)*fade;
+    const A=(matches?0.06:0.6)*fade;
+    // tail
+    const grad=ctx.createLinearGradient(x,y,tx,ty);
+    grad.addColorStop(0,f.color+'B0'); grad.addColorStop(1,f.color+'00');
+    ctx.globalAlpha=A; ctx.strokeStyle=grad; ctx.lineWidth=1.6/cam.k;
+    ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(tx,ty); ctx.stroke();
+    // head
     const g=glow(f.color,3);
     ctx.drawImage(g,x-g.width/2,y-g.height/2);
-    ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(x,y,1.1/Math.sqrt(cam.k),0,7); ctx.fill();
+    ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(x,y,1.15/Math.sqrt(cam.k),0,7); ctx.fill();
   }
   ctx.globalAlpha=1;
 
