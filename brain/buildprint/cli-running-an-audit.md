@@ -1,39 +1,46 @@
 # CLI: Running an audit
-> Source: https://docs.buildprint.ai/cli/running-an-audit-k5hhw · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/cli/running-an-audit-k5hhw · Captured: 2026-07-14 (verbatim .md)
 
-`buildprint audit` performs a security scan of your entire Bubble app workspace. It examines shredded files in the current branch to identify common security issues — public data types, unprotected backend workflows, public uploaders, exposed secrets, and more — returning findings ranked by severity with actionable remediation steps.
+`buildprint audit` runs a security audit across your entire Bubble app workspace. It scans the shredded files of the current branch, looking for common Bubble security mistakes - public data types, unprotected backend workflows, public uploaders, leaked secrets, and more - and prints a ranked list of findings with concrete fixes.
 
-This differs from `buildprint check`, which validates only changed files. Use `check` to verify edits before applying; use `audit` to assess overall app security.
+An audit is a whole-app scan. This is different from `buildprint check`, which validates only the files you have changed (or the targets you name). Use `check` to confirm your edits are safe to apply; use `audit` to survey the security posture of the whole app.
 
 ## Usage
 
-Execute from within a cloned branch workspace containing your shredded directories (`pages/`, `data_types/`, `api/`, etc.):
+Run the command from inside a cloned branch workspace (the directory that holds your shredded `pages/`, `data_types/`, `api/`, and so on):
 
 ```bash
 buildprint audit
+```
+
+Emit the findings as JSON instead of the human-readable report:
+
+```bash
 buildprint audit --json
 ```
 
-The audit reads the current branch snapshot from disk. It performs no syncing, applying, or modifications — only reporting.
+The audit reads the current branch snapshot on disk. It does not sync, apply, or change anything - it only reports.
 
-Options:
+### Options
 
-- `--json` — return audit findings in JSON format rather than human-readable output.
+- `--json` - Emit audit findings as JSON instead of human-readable output.
 
 ## What the audit checks
 
-A fixed series of independent security checks; each addresses one security question and produces zero or more findings:
+The audit runs a fixed set of independent security checks over the workspace. Each check answers one security question and returns zero or more findings.
 
-- **Public data types** (`public-data-types`) — data types lacking privacy rules or whose everyone role permits public read access (searching, viewing all records, viewing attachments, exposing fields) without conditions.
-- **Public backend workflows** (`public-backend-workflows`) — exposed API event workflows without workflow conditions or admin-only authentication requirements.
-- **Public uploaders** (`public-uploaders`) — file and picture uploader elements storing uploads publicly rather than privately.
-- **Frontend temporary passwords** (`frontend-temporary-passwords`) — frontend workflows assigning temporary passwords where later steps could expose them to users.
-- **Missed server-side redirects** (`missed-server-side-redirects`) — page workflows resembling redirect guards that fail to execute as server-side redirects, rendering protected pages before redirecting.
-- **Leaking secrets** (`leaking-secrets`) — runs Gitleaks over the workspace detecting committed secrets like API keys in raw files rather than API Connector or plugin settings. Requires locally installed `gitleaks`; skipped silently if absent.
+- **Public data types** (`public-data-types`) - Flags data types that have no privacy rules at all, or whose everyone role grants public read access (searching for records, viewing all records, viewing attachments, or exposing fields) without a condition. Publicly readable data is often unintended.
+- **Public backend workflows** (`public-backend-workflows`) - Flags exposed API event workflows that have no workflow condition and no admin-only authentication. Being authenticated does not prove a caller is authorized to run the workflow.
+- **Public uploaders** (`public-uploaders`) - Flags file and picture uploader elements that store uploaded files publicly instead of privately.
+- **Frontend temporary passwords** (`frontend-temporary-passwords`) - Flags frontend workflows that assign a temporary password. If a later step references the result, the password can be exposed to the end user's client. These flows belong in a backend workflow.
+- **Missed server-side redirects** (`missed-server-side-redirects`) - Flags page workflows that look like a redirect guard but will not run as a server-side redirect, so the protected page renders before redirecting. It explains exactly what blocks the server-side redirect (wrong event type, more than one active action, page data being sent, or non-static URL parameters).
+- **Leaking secrets** (`leaking-secrets`) - Runs Gitleaks over the workspace to detect secrets committed into app files, such as API keys stored in the raw file instead of the API Connector or a plugin setting. This check requires the `gitleaks` executable to be installed locally; if it is not present, the check is skipped silently.
 
 ## Reading the report
 
-Findings sort by severity (critical, high, medium, low, info) then by file path. Each finding displays as a block:
+Findings are sorted by severity, most serious first (`critical`, `high`, `medium`, `low`, `info`), then by file path.
+
+Every finding is printed as a block:
 
 ```plaintext
 data_types/user/type.json
@@ -42,17 +49,27 @@ data_types/user/type.json
     Fix: Update the everyone privacy role so public users cannot search or view records unless intended...
 ```
 
-Each block contains:
+Each block shows:
 
-- **Path** — workspace-relative file containing the issue.
-- **Severity, check id, and title** — e.g. `high [public-data-types] Data type has public read access`.
-- **Message** — findings and associated risk.
-- **Fix** — concrete remediation guidance.
+- **Path** - the workspace-relative file that owns the issue.
+- **Severity, check id, and title** - for example `high [public-data-types] Data type has public read access`.
+- **Message** - what Buildprint found and why it may be risky.
+- **Fix** - concrete remediation steps.
 
-Reports conclude with a summary counting findings by severity, e.g. `2 high, 1 medium`. When no findings exist: `No audit findings.`
+The report ends with a summary line counting findings by severity, for example `2 high, 1 medium`.
+
+If nothing is found, the report is:
+
+```plaintext
+No audit findings.
+```
 
 ## JSON output
 
-`--json` outputs a single JSON object containing the same advisory `message` and a `results` array of findings. Each finding includes `check`, `title`, `message`, `fix`, `severity`, and `path` fields — suitable for integration with external tools.
+With `--json`, the command prints a single JSON object: the same advisory `message`, and a `results` array of findings. Each finding has `check`, `title`, `message`, `fix`, `severity`, and `path` fields. Use this when feeding audit results to another tool or agent.
 
-Audit findings are advisory recommendations rather than definitive safety assessments. Evaluate each finding against your app's intended design to determine whether remediation applies.
+```bash
+buildprint audit --json
+```
+
+Audit findings are advisory. They are programmatic checks, not a verdict on whether the app is safe to release. Read each one in the context of your app's intended behavior and decide whether it needs a fix.

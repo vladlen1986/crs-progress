@@ -1,33 +1,33 @@
 # Official skills
-> Source: https://docs.buildprint.ai/official-skills-65whe · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/official-skills-65whe · Captured: 2026-07-14 (verbatim .md)
 
-Official skills are Buildprint-managed capabilities that are automatically accessible within workspaces.
+Official skills are Buildprint-managed skills that are available automatically in workspaces.
 
-The definitive roster of official skills may evolve over time. The Skills page within Buildprint serves as the authoritative reference for currently available options.
+The exact list of official skills can change over time, so the Skills page in Buildprint is the source of truth for the current list.
 
 ## Find official skills
 
-Navigate to Agent > Skills and locate the Official Skills section.
+Open Agent > Skills and look for the Official Skills section.
 
-Official skills operate as read-only resources for standard workspace users. Buildprint maintains their content and refreshes them as the product develops.
+Official skills are read-only for normal workspace users. Buildprint manages their content and updates them as the product changes.
 
 ## Use an official skill
 
-During chat interactions, press `/` or `@` to activate the command menu, then choose the official skill needed for your task.
+In chat, type / or @ to open the command menu, then select the official skill you want to use.
 
-The chosen skill accompanies that specific message. To maintain the agent's adherence to it across multiple exchanges, reattach it in subsequent turns.
+The selected skill is included with that message. Attach it again in a later turn if you want the agent to keep following it.
 
 ## Examples
 
-Official skills may encompass capabilities for:
+Official skills may include skills for tasks such as:
 
-- Documenting a change
-- Reviewing security or privacy risks
-- Testing a Buildprint change
-- Creating or refining a test
+- Documenting a change.
+- Reviewing security or privacy risks.
+- Testing a Buildprint change.
+- Creating or refining a test.
 
-Since Buildprint manages official skills, consult the product interface to locate current skill names and descriptions.
+Because official skills are managed by Buildprint, use the product UI for the exact names and descriptions available today.
 
 ## Related
 
-For information regarding workspace and project skills, see [agents-skills.md](agents-skills.md).
+For workspace and project skills, see the Skills article.

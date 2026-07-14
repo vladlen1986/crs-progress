@@ -1,11 +1,13 @@
 # Code reviews with Buildprint
-> Source: https://docs.buildprint.ai/code-reviews-with-buildprint-o98i1 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/code-reviews-with-buildprint-o98i1 · Captured: 2026-07-14 (verbatim .md)
 
 Buildprint reviews help you inspect changes between Bubble branches before merging or deploying. If you're familiar with code, this is the Bubble equivalent of a pull request.
 
 A review compares one branch against another and returns structured sections for changes, comments, and tests.
 
 ## Create a review
+
+![Image](https://static.ferndesk.com/user-images/file_01KSAT9W7HAZRC05E9HFXR2479.jpg)
 
 Open the Reviews area for a project and click **Create**.
 
@@ -22,6 +24,8 @@ Click **Create review** to start.
 You can also create a review from an agent chat. The chat header menu shows **Create review** when the chat is attached to a non-live branch.
 
 ## Review sections
+
+![Image](https://static.ferndesk.com/user-images/file_01KSATAY22Q5XTP6B0YR8FK2Z5.jpg)
 
 A completed review is organized into three sections:
 
@@ -43,7 +47,9 @@ Closed and merged reviews are not editable.
 
 ## Discuss a review
 
-Each review has an activity thread. Use it to leave comments, reply to teammates, mention people, and attach images when needed.
+Each review has an activity thread.
+
+Use it to leave comments, reply to teammates, mention people, and attach images when needed.
 
 ## Use a review in chat
 
@@ -76,4 +82,4 @@ Use reviews for changes involving:
 - Branches you plan to merge into live.
 - Any change where a second pass could catch a regression.
 
-"A review is not a replacement for testing. Treat it as another safety check before merging or deploying."
+A review is not a replacement for testing. Treat it as another safety check before merging or deploying.

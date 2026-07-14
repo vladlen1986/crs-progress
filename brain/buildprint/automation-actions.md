@@ -1,35 +1,75 @@
 # Actions (automations)
-> Source: https://docs.buildprint.ai/actions-5t46t · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/actions-5t46t · Captured: 2026-07-14 (verbatim .md)
 
 ## Run tests
 
-Initiates Buildprint test runs. Select "All tests: every active runnable test in the project" or "Choose: selected individual tests and test folders." Note: "Folders may include components for organization, but only runnable tests are started."
+The Run tests action starts Buildprint test runs.
 
-### Branch selection
+Choose either:
 
-Specifies which branch tests run against. Options depend on trigger type:
+- All tests: every active runnable test in the project.
+- Choose: selected individual tests and test folders.
 
-- **Branch event triggers** can use values from the event itself: Created branch, Removed branch, or Source/Target branch for merges
-- **Manual / API and Recurring triggers** require you to select a specific project branch since no branch parameter is provided
+Folders may include components for organization, but only runnable tests are started.
+
+## Branch selection
+
+Choose which branch the tests should run against.
+
+Branch event triggers can use values from the event:
+
+- Branch created: Created branch.
+- Branch removed: Removed branch.
+- Branch merged: Source branch or Target branch.
+
+You can also choose a specific project branch.
+
+Manual / API and Recurring triggers do not provide a branch parameter, so choose a project branch.
 
 ## Send message
 
-Delivers templated text messages to:
+The Send message action sends a templated text message.
 
-- Email addresses (comma-separated)
-- Connected Slack channels
+Destinations:
 
-With branch-based triggers you can insert template parameters like `{{branch.id}}`, `{{branch.name}}` for created or removed branches, or `{{branchFrom.name}}`, `{{branchTo.name}}` for merges. "Manual / API, Live deployed, and Recurring triggers do not expose branch parameters." A **Send preview** feature lets you test the message before sending.
+- Email: one or more comma-separated email addresses.
+- Slack: a Slack channel connected to the workspace.
+
+Branch-based triggers can insert template parameters into the message.
+
+Available parameters:
+
+- Branch merged: {{branchFrom.id}}, {{branchFrom.name}}, {{branchTo.id}}, {{branchTo.name}}
+- Branch created: {{branch.id}}, {{branch.name}}
+- Branch removed: {{branch.id}}, {{branch.name}}
+
+Manual / API, Live deployed, and Recurring triggers do not expose branch parameters.
+
+Use Send preview to send a preview message.
 
 ## Send webhook
 
-Sends HTTPS POST requests with configurable:
+The Send webhook action sends an HTTPS POST request.
 
-- **URL** (must start with https://)
-- **Headers** (optional key-value pairs)
+Configure:
 
-The payload automatically includes Content-Type headers and contains event type, automation details, project information, trigger-specific parameters, and ISO 8601 timestamps.
+- URL: must start with https://.
+- Headers: optional key-value headers.
+
+Buildprint automatically includes Content-Type: application/json.
+
+The payload includes:
+
+- event: trigger kind.
+- automation: automation ID and name.
+- project: project ID and app name.
+- params: trigger-specific parameters.
+- timestamp: ISO 8601 timestamp.
+
+Use Send test request to send the preview payload to the configured URL.
 
 ## Deploy agent
 
-Carries an early status notice: "Do not rely on it for production automations until Buildprint marks it available." Recommended alternatives: Manual/API automations, MCP, REST API, or standard Buildprint agent conversations.
+Deploy agent may appear as an early feature in some workspaces. Do not rely on it for production automations until Buildprint marks it available.
+
+For now, use Manual / API automations, MCP, REST API, or a normal Buildprint agent conversation when you need to start agent work.

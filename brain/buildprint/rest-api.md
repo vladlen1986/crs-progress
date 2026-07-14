@@ -1,15 +1,17 @@
 # REST API
-> Source: https://docs.buildprint.ai/rest-api-crdvd · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/rest-api-crdvd · Captured: 2026-07-14 (verbatim .md)
 
-Buildprint offers a public REST API for initiating agents, transmitting follow-up messages, retrieving agent status, handling code reviews, executing automations, and managing project tests.
+Buildprint has a public REST API for starting agents, sending follow-up messages, reading agent status, managing code reviews, running automations, and working with Buildprint project tests.
 
-The API is in **beta** and subject to potential modifications.
+The API is available during beta and may change.
 
 ## API reference
 
-Complete API documentation: https://docs.buildprint.ai/api-reference (captured locally in [api-reference.md](api-reference.md)).
+View the full API reference at:
 
-OpenAPI specification:
+https://docs.buildprint.ai/api-reference
+
+OpenAPI is also available at:
 
 ```text
 GET /api/public/v1/openapi.json
@@ -17,18 +19,18 @@ GET /api/public/v1/openapi.json
 
 ## Create an API token
 
-Workspace administrators generate REST API tokens from **Integrations > API**:
+Workspace admins can create REST API tokens from **Integrations > API**.
 
-1. Select Create token.
-2. Provide a token name.
-3. Select all projects or specific projects.
-4. Store the token securely.
+1. Click Create token.
+2. Enter a token name.
+3. Choose all projects or selected projects.
+4. Copy the token.
 
-The token displays only once.
+The token is shown only once. Store it securely.
 
 ## Authentication
 
-Include the token as a bearer token:
+Send the token as a bearer token:
 
 ```bash
 curl https://api.buildprint.ai/api/public/v1/agents \
@@ -36,19 +38,19 @@ curl https://api.buildprint.ai/api/public/v1/agents \
   -H "Content-Type: application/json"
 ```
 
-REST API tokens operate at the workspace level and may be restricted to particular projects.
+REST API tokens are workspace-scoped and can be limited to selected projects.
 
 ## Available areas
 
-Endpoints for:
+The REST API includes endpoints for:
 
-- Agents
-- Agent follow-up messages
-- Code reviews
-- Automations
-- Tests
-- Test groups
-- Test runs
-- Test users
+- Agents.
+- Agent follow-up messages.
+- Code reviews.
+- Automations.
+- Tests.
+- Test groups.
+- Test runs.
+- Test users.
 
-Certain endpoints require Buildprint API access, Buildprint AI credits, connected provider credentials, or available agent concurrency.
+Some endpoints require Buildprint API access, Buildprint AI credits, connected provider credentials, or available agent concurrency.

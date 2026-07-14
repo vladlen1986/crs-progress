@@ -1,33 +1,34 @@
 # Publishing and updating components
-> Source: https://docs.buildprint.ai/publishing-and-updating-components-365c9 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/publishing-and-updating-components-365c9 · Captured: 2026-07-14 (verbatim .md)
 
-Turn sections of your Bubble apps into reusable components for deployment across other apps. Two methods: **ask your Buildprint agent** or **use the CLI directly**.
+Turn a piece of one of your Bubble apps into a reusable component so you (and, once approved, everyone) can drop it into other apps. You can do this two ways: **ask your Buildprint agent to do it**, or **run the CLI yourself**.
 
-> INFO: Component marketplace submissions are currently unavailable. You may establish private components now and submit when the program reopens.
+> [!INFO]
+> At this time, we are not approving submissions to the component marketplace. If you wish to do this in future, you're welcome to create your private components now and submit them when we begin accepting submissions.
 
 ## The easy way: ask your agent
 
-In the Buildprint web interface or CLI agent, describe what to publish:
+Whether you're in the Buildprint web app chat or working through your CLI agent, just describe what to publish:
 
 - "Package this Stripe checkout flow as a component."
 - "Publish our billing data structure to our workspace library."
 - "Update the webhook handler component with the changes I just made."
 
-The agent handles assembly, documentation generation, and packaging. This is the suggested approach since you need not master the file structure.
+The agent assembles the component's files, writes its documentation, and runs the packaging step for you. This is the recommended path — you don't have to learn the file format.
 
 ## What a component package contains
 
-Components consist of multiple files within your branch workspace:
+If you'd rather author it directly (or want to know what the agent produces), a component is described by a few files in your branch workspace:
 
-- `library.json` — library details: slug, name, description, listing status (`internal` by default, or `public`), and optional hero image.
-- `component.json` — component specifications: slug, name, short description, status, categories, dependencies, workspace files (`nodes`), README location, and image paths.
-- `README.md` — full component description for the component page. Must include **Overview**, **How to apply**, and **Requirements** sections.
-- Workspace files and images referenced via `component.json`.
+- `library.json` — the library it belongs to: slug, name, description, listing status (`internal` by default, or `public`), and an optional hero image.
+- `component.json` — the component itself: slug, name, **short description**, status, categories, dependencies, the workspace files to include (`nodes`), the README path, and image paths.
+- `README.md` — the component's **long description**. This is what people read on the component page, so it must explain what the component does and how it works. It's required to include these headings: **Overview**, **How to apply**, and **Requirements**.
+- the **workspace files and images** referenced from `component.json`.
 
 ### Descriptions
 
-- **Short description** (maximum 120 characters in `component.json`) appears on component cards as "a one-line summary shown on the component's card."
-- **Long description** (README file, up to 10,000 characters) is the full component page writeup explaining functionality, application methods, and prerequisites.
+- **Short description** (`shortDescription` in `component.json`, up to 120 characters) is the one-line summary shown on the component's card.
+- **Long description** (your `README.md`, up to 10,000 characters) is the full write-up shown on the component page. Anyone reading it should come away understanding what the component does, how to apply it, and what it requires.
 
 ```json
 // component.json
@@ -48,26 +49,28 @@ Components consist of multiple files within your branch workspace:
 
 ## Publishing or updating with the CLI
 
-From your branch workspace:
+From your branch workspace, run:
 
 ```bash
 buildprint components package
 ```
 
-This validates manifests and README, bundles referenced files, and uploads the package. Flags:
+This validates your manifests and README, bundles the referenced files, and uploads the package. Useful flags:
 
-- `--dry-run` — validate and build without uploading.
-- `--library <path>` / `--component <path>` — specify alternative manifest paths.
+- `--dry-run` — validate and build the package without uploading it.
+- `--library <path>` / `--component <path>` — point at non-default manifest locations.
 
-**Updating** follows identical procedures: repackage using matching library and component slugs, and Buildprint refreshes the existing component automatically (new files, descriptions, images, status).
+**Updating** a component is the same command: package it again with the same library and component slug, and Buildprint updates the existing component in place (new files, description, images, and status).
 
-> "All component work goes through the Buildprint CLI (or the agent, which uses it). Don't edit published components by hand — re-package them so the catalog stays in sync."
+> All component work goes through the Buildprint CLI (or the agent, which uses it). Don't edit published components by hand — re-package them so the catalog stays in sync.
 
 ## Categories
 
-Assign one or more categories for discoverability: `database`, `ui`, `workflow`, `expression`, `api`, `plugin`.
+Tag each component with one or more categories so people can find it:
 
-List valid categories anytime:
+`database`, `ui`, `workflow`, `expression`, `api`, `plugin`.
+
+List the valid categories any time with:
 
 ```bash
 buildprint components categories
@@ -75,8 +78,11 @@ buildprint components categories
 
 ## Dependencies
 
-When components require others from the same library, specify them under `dependencies` (using slugs). Installation automatically includes dependencies. Self-dependencies are prohibited, and dependency resolution occurs within single libraries only.
+If a component needs another component from the same library, list it under `dependencies` (by slug). When someone installs your component, Buildprint pulls in its dependencies too. A component can't depend on itself, and dependencies are resolved within the same library.
 
 ## Sharing on the marketplace
 
-Libraries default to **internal** status — accessible only within your workspace. For public marketplace availability, package the library with `public` listing status. The component then enters **Awaiting approval** while Buildprint administrators review before launch.
+By default a library is **internal** - published only to your workspace. To put  
+it on the public marketplace, package the library with a `public` listing status.  
+It then enters **Awaiting approval** and a Buildprint admin reviews it before it  
+goes live.

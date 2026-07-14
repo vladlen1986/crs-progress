@@ -1,11 +1,12 @@
 # Buildprint paid plans
-> Source: https://docs.buildprint.ai/buildprint-paid-plans-438pl · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/buildprint-paid-plans-438pl · Captured: 2026-07-14 (verbatim .md)
 
-> INFO: From July 15th, Buildprint is introducing paid plans for all Buildprint workspaces.
+> [!INFO]
+> From July 15th, Buildprint is introducing paid plans for all Buildprint workspaces.
 
-Buildprint offers four pricing tiers: **Basic (free), Pro ($49/mo), Team ($249/mo), and Enterprise (custom)**.
+Buildprint has four available plans, including Basic (free), Pro ($49/mo), Team ($249/mo), and Enterprise (custom).
 
-Plan differentiation is based on:
+Plans are based on:
 
 - number of workspace members
 - number of projects
@@ -13,16 +14,20 @@ Plan differentiation is based on:
 - agent runtime allowance
 - agent concurrency
 
+![Image](https://static.ferndesk.com/user-images/file_01KVRBCGJ40ZCN3D7FBDPMGFPE.png)
+
 ## Member pricing
 
-"Only workspace members and admins count towards your Buildprint plan's member allowance." Guests are excluded from this calculation and are designed for external collaborators, with each guest restricted to a single project and read-only access permissions.
+Only workspace members and admins count towards your Buildprint plan's member allowance. Workspace guests do not count. Workspace guests are intended for agencies and teams inviting external collaborators.
+
+Guests can only be part of one project and can only have read-only access.
 
 ## Log pricing
 
-The billing model uses "a generous included allowance, plus usage based overages." Most users avoid additional charges under this structure.
+Logs are billed by a generous included allowance, plus usage based overages. Most users will not have any overages.
 
 ## Agent runtime
 
-Agent runtime represents the duration in seconds that sandboxes operate within Buildprint's web environment. This applies to testing, chat, and code review features. Importantly, "agents running on your own machine using Buildprint CLI/MCP will not use agent runtime."
+Agent runtime refers to the duration (in seconds) of sandboxes running in Buildprint web. Features that use sandboxes include tests, chat, and code reviews.
 
-*(Note: the source page includes a plan-comparison image not captured here; check the live page for exact per-tier allowances.)*
+Naturally, agents running on your own machine using Buildprint CLI/MCP will not use agent runtime.

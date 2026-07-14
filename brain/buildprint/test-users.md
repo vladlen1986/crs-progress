@@ -1,56 +1,60 @@
 # Test users
-> Source: https://docs.buildprint.ai/test-users-vvuno · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/test-users-vvuno · Captured: 2026-07-14 (verbatim .md)
 
-Test users are saved accounts that Buildprint uses during testing of your Bubble application.
+Test users are saved accounts that Buildprint can use while testing your Bubble app.
 
-## What a test user includes
+Each test user has:
 
-- **Name**: a descriptive label (examples: "Admin user" or "Free tier user")
-- **Database**: Test or Live environment
-- **Description**: optional notes about appropriate usage scenarios
-- **Email**: optional login credential
-- **Login method**: automatic or password-based authentication
+- Name: a label like Admin user or Free tier user.
+- Database: either Test or Live.
+- Description: optional guidance about when to use the account.
+- Email: optional login email.
+- Login method: either automatic login or password login.
 
-The docs emphasize using "unique, low-privilege accounts created only for testing" and warn against reusing personal or production credentials.
+Use unique, low-privilege accounts created only for testing. The Buildprint agent can access saved test user details during runs, so do not reuse personal or production passwords.
 
-## Authentication approaches
+## Login methods
 
-### Automatic login
+## Log in automatically
 
-Omitting a password tells Buildprint to log the agent in automatically. Benefits: faster test execution, works for accounts requiring 2FA, and scenarios where the login interface itself isn't being tested.
+If you do not save a password, Buildprint treats the user as an account it should start as automatically. This is useful for faster tests, 2FA accounts, and flows where you do not want to test the visible login UI.
 
-Requires Buildprint to have the necessary Bubble editor permissions for user impersonation.
+Automatic login requires Buildprint to have the Bubble editor permissions needed to view and run as users.
 
-Do NOT use automatic login when validating "login, signup, logout, SSO, password reset, or another auth flow."
+Do not use automatic login for tests whose purpose is to verify login, signup, logout, SSO, password reset, or another auth flow.
 
-### Password-based login
+## Log in with password
 
-Saving a password enables the agent to interact with visible login forms during test execution. Select this method when "the test is supposed to verify the login flow itself."
+If you save a password, the agent can use the visible login form during test steps.
 
-## Account management
+Use this when the test is supposed to verify the login flow itself.
 
-Go to Tests > Users to create, modify, disable, enable, or remove test accounts. Disabled accounts are ignored during standard test setup.
+## Managing test users
 
-## Creating test users
+Open Tests > Users to add, edit, disable, enable, or delete test users.
 
-Select Add test user and complete:
+Disabled test users are ignored by normal test setup and cannot be used as assigned users for a run.
 
-- Name (required)
-- Database (Test or Live)
-- Description (optional)
-- Email (optional)
-- Login method selection
-- Password (required for password login only)
+## Adding a test user
 
-## User assignment
+Click Add test user and fill in:
 
-Within the test builder, designate:
+- Name: required.
+- Database: Test or Live.
+- Description: optional.
+- Email: optional.
+- Login method: automatic login or password login.
+- Password: required only when using password login.
 
-- **Live user** for live branch targeting
-- **Test user** for non-live branch targeting
+## Assigning test users to tests
 
-Tests proceed even without pre-assigned credentials, though the agent lacks pre-configured login information.
+Open a test in the builder and select:
 
-## Runtime considerations
+- Live user: used when the run targets the live branch.
+- Test user: used when the run targets any non-live branch.
 
-Recent test user modifications may not immediately reflect in ongoing test executions. Start a fresh run to ensure the agent recognizes updates.
+If no user is assigned for the selected environment, the run can still start, but the agent runs without a pre-configured login account.
+
+## Changes during active runs
+
+Changes to test users may not appear inside an already running test immediately. Start a new run if you need the agent to pick up recent test user changes.

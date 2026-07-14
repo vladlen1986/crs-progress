@@ -1,48 +1,60 @@
 # Component libraries
-> Source: https://docs.buildprint.ai/component-libraries-wwbiq · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/component-libraries-wwbiq · Captured: 2026-07-14 (verbatim .md)
 
-A **library** is "a named collection of related components." For example, a "Stripe Billing" library might contain API connectors, webhook handlers, and data structures. Libraries group related components and manage access permissions.
+A **library** is a named collection of related components. For example, a "Stripe Billing" library might hold a Customers API connector, an Invoices API connector, a webhook handler workflow, and a billing data structure. Libraries keep related components together and control who can see them.
 
 ## Workspace vs. public
 
-- **Workspace libraries** remain private to your workspace — standardized, reusable building blocks for your team only.
-- **Public libraries** are available on the Buildprint marketplace, accessible to all Buildprint workspaces.
+Every library is either private to your workspace or shared on the public marketplace.
+
+- **Workspace libraries** are private to your workspace. This is where you  
+standardize and reuse your own components - the building blocks your team  
+pulls into every project. Only members of your workspace can see them.
+- **Public libraries** are the shared Buildprint marketplace. Once a library is public, every Buildprint workspace can find and install its components.
 
 ## Visibility, end to end
 
-Component accessibility depends on library listing status AND component status.
+Two things control whether someone can use a component: the **library's listing status** and the **component's own status**.
 
-### Library listing status
+**Library listing status**
 
 | Status | Who can see the library |
 | --- | --- |
-| **Private** | Only your workspace (default) |
-| **Awaiting approval** | Under marketplace review by Buildprint |
-| **Public** | Live on the marketplace for every workspace |
+| **Private** | Only your workspace (the default) |
+| **Awaiting approval** | Submitted to the marketplace, under review by Buildprint |
+| **Public** | Live on the marketplace — every workspace |
 | **Archived** | Hidden |
 
-### Component status (within library)
+**Component status** (within its library)
 
 | Status | Meaning |
 | --- | --- |
-| **Draft** | Work in progress, unpublished |
+| **Draft** | Work in progress, not published |
 | **Public** | Published within its library |
 | **Archived** | Retired |
 
-**Access rule:** "a component is reachable by people outside your workspace only when" it is both Public and its library is Public. Components show "Internal" badges until their library goes public.
+**The rule that ties them together:** a component is reachable by people **outside** your workspace only when the component is **Public **_**and**_** its library**  
+**is Public**. Inside an internal library, every component is effectively internal  
+- no matter its own status - because the library itself isn't on the  
+marketplace. That's why a component's badge reads "Internal" until its library  
+goes public.
 
 ## Going public
 
-1. Package a library with **public** listing status.
-2. Library moves to **Awaiting approval** — not yet live.
-3. Buildprint admin reviews and approves to **Public**.
+Publishing to the marketplace is a reviewed step:
 
-Workspace admins cannot independently make libraries public; review maintains marketplace quality.
+1. You package a library with a **public** listing status.
+2. The library moves to **Awaiting approval** - it isn't live yet.
+3. A Buildprint admin reviews it and approves it to **Public**.
+
+Workspace admins can't flip a library straight to public on their own; the review step keeps the marketplace clean. Until approval, the library and its components stay visible only to your workspace.
 
 ## What's in a component
 
-- Name and short description
-- Full description (overview, application, requirements)
-- One or more categories (database, UI, workflow, expression, API, plugin)
-- Dependencies on other library components
-- Images
+Each component in a library carries:
+
+- a **name** and a **short description** (the one-liner on its card),
+- a **full description** (overview, how to apply, and requirements),
+- one or more **categories** (database, UI, workflow, expression, API, plugin),
+- **dependencies** — other components in the library it needs, and
+- **images**

@@ -1,9 +1,10 @@
 # Choosing a model
-> Source: https://docs.buildprint.ai/choosing-a-model-cjqs5 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/choosing-a-model-cjqs5 · Captured: 2026-07-14 (verbatim .md)
 
 Buildprint supports multiple AI providers and model families. The available models change over time, so use the model picker in the chat composer as the current source of truth.
 
-> TIP: "The all-around best model and best value option for Buildprint users is currently OpenAI's ChatGPT/Codex plans, which start at $20/mo."
+> [!TIP]
+> The all-around best model and best value option for Buildprint users is currently OpenAI's ChatGPT/Codex plans, which start at $20/mo. GPT-5.5 delivers the best results on Buildprint, and the ChatGPT plans offer the best value for money in terms of rate limits and quality.
 
 ## Providers
 

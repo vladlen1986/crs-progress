@@ -1,41 +1,47 @@
 # Managing client projects
-> Source: https://docs.buildprint.ai/managing-client-projects-4ujop · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/managing-client-projects-4ujop · Captured: 2026-07-14 (verbatim .md)
 
-Buildprint suits agencies handling several Bubble applications. The typical configuration: one workspace for the agency, with individual Buildprint projects corresponding to each client's app.
+Buildprint works well for agencies that manage multiple Bubble apps. A common setup is one workspace for the agency and one Buildprint project per client app.
 
 ## One workspace, many projects
 
-Workspace administrators have visibility and control over all projects in the workspace. Members and guests only view projects they've been explicitly granted access to. This keeps each person's workspace focused on the projects they actively engage with.
+Workspace admins can see and manage every project in the workspace. Members and guests only see projects they have been explicitly added to.
+
+This keeps each person's workspace focused on the projects they actually work on.
 
 ## Assign team members to projects
 
-Workspace admins manage project access through Workspace settings > Members:
+Workspace admins can manage project access from Workspace settings > Members.
 
-1. Access Workspace settings
-2. Navigate to Members
-3. Locate the individual
-4. Select their actions menu and choose Manage projects
-5. Toggle project checkboxes as appropriate
-6. Confirm changes
+To update a person's project access:
 
-Workspace admins automatically receive access to all projects and therefore don't require project checkboxes.
+1. Open Workspace settings.
+2. Go to Members.
+3. Find the person.
+4. Open their actions menu and choose Manage projects.
+5. Check or uncheck the projects they should access.
+6. Save changes.
+
+Workspace admins automatically have access to all projects, so they do not need project checkboxes.
 
 ## Agency role model
 
-Typical workspace structure:
+A practical agency setup:
 
-- **Primary admin**: agency lead or operations owner with authority to transfer primary admin duties and remove the workspace
-- **Admins**: experienced team members overseeing workspace configuration, billing, integrations, members, and client projects
-- **Members**: developers, QA specialists, or project managers able to create projects and work on assigned projects
-- **Guests**: project-focused collaborators requiring access only to particular client projects (typically clients themselves)
+- Primary admin: the agency lead or operations owner. Can transfer primary admin responsibility and delete the workspace.
+- Admins: senior team members who manage workspace settings, billing, integrations, members, and all client projects.
+- Members: developers, QA, or project managers who can create projects and work on projects they are added to.
+- Guests: project-scoped collaborators who only need access to specific client projects (generally the clients themselves)
 
-Within a project:
+Inside a project, use:
 
-- **Admin** for those managing project configuration and permissions
-- **Member** for those building, collaborating, and working within the project
-- **Guest** for project-specific collaborators who can contribute without workspace-level access
-- **Read-only** for stakeholders needing project visibility and Plan-mode chat
+- Admin for people who should manage project settings and access.
+- Member for people who should build, chat, and work in the project.
+- Guest for project-specific collaborators who can build and chat without broader workspace access.
+- Read-only for stakeholders who only need project context and Plan-mode chat.
 
 ## Creating new client projects
 
-Workspace admins and members may create projects. Guests cannot. No separate per-user toggle for project creation capability currently exists in the product.
+Workspace Admins and Members can create projects. Guests cannot create projects.
+
+There is not a separate per-user Can create projects toggle in the current product.

@@ -1,5 +1,5 @@
 # How Buildprint works
-> Source: https://docs.buildprint.ai/how-buildprint-works-ds53k · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/how-buildprint-works-ds53k · Captured: 2026-07-14 (verbatim .md)
 
 Buildprint connects AI tools to your Bubble app so they can inspect, debug, test, document, and, when you allow it, make app-structure changes.
 
@@ -42,12 +42,17 @@ You should still review and test important AI-generated changes before relying o
 
 ## Key concepts
 
-- **Workspace:** your team space in Buildprint.
-- **Project:** a connected Bubble app.
-- **Branch:** a Bubble app version, such as test, live, or a feature branch.
-- **Version snapshot:** a synced point-in-time view of one Bubble branch.
-- **MCP server:** a public MCP server that lets external AI clients use Buildprint tools.
-- **Agent:** an AI task that can investigate, test, document, or, when allowed, edit your Bubble app.
+**Workspace:** your team space in Buildprint.
+
+**Project:** a connected Bubble app.
+
+**Branch:** a Bubble app version, such as test, live, or a feature branch.
+
+**Version snapshot: **a synced point-in-time view of one Bubble branch.
+
+**MCP server:** a public MCP server that lets external AI clients use Buildprint tools.
+
+**Agent:** an AI task that can investigate, test, document, or, when allowed, edit your Bubble app.
 
 ## What Buildprint does not do
 

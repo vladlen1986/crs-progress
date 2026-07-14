@@ -1,17 +1,19 @@
 # Monitors
-> Source: https://docs.buildprint.ai/monitors-oknnr · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/monitors-oknnr · Captured: 2026-07-14 (verbatim .md)
 
-Monitors set up automated alerts on your Bubble app's logs. When a log pattern matches a condition you define, Buildprint notifies you via webhook or email so you can respond quickly to errors, outages, or unusual behavior.
+Monitors let you set up automated alerts on your Bubble app's logs. When a log pattern matches a condition you define, Buildprint notifies you via webhook or email so you can respond quickly to errors, outages, or unusual behavior.
 
 ## Monitor types
 
-- **Threshold** — triggers when a metric crosses a value you set (e.g. alert when error count exceeds 50 in a 5-minute window).
-- **Match event** — triggers when specific log events are detected. Useful for catching particular error messages or workflow failures.
-- **Anomaly detection** — triggers when log patterns deviate from normal behavior. Catches issues a static threshold might miss.
+Buildprint supports three types of monitors:
+
+- **Threshold** — Triggers when a metric crosses a value you set. For example, alert when error count exceeds 50 in a 5-minute window.
+- **Match event** — Triggers when specific log events are detected. Useful for catching particular error messages or workflow failures.
+- **Anomaly detection** — Triggers when log patterns deviate from normal behavior. Catches issues that a static threshold might miss.
 
 ## Creating monitors
 
-Monitors are created through the Buildprint AI agent — ask the agent to create a monitor in your chat conversation, and it configures the underlying alert rule.
+Monitors are created through the Buildprint AI agent. Ask the agent to create a monitor in your chat conversation, and it will configure the underlying alert rule for you.
 
 Example requests:
 
@@ -21,20 +23,23 @@ Example requests:
 
 ## Notification delivery
 
-- **Webhook (primary)** — if you configure a webhook URL on the monitor, Buildprint sends a POST request to your endpoint with the event details. Custom headers can be set for authentication. Failed deliveries are retried automatically.
-- **Email (fallback)** — if no webhook is configured, email notifications go to all project members and workspace admins. Emails are rate-limited to 3 per hour and 10 per day per monitor.
+When a monitor triggers, Buildprint delivers notifications through one of two channels:
+
+**Webhook (primary)** — If you configure a webhook URL on the monitor, Buildprint sends a POST request to your endpoint with the event details. You can also set custom headers for authentication. Failed deliveries are retried automatically.
+
+**Email (fallback)** — If no webhook is configured, email notifications are sent to all project members and workspace admins. Emails are rate-limited to 3 per hour and 10 per day per monitor to avoid flooding your inbox.
 
 ## Managing monitors
 
-View and manage monitors from **Logs → Monitors**. Each monitor shows its current status with a green indicator when enabled.
+View and manage your monitors from **Logs → Monitors**. Each monitor shows its current status with a green indicator when enabled.
 
-From the actions menu on each monitor:
+From the actions menu on each monitor, you can:
 
-- **Send test notification** — verify webhook or email setup
-- **Enable / Disable** — pause or resume without deleting
-- **Edit forwarding** — update the webhook URL and custom headers
-- **Delete** — permanently remove the monitor
+- **Send test notification** — Verify your webhook or email setup is working.
+- **Enable / Disable** — Pause or resume a monitor without deleting it.
+- **Edit forwarding** — Update the webhook URL and custom headers.
+- **Delete** — Permanently remove the monitor.
 
 ## Viewing events
 
-The monitors page also shows a history of triggered events, filterable by monitor to see when and how often each alert has fired.
+The monitors page also shows a history of triggered events. You can filter events by monitor to see when and how often each alert has fired.

@@ -1,7 +1,7 @@
 # Workspace settings
-> Source: https://docs.buildprint.ai/workspace-settings-l7pe6 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/workspace-settings-l7pe6 · Captured: 2026-07-14 (verbatim .md)
 
-Workspace settings let administrators manage workspace details, billing, and team access.
+Workspace settings let you manage workspace details, billing, and team access.
 
 ## Open workspace settings
 
@@ -12,9 +12,9 @@ Workspace admins can change workspace details and manage members. Non-admins may
 
 ## Settings sections
 
-- **General**: update the workspace name, logo, and URL slug.
-- **Members**: invite workspace Admins or Members, change workspace roles, remove members, transfer primary admin responsibility, and manage project assignments for non-admin members.
-- **Billing**: manage workspace billing and plan details.
+- General: update the workspace name, logo, and URL slug.
+- Members: invite workspace Admins or Members, change workspace roles, remove members, transfer primary admin responsibility, and manage project assignments for non-admin members.
+- Billing: manage workspace billing and plan details.
 
 ## Primary admin
 
@@ -27,7 +27,7 @@ Only the primary admin can delete a workspace.
 1. Open Workspace settings.
 2. Go to General.
 3. In Danger Zone, click Delete workspace.
-4. Type `delete workspace` to confirm.
+4. Type delete workspace to confirm.
 5. Click Delete workspace.
 
-Deleting a workspace disables access to the workspace, marks its projects deleted, revokes access grants, revokes pending invites, revokes workspace API tokens, and removes stored project sync data. "This cannot be undone from the product UI."
+Deleting a workspace disables access to the workspace, marks its projects deleted, revokes access grants, revokes pending invites, revokes workspace API tokens, and removes stored project sync data. This cannot be undone from the product UI.

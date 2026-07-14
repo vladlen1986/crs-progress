@@ -1,9 +1,9 @@
 # Best practices for using agents
-> Source: https://docs.buildprint.ai/best-practices-for-using-agents-xk9k2 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/best-practices-for-using-agents-xk9k2 · Captured: 2026-07-14 (verbatim .md)
 
 Buildprint agents follow the same basic rule as other AI agents: garbage in, garbage out.
 
-The clearer the task, context, branch, and success criteria, the better the result. Vague prompts usually produce vague work.
+The clearer the task, context, branch, and success criteria, the better the result. Vague prompts usually produce vague work. 
 
 ## Garbage in, garbage out
 
@@ -12,11 +12,11 @@ Take the time to instruct the agent effectively. Use the voice feature to record
 Before asking an agent to work, define:
 
 - The branch (Buildprint editing must be done on different branches)
-- The page, reusable element, workflow, data type, or setting involved
-- The expected behavior
-- The current problem
-- Any constraints or edge cases
-- Whether the agent should plan first or start building
+- The page, reusable element, workflow, data type, or setting involved.
+- The expected behavior.
+- The current problem.
+- Any constraints or edge cases.
+- Whether the agent should plan first or start building.
 - Clear success criteria
 
 A good prompt might look like this:
@@ -31,11 +31,11 @@ Avoid combining unrelated work in one chat. For example, do not ask the same age
 
 Split larger work into separate steps:
 
-1. Investigate the current behavior
-2. Propose the change
-3. Make the change
+1. Investigate the current behavior.
+2. Propose the change.
+3. Make the change.
 4. Test the result (or use `/test` to get Buildprint to test its own work)
-5. Review before merging or deploying
+5. Review before merging or deploying.
 
 ## Use Plan mode before risky work
 
@@ -53,11 +53,11 @@ Do not keep adding corrections to a messy conversation and hope it recovers. Tha
 
 Start again with:
 
-- A short summary of the goal
-- The branch to use
-- What has already been tried
-- What should be ignored
-- The exact next step you want
+- A short summary of the goal.
+- The branch to use.
+- What has already been tried.
+- What should be ignored.
+- The exact next step you want.
 
 ## Test before merging
 
@@ -67,20 +67,22 @@ Always test agent changes on a development branch before merging or deploying, o
 
 Use Buildprint reviews for changes that affect:
 
-- Privacy
-- Permissions
-- Data structure
-- Backend workflows
-- Payments
-- API Connector calls
-- Branches you plan to merge
-- Anything users depend on in production
+- Privacy.
+- Permissions.
+- Data structure.
+- Backend workflows.
+- Payments.
+- API Connector calls.
+- Branches you plan to merge.
+- Anything users depend on in production.
 
 AI-generated changes should be reviewed like code. Treat the agent as a fast assistant, not an authority.
 
 ## Be explicit about what not to change
 
-If part of the app should stay untouched, say so. For example:
+If part of the app should stay untouched, say so.
+
+For example:
 
 > Update the checkout confirmation email only. Do not change the payment workflow, Stripe API calls, or the checkout page UI.
 

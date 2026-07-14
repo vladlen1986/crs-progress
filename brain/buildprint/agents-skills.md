@@ -1,31 +1,39 @@
 # Skills (Agents section — full article)
-> Source: https://docs.buildprint.ai/skills-6qxoz · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/skills-6qxoz · Captured: 2026-07-14 (verbatim .md)
 
 Skills are reusable instructions you can attach to an agent message.
 
 Use a skill when you want the agent to follow a specific process, checklist, style guide, testing routine, or definition of done. A skill is guidance for the agent. It does not change Buildprint permissions, Bubble collaborator permissions, the selected branch, or whether the chat is in Plan mode or Build mode.
 
+![Image](https://static.ferndesk.com/user-images/file_01KSATM77KJBYJXJXWYNJFESKX.jpg)
+
 ## Skill scopes
 
 Buildprint supports three skill scopes.
 
-### Official skills
+## Official skills
 
 Official skills are managed by Buildprint and are available automatically.
 
-The exact list can change over time. Open `Skills` to see the official skills currently available to your workspace. Official skills are read-only.
+The exact list can change over time. Open `Skills` to see the official skills currently available to your workspace.
 
-### Workspace skills
+Official skills are read-only.
+
+## Workspace skills
 
 Workspace skills are available across chats in the workspace.
 
-Use workspace skills for team-wide instructions, such as review checklists, writing style, QA standards, or common delivery rules. Workspace admins can create and manage workspace skills.
+Use workspace skills for team-wide instructions, such as review checklists, writing style, QA standards, or common delivery rules.
 
-### Project skills
+Workspace admins can create and manage workspace skills.
+
+## Project skills
 
 Project skills are available when their owning project is selected in chat.
 
-Use project skills for app-specific instructions, such as naming conventions, testing accounts, workflow rules, or product constraints that only apply to one Bubble app. Users with access to the project can create or manage project skills, subject to current product permissions.
+Use project skills for app-specific instructions, such as naming conventions, testing accounts, workflow rules, or product constraints that only apply to one Bubble app.
+
+Users with access to the project can create or manage project skills, subject to current product permissions.
 
 ## Create a skill
 
@@ -64,7 +72,7 @@ A useful skill usually includes:
 - Constraints, style rules, or edge cases.
 - What the final answer should include.
 
-### Example
+Example:
 
 ```markdown
 Goal: Review a Bubble workflow change before it is merged.
@@ -94,7 +102,9 @@ Use **Archive** when the skill should no longer appear in chat.
 
 ## Keep skills safe
 
-Do not put secrets in skills. Avoid adding:
+Do not put secrets in skills.
+
+Avoid adding:
 
 - Private keys.
 - API tokens.

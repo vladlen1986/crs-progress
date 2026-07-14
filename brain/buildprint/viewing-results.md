@@ -1,38 +1,44 @@
 # Viewing results
-> Source: https://docs.buildprint.ai/viewing-results-o94uv · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/viewing-results-o94uv · Captured: 2026-07-14 (verbatim .md)
 
-To access test execution history, open Tests > History within your project. Individual test run history is also available from each test's builder page.
+Open Tests > History to see run history for the project.
 
-The history view displays both individual test runs and group runs. Group runs can be expanded to show their child test runs.
+You can also open the run history for a single test from that test's builder page.
+
+History includes individual test runs and group runs. Group runs can be expanded to inspect their child test runs.
 
 ## Run records
 
-Each run record displays:
+Each run record can show:
 
-- Status
-- Branch
-- Model
-- Assigned test user
-- Start and completion time
+- Status.
+- Branch.
+- Model.
+- Assigned test user.
+- Start and completion time.
 
-"Common statuses include queued, running, passed, warning, error, and canceled."
+Common statuses include queued, running, passed, warning, error, and canceled.
 
 ## Inspecting a run
 
-The run viewer opens when you select a run. Buildprint preserves:
+Open a run to inspect it in the run viewer.
 
-- Run status and final summary
-- Branch and app URL
-- Assigned test user
-- Step statuses
-- Step comments
-- Condition outcomes
-- Screenshots
-- Videos
-- Other run artifacts
+Buildprint stores:
 
-The run viewer displays the test graph, revealing which steps executed, which branches were skipped, and where the agent encountered warnings or errors.
+- The run status and final summary.
+- The branch and app URL.
+- The assigned test user.
+- Step statuses.
+- Step comments.
+- Condition outcomes.
+- Screenshots.
+- Videos.
+- Other run artifacts.
+
+The run viewer shows the test graph so you can see which steps ran, which branches were skipped, and where the agent hit a warning or error.
 
 ## Artifacts
 
-Individual steps or entire runs can have artifacts attached. "Screenshots are useful for static checkpoints. Videos are useful for movement, timing, transitions, and reproducing where a flow got stuck."
+Artifacts can be attached to individual steps or to the whole run.
+
+Screenshots are useful for static checkpoints. Videos are useful for movement, timing, transitions, and reproducing where a flow got stuck.

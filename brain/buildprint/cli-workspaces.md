@@ -1,28 +1,28 @@
 # CLI: Workspaces
-> Source: https://docs.buildprint.ai/cli/workspaces-i7d5m · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/cli/workspaces-i7d5m · Captured: 2026-07-14 (verbatim .md)
 
-A Buildprint workspace materializes a Bubble app branch as an editable folder structure on disk, using git to track changes between local edits, Bubble's state, and applied modifications.
+A Buildprint workspace is how the CLI lays a Bubble app out on disk. It materialises a Bubble branch as an ordinary folder of files you can edit like code, and it uses git under the hood to track what came from Bubble, what you have changed locally, and what has been applied back. Understanding this model explains how Buildprint works behind the scenes.
 
 ## The app root
 
-Cloning an app creates an app root directory:
+When you clone an app, the CLI creates an app root directory. By default it is named after the app ID, or you can override the location with `--dir`:
 
 ```bash
 buildprint project clone <appId>
 buildprint project clone <appId> --dir ./my-app
 ```
 
-The app root contains a hidden `.buildprint/` directory serving as the control plane:
+The app root holds a single hidden `.buildprint/` directory that is the control plane for every branch of that app:
 
-- `.buildprint/app.json` — stores schema version, Bubble app ID, and authentication token reference
-- `.buildprint/remote.git` — shared bare repository storing all snapshots and history
-- `.buildprint/cache/` — local CLI caches (safe to delete; regenerated automatically)
+- `.buildprint/app.json` - app-level config: the schema version, the Bubble `appId`, and the token reference used to authenticate.
+- `.buildprint/remote.git` - a shared bare git repository. This is the store of record for all snapshots, published state, and local history. No files are ever checked out here; the CLI streams commits straight into it, which is what makes cloning a large app fast.
+- `.buildprint/cache/` - local CLI caches (check state, snapshot indexes). Safe to delete; regenerated on demand.
 
-Commands can run from anywhere within the workspace; the CLI locates the app root by searching upward for `.buildprint/` containing a bare repo and readable config.
+The CLI finds the app root by walking upward from wherever you run a command until it sees a `.buildprint/` with a bare repo and a readable `app.json`, so you can run commands from anywhere inside the workspace.
 
 ## Each branch is a git worktree
 
-Every cloned Bubble branch becomes a git worktree as a direct child of the app root:
+Every Bubble branch you clone becomes a git worktree that is a direct child of the app root:
 
 ```plaintext
 my-app/
@@ -34,47 +34,46 @@ my-app/
   feature-x/     <- worktree for a feature branch
 ```
 
-Default cloning targets the `test` branch. Since Bubble's editable branch is typically Test rather than main, verify branch names first:
+`buildprint project clone` defaults to the `test` branch. Bubble's editable branch is usually Test, not `main`, so `--branch main` will typically fail - run `buildprint branch list <appId>` to see the real names:
 
 ```bash
-buildprint branch list <appId>
 buildprint project clone <appId> --branch feature-x
 buildprint project clone <appId> --branch live
 ```
 
-Cloning additional branches reuses the same app root and shared bare repo:
+Cloning a second branch of an app you already have reuses the same app root and its shared bare repo, adding a new sibling worktree:
 
 ```bash
 buildprint project clone <appId> --branch live && buildprint project clone <appId> --branch test
 ```
 
-The folder name and checked-out git branch are bound together — the `test/` folder must contain the `test` branch. The CLI enforces this constraint and rejects worktrees with mismatched HEAD or those moved away from their app root. Recreate branch folders with `project clone` rather than moving them.
+The folder name and the git branch checked out inside it are bound together: the `test/` folder must have the `test` branch checked out. The CLI enforces this and refuses to operate on a worktree whose HEAD does not match its directory name, or one that has been moved away from its app root. If you need a branch folder somewhere else, recreate it with `project clone` rather than moving it.
 
 ## The refs that track state
 
-Three refs per branch track state in the shared bare repo:
+Because everything is git, "what does Bubble have" and "what have I applied" are just refs in the shared bare repo. There are three per branch:
 
-- `refs/heads/<branch>` — your working branch checked out in the worktree; commits accumulate here as you edit
-- `refs/bubble/<branch>` — the last snapshot synced from Bubble (outside `refs/heads/` so `git branch` shows only working branches)
-- `refs/published/<branch>` — the last working commit successfully applied to Bubble
+- `refs/heads/<branch>` - your working branch. This is the HEAD checked out in the worktree, and the commits you build up as you edit and apply.
+- `refs/bubble/<branch>` - the last snapshot synced down from Bubble. It lives outside `refs/heads/` so that `git branch` lists only your working branches, not raw snapshots.
+- `refs/published/<branch>` - the last local commit that was successfully applied to Bubble.
 
-These advance at defined moments:
+These move at well-defined moments:
 
-- **Clone / seed**: the CLI decomposes the fetched Bubble app into files, commits them to `refs/heads/<branch>`, and points both snapshot and published refs at that commit. All three states align initially.
-- **Sync**: `buildprint sync` fetches the latest Bubble snapshot, commits it to `refs/bubble/<branch>`, and merges into your HEAD (unless `--no-merge` is passed). Clean fast-forwards occur if no local changes exist; edits trigger git merges with conflicts surfacing normally. The `--reset` flag discards local changes and hard-resets to the snapshot.
-- **Apply**: `buildprint apply` compiles the difference between your working tree and the last snapshot into Bubble write calls. Upon success, "the CLI advances `refs/published/<branch>` to your current HEAD commit," marking exactly what Bubble now holds.
+- **Clone / seed.** The CLI shreds the fetched Bubble app into files, commits them to `refs/heads/<branch>`, and points both `refs/bubble/<branch>` and `refs/published/<branch>` at that same commit. At this instant your workspace, Bubble's snapshot, and Bubble's published state all agree.
+- **Sync.** `buildprint sync` fetches the latest Bubble snapshot, commits it onto `refs/bubble/<branch>`, and (unless you pass `--no-merge`) merges that snapshot ref into your working HEAD. If your local branch had no changes this is a clean fast-forward; if you had edits, git merges them, and real conflicts surface as ordinary git conflicts to resolve. `--reset` throws local changes away and hard-resets the worktree to the Bubble snapshot.
+- **Apply.** `buildprint apply` compiles the diff between your working tree and the last snapshot into Bubble `/write` calls and posts them. When Bubble accepts the write, the CLI advances `refs/published/<branch>` to your current HEAD commit. So `refs/published` only moves on a successful apply and always marks exactly what Bubble now holds.
 
-The worktree tracks a `buildprint/<branch>` remote mirroring `refs/published/*`, enabling git to show how far ahead of published Bubble your local work is.
+The worktree's git branch also tracks a `buildprint/<branch>` remote that mirrors `refs/published/*`, which is what lets git tell you how far ahead of published Bubble your local work is.
 
 ## Why this makes local editing safe
 
-With edits as commits on `refs/heads/<branch>` and Bubble's state pinned in separate refs:
+Because your edits are commits on `refs/heads/<branch>` and Bubble's state is pinned in `refs/bubble` and `refs/published`, the CLI can always answer three questions precisely:
 
-- **Diffs**: local changes since the last snapshot are your working tree against `refs/bubble/<branch>` — exactly what `buildprint apply` writes.
-- **Savepoints**: savepoints capture editor restore points; real git history lets you roll files back to any snapshot without touching Bubble.
-- **Drift detection**: comparing `refs/published` to `refs/bubble` reveals whether Bubble changed since your last apply, so stale applies fail locally with guidance to sync rather than being rejected server-side.
+- **Diffs.** What have you changed since the last Bubble snapshot? That is your working tree against `refs/bubble/<branch>`. `buildprint apply` uses exactly this delta to decide what to write.
+- **Savepoints.** [Savepoints](./savepoints-and-branches.md) capture Bubble editor restore points for the branch, and because local history is real git, you can also roll your files back to any snapshot without touching Bubble.
+- **Drift detection.** Comparing `refs/published` to `refs/bubble` tells the CLI whether Bubble has moved underneath you since you last applied, so a stale apply fails fast locally with guidance to sync instead of being rejected by the server.
 
-Validate before applying:
+Validate a change with `buildprint check` before applying, then apply it:
 
 ```bash
 buildprint check
@@ -83,9 +82,7 @@ buildprint apply
 
 ## Multiple apps and branches side by side
 
-Each app maintains its own app root with its own `.buildprint/remote.git`; no shared global state exists between apps. Within one app root, every cloned branch is another sibling worktree backed by the same bare repo, enabling branches to share history efficiently while remaining fully independent on disk.
-
-List and inspect your workspace:
+Each app lives in its own app root with its own `.buildprint/remote.git`; there is no shared global state between apps. Within one app root, every branch you clone is another sibling worktree, all backed by the same bare repo, so branches of the same app share history cheaply while staying fully independent on disk. List and inspect what you have with:
 
 ```bash
 buildprint project list

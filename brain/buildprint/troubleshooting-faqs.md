@@ -1,63 +1,67 @@
 # Troubleshooting & FAQs
-> Source: https://docs.buildprint.ai/troubleshooting-faqs-02xz4 · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/troubleshooting-faqs-02xz4 · Captured: 2026-07-14 (verbatim .md)
 
 ## The agent made the wrong change. What should I do?
 
-If changes haven't been applied yet, request the agent to revert or adjust draft edits. If already applied to Bubble, restore a savepoint if available, then retry with a more specific prompt and correct branch.
+If the change has not been applied yet, ask the agent to revert or adjust its draft edits.
+
+If the change was applied to Bubble, restore a Bubble savepoint if one was created. Then start again with a narrower prompt and the correct branch.
 
 ## I changed something in Bubble, but the agent does not see it.
 
-Request the agent to sync the branch. "Buildprint agents work from synced branch snapshots, so direct Bubble editor changes are not visible until the branch is synced."
+Ask the agent to sync the branch. Buildprint agents work from synced branch snapshots, so direct Bubble editor changes are not visible until the branch is synced.
 
 ## Another agent changed the same branch. Will this agent see it?
 
-Only after syncing. If another agent modified the shared Bubble branch, ask this agent to sync before proceeding.
+Only after syncing. If another agent applied changes to the same Bubble branch, ask this agent to sync before continuing.
 
 ## Buildprint says the branch is stale.
 
-Bubble has changed since the last sync. Request the agent to sync and resolve any conflicts if needed.
+That means Bubble changed since the agent last synced. Ask the agent to sync, resolve any conflicts if needed, then continue.
 
 ## Buildprint cannot apply changes.
 
 Common causes include:
 
-- The selected model cannot edit
-- Build mode is not enabled
-- Missing Buildprint build permission
-- The Bubble collaborator cannot edit the branch
-- The branch is stale and needs sync
-- Buildprint checks found issues requiring fixes
+- The selected model cannot edit.
+- Build mode is not enabled.
+- You do not have Buildprint build permission.
+- The Bubble collaborator cannot edit the branch.
+- The branch is stale and needs sync.
+- Buildprint checks found issues that must be fixed first.
 
-Ask the agent what prevented the apply and what it requires next.
+Ask the agent what blocked the apply and what it needs next.
 
 ## Bubble's issue checker shows problems.
 
-Buildprint can review synced issue-checker output in snapshots, though this output may be outdated. Bubble refreshes issue-checker state in the editor. For minor issues, fix them in Bubble and sync. For complex issues, ask the agent to inspect synced output and run Buildprint checks.
+Buildprint can inspect synced issue-checker output when it exists in the synced snapshot, but that output can be stale. Bubble refreshes issue-checker state in the editor.
+
+For small obvious issues, you can fix them in Bubble and sync. For larger issues, ask the agent to inspect the synced issue output and run Buildprint checks.
 
 ## I do not see the changes in Bubble.
 
-Verify:
+Check that:
 
-- The agent successfully applied changes
-- You're viewing the correct branch
-- The Bubble editor or run-mode tab is refreshed
-- You're not viewing live when changes were applied to development
+- The agent actually applied changes successfully.
+- You are looking at the same branch the agent edited.
+- The Bubble editor or run-mode tab has been refreshed.
+- You are not looking at live when the change was applied to a development branch.
 
 ## The agent stopped or failed unexpectedly.
 
-Retry once. If it fails again, start a new chat with a summary, branch name, and prior actions.
+Retry once. If it fails again, start a new chat with a concise summary, the branch, and what already happened.
 
 ## The agent is slow.
 
-Large Bubble apps, complex workflows, model reasoning, browser testing, and sync or apply operations require time. Keep tasks focused and request the agent work on one area at a time.
+Large Bubble apps, complex workflows, model reasoning, browser testing, and sync or apply operations can take time. For better results, keep tasks focused and ask the agent to work one area at a time.
 
 ## I hit a model or usage limit.
 
-Check Buildprint billing, Buildprint-managed credits, or your connected AI provider's usage settings.
+Usage limits may come from Buildprint billing, Buildprint-managed credits, or your connected AI provider. Check the relevant provider or workspace billing UI.
 
 ## I cannot find attached files or context.
 
-Files and skills are available only during the current run. Ask the agent to list accessible files if uncertain.
+Attached files and skill context are made available to the agent for the current run. Ask the agent to list the files it can see if you are unsure.
 
 ## How do I rename a conversation?
 

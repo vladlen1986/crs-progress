@@ -1,13 +1,13 @@
 # CLI: Exploring an app
-> Source: https://docs.buildprint.ai/cli/exploring-an-app-kqt3e · Captured: 2026-07-14
+> Source: https://docs.buildprint.ai/cli/exploring-an-app-kqt3e · Captured: 2026-07-14 (verbatim .md)
 
-Reading and navigating a Bubble app with the Buildprint CLI: pulling a branch down, getting your bearings, drilling into specific pages and elements, and looking up reference material.
+This guide covers reading and navigating a Bubble app with the Buildprint CLI: pulling a branch down, getting your bearings, drilling into specific pages and elements, and looking up reference material.
 
-Typical flow: clone a branch, get an overview with `summary` and `tree`, drill in with `context` and `find`, and reach for `schema`, `docs`, and `guidelines` for reference detail.
+The typical flow is: clone a branch, get an overview with `summary` and `tree`, drill in with `context` and `find`, and reach for `schema`, `docs`, and `guidelines` when you need reference detail.
 
 ## Get oriented: `buildprint quickstart`
 
-Run this first. It prints the Buildprint agent playbook — the workspace layout, the core commands, and the conventions the CLI expects you to follow — followed by the catalog of available guideline docs. It also tells you when your installed CLI is behind the latest npm release.
+Run this first. It prints the Buildprint agent playbook - the workspace layout, the core commands, and the conventions the CLI expects you to follow - followed by the catalog of available guideline docs. It also tells you when your installed CLI is behind the latest npm release.
 
 ```bash
 buildprint quickstart
@@ -40,7 +40,7 @@ buildprint project info <appId> --json
 
 ### `buildprint project clone <appId>`
 
-Clone a Bubble branch into `<app-root>/<branch>/`. Default branch is `test` (Bubble's usual editable branch). App root defaults to a directory named after the app ID; pass `--dir` to put it elsewhere.
+Clone a Bubble branch into `<app-root>/<branch>/`. The default branch is `test` (Bubble's usual editable branch). The app root defaults to a directory named after the app ID; pass `--dir` to put it elsewhere. The branch workspace is always `<app-root>/<branch>/`.
 
 ```bash
 buildprint project clone <appId>
@@ -51,8 +51,8 @@ buildprint project clone <appId> --branch live && buildprint project clone <appI
 
 Options:
 
-- `--branch <name>` — Bubble branch to clone. Defaults to `test`. Run `buildprint branch list <appId>` to see available names.
-- `--dir <path>` — override the app root directory. Defaults to `<appId>`.
+- `--branch <name>` - Bubble branch to clone. Defaults to `test`. Run `buildprint branch list <appId>` to see the available names.
+- `--dir <path>` - override the app root directory. Defaults to `<appId>`.
 
 You can clone several branches of the same app under one app root; each lands in its own `<app-root>/<branch>/` worktree. If a branch already has local history, `clone` reuses it and reminds you to run `buildprint sync` to pull the latest snapshot from Bubble.
 
@@ -62,14 +62,14 @@ After a clone, `cd` into the printed workspace path. The commands below all run 
 
 ### `buildprint branch list <appId>`
 
-Print the Bubble branch tree for an app — useful before cloning, or to confirm a branch name.
+Print the Bubble branch tree for an app - useful before cloning, or to confirm a branch name.
 
 ```bash
 buildprint branch list <appId>
 buildprint branch list <appId> --json
 ```
 
-Inspect a single branch read-only — with no arguments inside a workspace it shows the current branch; otherwise pass a branch name (or app ID + branch name from outside a workspace):
+You can also inspect a single branch read-only. With no arguments inside a workspace it shows the current branch; otherwise pass a branch name (or the app ID and branch name from outside a workspace).
 
 ```bash
 buildprint branch
@@ -92,9 +92,9 @@ Each entry reads as `Friendly Name [Bubble id] (relative/file/path.json)`, so yo
 
 ## Inspect UI structure: `buildprint tree <target>`
 
-Print the element tree for a page, mobile view, reusable, or element subtree as a YAML-like outline. Fastest way to understand how a screen is built.
+Print the element tree for a page, mobile view, reusable, or element subtree as a YAML-like outline. It is the fastest way to understand how a screen is built.
 
-Target can be a page or reusable folder key, a friendly name, or an element id.
+The target can be a page or reusable folder key, a friendly name, or an element id.
 
 ```bash
 buildprint tree home
@@ -105,15 +105,15 @@ buildprint tree myPage --cursor 250
 
 Options:
 
-- `--include <list>` — comma-separated list of what to show. Primitives: `text`, `types`, `ids`, `paths`, `layout`, `design`, `properties`, `workflows`, `actions`. Default is `types,ids,layout`. Passing `actions` also turns on `workflows`.
-- `--depth <n>` — maximum element depth from the target. `0` shows the target only.
-- `--cursor <n>` — line offset for pagination. Pages are 250 lines; the output footer prints the next cursor when there is more to read.
+- `--include <list>` - comma-separated list of what to show. Available primitives: `text`, `types`, `ids`, `paths`, `layout`, `design`, `properties`, `workflows`, `actions`. Default is `types,ids,layout`. Passing `actions` also turns on `workflows`.
+- `--depth <n>` - maximum element depth from the target. `0` shows the target only.
+- `--cursor <n>` - line offset for pagination. Pages are 250 lines; the output footer prints the next cursor when there is more to read.
 
 ## Drill into a node: `buildprint context <target>`
 
 Show a single node and its relationships: what contains it and what it contains, what triggers it and what it triggers, what it references and what references it, and reusable instantiation links. For elements it also prints an ancestor-and-descendant tree.
 
-Target can be a node id or a workspace JSON file path.
+The target can be a node id or a workspace JSON file path.
 
 ```bash
 buildprint context page-home
@@ -121,7 +121,7 @@ buildprint context pages/home/elements/button/element.json
 buildprint context wf-submit
 ```
 
-Accepted targets: a workspace JSON file path (e.g. `pages/home/page.json`), a node directory (`pages/home/elements/button`), an exact node id (`page-home`, `wf-submit`), an exact app-json map key or logical path (`button`, `api.workflows.wf-submit`), or an exact page, reusable, mobile view, global element, element, workflow, or action name. When a name is ambiguous, use an exact id or file path; the command lists candidate selectors so you can disambiguate.
+Accepted targets include a workspace JSON file path (for example `pages/home/page.json`), a node directory (`pages/home/elements/button`), an exact node id (`page-home`, `wf-submit`), an exact app-json map key or logical path (`button`, `api.workflows.wf-submit`), or an exact page, reusable, mobile view, global element, element, workflow, or action name. When a name is ambiguous, use an exact id or file path; the command lists the candidate selectors so you can disambiguate.
 
 ## Resolve ids to files: `buildprint find <ids...>`
 
@@ -139,7 +139,7 @@ Each id prints the matching file path plus what was found there (kind, name, log
 
 ### `buildprint schema [query...]`
 
-Search Bubble's static schema — operators, elements and their properties, actions, triggers, types, and more. Provide a free-text query, one or more `--category` filters, or a context filter such as `--element-type`; at least one is required.
+Search Bubble's static schema - operators, elements and their properties, actions, triggers, types, and more. Provide a free-text query, one or more `--category` filters, or a context filter such as `--element-type`; at least one of those is required.
 
 ```bash
 buildprint schema "append text"
@@ -151,14 +151,14 @@ buildprint schema "api connector" --json
 
 Options:
 
-- `--category <category>` — restrict matches to one or more categories (repeat the flag to combine). Categories: `operators`, `elements`, `element_properties`, `element_messages`, `workflows`, `types`, `data_types`, `option_sets`, `api_connector`, `api_connector_auth`, `actions`, `triggers`.
-- `--limit <count>` — maximum number of results.
-- `--upstream-type <value>`, `--element-type <value>`, `--action-type <value>`, `--workflow-type <value>`, `--data-type <value>`, `--owner-type <value>`, `--surface <value>` — narrow results to a specific context. Valid surfaces: `web_page`, `mobile_view`, `web_reusable`, `mobile_reusable`.
-- `--json` — print the raw JSON response.
+- `--category <category>` - restrict matches to one or more categories. Repeat the flag to combine. Categories: `operators`, `elements`, `element_properties`, `element_messages`, `workflows`, `types`, `data_types`, `option_sets`, `api_connector`, `api_connector_auth`, `actions`, `triggers`.
+- `--limit <count>` - maximum number of results.
+- `--upstream-type <value>`, `--element-type <value>`, `--action-type <value>`, `--workflow-type <value>`, `--data-type <value>`, `--owner-type <value>`, `--surface <value>` - narrow results to a specific context. Valid surfaces are `web_page`, `mobile_view`, `web_reusable`, and `mobile_reusable`.
+- `--json` - print the raw JSON response.
 
 ### `buildprint docs <namespace> <query...>`
 
-Read documentation from the CLI. The namespace picks the source; remaining words are the query.
+Read documentation from the CLI. The namespace picks the source; the remaining words are the query.
 
 ```bash
 buildprint docs buildprint auth token
@@ -166,12 +166,12 @@ buildprint docs buildprint "how does version syncing work"
 buildprint docs bubble
 ```
 
-- `buildprint docs buildprint <query...>` searches the Buildprint docs. `--limit <count>` caps results (default 5).
-- `buildprint docs bubble` returns Bubble's `llms.txt` payload and curl guidance. Takes an optional query for parity, but ignores it.
+- `buildprint docs buildprint <query...>` searches the Buildprint docs. `--limit <count>` caps the number of results (default 5).
+- `buildprint docs bubble` returns Bubble's `llms.txt` payload and curl guidance. It takes an optional query for parity with the buildprint namespace, but ignores it.
 
 ### `buildprint guidelines`
 
-List and read Buildprint's guideline docs — the conventions the CLI expects you to follow when working in a workspace.
+List and read Buildprint's guideline docs - the conventions the CLI expects you to follow when working in a workspace.
 
 ```bash
 buildprint guidelines list
@@ -183,4 +183,4 @@ buildprint guidelines get testing/project-tests --json
 ```
 
 - `buildprint guidelines list` prints the guideline path catalog with summaries. Add `--json` for machine-readable output.
-- `buildprint guidelines get [paths...]` fetches one or more docs by path. With no path it returns `general`. Pass several paths to fetch them together; add `--json` for structured output.
+- `buildprint guidelines get [paths...]` fetches one or more docs by path. With no path it returns `general`. Pass several paths to fetch them together, and add `--json` for structured output.
