@@ -251,10 +251,26 @@ let nodes=[], links=[], hubs=[], byId={}, tree=null, fileCount=0;
 let cam={x:0,y:0,k:1}, hover=null, dragN=null, panning=false, ringAngle=0;
 const rnd = (seed=>()=> (seed=(seed*1103515245+12345)&0x7fffffff)/0x7fffffff)(42);
 
+// ---- ambient life: starfield, nebulas, flow particles -------------------------
+const STARS=[]; (function(){ for(let i=0;i<260;i++) STARS.push({
+  x:(rnd()-0.5)*2600, y:(rnd()-0.5)*2000, z:0.15+rnd()*0.55,        // z<1 → behind, parallax
+  r:0.4+rnd()*1.3, tw:rnd()*6.28, ts:0.4+rnd()*1.2 }); })();
+const FLOWS=[];              // particles travelling along links toward the center
+function ambientSpeed(){ return 0.35+S.spin/40; }                    // Ring-spin slider = life intensity
+function spawnFlow(){
+  const cand=links.filter(l=>{ const a=byId[l.a],b=byId[l.b]; return a&&b&&!a.hidden&&!b.hidden&&a.kind==='file'; });
+  if(!cand.length) return;
+  const l=cand[Math.floor(Math.random()*cand.length)];
+  FLOWS.push({a:l.a,b:l.b,t:0,sp:0.004+Math.random()*0.007,color:byId[l.a].color});
+}
+
 function nSize(bytes){ const r=2.2+Math.min(5.5,Math.log10(Math.max(100,bytes||500))-1.6); return r*(0.5+S.size/100); }
 function hash(s){ let h=0; for(let i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))&0xffffff; return h; }
 
-function addNode(n){ n.x=n.x??(rnd()-0.5)*900; n.y=n.y??(rnd()-0.5)*700; n.vx=0; n.vy=0; nodes.push(n); byId[n.id]=n; return n; }
+function addNode(n){ n.x=n.x??(rnd()-0.5)*900; n.y=n.y??(rnd()-0.5)*700; n.vx=0; n.vy=0;
+  n.zd = n.kind==='file' ? 0.82+ (hash(n.id)%40)/100 : 1;          // depth for parallax
+  n.born = performance.now() + nodes.length*14;                    // entrance stagger
+  nodes.push(n); byId[n.id]=n; return n; }
 function link(a,b,len,k){ links.push({a,b,len:len||90,k:k||1}); }
 
 function buildGraph(){
@@ -430,23 +446,48 @@ function glow(color,r){
 function hexPath(x,y,r){ ctx.beginPath(); for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3; const px=x+Math.cos(a)*r, py=y+Math.sin(a)*r; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.closePath(); }
 function starPath(x,y,r){ ctx.beginPath(); for(let i=0;i<8;i++){ const a=i*Math.PI/4-Math.PI/2, rr=i%2?r*0.38:r; const px=x+Math.cos(a)*rr, py=y+Math.sin(a)*rr; i?ctx.lineTo(px,py):ctx.moveTo(px,py);} ctx.closePath(); }
 
-function drawBackdrop(){
+function drawBackdrop(now){
   // faint hex lattice
-  ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.022)'; ctx.lineWidth=1;
+  ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.016)'; ctx.lineWidth=1;
   const s=46;
   for(let y=-1;y<H/s/0.87+1;y++){ for(let x=-1;x<W/s+1;x++){
     const px=x*s+(y%2?s/2:0), py=y*s*0.87;
     ctx.beginPath(); for(let i=0;i<6;i++){ const a=Math.PI/6+i*Math.PI/3; const hx=px+Math.cos(a)*s*0.56, hy=py+Math.sin(a)*s*0.56; i?ctx.lineTo(hx,hy):ctx.moveTo(hx,hy);} ctx.closePath(); ctx.stroke();
   }} ctx.restore();
+  // parallax starfield — depth-scaled pan/zoom + twinkle
+  const sp=ambientSpeed();
+  ctx.save();
+  for(const st of STARS){
+    const px=W/2 + (st.x*cam.k + cam.x)*st.z;
+    const py=H/2 + (st.y*cam.k + cam.y)*st.z;
+    if(px<-8||px>W+8||py<-8||py>H+8) continue;
+    const tw=0.35+0.65*Math.abs(Math.sin(now*0.0008*st.ts*sp+st.tw));
+    ctx.globalAlpha=tw*0.5*st.z*1.4;
+    ctx.fillStyle= st.z>0.55 ? '#AEB8D8' : '#6E7690';
+    ctx.beginPath(); ctx.arc(px,py,st.r*(0.7+st.z*0.6)*Math.min(1.5,cam.k),0,7); ctx.fill();
+  }
+  ctx.restore(); ctx.globalAlpha=1;
 }
 
 let matches=null;
 function draw(){
+  const now=performance.now(), sp=ambientSpeed();
   ctx.setTransform(DPR,0,0,DPR,0,0);
   ctx.fillStyle='#0A0A0C'; ctx.fillRect(0,0,W,H);
-  drawBackdrop();
+  drawBackdrop(now);
   ctx.translate(W/2+cam.x, H/2+cam.y); ctx.scale(cam.k,cam.k);
   const dim=(n)=> matches && !matches.has(n.id);
+
+  // nebula fog behind each cluster — slow drift + breathing
+  if(!matches) for(const h of hubs){ if(h.hidden) continue;
+    const b=0.85+0.15*Math.sin(now*0.00035*sp+hash(h.id));
+    const g=glow(h.color, Math.min(20,9+(h.count||4)*.12)*1.7);
+    const dx=Math.sin(now*0.00021*sp+hash(h.id))*14, dy=Math.cos(now*0.00017*sp+hash(h.id)*3)*11;
+    ctx.globalAlpha=0.34*b;
+    const S8=(h.r||14)*8.5;
+    ctx.drawImage(g, h.x+dx-S8, h.y+dy-S8, S8*2, S8*2);
+  }
+  ctx.globalAlpha=1;
 
   // ring guides for rings layout
   if(S.layout==='rings'){
@@ -468,26 +509,72 @@ function draw(){
     if(dim(a)&&dim(b)){ ctx.strokeStyle='rgba(255,255,255,.015)'; } else ctx.strokeStyle='rgba(255,255,255,.05)';
     ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke(); }
 
-  // nodes
+  // flow particles — thoughts streaming file → hub → brain
+  const want=Math.round(30*sp);
+  while(FLOWS.length<want && Math.random()<0.4) spawnFlow();
+  for(let i=FLOWS.length-1;i>=0;i--){ const f=FLOWS[i];
+    const a=byId[f.a], b=byId[f.b];
+    if(!a||!b||a.hidden||b.hidden){ FLOWS.splice(i,1); continue; }
+    f.t+=f.sp*sp;
+    if(f.t>=1){ FLOWS.splice(i,1); continue; }
+    const e=f.t*f.t*(3-2*f.t);                                  // smoothstep
+    const x=a.x+(b.x-a.x)*e, y=a.y+(b.y-a.y)*e;
+    const fade=Math.sin(f.t*Math.PI);
+    ctx.globalAlpha=(matches?0.06:0.55)*fade;
+    const g=glow(f.color,3);
+    ctx.drawImage(g,x-g.width/2,y-g.height/2);
+    ctx.fillStyle='#FFFFFF'; ctx.beginPath(); ctx.arc(x,y,1.1/Math.sqrt(cam.k),0,7); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // nodes — depth parallax, entrance stagger, pulsing glow, rotation, ripples
   for(const n of nodes){ if(n.hidden) continue;
     if(S.layout==='rings'&&n.kind==='anchor') continue;   // ring labels replace anchors
     const alpha=dim(n)?0.10:1; ctx.globalAlpha=alpha;
-    const r=n.r*(n.kind==='file'?1:1)* (hover===n?1.25:1);
-    const g=glow(n.color, r*1.7); ctx.drawImage(g, n.x-g.width/2/1, n.y-g.height/2, g.width, g.height);
+    // entrance: scale in with stagger
+    const born=n.born||0; const age=Math.min(1,(now-born)/650);
+    const ease=age<1 ? 1-Math.pow(1-age,3) : 1;
+    if(ease<=0.02) continue;
+    // depth parallax: files sit at slightly different depths
+    const z=n.zd||1;
+    const ox=(z-1)*cam.x*0.06/cam.k, oy=(z-1)*cam.y*0.06/cam.k;
+    const nx=n.x+ox, ny=n.y+oy;
+    // breathing glow
+    const pulse=1+0.16*Math.sin(now*0.0011*sp+hash(n.id)%628/100);
+    const r=n.r*ease*(hover===n?1.28:1);
+    const g=glow(n.color, r*1.7*pulse*z);
+    ctx.drawImage(g, nx-g.width/2, ny-g.height/2, g.width, g.height);
     ctx.fillStyle=n.color;
-    if(n.kind==='skill'){ starPath(n.x,n.y,r*1.5); ctx.fill(); }
-    else if(n.kind==='app'){ hexPath(n.x,n.y,r); ctx.fillStyle='rgba(30,41,59,.9)'; ctx.fill(); ctx.strokeStyle=n.color; ctx.lineWidth=1.4/cam.k; hexPath(n.x,n.y,r); ctx.stroke();
-      ctx.fillStyle='#DBEAFE'; ctx.font=`700 ${r*0.8}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.glyph||'?',n.x,n.y+0.5); }
-    else if(n.kind==='routine'){ ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fillStyle='rgba(234,179,8,.16)'; ctx.fill();
-      ctx.strokeStyle=n.color; ctx.lineWidth=1.3/cam.k; ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.stroke();
-      ctx.beginPath(); ctx.arc(n.x,n.y,r*0.4,0,7); ctx.fillStyle=n.color; ctx.fill();
-      const oa=performance.now()*0.001+hash(n.id); ctx.beginPath(); ctx.arc(n.x+Math.cos(oa)*r, n.y+Math.sin(oa)*r, 1.6/Math.sqrt(cam.k),0,7); ctx.fill(); }
+    if(n.kind==='skill'){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00018*sp*(hash(n.id)%2?1:-1));
+      starPath(0,0,r*1.5*pulse); ctx.fill(); ctx.restore(); }
+    else if(n.kind==='app'){ hexPath(nx,ny,r); ctx.fillStyle='rgba(30,41,59,.9)'; ctx.fill(); ctx.strokeStyle=n.color; ctx.lineWidth=1.4/cam.k; hexPath(nx,ny,r); ctx.stroke();
+      ctx.fillStyle='#DBEAFE'; ctx.font=`700 ${r*0.8}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.glyph||'?',nx,ny+0.5); }
+    else if(n.kind==='routine'){ ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.fillStyle='rgba(234,179,8,.16)'; ctx.fill();
+      ctx.strokeStyle=n.color; ctx.lineWidth=1.3/cam.k; ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.stroke();
+      ctx.beginPath(); ctx.arc(nx,ny,r*0.4,0,7); ctx.fillStyle=n.color; ctx.fill();
+      const oa=now*0.001*sp+hash(n.id); ctx.beginPath(); ctx.arc(nx+Math.cos(oa)*r, ny+Math.sin(oa)*r, 1.6/Math.sqrt(cam.k),0,7); ctx.fill(); }
     else { // center / anchor / hub / file
-      ctx.beginPath(); ctx.arc(n.x,n.y,r,0,7); ctx.fill();
-      if(n.planet){ ctx.save(); ctx.translate(n.x,n.y); ctx.rotate(-0.5+ (hash(n.id)%10)/10);
+      ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.fill();
+      if(n.planet){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-0.5+(hash(n.id)%10)/10 + Math.sin(now*0.0003*sp+hash(n.id))*0.1);
         ctx.strokeStyle=n.color+'AA'; ctx.lineWidth=1.1/cam.k; ctx.beginPath(); ctx.ellipse(0,0,r*1.9,r*0.62,0,0,7); ctx.stroke(); ctx.restore(); }
-      if(n.kind==='center'){ ctx.fillStyle='#0A0A0C'; hexPath(n.x,n.y,r*0.55); ctx.fill(); }
+      if(n.kind==='hub'&&!dim(n)){ // one tiny moon orbiting each hub
+        const ma=now*0.0005*sp+hash(n.id); const mr=r+7/Math.sqrt(cam.k);
+        ctx.globalAlpha=alpha*0.85; ctx.beginPath(); ctx.arc(nx+Math.cos(ma)*mr, ny+Math.sin(ma)*mr*0.5, 1.7/Math.sqrt(cam.k),0,7); ctx.fill(); ctx.globalAlpha=alpha; }
+      if(n.kind==='center'){
+        ctx.fillStyle='#0A0A0C'; hexPath(nx,ny,r*0.55); ctx.fill();
+        // rotating dashed orbit — the brain is thinking
+        ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00028*sp);
+        ctx.strokeStyle=n.color+'66'; ctx.lineWidth=1.2/cam.k; ctx.setLineDash([5/cam.k,9/cam.k]);
+        ctx.beginPath(); ctx.arc(0,0,r*1.85,0,7); ctx.stroke();
+        ctx.rotate(-now*0.0006*sp); ctx.setLineDash([2/cam.k,14/cam.k]);
+        ctx.beginPath(); ctx.arc(0,0,r*2.6,0,7); ctx.stroke();
+        ctx.restore(); ctx.fillStyle=n.color;
+      }
     }
+    // hover ripple
+    if(n.rippleT && now-n.rippleT<700){ const rt=(now-n.rippleT)/700;
+      ctx.strokeStyle=n.color; ctx.globalAlpha=alpha*(1-rt)*0.7; ctx.lineWidth=1.4/cam.k;
+      ctx.beginPath(); ctx.arc(nx,ny,r+rt*26/Math.sqrt(cam.k),0,7); ctx.stroke(); ctx.globalAlpha=alpha; }
     // labels
     ctx.textAlign='center'; ctx.textBaseline='top';
     if(n.kind==='hub'||n.kind==='center'||n.kind==='anchor'){
@@ -534,7 +621,9 @@ cv.addEventListener('pointermove',e=>{
     if(dragN){ const p=toWorld(e.clientX,e.clientY); dragN.x=p.x; dragN.y=p.y; dragN.vx=0; dragN.vy=0; }
     else if(panning){ cam.x+=e.movementX; cam.y+=e.movementY; }
   } else {
+    const prev=hover;
     hover=pick(e.clientX,e.clientY);
+    if(hover&&hover!==prev) hover.rippleT=performance.now();
     cv.classList.toggle('pointing', !!hover && (hover.kind==='file'||hover.kind==='hub'));
     if(hover){ ui.tip.style.display='block'; ui.tip.style.left=(e.clientX+14)+'px'; ui.tip.style.top=(e.clientY+12)+'px';
       ui.tip.innerHTML= hover.kind==='file' ? `${hover.label}<div class="sub">${hover.path} · click to open</div>`
