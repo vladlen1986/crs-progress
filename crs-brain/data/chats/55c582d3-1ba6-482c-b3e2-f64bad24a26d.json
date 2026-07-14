@@ -1,0 +1,20 @@
+{
+  "id": "55c582d3-1ba6-482c-b3e2-f64bad24a26d",
+  "title": "My second brain is not mobile optimized map and board",
+  "sessionId": "80043ee3-a627-42c7-bd7e-ed9b66d0418c",
+  "created": "2026-07-14T09:17:45.770Z",
+  "updated": "2026-07-14T09:22:12.378Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "My second brain is not mobile optimized map and board",
+      "ts": "2026-07-14T09:17:45.770Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The culprit was `crs-brain/public/map.html` — the `/map` galaxy view and its `▦ BOARD` kanban drawer had **zero** responsive CSS and no touch zoom. (The chat page's progress board at `/` was already mobile-optimized via the ☰/▤ drawers, so I left it alone.)\n\nWhat I changed in `crs-brain/public/map.html`:\n\n**Touch interaction**\n- Added **pinch-to-zoom + two-finger pan** by tracking multiple pointers (`crs-brain/public/map.html:858`). Zoom was previously mouse-wheel only — unusable on a phone.\n- Rewrote single-finger pan to use computed deltas instead of `e.movementX/Y` (unreliable on touch/Safari), so drag-to-pan works on mobile.\n- Set `touch-action:none` on the canvas so the browser doesn't hijack gestures with page scroll/zoom.\n\n**Responsive layout** (`@media (max-width:720px)`)\n- Brand collapses to just the logo + \"CRS BRAIN\"; top buttons shrink, fullscreen button hidden, BOARD/MENU repositioned so they don't collide.\n- Settings panel: width-capped to viewport and scrollable so it can't run off-screen.\n- Ask-the-brain dock spans full width; board drawer taller (54vh) with columns sized to `80vw`; header controls wrap instead of overflowing.\n- Preview panel and its button row wrap to fit narrow screens.\n- `@media (hover:none)` hides the hover tooltip/floating preview (pointless on touch).\n\nOne caveat per project norms: I can't test this on an actual phone from here, so please open `/map` on your device (LAN mode via `start-mobile.command`) and sanity-check the pinch-zoom and drawer layout. Nothing is committed.",
+      "ts": "2026-07-14T09:22:12.378Z"
+    }
+  ]
+}
