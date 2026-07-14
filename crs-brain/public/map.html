@@ -26,6 +26,7 @@
 
   .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--panel);border:1px solid var(--line2);color:var(--primary);border-radius:6px;padding:7px 14px;font-size:11.5px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit}
   .menu-btn:hover{border-color:var(--c-skill)}
+  .menu-btn.on{color:var(--c-skill);border-color:var(--c-skill)}
 
   .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:rgba(20,20,23,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;padding:13px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
@@ -46,6 +47,26 @@
   .btns button:hover{color:var(--primary);border-color:var(--line2)}
   .bake{background:none;border:1px solid var(--c-skill);color:var(--c-skill);border-radius:6px;padding:6px 0;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit}
   .bake:hover{background:rgba(249,115,22,.12)}
+
+  /* kanban board drawer — folders as columns, files as cards */
+  .board{position:fixed;left:0;right:0;bottom:0;height:38vh;min-height:230px;z-index:12;background:rgba(16,16,19,.94);backdrop-filter:blur(10px);border-top:1px solid var(--line2);transform:translateY(105%);transition:transform .28s cubic-bezier(.2,.7,.2,1);display:flex;flex-direction:column}
+  .board.open{transform:translateY(0)}
+  .board .bhead{display:flex;align-items:center;gap:10px;padding:10px 18px 6px;color:var(--primary);font-size:11px;font-weight:700;letter-spacing:1.6px}
+  .board .bhead .n{color:var(--muted);font-weight:400;letter-spacing:.3px}
+  .board .bhead .close{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;font-family:inherit}
+  .board .bhead .close:hover{color:var(--primary)}
+  .board .cols{flex:1;display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 18px 16px}
+  .bcol{flex:0 0 210px;display:flex;flex-direction:column;background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;color:var(--primary);letter-spacing:.8px;flex:0 0 auto}
+  .bcol .chead .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;box-shadow:0 0 8px currentColor}
+  .bcol .chead .cnt{margin-left:auto;color:var(--muted);font-weight:500;font-size:10px;background:rgba(255,255,255,.06);border-radius:10px;padding:1px 7px}
+  .bcol .cards{flex:1;overflow-y:auto;padding:7px}
+  .bcard{display:flex;align-items:center;gap:7px;padding:7px 9px;margin-bottom:5px;background:var(--panel2);border:1px solid var(--line);border-left:2px solid var(--cc,var(--line2));border-radius:7px;font-size:11.5px;color:var(--secondary);cursor:pointer;transition:.12s;white-space:nowrap;overflow:hidden}
+  .bcard:hover{color:var(--primary);border-color:var(--line2);border-left-color:var(--cc)}
+  .bcard .ext{margin-left:auto;font-size:9px;color:var(--muted);text-transform:uppercase;flex:0 0 auto}
+  .bcard .nm{overflow:hidden;text-overflow:ellipsis}
+  body.board-open .dock{bottom:calc(38vh + 26px)}
+  body.board-open .hint{display:none}
 
   .tip{position:fixed;pointer-events:none;background:rgba(20,20,23,.95);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:11.5px;color:var(--primary);z-index:20;display:none;max-width:300px}
   .tip .sub{color:var(--muted);font-size:10px;margin-top:2px}
@@ -73,8 +94,13 @@
   <div class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></svg></div>
   <div><b>CRS BRAIN</b> <span>SECOND BRAIN</span><div class="by">CASINO REPORTING SUITE</div></div>
 </div>
+<button class="menu-btn" id="boardBtn" style="right:170px" title="Folder board" onclick="toggleBoard()">▦ BOARD</button>
 <button class="menu-btn" id="fsBtn" style="right:118px" title="Fullscreen" onclick="toggleFS()">⛶</button>
 <button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
+<div class="board" id="board">
+  <div class="bhead">▦ FOLDER BOARD <span class="n" id="boardN"></span><button class="close" onclick="toggleBoard()">✕</button></div>
+  <div class="cols" id="boardCols"></div>
+</div>
 <div class="panel" id="panel">
   <input type="search" id="q" placeholder="Search files… ( / )">
   <div class="lbl">Layout</div>
@@ -223,6 +249,7 @@ function buildGraph(){
   }
   ui.q.placeholder=`Search ${fileCount.toLocaleString()} files… ( / )`;
   applyLayout(true);
+  if(boardOpen) renderBoard();
 }
 
 // ---- layouts ------------------------------------------------------------------
@@ -489,9 +516,10 @@ const namesEl=document.getElementById('names'); namesEl.checked=S.names;
 namesEl.addEventListener('change',()=>S.names=namesEl.checked);
 function setCollapsed(v){ for(const h of hubs){ S.collapsed[h.id]=v; for(const n of nodes) if(n.cluster===h.id) n.hidden=v; } }
 ui.q.addEventListener('input',()=>{ const q=ui.q.value.trim().toLowerCase();
-  if(!q){ matches=null; return; }
+  if(!q){ matches=null; searchMatches=null; return; }
   matches=new Set(nodes.filter(n=>(n.label||'').toLowerCase().includes(q)||(n.path||'').toLowerCase().includes(q)).map(n=>n.id));
-  for(const n of nodes) if(matches.has(n.id)&&n.cluster) matches.add(n.cluster); });
+  for(const n of nodes) if(matches.has(n.id)&&n.cluster) matches.add(n.cluster);
+  searchMatches=matches; });
 addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ e.preventDefault(); ui.q.focus(); }
   if(e.key==='Escape'){ ui.q.value=''; ui.q.dispatchEvent(new Event('input')); ui.q.blur(); }});
 
@@ -499,6 +527,48 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
 document.querySelectorAll('#layoutSeg button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
 document.querySelectorAll('#contentSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
+
+// ---- kanban board: folders as columns, files as clickable cards ----------------------
+let boardOpen=false, searchMatches=null;
+function toggleBoard(){ boardOpen=!boardOpen;
+  document.getElementById('board').classList.toggle('open',boardOpen);
+  document.body.classList.toggle('board-open',boardOpen);
+  document.getElementById('boardBtn').classList.toggle('on',boardOpen);
+  if(boardOpen) renderBoard(); }
+function renderBoard(){
+  const cols=document.getElementById('boardCols'); cols.innerHTML='';
+  const T=contentTree()||[]; let total=0;
+  const mkCol=(name,files,color)=>{
+    if(!files.length) return; total+=files.length;
+    const col=document.createElement('div'); col.className='bcol';
+    col.innerHTML=`<div class="chead"><span class="dot" style="background:${color};color:${color}"></span>${name.toUpperCase()}<span class="cnt">${files.length}</span></div><div class="cards"></div>`;
+    const cards=col.querySelector('.cards');
+    files.sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>{
+      const c=document.createElement('div'); c.className='bcard'; c.style.setProperty('--cc',color);
+      const ext=(f.name.split('.').pop()||'').slice(0,4);
+      c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
+      c.title=f.path+' — click to open';
+      c.onclick=()=>openNode({kind:'file',path:f.path,label:f.name});
+      c.onmouseenter=()=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); } };
+      c.onmouseleave=()=>{ matches=searchMatches; };
+      cards.appendChild(c);
+    });
+    cols.appendChild(col);
+  };
+  // one column per top-level folder (same palette as the galaxy), + root files
+  const rootFiles=[];
+  let gi=0;
+  for(const n of T){
+    if(n.type==='dir'){
+      const files=[]; (function w(c){ for(const x of c){ x.type==='dir'?w(x.children):files.push(x); } })(n.children);
+      const hub=byId['#'+n.name];
+      mkCol(n.name, files, hub?hub.color:MEMC[gi%MEMC.length]); gi++;
+    } else rootFiles.push(n);
+  }
+  const rootHub=byId['#root'];
+  mkCol('root', rootFiles, rootHub?rootHub.color:'#C4B5FD');
+  document.getElementById('boardN').textContent='· '+total+' files · click to open · hover to locate in the galaxy';
+}
 
 // ---- chat dock: ask the brain, highlight what it points at ---------------------------
 const dockBody=document.getElementById('dockBody'), dockQ=document.getElementById('dockQ'),
@@ -535,7 +605,8 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
     for(const n of hits){ if(n.cluster){ matches.add(n.cluster); if(S.collapsed[n.cluster]){ S.collapsed[n.cluster]=false; for(const x of nodes) if(x.cluster===n.cluster) x.hidden=false; } } }
     const t=hits[0]; cam.k=Math.max(cam.k,1.1); cam.x=-t.x*cam.k; cam.y=-t.y*cam.k;
     dockBody.innerHTML+='\n\n<span class="hits">◉ '+hits.length+' file'+(hits.length>1?'s':'')+' highlighted on the map — click to open.</span>';
-  } else { matches=null; }
+    searchMatches=matches;
+  } else { matches=null; searchMatches=null; }
   dockBody.scrollTop=dockBody.scrollHeight;
   asking=false; dockSend.disabled=false;
 });
