@@ -386,7 +386,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)',   // live lookups + Buildprint CLI ops
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'mcp__buildprint',   // web lookups + Buildprint CLI + MCP tools
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
@@ -579,7 +579,7 @@ function listChats() {
     .map((f) => {
       try {
         const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
-        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length };
+        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length, bp: c.bp === true };
       } catch { return null; }
     })
     .filter(Boolean)
@@ -688,6 +688,7 @@ const server = http.createServer(async (req, res) => {
             id: crypto.randomUUID(),
             title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
             sessionId: null,
+            bp: body.bp === true,
             created: nowIso(),
             updated: nowIso(),
             messages: [],
@@ -730,6 +731,15 @@ const server = http.createServer(async (req, res) => {
           effort: (body.effort || cfg.effort || '').toString() || undefined,
           signal: ac.signal,
         };
+        // Buildprint chats run in the cloned Bubble workspace with the guardrailed
+        // BP prompt, and can still read/write the brain repo (--add-dir).
+        if (chat.bp) {
+          const ws = findBpWorkspace();
+          if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
+          runOpts.cwd = ws.dir;
+          runOpts.systemPrompt = BP_PROMPT(ws);
+          runOpts.addDirs = [REPO_ROOT];
+        }
         const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
           onThink: (t) => sse({ type: 'think', text: t }),
