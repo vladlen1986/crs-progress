@@ -2,7 +2,7 @@
 
 Question about HOW to use Buildprint (modes, agents, prompts, limits, troubleshooting) → read the relevant page below. Project-specific Buildprint RULES (dev-branch-only, Plan-mode-first, etc.) live in ../../decisions.md 2026-05-01 — those override generic docs advice.
 
-Captured 2026-07-14 from https://docs.buildprint.ai/. 23 of ~60 docs pages captured (all high-priority sections); skipped pages listed under Gaps.
+Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day: first pass 23 high-priority pages, second pass the remaining ~48 (full manual — all doc sections, all 10 CLI reference pages, and the complete REST API reference consolidated from the official OpenAPI schema). Coverage is now the entire docs site.
 
 ## Getting started
 
@@ -30,40 +30,116 @@ Captured 2026-07-14 from https://docs.buildprint.ai/. 23 of ~60 docs pages captu
 | [agents-skills.md](agents-skills.md) | Full Skills article: scopes (official/workspace/project), creating, attaching via / or @, example skill template, safety |
 | [troubleshooting-faqs.md](troubleshooting-faqs.md) | Wrong change, stale branch/sync issues, "cannot apply changes" causes, agent slow/failed, usage limits |
 
-## Skills
+## Observability
 
 | Page | Answers |
 |---|---|
-| [introduction-to-skills.md](introduction-to-skills.md) | What skills are, when to create one |
-| [official-skills.md](official-skills.md) | Buildprint-managed skills, where to find them, examples |
-
-## CLI & MCP
-
-| Page | Answers |
-|---|---|
-| [cli-installation-and-authentication.md](cli-installation-and-authentication.md) | npm install, buildprint link token, quickstart, mcp install, login as Bubble test user; CLI avoids agent-runtime billing |
-| [connect-via-mcp.md](connect-via-mcp.md) | Creating an MCP server, bearer token, Claude Code / Cursor install commands, MCP tool list, revoking access |
+| [observability-overview.md](observability-overview.md) | Hub page — map of the Observability section |
+| [introduction-to-logging.md](introduction-to-logging.md) | Server log capture (waitlist-gated), View/Explorer/Monitors tabs, sync delays up to 3h for low-traffic apps, Logs permission requirement |
+| [exploring-logs.md](exploring-logs.md) | Log Explorer: filters (time range, log type, text, user email, thing ID), URL-synced filters, volume histogram, detail panel, View time-series charts |
+| [monitors.md](monitors.md) | Automated log alerts: Threshold / Match event / Anomaly detection types, created via agent chat, webhook (primary) + email fallback (3/hr, 10/day limits), managing from Logs → Monitors |
+| [observability-troubleshooting.md](observability-troubleshooting.md) | Empty logs checklist (waitlist, collaborator, Logs permission), live-only log limitation, test-version logs |
 
 ## Tests
 
 | Page | Answers |
 |---|---|
+| [tests-overview.md](tests-overview.md) | Hub page — map of the Tests section |
 | [introduction-to-tests.md](introduction-to-tests.md) | Plain-English browser QA flows, tabs (Dashboard/Tests/Users/History) |
+| [test-users.md](test-users.md) | Saved test accounts: automatic vs password login, when NOT to use automatic (auth-flow tests), Live vs Test user assignment, managing under Tests > Users |
 | [creating-tests.md](creating-tests.md) | Test builder: Start node settings, step types (Test/Condition/Component), failure behavior, folders, files |
+| [running-tests.md](running-tests.md) | Run single/folder/group, vision-capable model required, pre-run checks, REST + MCP test-run routes |
+| [viewing-results.md](viewing-results.md) | Tests > History: run records, statuses (queued/running/passed/warning/error/canceled), run viewer, screenshots/videos artifacts |
 | [tests-best-practices.md](tests-best-practices.md) | Stable test design, login-flow rules, test troubleshooting |
+
+## Automations
+
+| Page | Answers |
+|---|---|
+| [automations-overview.md](automations-overview.md) | Hub page — map of the Automations section |
+| [introduction-to-automations.md](introduction-to-automations.md) | Trigger + actions model, 6 triggers (Manual/API, Live deployed, Branch merged/created/removed, Recurring), 4 actions, automations page columns |
+| [creating-automations.md](creating-automations.md) | Automation editor, trigger choice, cron/preset recurring schedules, branch params only on branch triggers, enable/disable/delete semantics |
+| [automation-actions.md](automation-actions.md) | Action details: Run tests (all vs chosen), Send message templates ({{branch.name}} etc.), Send webhook payload, Deploy agent (early — avoid in production) |
+
+## Collaboration
+
+| Page | Answers |
+|---|---|
+| [collaboration-overview.md](collaboration-overview.md) | Hub page — map of the Collaboration section |
+| [project-and-workspace-permissions.md](project-and-workspace-permissions.md) | Workspace roles (Admin/Member/Guest), primary admin, project-only invites → limited Guest access, moving projects between workspaces |
+| [sharing-chats.md](sharing-chats.md) | Adding conversation members (owner-only), public read-only links, whose AI credentials shared chats consume, private access rules |
+| [workspace-settings.md](workspace-settings.md) | General/Members/Billing sections, primary admin transfer, workspace deletion consequences |
+| [project-settings.md](project-settings.md) | General/Members/Style sections, project roles incl. Read-only, Style = per-project AI guidance, Danger Zone (move workspace, disconnect) |
+| [delete-your-data.md](delete-your-data.md) | GDPR-style deletion requests (support@getbuildprints.com), workspace delete vs disconnect-and-remove-all-data |
+
+## Skills
+
+| Page | Answers |
+|---|---|
+| [skills-overview.md](skills-overview.md) | Hub page — map of the Skills section |
+| [introduction-to-skills.md](introduction-to-skills.md) | What skills are, when to create one |
+| [official-skills.md](official-skills.md) | Buildprint-managed skills, where to find them, examples |
+
+## Plugins
+
+| Page | Answers |
+|---|---|
+| [plugins-overview.md](plugins-overview.md) | Hub page — map of the Plugins section |
+| [building-plugins-with-buildprint.md](building-plugins-with-buildprint.md) | AI plugin building overview; limitations: cannot publish, cannot create empty plugin |
+| [creating-a-plugin-project.md](creating-a-plugin-project.md) | Plugin project type (not billable), plugin editor URL, inviting connect@, HTML-tag ownership verification |
+| [creating-a-plugin-in-bubble.md](creating-a-plugin-in-bubble.md) | Two-step: bubble.io/home/plugins → "Create a new plugin" |
+
+## Components
+
+| Page | Answers |
+|---|---|
+| [components-overview.md](components-overview.md) | Hub page — map of the Components section |
+| [how-to-use-components.md](how-to-use-components.md) | Beta feature: ask agent or browse catalog, 6 component categories (Database/UI/Workflow/Expression/API/Plugin), auto dependency install |
+| [component-libraries.md](component-libraries.md) | Library concept, workspace vs public, listing statuses (Private/Awaiting approval/Public/Archived), component statuses, marketplace review |
+| [publishing-and-updating-components.md](publishing-and-updating-components.md) | library.json / component.json / README structure, short vs long descriptions, `buildprint components package`, dependencies, marketplace flow |
+
+## Integrations
+
+| Page | Answers |
+|---|---|
+| [integrations-overview.md](integrations-overview.md) | Hub page — map of the Integrations section |
+| [connect-via-mcp.md](connect-via-mcp.md) | Creating an MCP server, bearer token, Claude Code / Cursor install commands, MCP tool list, revoking access |
+| [linear.md](linear.md) | @Buildprint in Linear issues, team→project mapping, agent settings (run as/model/reasoning/permissions), branch-label tracking with auto-sync |
+| [slack-integration.md](slack-integration.md) | @Buildprint in Slack, channel access modes, run-as config, thread continuity, file limits (30MB/file, 100MB/msg), troubleshooting |
+| [rest-api.md](rest-api.md) | REST API intro (beta): token creation at Integrations > API, bearer auth, available endpoint areas |
+| [openrouter.md](openrouter.md) | Connecting your own OpenRouter key (sk-or-...), at-cost billing, warning: all workspace members can chat on your key |
+
+## Buildprint for Agencies
+
+| Page | Answers |
+|---|---|
+| [buildprint-for-agencies.md](buildprint-for-agencies.md) | Hub page — map of the Agencies section |
+| [managing-client-projects.md](managing-client-projects.md) | One-workspace-many-projects pattern, per-project member assignment, agency role model |
+| [inviting-clients.md](inviting-clients.md) | Project-scoped client invites (Read-only/Guest/Member), what clients can see, per-conversation sharing |
+| [integrating-buildprint-into-your-workflows.md](integrating-buildprint-into-your-workflows.md) | Agency workflows: reviews for QA, debugging with agents, monitoring client apps, Linear connection |
+
+## CLI reference
+
+| Page | Answers |
+|---|---|
+| [cli-installation-and-authentication.md](cli-installation-and-authentication.md) | npm install, buildprint link token, quickstart, mcp install, login as Bubble test user; CLI avoids agent-runtime billing |
+| [cli-exploring-an-app.md](cli-exploring-an-app.md) | Read-side commands: project list/info/clone, branch list, summary, tree, context, find, schema, docs, guidelines — with all flags |
+| [cli-workspaces.md](cli-workspaces.md) | App root + .buildprint/, branch-per-worktree model, the three refs (heads/bubble/published), why drift detection works |
+| [cli-filesystem.md](cli-filesystem.md) | Full shredded file-tree layout (pages/, data_types/, option_sets/, styles/, api/, settings/), lifted fields, children arrays, map key vs internal id, canonical JSON rules, what not to edit |
+| [cli-applying-changes.md](cli-applying-changes.md) | buildprint apply (gates, flags, out-of-sync handling), buildprint sync (--no-merge/--reset/status), buildprint changelog |
+| [cli-validating-with-check.md](cli-validating-with-check.md) | buildprint check: changed-file scoping (no full-app scan flag), targets, autofix output, --level/--rule/--auto-apply |
+| [cli-creating-and-copying-entities.md](cli-creating-and-copying-entities.md) | buildprint new (page/mobile/reusable/data_type/option_set/workflow/action/folder/test) and buildprint copy (root/workflow/element/action) — all flags |
+| [cli-savepoints-and-branches.md](cli-savepoints-and-branches.md) | buildprint savepoint create/list/restore, branch create --from, merge with conflict --resolve flags |
+| [cli-running-an-audit.md](cli-running-an-audit.md) | buildprint audit security scan: 6 checks (public data types, public backend workflows, public uploaders, temp passwords, missed server-side redirects, gitleaks), severity report |
+| [cli-installing-and-packaging-components.md](cli-installing-and-packaging-components.md) | buildprint components list/search/categories/add/package with flags |
+| [cli-plugins.md](cli-plugins.md) | buildprint plugin clone/upload/publish, plugin workspace layout, draft save vs manual publish handoff |
+
+## API reference
+
+| Page | Answers |
+|---|---|
+| [api-reference.md](api-reference.md) | Complete public REST API (beta): base URL, bp_ tokens, quick start, and every endpoint (agents, agent messages, code reviews, automations, tests, test groups, test runs, test group runs, test users, versions) with all parameters, request/response fields, model enums, and error codes — generated from the official OpenAPI schema |
 
 ## Gaps
 
-No fetch failures — all 23 attempted pages captured. The following ~37 lower-priority pages were deliberately skipped (docs site has ~60 pages; capture prioritized core concepts, modes, agent best practices, prompting, limits, troubleshooting per scope). Fetch from docs.buildprint.ai if ever needed:
-
-- **Observability section:** observability-dmvkg (hub), introduction-to-logging-r1sfq, exploring-logs-pmfs1, monitors-oknnr, troubleshooting-onqv1
-- **Plugins section:** plugins-27k2m (hub), building-plugins-with-buildprint-mnih2, creating-a-plugin-project-oksex, creating-a-plugin-in-bubble-caiph
-- **Tests section (remainder):** tests-mp888 (hub), test-users-vvuno, running-tests-lh4vs, viewing-results-o94uv
-- **Automations section:** automation-y836f (hub), introduction-to-automations-m3d8h, creating-automations-aatyf, actions-5t46t
-- **Collaboration section:** collaboration-4gi7y (hub), project-and-workspace-permissions-ek72b, sharing-chats-n9ro8, workspace-settings-l7pe6, project-settings-h1nyt, delete-your-data-teqlc
-- **Skills section:** skills-cdbx7 (hub only; content covered by captured skills pages)
-- **Components section:** components-5t0pn (hub), how-to-use-components-vzb3l, component-libraries-wwbiq, publishing-and-updating-components-365c9
-- **Integrations section (remainder):** integrations-wioqs (hub), linear-ovk9x, slack-integration-pzpo7, rest-api-crdvd, openrouter-sssrw
-- **Buildprint for Agencies:** buildprint-for-agencies-dkb65 (hub), managing-client-projects-4ujop, inviting-clients-u4fo2, integrating-buildprint-into-your-workflows-q7fom
-- **Other doc trees not captured:** /api-reference (API Reference), /cli (CLI reference beyond installation-and-authentication)
-- The buildprint-paid-plans page contains a plan-comparison image with exact per-tier allowances that could not be captured as text.
+None — every page in the docs site navigation (Documentation, API Reference, and CLI trees) is captured. Known limitation carried over from the first pass: the buildprint-paid-plans page contains a plan-comparison image with exact per-tier allowances that could not be captured as text.

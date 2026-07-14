@@ -1,0 +1,20 @@
+{
+  "id": "dbd6aba7-7acb-4f7b-bf83-7689a75af1b4",
+  "title": "Map — According to the Bubble manual, do privacy rules a",
+  "sessionId": "cebaa161-6958-435b-b23c-f2885222259d",
+  "created": "2026-07-14T07:12:50.643Z",
+  "updated": "2026-07-14T07:13:13.935Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "According to the Bubble manual, do privacy rules apply to the Data API, and what happens to fields a rule blocks?\n\n(Answering inside the brain-map view: mention the exact repo-relative paths of every relevant file so the map can highlight them.)",
+      "ts": "2026-07-14T07:12:50.643Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "**Yes — privacy rules apply to the Data API, with one big exception: authentication method.**\n\nPer the manual (`brain/bubble/help-guides/integrations/api/the-bubble-api/the-data-api/data-api-privacy-rules.md`):\n\n- **Access is governed by privacy rules** on the data type — *unless* the client authenticates with a **Bubble API token (as admin)**. In that case privacy rules are **disregarded entirely** and the client gets full admin access. To have privacy rules enforced on the Data API, authenticate **as a user** instead.\n\n**What happens to blocked fields:**\n- **View all fields** unchecked → the client only gets the fields you individually allow; everything else is simply **not returned** in the response (silently omitted, not errored).\n- **Constrainable fields** → a field a rule doesn't allow as a search constraint is **not applied to the search** (the constraint is dropped, in both automatic and strict search-privacy modes, since a Data API call has no page context).\n- **Find this in searches** unchecked → the client can't list/search that type at all.\n- **View attached files** unchecked → attached files aren't retrievable.\n- **Create / Modify / Delete via API** (the three Data-API-specific rules, all off by default) → if unchecked, a matching client can't create, change, or delete records of that type via the Data API. These apply *only* to Data API clients — not your app's regular users or API Workflows.\n- **Allow auto-binding** has no effect on Data API clients.\n\nRelevant files for the map to highlight:\n- `brain/bubble/help-guides/integrations/api/the-bubble-api/the-data-api/data-api-privacy-rules.md` (primary source)\n- `brain/bubble/help-guides/security/api-security/data-api-security.md` (security angle)\n- `brain/bubble/core-resources/data/privacy.md` (privacy rules reference)\n- `brain/bubble/help-guides/integrations/api/the-bubble-api/authentication/as-an-admin.md` (the admin-token bypass)\n- `brain/bubble/INDEX.md` (routing index)\n\nOne CRS note: your Pattern A isolation (`company` + `property` on every business DT) is enforced by privacy rules — so any Data API integration you build **must authenticate as a user, never with an admin API token**, or cross-property isolation is bypassed.",
+      "ts": "2026-07-14T07:13:13.935Z"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+# Element properties
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+
+In this section, we'll cover elements and their properties. Properties are dividied into:
+
+* [**Container-specific properties**](#container-specific-properties)**:** Properties for container elements for web and mobile.
+* [**Element-specific properties**](#element-specific-properties)**:** Properties for visual and input elements for web and mobile.
+
+## **Container-specific properties**
+
+Containers also come with properties that only apply to a specific type.
+
+#### Web
+
+<table><thead><tr><th width="157.84765625">Container type</th><th width="385.51953125">Description</th><th>Link</th></tr></thead><tbody><tr><td><strong>Page</strong></td><td>The top-most layer of your design hierarchy. Each page has its own URL.</td><td><a data-mention href="/pages/1bNBzyNnrnpGikLBDCK9">/pages/1bNBzyNnrnpGikLBDCK9</a></td></tr><tr><td><strong>Group</strong></td><td>A Group is a general-purpose container that holds other elements. It serves both a visual and a data role in your app.</td><td><a data-mention href="/pages/j1Sh7fqJUVPr1aBlbZlB">/pages/j1Sh7fqJUVPr1aBlbZlB</a></td></tr><tr><td><strong>Repeating group</strong></td><td>A repeating group is a container that displays a list of items by repeating its cell layout once per item in a data source.</td><td><a data-mention href="/pages/RDmocxiJyIjGwF6iiZNa">/pages/RDmocxiJyIjGwF6iiZNa</a></td></tr><tr><td><strong>Popup</strong></td><td>A container displayed above the page content, typically used for modals, dialogs, or focused user interactions.</td><td><a data-mention href="/pages/44JTR7hcVdvjhjoGmjxH">/pages/44JTR7hcVdvjhjoGmjxH</a></td></tr><tr><td><strong>Floating Group</strong></td><td>A container that remains fixed relative to the viewport rather than the page layout.</td><td><a data-mention href="/pages/mdxTpX4U9TfDHGD4vMnW">/pages/mdxTpX4U9TfDHGD4vMnW</a></td></tr><tr><td><strong>Group Focus</strong></td><td>A group focus is a contextual container that appears relative to another element on the page.</td><td><a data-mention href="/pages/sjUmb6WVZYGk85monJaD">/pages/sjUmb6WVZYGk85monJaD</a></td></tr><tr><td><strong>Table</strong></td><td>A Table is a structured container that displays tabular data in predefined rows and columns.</td><td><a data-mention href="/pages/MgD4gPgIv7pK5EUy78cb">/pages/MgD4gPgIv7pK5EUy78cb</a></td></tr></tbody></table>
+
+#### Mobile
+
+<table><thead><tr><th width="157.84765625">Container type</th><th width="385.51953125">Description</th><th>Link</th></tr></thead><tbody><tr><td><strong>View</strong></td><td>The top-most layer of your design hierarchy in a native mobile app.</td><td><a data-mention href="/pages/KFTKlim3z3vcA0uqsOKG">/pages/KFTKlim3z3vcA0uqsOKG</a></td></tr><tr><td><strong>Group</strong></td><td>A general-purpose container that holds other elements. It serves both a visual and a data role in your app.</td><td><a data-mention href="/pages/noDkbHzWYKHT8S0ppE43">/pages/noDkbHzWYKHT8S0ppE43</a></td></tr><tr><td><strong>Floating Group</strong></td><td>A container that remains fixed relative to the viewport rather than the view layout.</td><td><a data-mention href="/pages/ieVQDQBVIaWXTWlXZxKm">/pages/ieVQDQBVIaWXTWlXZxKm</a></td></tr><tr><td><strong>Short list</strong></td><td>A short list is a container for displaying a fixed set of data items.</td><td><a data-mention href="/pages/LYCuPa7g9C5gZVA2RQD8">/pages/LYCuPa7g9C5gZVA2RQD8</a></td></tr><tr><td><strong>Horizontal list</strong></td><td>A horizontal-scrolling list that shows items side by side.</td><td><a data-mention href="/pages/QxGmyPCTI498McajLuRP">/pages/QxGmyPCTI498McajLuRP</a></td></tr><tr><td><strong>Sheet</strong></td><td>Overlay elements that provide focused interaction while keeping the underlying view visible</td><td><a data-mention href="/pages/j7YZDQYm5o8UbHD5UeKS">/pages/j7YZDQYm5o8UbHD5UeKS</a></td></tr></tbody></table>
+
+## Element-specific properties
+
+Element-specific properties are documented in articles that correspond to the element categories, as they appear in the element palette. Each category groups elements with similar functionality, and their reference entries describe the properties unique to those elements.
+
+### Web
+
+<table><thead><tr><th width="177.8778076171875">Category</th><th width="368.6363525390625">Description</th><th>Article link</th></tr></thead><tbody><tr><td><strong>Visual</strong></td><td>Elements like <a href="/pages/SkcqCFoFY9eTQ5oPCct4">text</a>, <a href="/pages/itcV4pxOAiwnT0PCFl61">buttons</a>, <a href="/pages/bSP0mIYr8yaa8Aed0MsB">icons</a> and <a href="/pages/A5UgJXkzBKri5B8GBvsB">images</a>.</td><td><a data-mention href="/pages/RG3pjrFk1bp7wDWfcCkc">/pages/RG3pjrFk1bp7wDWfcCkc</a></td></tr><tr><td><strong>Input forms</strong></td><td>Elements like <a href="/pages/BJwfwpltG6Zsojuc0Fc6">text input</a>, <a href="/pages/ZNPwIN0TjoDpRwJuA1t7">date/time picker</a>, <a href="/pages/rYPJdq9C2p4z2Cxv5q50">checkbox</a> and <a href="/pages/5VpPNewv8a7TnPU8biKo">dropdown</a>.</td><td><a data-mention href="/pages/f4sUzcR69BO51gqKhZcE">/pages/f4sUzcR69BO51gqKhZcE</a></td></tr><tr><td><strong>Bubble-made plugin elements</strong></td><td>Elements added by installing <a href="/pages/-MYG5FvwTvItpQqBQO6U">plugins</a>. The documentation only covers plugins made by Bubble.</td><td><a data-mention href="/pages/uz8xwFx054OCRKZuZl9H">/pages/uz8xwFx054OCRKZuZl9H</a></td></tr></tbody></table>
+
+### Mobile
+
+<table><thead><tr><th width="177.8778076171875">Category</th><th width="368.6363525390625">Description</th><th>Article link</th></tr></thead><tbody><tr><td><strong>Visual</strong></td><td>Elements like <a href="/pages/TygnjEUgwbgASJ4mD35F">text</a>, <a href="/pages/iJgvHoFu1Dg3IvxKO9n6">buttons</a>, <a href="/pages/sxe485tIPRmezA67Cs6E">icons</a> and <a href="/pages/UsQ4TqOUGrFQowPvPUtT">images</a>.</td><td><a data-mention href="/pages/9eJHyuwFQJDwQS1qlBOI">/pages/9eJHyuwFQJDwQS1qlBOI</a></td></tr><tr><td><strong>Input forms</strong></td><td>Elements like <a href="/pages/eOqu1TXlH8wgABBkjH7N">text input</a>, <a href="/pages/sfWTwg13FnvOpHbAMXdp">date/time picker</a>, <a href="/pages/sVSOJ1fIPoujgYWlz1Pn">checkbox</a> and <a href="/pages/vxzVAbVicZaq68fDFJys">selectable list</a>.</td><td><a data-mention href="/pages/7vfkzhrVSTfYL6lYBjt9">/pages/7vfkzhrVSTfYL6lYBjt9</a></td></tr></tbody></table>
+
+### Reusable elements
+
+<table><thead><tr><th width="177.8778076171875">Category</th><th width="370.5230712890625">Description</th><th>Article link</th></tr></thead><tbody><tr><td><strong>Reusable element</strong></td><td>A reusable element is a container (similar to a group) that holds other elements and can be placed in multiple locations throughout your app.<br><br>Reusable elements work for both web apps and mobile, but they function independently. A reusable element for web cannot be used in a native mobile app, and vice versa.</td><td><a data-mention href="/pages/VRxVim4gVREYJJ7kcKEO">/pages/VRxVim4gVREYJJ7kcKEO</a> (web and mobile)</td></tr></tbody></table>

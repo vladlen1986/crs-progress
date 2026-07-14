@@ -1,0 +1,6 @@
+# Native mobile element properties
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+
+This section covers elements that are available when you edit native mobile apps.
+
+<table><thead><tr><th width="177.8778076171875">Category</th><th width="368.6363525390625">Description</th><th>Article link</th></tr></thead><tbody><tr><td><strong>View</strong></td><td>Views are the base layer for designing content in a native mobile app.</td><td><a data-mention href="/pages/KFTKlim3z3vcA0uqsOKG">/pages/KFTKlim3z3vcA0uqsOKG</a></td></tr><tr><td><strong>Containers</strong></td><td>Elements like groups, repeating groups, popups and tables.</td><td><a data-mention href="/pages/aEdWZTkNGGzl4ohBSrKL">/pages/aEdWZTkNGGzl4ohBSrKL</a></td></tr><tr><td><strong>Visual</strong></td><td>Elements like text, buttons, icons and images.</td><td><a data-mention href="/pages/9eJHyuwFQJDwQS1qlBOI">/pages/9eJHyuwFQJDwQS1qlBOI</a></td></tr><tr><td><strong>Input forms</strong></td><td>Elements like text input, date/time picker, checkbox and dropdown.</td><td><a data-mention href="/pages/7vfkzhrVSTfYL6lYBjt9">/pages/7vfkzhrVSTfYL6lYBjt9</a></td></tr></tbody></table>

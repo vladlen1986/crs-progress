@@ -1,0 +1,6 @@
+# Backend event properties
+> Source: https://manual.bubble.io/core-resources/bubble-workflows/bubble-events/backend-event-properties · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+
+Backend events are workflows that run on the server rather than in the user’s browser. They are configured in the backend workflow editor and can run independently of user interaction.
+
+<table><thead><tr><th width="186.15234375">Event</th><th>Description</th><th>Link</th></tr></thead><tbody><tr><td><strong>API workflow</strong></td><td>API workflows are workflows that run on the server rather than in the browser. They can run in the background, be scheduled for a future time, or be triggered from outside your app entirely.</td><td><a data-mention href="/pages/QT2BQ2gOa929o0uTqX6U">/pages/QT2BQ2gOa929o0uTqX6U</a></td></tr><tr><td><strong>A thing is modified</strong></td><td>Triggers when specific data in the database is changed.</td><td><a data-mention href="/pages/S5WHascKwAS1Jq05tHic">/pages/S5WHascKwAS1Jq05tHic</a></td></tr><tr><td><strong>Recurring event</strong></td><td>Trigger at the a set interval, such as daily, weekly or monthly.</td><td><a data-mention href="/pages/OCOBqNaZqSDRcVbi0o7T">/pages/OCOBqNaZqSDRcVbi0o7T</a></td></tr></tbody></table>

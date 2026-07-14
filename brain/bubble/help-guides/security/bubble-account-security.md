@@ -1,0 +1,126 @@
+# Bubble account security
+> Source: https://manual.bubble.io/help-guides/security/bubble-account-security · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+
+This section covers how to keep your Bubble account secure
+
+Your Bubble account is a very important part of security, for several reasons. It's crucial for the protection of your app's data and user information, and for stopping an intruder from creating, editing, deleting, copying or transferring ownership of your app(s).
+
+A secure account prevents potential misuse.
+
+{% hint style="danger" %}
+Keep in mind that all the security measures you add to your app can potentially be circumvented and even removed if someone gains access to your Bubble account.
+{% endhint %}
+
+In this article, we'll look into how you keep your account secure.
+
+## Authentication
+
+{% hint style="info" %}
+For **Enterprise plan** users, we provide single sign-on (SSO) capabilities. See the article below for more information:
+
+Article series: [Bubble for enterprise](/help-guides/bubble-for-enterprise)
+{% endhint %}
+
+### Password
+
+{% hint style="info" %}
+Password and any extra authentication is set on the **account level**, and not on an app level. In other words, these settings apply to *all* your apps.
+{% endhint %}
+
+A robust password policy reduces the risk of unauthorized access. To create and maintain a strong password policy, keep these guidelines in mind:
+
+1. **Use unique passwords:** Avoid reusing passwords across multiple accounts
+2. **Create complex passwords:** Make sure your passwords are at least 12 characters long and include a mix of uppercase and lowercase letters, numbers, and special symbols. This makes it harder for attackers to crack your password using brute-force methods.
+3. **Update passwords regularly:** Change your passwords every 3-6 months to minimize the risk of unauthorized access. Avoid predictable patterns when updating your password.
+4. **Use a password manager:** A reliable password manager can help you generate and store complex, unique passwords. This eliminates the need to remember multiple passwords while ensuring they remain secure.
+
+### Two-factor authentication (2FA)
+
+{% hint style="danger" %}
+We **strongly recommend enabling 2FA** to protect your account. It adds a critical layer of security by requiring a second verification step, making unauthorized access much more difficult—even if your password is compromised. While not required, **skipping 2FA** **significantly increases your risk of account takeover**.
+{% endhint %}
+
+### Enabling two-factor authentication
+
+To enable two-factor authentication, first go your [*Account page*](https://bubble.io/account) (after logging in).
+
+1. From there, navigate to the [security tab](https://bubble.io/account/security)
+2. Click *Enable 2FA* and follow the steps to set it up.
+
+<figure><img src="/files/tvC2OO8iulez1wyfSBiK" alt=""><figcaption></figcaption></figure>
+
+### Google Authenticator and Authy compared
+
+[Google Authenticator](#user-content-fn-1)[^1] and Authy[^2] are both mobile apps that provide one-time passcodes (TOTP) that you enter when logging into your Bubble account, in addition to your regular password.
+
+There are some pros and cons with each solution, and the points below can help you choose the one that's right for you:
+
+#### **Authy:**
+
+Authy is developed and maintained by Twilio.
+
+Pros:
+
+1. Multi-device support: Authy allows you to use multiple devices simultaneously, making it easier to switch between your phone, tablet, or desktop.
+2. Cloud backup: Authy enables encrypted cloud backups, which makes it simpler to recover your account in case you lose your device or need to reinstall the app.
+
+Cons:
+
+1. Reliance on a third-party service: Authy's cloud backup feature can be a potential security concern for some users, as it relies on a third-party service for storing your data.
+
+#### **Google Authenticator**
+
+Google Authenticator is developed and maintained by Google.
+
+Pros:
+
+1. Developed by a trusted company: As a Google product, it benefits from the company's security expertise and reputation.
+2. Local storage: Google Authenticator does not offer a cloud backup feature, which removes a potential security threat.
+
+Cons:
+
+1. No multi-device support: Google Authenticator does not support multiple devices simultaneously, which can be inconvenient if you switch devices or lose your phone.
+2. No cloud backup: Google Authenticator does not offer a built-in backup feature, making it more challenging to recover your 2FA accounts if you lose your device or need to reinstall the app.
+
+We strongly recommend using 2FA for your account, but do not recommend one solution over the other.
+
+#### Backup codes
+
+To ensure you don't lose access to your account if you lose access to the code generator, you can generate backup codes. This is a list of one-time-use unique strings that gives you access to the account in the same way as a code generated by Authy or Google Authenticator would.
+
+Backup codes should be kept strictly confidential. Password managers sometimes offer a way to store backup codes in an encrypted database to keep it secure.
+
+### How Bubble stores and checks password
+
+Bubble uses industry-standard security practices to protect account passwords and keep them secure.
+
+Here's a brief explanation of how these techniques work:
+
+1. **Hashing**: When you create or update your password, Bubble doesn't store the plaintext[^3] version of it. Instead, we use a cryptographic hash function to convert your password into a fixed-size string of characters, which is then stored in the database. What this means in practice is that a potential intruder not only can't see your password string – they can't even determine its length since all the hashed passwords have the same number of characters.\
+   \
+   Hash functions are designed to be one-way, meaning it's extremely difficult, if not impossible, to reverse-engineer the original password from the hash. When you log in, Bubble hashes the password you provide and compares it with the stored hash. If the hashes match, the password is correct, and you are granted access.\
+   \
+   In short, even Bubble's engineering team does not have access to your password: only you do.<br>
+2. **Salting**: To further enhance the security of hashed passwords, we use a technique called *salting*. A salt is a unique, random string of characters generated for each user. This salt is combined with the user's password before it's hashed. The resulting hash is then stored in the database alongside the salt.\
+   \
+   Salting makes it much harder for attackers to use precomputed tables of hashes (called [rainbow tables](#user-content-fn-4)[^4]) or other [brute-force methods](#user-content-fn-5)[^5] to crack passwords, as they would need to compute hashes for each unique salt.
+
+[^1]: Google Authenticator is an app developed and maintained by Google that generates one-time-passwords used in two-factor authentication.\
+    \
+    External link: [Google Authenticator (Play store)](https://play.google.com/store/apps/details?id=com.google.android.apps.authenticator2)\
+    \
+    External link: [Google Authenticator (Apple App Store)](https://apps.apple.com/us/app/google-authenticator/id388497605)\
+    \
+    External link: [Google Authenticator documentation](https://support.google.com/accounts/answer/1066447?hl=si\&co=GENIE.Platform%3DAndroid\&sjid=13986892104690339011-EU)
+
+[^2]: Authy is an app developed and maintained by Google that generates one-time-passwords used in two-factor authentication.
+
+[^3]: *Plaintext* means that information is saved as unencrypted, readable text, as opposed to encrypted text that can't be read.
+
+[^4]: *Rainbow tables* are a hacking technique used to crack hashed passwords more quickly. They are essentially huge precomputed databases of plain text passwords and their corresponding hashes.\
+    \
+    By comparing the hash of an unknown password to the hashes in the rainbow table, hackers can find the matching plain text password more efficiently.
+
+[^5]: *Brute force* is a hacking technique where an attacker systematically tries every possible combination of characters to crack a password.\
+    \
+    It's like trying every possible key on a keychain to unlock a door until finding the right one.
