@@ -1,0 +1,21 @@
+{
+  "id": "d8b52c4a-b67d-4cad-8fa5-6aea693bf0b1",
+  "title": "the map background shall exand below the chat input",
+  "sessionId": "4d84a5c9-8450-4914-ae92-0f04477bb02a",
+  "bp": false,
+  "created": "2026-07-15T00:19:58.331Z",
+  "updated": "2026-07-15T00:25:14.594Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "the map background shall exand below the chat input",
+      "ts": "2026-07-15T00:19:58.331Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The pieces were already half-wired on disk (the JS `map-mode` toggles existed in `showMap`/`showChat`/`showDashboard`/`openFile`); the missing piece was the CSS. I added it at `crs-brain/public/index.html:46`:\n\n```css\n.col.center.map-mode .composer-wrap{position:absolute;left:0;right:0;bottom:0;z-index:5;background:transparent;pointer-events:none}\n.col.center.map-mode .composer-wrap > *{pointer-events:auto}\n```\n\nHow it works: in map view the composer is pulled out of the flex flow and floated over the bottom, so `#contentArea` (and the map iframe inside it) now stretches full-height down to the bottom edge — the galaxy background fills the area **behind and below the chat input**. The composer-wrap padding is transparent and click-through (`pointer-events:none`), so you can still pan/drag the map in that strip, while the input box and its controls stay interactive. Only map view is affected; chat/dashboard/file views strip the class.\n\nReload the app to see it.",
+      "ts": "2026-07-15T00:25:14.594Z"
+    }
+  ]
+}
