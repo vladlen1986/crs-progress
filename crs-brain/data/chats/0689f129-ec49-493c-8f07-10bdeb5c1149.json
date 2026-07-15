@@ -1,0 +1,21 @@
+{
+  "id": "0689f129-ec49-493c-8f07-10bdeb5c1149",
+  "title": "where do i have design system files ? all in one file or sep",
+  "sessionId": "0caf64da-494b-43c8-857a-555688d9b11c",
+  "bp": false,
+  "created": "2026-07-15T20:29:43.048Z",
+  "updated": "2026-07-15T20:29:56.734Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "where do i have design system files ? all in one file or separate ?",
+      "ts": "2026-07-15T20:29:43.048Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Your design system is **split across 4 separate files** in `design/`, not one file. Each has a distinct job:\n\n| File | Role |\n|---|---|\n| `design/tokens.css` | **Source of truth** — CSS variables (colors, spacing, etc.). Never hard-code; reference this. |\n| `design/Styles.txt` | Plain-text reference of the same values (for quick lookup / pasting into Bubble). |\n| `design/design.md` | The **rules and reasoning** — why tokens are what they are, section structure, conventions. |\n| `design/CRS_UI_Kit.html` | Rendered UI kit / visual component reference. |\n\nThere's also a brain pointer at `brain/design.md`, but it's just a redirect — it says the real source lives in `design/tokens.css` + `design/design.md`, so it never duplicates them.\n\n**Rule of thumb:** change a value → edit `design/tokens.css` (and mirror in `Styles.txt`); change a rule/rationale → edit `design/design.md`.",
+      "ts": "2026-07-15T20:29:56.734Z"
+    }
+  ]
+}
