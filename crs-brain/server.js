@@ -1231,11 +1231,32 @@ const server = http.createServer(async (req, res) => {
       // Give Claude the attachment paths so it can open them with its own tools.
       const ingest = body.ingest === true;
       let promptToClaude = message;
+      // Embed text attachments' CONTENT inline so the assistant works from it directly and
+      // never hunts the filesystem. (Bug it fixes: the assistant doubted the saved copy,
+      // searched for the original name, found it in Downloads, and hit a permission gate
+      // instead of reading the copy already in crs-brain/data/attachments/.)
+      const TEXT_RE = /\.(md|markdown|txt|json|csv|ya?ml|log|html?)$/i;
+      const embedAttachment = (a) => {
+        try {
+          if (TEXT_RE.test(a)) {
+            const abs = safeRepoPath(a);
+            if (fs.statSync(abs).size <= 300 * 1024) {
+              return `----- FILE: ${a} -----\n${fs.readFileSync(abs, 'utf8')}\n----- END FILE -----`;
+            }
+            return `- ${a}  (large file at this EXACT repo path — Read it directly; do NOT search elsewhere)`;
+          }
+        } catch {}
+        return `- ${a}  (saved at this EXACT repo path — Read it directly; do NOT search the filesystem or Downloads)`;
+      };
       if (attachments.length) {
-        const list = attachments.map((a) => `- ${a}`).join('\n');
+        const blocks = attachments.map(embedAttachment).join('\n\n');
+        const anyText = attachments.some((a) => TEXT_RE.test(a));
+        const noHunt = anyText
+          ? 'The file content is included inline below — work from it directly. Do NOT read files, glob, search the filesystem, or look in Downloads; you already have everything. Read any non-text file listed only at its exact repo path.'
+          : 'Read the file(s) at the EXACT repo path shown with the Read tool. Do NOT search the filesystem or Downloads.';
         promptToClaude = ingest
-          ? `${INGEST_PROMPT}\n\nAttached report file(s):\n${list}\n\n${message || 'Ingest this report into the brain.'}`
-          : `The user attached the following file(s) in the repo — read them as needed to answer:\n${list}\n\n${message}`;
+          ? `${INGEST_PROMPT}\n\n${noHunt}\n\n${blocks}\n\n${message || 'Ingest this report into the brain.'}`
+          : `The user attached the following in the repo. ${noHunt}\n\n${blocks}\n\n${message}`;
       } else if (ingest) {
         // Ingest of pasted text (no file): treat the message itself as the report.
         promptToClaude = `${INGEST_PROMPT}\n\nThe report is the user message below.\n\n${message}`;
