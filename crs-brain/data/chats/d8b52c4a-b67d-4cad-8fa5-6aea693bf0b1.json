@@ -4,7 +4,7 @@
   "sessionId": "4d84a5c9-8450-4914-ae92-0f04477bb02a",
   "bp": false,
   "created": "2026-07-15T00:19:58.331Z",
-  "updated": "2026-07-15T00:25:14.594Z",
+  "updated": "2026-07-15T00:27:54.698Z",
   "messages": [
     {
       "role": "user",
@@ -16,6 +16,17 @@
       "role": "assistant",
       "content": "Done. The pieces were already half-wired on disk (the JS `map-mode` toggles existed in `showMap`/`showChat`/`showDashboard`/`openFile`); the missing piece was the CSS. I added it at `crs-brain/public/index.html:46`:\n\n```css\n.col.center.map-mode .composer-wrap{position:absolute;left:0;right:0;bottom:0;z-index:5;background:transparent;pointer-events:none}\n.col.center.map-mode .composer-wrap > *{pointer-events:auto}\n```\n\nHow it works: in map view the composer is pulled out of the flex flow and floated over the bottom, so `#contentArea` (and the map iframe inside it) now stretches full-height down to the bottom edge — the galaxy background fills the area **behind and below the chat input**. The composer-wrap padding is transparent and click-through (`pointer-events:none`), so you can still pan/drag the map in that strip, while the input box and its controls stay interactive. Only map view is affected; chat/dashboard/file views strip the class.\n\nReload the app to see it.",
       "ts": "2026-07-15T00:25:14.594Z"
+    },
+    {
+      "role": "user",
+      "content": "and i dont like thinking working reading etc, i want actual action being performed to be displayed as in claude chat interface",
+      "ts": "2026-07-15T00:25:15.314Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Node checks are being gated by permissions, so I'll trust the edits — they're straightforward. Here's what changed.\n\n**Server (`crs-brain/server.js`)**\n- Added `summarizeTool(name, input)` — turns a tool call into a concise action line: `Read PROGRESS.md`, `Grep \"thinking\" in *.js`, `$ git status`, `Fetch forum.bubble.io`, `Search \"…\"`, `Edit index.html`, `Agent · …`, etc.\n- Added an `onLabel` hook that fires from `flushTool()` — i.e. the moment the tool's inputs have fully streamed in — and emits a new `{type:'label'}` SSE event. Wired it into all three chat handlers.\n\n**Frontend (`crs-brain/public/index.html`)**\n- Handles the `label` event → rewrites the active work-block's `.wlabel` with the real action.\n- `wLabel()` no longer buckets into \"Reading/Building/Working\" — the card starts with the actual tool name (`Read`, `Grep`, `Bash`, `WebFetch`…) and then refines to the full action with its target once inputs arrive.\n\nSo the timeline per tool is now: **`Read`** → **`Read PROGRESS.md`**, instead of a static **`Working`**. Thinking blocks still say \"Thinking\" (that one is accurate). The full parameter dump stays in the expandable body as before.\n\nRestart the Node server and reload to see it — the label change is server-side, so a plain browser refresh alone won't pick it up.",
+      "ts": "2026-07-15T00:27:54.698Z"
     }
   ]
 }
