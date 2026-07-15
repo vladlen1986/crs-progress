@@ -19,16 +19,6 @@
       "order": 1
     },
     {
-      "id": "roles_permissions",
-      "name": "Roles & Permissions",
-      "section": "Admin / Core",
-      "route": "roles",
-      "icon": "shield-check",
-      "status": "done",
-      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
-      "order": 2
-    },
-    {
       "id": "fiscal_week_mgmt",
       "name": "Fiscal Week Management",
       "section": "Admin / Core",
@@ -36,6 +26,16 @@
       "icon": "calendar",
       "status": "not-started",
       "note": "3rd of 4 foundation. Fiscal Week DT + Close/Edit perms exist.",
+      "order": 2
+    },
+    {
+      "id": "roles_permissions",
+      "name": "Roles & Permissions",
+      "section": "Admin / Core",
+      "route": "roles",
+      "icon": "shield-check",
+      "status": "done",
+      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
       "order": 3
     },
     {
