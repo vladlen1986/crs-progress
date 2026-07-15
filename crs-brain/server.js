@@ -870,6 +870,110 @@ function loadProgress() {
   catch { fs.writeFileSync(PROGRESS_FILE, JSON.stringify(DEFAULT_PROGRESS, null, 2)); return DEFAULT_PROGRESS; }
 }
 
+// ---- Progress Tree: per-module detail (aggregate what the brain knows) ------
+function loadModulesDoc() {
+  try { return JSON.parse(fs.readFileSync(MODULES_FILE, 'utf8')); }
+  catch { return { modules: [] }; }
+}
+function _readRepo(rel) { try { return fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8'); } catch { return ''; } }
+function _escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+// Extract a markdown section: from the heading matching startRe until the next
+// heading of the same or higher level.
+function _mdSection(text, startRe) {
+  const lines = text.split('\n');
+  const i = lines.findIndex((l) => startRe.test(l));
+  if (i < 0) return '';
+  const lvl = (lines[i].match(/^#+/) || ['#'])[0].length;
+  const out = [lines[i]];
+  for (let j = i + 1; j < lines.length; j++) {
+    const m = lines[j].match(/^(#+)\s/);
+    if (m && m[1].length <= lvl) break;
+    out.push(lines[j]);
+  }
+  return out.join('\n').trim();
+}
+// Every ledger line that mentions the module (by name or route), grouped by file.
+function _scanMentions(needles) {
+  const targets = [
+    ['brain/database.md', 'Data types'], ['brain/option-sets.md', 'Option sets'],
+    ['brain/security.md', 'Security & privacy'], ['brain/workflows.md', 'Workflows'],
+    ['decisions.md', 'Decisions'],
+  ];
+  const nlow = needles.filter(Boolean).map((n) => String(n).toLowerCase());
+  const res = [];
+  for (const [rel, label] of targets) {
+    const t = _readRepo(rel); if (!t) continue;
+    const hits = [];
+    t.split('\n').forEach((l, n) => {
+      const ll = l.toLowerCase();
+      if (l.trim() && nlow.some((x) => x && ll.includes(x))) hits.push({ line: n + 1, text: l.trim().slice(0, 220) });
+    });
+    if (hits.length) res.push({ file: rel, label, count: hits.length, lines: hits.slice(0, 18) });
+  }
+  return res;
+}
+function moduleDetail(mod) {
+  const hy = String(mod.id || '').replace(/_/g, '-');
+  let files = [];
+  try { files = fs.readdirSync(path.join(REPO_ROOT, 'brain', 'modules')); } catch {}
+  const techRef = files.find((f) => f.includes(hy) && /tech/i.test(f));
+  const userManual = files.find((f) => f.includes(hy) && /manual/i.test(f));
+  let dataModel = '', optionSets = '', perms = '', workflows = '';
+  if (techRef) {
+    const t = _readRepo('brain/modules/' + techRef);
+    dataModel = _mdSection(t, /^##\s*2\.\s*Data model/im);
+    optionSets = _mdSection(t, /Option Sets used/i);
+    perms = _mdSection(t, /^##\s*4\.\s*Permissions/im);
+    workflows = _mdSection(t, /^##\s*5\.\s*Workflows/im);
+  }
+  const statusBlock = _mdSection(_readRepo('brain/STATUS.md'), new RegExp('^###\\s+' + _escapeRe(mod.name), 'im'));
+  const mentions = _scanMentions([mod.name, mod.route].filter(Boolean));
+  return {
+    module: mod, documented: !!techRef,
+    techRef: techRef ? 'brain/modules/' + techRef : null,
+    userManual: userManual ? 'brain/modules/' + userManual : null,
+    statusBlock, dataModel, optionSets, perms, workflows, mentions,
+  };
+}
+// Assemble a ready-to-paste Buildprint prompt for one module, pre-filled with the
+// module's current brain context. Deterministic (reads live files) so it is always up to date.
+function buildModulePrompt(mod, d) {
+  const today = new Date().toISOString().slice(0, 10);
+  const ind = (s) => s.split('\n').map((l) => '    ' + l).join('\n');
+  const L = [];
+  L.push(`MODULE: ${mod.name}   .   section: ${mod.section}   .   route: ${mod.route || '(unset)'}   .   tracked status: ${mod.status}`);
+  L.push('');
+  L.push('You are working the CRS Bubble app on the TEST branch. Run `buildprint sync` FIRST. Test branch only, never Live. Do NOT use --force-apply / --no-check / sync --reset. Read-only unless I approve an apply in THIS chat; show the plan and stop before the first apply.');
+  L.push('');
+  L.push("PATTERN A (locked): every business data type carries BOTH `company` and `property` fields, and its privacy rule checks `Current User's company = This Thing's company AND Current User's property = This Thing's property`. Access is permission-based (`Current User's role's permissions contains <perm>`). Known exceptions: Company, Property, Subscription, system-level configs.");
+  L.push('');
+  L.push(`KNOWN CONTEXT FOR THIS MODULE (from the CRS brain, ${today}):`);
+  L.push(`- Tracked status: ${mod.status}${mod.note ? ' - ' + mod.note : ''}`);
+  if (d.statusBlock) L.push('- STATUS.md detail:\n' + ind(d.statusBlock));
+  if (d.dataModel) L.push('- Data model (from technical reference):\n' + ind(d.dataModel));
+  if (d.optionSets) L.push('- Option sets:\n' + ind(d.optionSets));
+  if (d.perms) L.push('- Permissions:\n' + ind(d.perms));
+  if (d.workflows) L.push('- Workflows:\n' + ind(d.workflows));
+  if (d.mentions.length) { L.push('- Referenced in the brain ledger:'); d.mentions.forEach((m) => L.push(`    ${m.file} - ${m.count} mention(s)`)); }
+  if (!d.documented && !d.statusBlock) L.push('- Not yet documented in the brain. Inventory it from the workspace first (data_types/, option_sets/, pages/, permissions).');
+  L.push('');
+  const building = mod.status === 'not-started' || mod.status === 'roadmap';
+  L.push('TASK:');
+  if (building) {
+    L.push(`Plan the build of "${mod.name}". First INVENTORY what already exists for it in the workspace (data types, option sets, reusables, pages, permissions). Then produce a step-by-step build packet: data model (each business DT gets company + property + a Pattern A privacy rule), permissions (grouped), a private server-guarded backend workflow for every write, UI on named dark+light paired styles, then run the security checklist (brain/security-test-checklist.md). State the plan and STOP for my go-ahead before any apply.`);
+  } else {
+    L.push(`AUDIT "${mod.name}" (read-only) against its Core-7 / full-18 dimensions and the security checklist (brain/security-test-checklist.md). For every business DT it touches: quote the privacy rule (does it check company AND property?), state Data API exposure, and quote each write's server-side guard. Flag public-everyone / no-rules / logged-in-only DTs and any UI-only or auto-bind writes. Rank findings SECURITY > FUNCTIONAL > POLISH, list the [NEG] tests I must run as a second-tenant / property-admin user, and note where the tracked status is wrong.`);
+  }
+  L.push('');
+  L.push('OUTPUT: (a) a human-readable report, and (b) a ```json block so it can be ingested back into the Progress Tree:');
+  L.push(`    { "id": "${mod.id}", "name": "${mod.name}", "section": "${mod.section}", "status": "done|in-progress|not-started|roadmap",`);
+  L.push('      "core7": {"ui":"","ux":"","db":"","perms":"","privacy":"","wf_crud":"","theme":""},');
+  L.push('      "dataTypes": [], "optionSets": [], "reusables": [],');
+  L.push('      "security_findings": [{"severity":"","where":"","issue":"","fix":""}], "neg_tests_todo": [] }');
+  L.push('Never invent modules, fields, or rules - if something is not in the workspace, say "not found".');
+  return L.join('\n');
+}
+
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
 function serveStatic(res, urlPath) {
@@ -1247,6 +1351,20 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(MODULES_FILE, JSON.stringify(body, null, 2));
       autoCommit('progress tree');
       return send(res, 200, { ok: true, count: body.modules.length });
+    }
+    // Per-module detail: everything the brain knows about the module, aggregated live.
+    if (p === '/api/modules/detail' && req.method === 'GET') {
+      const id = u.searchParams.get('id');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === id);
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      return send(res, 200, moduleDetail(mod));
+    }
+    // Per-module Buildprint prompt, pre-filled with the module's up-to-date context.
+    if (p === '/api/modules/prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      return send(res, 200, { prompt: buildModulePrompt(mod, moduleDetail(mod)) });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.

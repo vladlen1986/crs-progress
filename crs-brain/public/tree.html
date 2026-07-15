@@ -16,13 +16,12 @@
   }
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-  .wrap{max-width:900px;margin:0 auto;padding:28px 20px 80px}
+  .wrap{max-width:920px;margin:0 auto;padding:28px 20px 80px}
   header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:6px}
   h1{color:var(--primary);font-size:22px;font-weight:700;letter-spacing:-.02em;margin:0}
   .sub{color:var(--muted);font-size:12px;margin-top:3px}
   .saved{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;min-height:20px}
   .saved.ok{color:var(--good)} .saved.err{color:var(--danger)}
-  /* progress summary */
   .summary{margin:16px 0 8px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:14px 16px}
   .bar{display:flex;height:10px;border-radius:6px;overflow:hidden;background:var(--panel2);margin-bottom:10px}
   .bar>i{display:block;height:100%}
@@ -30,41 +29,63 @@
   .legend span{display:inline-flex;align-items:center;gap:6px}
   .dot{width:9px;height:9px;border-radius:50%;flex:0 0 auto}
   .d-done{background:var(--good)} .d-in-progress{background:var(--warn)} .d-not-started{background:var(--muted)} .d-roadmap{background:var(--accent2)}
-  /* toolbar */
   .toolbar{display:flex;gap:8px;align-items:center;margin:14px 0 6px;flex-wrap:wrap}
   .toolbar .hint{color:var(--muted);font-size:12px;margin-left:auto}
-  /* list */
   .list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
   .sec-label{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:14px 2px 2px}
-  .row{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:9px 12px;transition:border-color .12s,background .12s}
-  .row:hover{border-color:var(--line2)}
-  .row.dragging{opacity:.45;border-color:var(--accent)}
-  .row.drop-above{box-shadow:0 -2px 0 var(--accent)} .row.drop-below{box-shadow:0 2px 0 var(--accent)}
-  .row.focus-now{border-color:var(--accent);background:var(--accent-tint)}
+  .item{border:1px solid var(--line);border-radius:10px;background:var(--panel);overflow:hidden;transition:border-color .12s}
+  .item:hover{border-color:var(--line2)}
+  .item.open{border-color:var(--line3)}
+  .item.focus-now{border-color:var(--accent)}
+  .row{display:flex;align-items:center;gap:10px;padding:9px 12px}
+  .row.dragging{opacity:.45}
+  .item.drop-above{box-shadow:0 -2px 0 var(--accent)} .item.drop-below{box-shadow:0 2px 0 var(--accent)}
   .grip{color:var(--muted);cursor:grab;font-size:15px;line-height:1;user-select:none;padding:0 2px}
   .grip:active{cursor:grabbing}
   .ord{font-family:var(--mono);font-size:12px;color:var(--muted);width:22px;text-align:right;flex:0 0 auto}
-  .body{flex:1;min-width:0}
+  .body{flex:1;min-width:0;cursor:pointer;display:flex;align-items:center;gap:9px}
+  .caret{flex:0 0 auto;color:var(--muted);transition:transform .15s;font-size:10px}
+  .item.open .caret{transform:rotate(90deg);color:var(--accent2)}
+  .bodytext{min-width:0}
   .nm{color:var(--primary);font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .sec-tag{font-size:10px;font-weight:600;color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:1px 6px}
+  .doc-tag{font-size:9.5px;font-weight:700;color:var(--good);border:1px solid rgba(34,197,94,.4);border-radius:4px;padding:1px 5px;letter-spacing:.03em}
   .note{color:var(--secondary);font-size:12px;margin-top:2px;opacity:.9}
   .note:empty{display:none}
-  /* status pill */
   .pill{flex:0 0 auto;border:1px solid;border-radius:20px;padding:3px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:none;font-family:inherit;transition:.12s}
   .pill.done{color:var(--good);border-color:rgba(34,197,94,.4)} .pill.done:hover{background:rgba(34,197,94,.1)}
   .pill.in-progress{color:var(--warn);border-color:rgba(245,158,11,.4)} .pill.in-progress:hover{background:rgba(245,158,11,.1)}
   .pill.not-started{color:var(--secondary);border-color:var(--line3)} .pill.not-started:hover{background:var(--elev)}
   .pill.roadmap{color:var(--accent2);border-color:rgba(96,165,250,.35)} .pill.roadmap:hover{background:rgba(96,165,250,.1)}
-  /* move buttons */
   .mv{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
   .mv button{width:22px;height:16px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit}
   .mv button:hover:not(:disabled){color:var(--primary);border-color:var(--line3);background:var(--elev)}
   .mv button:disabled{opacity:.25;cursor:default}
   .mv svg{width:11px;height:11px}
-  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
-  .btn:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  /* detail panel */
+  .detail{border-top:1px solid var(--line);padding:14px 14px 16px;background:#1B1B1B;display:none}
+  .item.open .detail{display:block}
+  .dgrid{display:flex;flex-direction:column;gap:12px}
+  .dsec h4{margin:0 0 5px;font-size:10.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent2)}
+  .dsec .none{color:var(--muted);font-size:12px;font-style:italic}
+  .dsec pre{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--secondary);white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto}
+  .mention{font-size:11.5px;margin-bottom:6px}
+  .mention b{color:var(--primary);font-weight:600}
+  .mention .mline{color:var(--muted);font-family:var(--mono);font-size:11px;display:block;padding:1px 0 1px 10px;border-left:1px solid var(--line2);margin-left:2px}
+  .filelinks{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+  .filelinks a{color:var(--accent2);text-decoration:none;border:1px solid var(--line2);border-radius:6px;padding:3px 9px}
+  .filelinks a:hover{background:var(--elev);color:var(--primary)}
+  .genbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:2px}
+  .btn{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;gap:6px}
+  .btn:hover{color:var(--primary);border-color:var(--line3);background:var(--elev)}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.primary:hover{background:#2563EB}
+  .btn svg{width:13px;height:13px}
+  .promptbox{margin-top:10px;display:none}
+  .promptbox.show{display:block}
+  .promptbox textarea{width:100%;height:230px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--secondary);font-family:var(--mono);font-size:11.5px;line-height:1.5;padding:11px;resize:vertical}
+  .promptbox .prow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .promptbox .plabel{font-size:11px;color:var(--muted)}
   select.filt{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer}
   .empty{color:var(--muted);text-align:center;padding:40px}
   a.back{color:var(--muted);text-decoration:none;font-size:12px}
@@ -77,7 +98,7 @@
     <div>
       <a class="back" href="/">← CRS Brain</a>
       <h1>Progress Tree</h1>
-      <div class="sub" id="sub">Modules in build-priority order — drag or use ↑↓ to reorder, click a status to cycle it.</div>
+      <div class="sub" id="sub">Modules in build-priority order. Drag or ↑↓ to reorder · click a status to cycle · click a name to expand its brain detail + generate a Buildprint prompt.</div>
     </div>
     <div class="saved" id="saved"></div>
   </header>
@@ -85,13 +106,11 @@
   <div class="summary" id="summary"></div>
 
   <div class="toolbar">
-    <select class="filt" id="secFilter" onchange="render()">
-      <option value="">All sections</option>
-    </select>
+    <select class="filt" id="secFilter" onchange="render()"><option value="">All sections</option></select>
     <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
       <input type="checkbox" id="groupSec" onchange="render()"> group by section
     </label>
-    <span class="hint">Order + status auto-save. <span id="focusHint"></span></span>
+    <span class="hint" id="focusHint"></span>
   </div>
 
   <div class="list" id="list"><div class="empty">Loading…</div></div>
@@ -100,58 +119,94 @@
 <script>
 const VOCAB=['done','in-progress','not-started','roadmap'];
 const LABEL={'done':'Done','in-progress':'In progress','not-started':'Not started','roadmap':'Roadmap'};
+const COLOR={done:'var(--good)','in-progress':'var(--warn)','not-started':'var(--muted)',roadmap:'var(--accent2)'};
 let DATA={modules:[]}, saveTimer=null, dragId=null;
+const expanded=new Set(), detailCache={}, promptCache={};
 
 async function load(){
   try{
     const r=await fetch('/api/modules'); DATA=await r.json();
     DATA.modules=(DATA.modules||[]).sort((a,b)=>(a.order||0)-(b.order||0));
-    const secs=[...new Set(DATA.modules.map(m=>m.section))];
     const sel=document.getElementById('secFilter');
-    secs.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
-    document.getElementById('sub').textContent=`${DATA.modules.length} modules in build-priority order — drag or ↑↓ to reorder, click a status to cycle it.`;
+    [...new Set(DATA.modules.map(m=>m.section))].forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
     render();
   }catch(e){ document.getElementById('list').innerHTML='<div class="empty">Could not load modules. Is the server running?</div>'; }
 }
-
 function setSaved(state,txt){
   const el=document.getElementById('saved'); el.className='saved'+(state?' '+state:'');
-  el.innerHTML = state==='ok' ? '✓ '+(txt||'Saved') : state==='saving' ? '⋯ Saving…' : state==='err' ? '⚠ '+(txt||'Save failed') : '';
+  el.innerHTML = state==='ok'?'✓ '+(txt||'Saved'):state==='saving'?'⋯ Saving…':state==='err'?'⚠ '+(txt||'Save failed'):'';
 }
-function scheduleSave(){
-  setSaved('saving'); clearTimeout(saveTimer);
-  saveTimer=setTimeout(save,500);
-}
+function scheduleSave(){ setSaved('saving'); clearTimeout(saveTimer); saveTimer=setTimeout(save,500); }
 async function save(){
   DATA.modules.forEach((m,i)=>m.order=i+1);
   try{
     const r=await fetch('/api/modules',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)});
     if(!r.ok) throw new Error(await r.text());
-    setSaved('ok'); setTimeout(()=>{if(document.getElementById('saved').classList.contains('ok'))setSaved('');},1800);
+    setSaved('ok'); setTimeout(()=>{if(document.getElementById('saved').classList.contains('ok'))setSaved('');},1600);
   }catch(e){ setSaved('err',e.message); }
 }
-
-function counts(){
-  const c={done:0,'in-progress':0,'not-started':0,roadmap:0};
-  DATA.modules.forEach(m=>c[m.status]=(c[m.status]||0)+1); return c;
-}
+function counts(){ const c={done:0,'in-progress':0,'not-started':0,roadmap:0}; DATA.modules.forEach(m=>c[m.status]=(c[m.status]||0)+1); return c; }
 function renderSummary(){
   const c=counts(), t=DATA.modules.length||1;
-  const seg=s=>`<i class="d-${s}" style="width:${(c[s]/t*100).toFixed(1)}%;background:${({done:'var(--good)','in-progress':'var(--warn)','not-started':'var(--muted)',roadmap:'var(--accent2)'})[s]}"></i>`;
   document.getElementById('summary').innerHTML=
-    `<div class="bar">${VOCAB.map(seg).join('')}</div>`+
+    `<div class="bar">${VOCAB.map(s=>`<i style="width:${(c[s]/t*100).toFixed(1)}%;background:${COLOR[s]}"></i>`).join('')}</div>`+
     `<div class="legend">${VOCAB.map(s=>`<span><i class="dot d-${s}"></i>${LABEL[s]} <b style="color:var(--primary)">${c[s]}</b></span>`).join('')}`+
     `<span style="margin-left:auto;color:var(--muted)">${c.done} of ${DATA.modules.length} done · updated ${DATA.updated||'—'}</span></div>`;
 }
+function move(idx,dir){ const j=idx+dir; if(j<0||j>=DATA.modules.length)return; const[m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m); render(); scheduleSave(); }
+function cycle(idx){ const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length]; render(); scheduleSave(); }
 
-function move(idx,dir){
-  const j=idx+dir; if(j<0||j>=DATA.modules.length) return;
-  const [m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m);
-  render(); scheduleSave();
+async function toggle(id){
+  if(expanded.has(id)) expanded.delete(id);
+  else{ expanded.add(id); if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } } }
+  render();
 }
-function cycle(idx){
-  const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length];
-  render(); scheduleSave();
+async function genPrompt(id){
+  const box=document.getElementById('pb-'+id); const ta=document.getElementById('pt-'+id);
+  box.classList.add('show'); ta.value='Generating…';
+  if(promptCache[id]){ ta.value=promptCache[id]; return; }
+  try{
+    const r=await fetch('/api/modules/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const j=await r.json(); promptCache[id]=j.prompt||('error: '+(j.error||'no prompt')); ta.value=promptCache[id];
+  }catch(e){ ta.value='error: '+e.message; }
+}
+function copyPrompt(id){ const ta=document.getElementById('pt-'+id); ta.select(); navigator.clipboard.writeText(ta.value); const b=document.getElementById('cp-'+id); const o=b.textContent; b.textContent='✓ Copied'; setTimeout(()=>b.textContent=o,1400); }
+
+function detailHTML(id){
+  const d=detailCache[id];
+  if(!d) return '<div class="detail"><div class="dsec none">Loading…</div></div>';
+  if(d.error) return `<div class="detail"><div class="dsec none">Could not load detail: ${esc(d.error)}</div></div>`;
+  const sec=(title,body,empty)=> body&&body.trim() ? `<div class="dsec"><h4>${title}</h4><pre>${esc(body)}</pre></div>` : `<div class="dsec"><h4>${title}</h4><div class="none">${empty}</div></div>`;
+  let mentions='';
+  if(d.mentions&&d.mentions.length){
+    mentions=`<div class="dsec"><h4>Referenced across the brain ledger</h4>`+d.mentions.map(m=>
+      `<div class="mention"><b>${esc(m.file)}</b> · ${m.count} mention${m.count>1?'s':''}`+
+      m.lines.slice(0,6).map(l=>`<span class="mline">L${l.line}: ${esc(l.text)}</span>`).join('')+
+      (m.count>6?`<span class="mline">… +${m.count-6} more</span>`:'')+`</div>`).join('')+`</div>`;
+  }
+  const links=[];
+  if(d.techRef) links.push(`<a href="/api/file?path=${encodeURIComponent(d.techRef)}" target="_blank">Technical reference ↗</a>`);
+  if(d.userManual) links.push(`<a href="/api/file?path=${encodeURIComponent(d.userManual)}" target="_blank">User manual ↗</a>`);
+  links.push(`<a href="/api/file?path=brain%2FSTATUS.md" target="_blank">STATUS.md ↗</a>`);
+  return `<div class="detail"><div class="dgrid">
+    ${sec('Status detail (brain/STATUS.md)', d.statusBlock, 'No expanded status block yet — only the Core-7 row in STATUS.md.')}
+    ${sec('Data types & data model', d.dataModel, d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')}
+    ${sec('Option sets', d.optionSets, d.documented?'—':'Not documented yet.')}
+    ${sec('Permissions', d.perms, d.documented?'—':'Not documented yet.')}
+    ${sec('Workflows', d.workflows, d.documented?'—':'Not documented yet.')}
+    ${mentions}
+    <div class="dsec"><h4>Files</h4><div class="filelinks">${links.join('')}</div></div>
+    <div class="dsec"><h4>Buildprint prompt</h4>
+      <div class="genbar">
+        <button class="btn primary" onclick="genPrompt('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Generate Buildprint prompt</button>
+        <span class="plabel">Pre-filled with this module's current brain context · Test-branch, read-only guardrails baked in</span>
+      </div>
+      <div class="promptbox" id="pb-${id}">
+        <div class="prow"><span class="plabel">Copy into Buildprint (or the Brain's Buildprint chat)</span><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div>
+        <textarea id="pt-${id}" readonly spellcheck="false"></textarea>
+      </div>
+    </div>
+  </div></div>`;
 }
 
 function render(){
@@ -159,32 +214,38 @@ function render(){
   const filt=document.getElementById('secFilter').value;
   const grouped=document.getElementById('groupSec').checked;
   const list=document.getElementById('list'); list.innerHTML='';
-  // "focus now" = first module in priority order that isn't done (only meaningful in unfiltered full order)
   const focusIdx=DATA.modules.findIndex(m=>m.status!=='done'&&m.status!=='roadmap');
-  document.getElementById('focusHint').textContent = focusIdx>=0 ? `Current focus: ${DATA.modules[focusIdx].name}` : '';
+  document.getElementById('focusHint').textContent=focusIdx>=0?`Current focus: ${DATA.modules[focusIdx].name}`:'';
   let lastSec=null;
   DATA.modules.forEach((m,idx)=>{
-    if(filt && m.section!==filt) return;
-    if(grouped && m.section!==lastSec){ const h=document.createElement('div');h.className='sec-label';h.textContent=m.section;list.appendChild(h);lastSec=m.section; }
-    const row=document.createElement('div');
-    row.className='row'+(idx===focusIdx?' focus-now':'');
-    row.draggable=true; row.dataset.idx=idx;
-    row.innerHTML=
-      `<span class="grip" title="Drag to reorder">⠿</span>`+
-      `<span class="ord">${idx+1}</span>`+
-      `<div class="mv">`+
-        `<button title="Move up" ${idx===0?'disabled':''} onclick="event.stopPropagation();move(${idx},-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 15l6-6 6 6"/></svg></button>`+
-        `<button title="Move down" ${idx===DATA.modules.length-1?'disabled':''} onclick="event.stopPropagation();move(${idx},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>`+
+    if(filt&&m.section!==filt) return;
+    if(grouped&&m.section!==lastSec){ const h=document.createElement('div');h.className='sec-label';h.textContent=m.section;list.appendChild(h);lastSec=m.section; }
+    const open=expanded.has(m.id);
+    const item=document.createElement('div');
+    item.className='item'+(open?' open':'')+(idx===focusIdx?' focus-now':'');
+    item.dataset.idx=idx;
+    const docTag=(detailCache[m.id]&&detailCache[m.id].documented)?'<span class="doc-tag">DOCS</span>':'';
+    item.innerHTML=
+      `<div class="row" draggable="true">`+
+        `<span class="grip" title="Drag to reorder">⠿</span>`+
+        `<span class="ord">${idx+1}</span>`+
+        `<div class="mv">`+
+          `<button title="Move up" ${idx===0?'disabled':''} onclick="event.stopPropagation();move(${idx},-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 15l6-6 6 6"/></svg></button>`+
+          `<button title="Move down" ${idx===DATA.modules.length-1?'disabled':''} onclick="event.stopPropagation();move(${idx},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>`+
+        `</div>`+
+        `<div class="body" onclick="toggle('${m.id}')"><span class="caret">▶</span><div class="bodytext"><div class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span>${docTag}</div><div class="note">${esc(m.note||'')}</div></div></div>`+
+        `<button class="pill ${m.status}" title="Click to change status" onclick="event.stopPropagation();cycle(${idx})">${LABEL[m.status]||m.status}</button>`+
       `</div>`+
-      `<div class="body"><div class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span></div><div class="note">${esc(m.note||'')}</div></div>`+
-      `<button class="pill ${m.status}" title="Click to change status" onclick="event.stopPropagation();cycle(${idx})">${LABEL[m.status]||m.status}</button>`;
-    // drag events
+      (open?detailHTML(m.id):'');
+    const row=item.querySelector('.row');
     row.addEventListener('dragstart',e=>{dragId=idx;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.row').forEach(r=>r.classList.remove('drop-above','drop-below'));});
-    row.addEventListener('dragover',e=>{e.preventDefault();const b=row.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;row.classList.toggle('drop-below',below);row.classList.toggle('drop-above',!below);});
-    row.addEventListener('dragleave',()=>row.classList.remove('drop-above','drop-below'));
-    row.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(row.dataset.idx);if(dragId===null||dragId===to)return;const b=row.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const [mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();});
-    list.appendChild(row);
+    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.item').forEach(r=>r.classList.remove('drop-above','drop-below'));});
+    item.addEventListener('dragover',e=>{e.preventDefault();const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;item.classList.toggle('drop-below',below);item.classList.toggle('drop-above',!below);});
+    item.addEventListener('dragleave',()=>item.classList.remove('drop-above','drop-below'));
+    item.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(item.dataset.idx);if(dragId===null||dragId===to)return;const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const[mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();});
+    // restore prompt if it was generated
+    list.appendChild(item);
+    if(open&&promptCache[m.id]){ const pb=document.getElementById('pb-'+m.id),pt=document.getElementById('pt-'+m.id); if(pb&&pt){pb.classList.add('show');pt.value=promptCache[m.id];} }
   });
   if(!list.children.length) list.innerHTML='<div class="empty">No modules for this filter.</div>';
 }
