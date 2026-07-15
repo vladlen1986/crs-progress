@@ -80,6 +80,7 @@
   .btn:hover{color:var(--primary);border-color:var(--line3);background:var(--elev)}
   .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
   .btn.primary:hover{background:#2563EB}
+  .btn:disabled{opacity:.55;cursor:default}
   .btn svg{width:13px;height:13px}
   .promptbox{margin-top:10px;display:none}
   .promptbox.show{display:block}
@@ -184,13 +185,18 @@ async function genEdit(id){
   const req=document.getElementById('req-'+id), text=(req.value||'').trim();
   if(!text){ req.focus(); return; }
   editReq[id]=text;
-  const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id);
+  const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id), btn=document.getElementById('gen-'+id);
   box.classList.add('show'); lastKind[id]='edit'; if(lbl) lbl.textContent=KLABEL.edit;
-  ta.value='Writing the Buildprint prompt from your request… (uses the model — a few seconds)';
+  if(btn){ btn.disabled=true; btn.dataset.html=btn.innerHTML; btn.textContent='Writing…'; }
+  const t0=Date.now();
+  const tick=setInterval(()=>{ ta.value='⏳ Writing your Buildprint prompt — the model is working ('+Math.round((Date.now()-t0)/1000)+'s). This takes ~10–30s; leave the panel open.'; },300);
+  ta.value='⏳ Writing your Buildprint prompt — the model is working (0s).';
   try{
     const r=await fetch('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,text})});
-    const j=await r.json(); const out=j.prompt||('⚠ '+(j.error||'no prompt returned')); ta.value=out; promptCache[id+':edit']=out;
-  }catch(e){ ta.value='⚠ '+e.message; }
+    const j=await r.json(); clearInterval(tick);
+    const out=r.ok&&j.prompt ? j.prompt : ('⚠ '+(j.error||('HTTP '+r.status))); ta.value=out; if(r.ok&&j.prompt) promptCache[id+':edit']=out;
+  }catch(e){ clearInterval(tick); ta.value='⚠ '+e.message; }
+  finally{ if(btn){ btn.disabled=false; if(btn.dataset.html) btn.innerHTML=btn.dataset.html; } }
 }
 async function genPrompt(id,kind){
   const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id);
@@ -237,7 +243,7 @@ function detailHTML(id){
       <label class="plabel" style="display:block;margin-bottom:5px">Describe the edit / feature you want — the Brain writes the Buildprint prompt from your words (grounded in this module + the live app):</label>
       <textarea id="req-${id}" class="reqta" spellcheck="true" oninput="editReq['${id}']=this.value" placeholder="e.g. Add a Status filter (Active / Inactive / All) to the user list, wired to the already-loaded list — dark + light, no new searches."></textarea>
       <div class="genbar">
-        <button class="btn primary" onclick="genEdit('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Write Buildprint edit prompt</button>
+        <button class="btn primary" id="gen-${id}" onclick="genEdit('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Write Buildprint edit prompt</button>
         <button class="btn" onclick="genPrompt('${id}','sync')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5m2-3v5h-5M20 12a8 8 0 0 1-14 5m-2 3v-5h5"/></svg>Read &amp; sync → brain</button>
       </div>
       <div class="plabel" style="margin-top:6px"><b style="color:var(--secondary)">Edit</b> = the Brain turns your text into a ready-to-paste Buildprint prompt (savepoint, Pattern A, tokens, verify — applies directly). <b style="color:var(--secondary)">Sync</b> = read-only audit that reports back into the brain.</div>

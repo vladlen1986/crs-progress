@@ -1038,29 +1038,50 @@ function buildSyncPrompt(mod, d) {
   return L.join('\n');
 }
 
-// System prompt: turn Vlad's plain-language request into a ready-to-paste Buildprint EDIT prompt.
-const EDIT_GEN_PROMPT = [
-  'You are the CRS Buildprint PROMPT WRITER. Vlad describes, in plain language, a change he wants made to the CRS',
-  'Bubble app. You output ONE ready-to-paste Buildprint prompt in MARKDOWN that Vlad will paste directly into the',
-  'Buildprint app to APPLY that change. Output ONLY the prompt — no preamble, no explanation, and do NOT wrap the',
-  'whole thing in a code fence.',
+// System prompt: write ONLY the numbered task breakdown for a Buildprint edit prompt.
+// The header, Attached line, acceptance-criteria and footer are assembled deterministically
+// around this output (buildEditWrapper) so the house style is guaranteed regardless of the model.
+const EDIT_TASKS_PROMPT = [
+  "You write the TASK BREAKDOWN for a CRS Buildprint prompt. Given a module's context and Vlad's plain-language",
+  'request, output ONLY numbered markdown task sections that accomplish it. Do NOT write a title, a header, an',
+  'Attached line, acceptance criteria, or a footer — those are added around your output. Do NOT wrap in a code',
+  'fence. Be concise and concrete; do not explore or explain — just the tasks.',
   '',
-  'HOUSE STYLE — follow it exactly:',
-  '- First line, bold: **On TEST/DEV branch only. Create savepoint "<short label>" first. Run `buildprint check` after each task. Do not push to live. Apply directly without confirmation.**',
-  '- Then a bold **Attached:** line naming ONLY the source files relevant to this task: design.md (tokens/naming/theme) and CRS-style-system.md for any UI/style work; brain/security-test-checklist.md for any data/privacy/permission/workflow work; the module technical reference when one exists; and tell Vlad to attach the module design HTML if pixel dimensions are needed.',
-  '- Number the work: `## Task 0 — Locate + report` (find the relevant page/reusable + elements + data types and report BEFORE changing anything), then `## Task 1 — …`, `## Task 2 — …` for the actual change. Use exact-dimension tables when Vlad gives specs. The FINAL task is always verify (measure/prove) + report: what changed, styles reused vs created (+ showcased), privacy rules + guards quoted, and the [NEG] tests Vlad must run.',
-  '- Then a `## Acceptance criteria — module definition of done` section: reproduce the module definition-of-done checklist provided in the context (keep the `[x]`/`[~]`/`[ ]` marks), and state that this change must not regress any `[x]` item and that Buildprint must report each item\'s final state.',
-  '- Close with a bold repeat of the guardrail line.',
-  '',
-  'BAKE IN these CRS locked rules wherever the task touches them:',
-  "- Pattern A: every business data type carries company + property fields and a privacy rule checking `Current User's company = This Thing's company AND Current User's property = This Thing's property` (super-admin override; everyone-else grants nothing). Exceptions: Company, Property, Subscription, system configs.",
-  "- Permission-based access (`Current User's role's permissions contains <perm>`). Every create/edit/delete/state-change goes through a PRIVATE server-guarded backend workflow (expose:false, auth_unecessary:false), Current User resolved server-side; no UI-only writes; no auto-bind on access/status/money/ownership fields; a write taking a passed Thing needs an explicit tenant check on it.",
-  '- UI on named Dark + (Light) paired styles from design.md tokens; zero inline/literal colors; theming = full style swap only (one `dark_theme` conditional swaps the whole style); use only styles showcased on the design_system page — find first, create the pair + showcase it only if nothing fits.',
-  '',
-  'Scope STRICTLY to what Vlad asked — do not invent unrelated work. Use the MODULE CONTEXT provided so the prompt',
-  'references real elements / data types / permissions where known; where something is unknown, tell Buildprint to',
-  'inventory it in Task 0 rather than guessing. Keep it tight, concrete, and buildable.',
+  'Rules:',
+  '- Start with `## Task 0 — Locate + report`: find the relevant page/reusable + elements + data types and report BEFORE changing anything.',
+  '- Then `## Task 1 — …`, `## Task 2 — …` for the actual change Vlad asked for. Use exact-dimension tables when Vlad gives specs.',
+  '- End with a final `## Task N — Verify + report`: prove it works (measure / getComputedStyle), list styles reused vs created, quote privacy rules + guards, and the [NEG] tests Vlad must run.',
+  '- Bake in CRS locked rules where the task touches them: Pattern A (every business DT has company + property + a privacy rule checking BOTH; exceptions Company/Property/Subscription/system); permission-based access; every write via a PRIVATE server-guarded backend workflow (Current User server-side, no UI-only writes, no auto-bind on sensitive fields, tenant check on passed Things); UI on named Dark + (Light) paired styles from design.md tokens (zero inline colors; find styles first, create + showcase only if nothing fits; theming = full style swap).',
+  '- Scope strictly to what Vlad asked — no unrelated work. Reference real elements / data types from the context where known; otherwise tell Task 0 to inventory them. Keep it tight.',
 ].join('\n');
+
+// Deterministic wrapper around the model-written tasks — guarantees the house style.
+function buildEditWrapper(mod, d, requestText, tasks) {
+  const attach = [
+    'design.md (tokens, naming, theme)', 'CRS-style-system.md (approval = showcased on the design_system page)',
+    'brain/security-test-checklist.md',
+  ];
+  if (d.techRef) attach.push(`${d.techRef} (as-built technical reference)`);
+  const label = `${mod.name}: ${requestText}`.replace(/["\n]/g, ' ').slice(0, 60);
+  const L = [];
+  L.push(`# Buildprint edit — ${mod.name}`);
+  L.push('');
+  L.push(`**On TEST/DEV branch only. Create savepoint "${label}" first. Run \`buildprint check\` after each task. Do not push to live. Apply directly without confirmation.**`);
+  L.push('');
+  L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML.`);
+  L.push('');
+  L.push(`**Module:** ${mod.name} · ${mod.section} · route \`${mod.route || '(unset)'}\` · status ${mod.status}. **Request:** ${requestText}`);
+  L.push('');
+  L.push(tasks.trim());
+  L.push('');
+  L.push('## Acceptance criteria — module definition of done');
+  L.push('This change must not regress any item below. Report each item\'s final state (`[x]` done / `[~]` partial / `[ ]` not started):');
+  L.push('');
+  L.push(checklistMd(mod));
+  L.push('');
+  L.push('**TEST/DEV only. Savepoint made. `buildprint check` after each task. Do not push to live.**');
+  return L.join('\n');
+}
 
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
@@ -1475,19 +1496,19 @@ const server = http.createServer(async (req, res) => {
         d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
         d.perms ? 'Permissions:\n' + d.perms : '',
         d.workflows ? 'Workflows:\n' + d.workflows : '',
-        'DEFINITION-OF-DONE CHECKLIST (reproduce as ## Acceptance criteria):\n' + checklistMd(mod),
       ].filter(Boolean).join('\n\n');
-      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — turn this into a Buildprint edit prompt for this module:\n${text}`;
+      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — write the task breakdown to accomplish this on this module:\n${text}`;
       const cfg = loadSettings();
-      const ws = findBpWorkspace();
-      let out = '';
+      let tasks = '';
       try {
-        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: cfg.effort, systemPrompt: EDIT_GEN_PROMPT, ...(ws ? { addDirs: [ws.dir] } : {}) });
-        out = (result.text || '').trim();
+        // Writing a task breakdown is a mechanical transform — low effort, and no workspace
+        // --add-dir (Task 0 tells Buildprint to inventory real elements when it runs). The
+        // ~25-30s floor is claude CLI startup, not inference, so model choice doesn't change it.
+        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: 'low', systemPrompt: EDIT_TASKS_PROMPT });
+        tasks = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
       } catch (e) { return send(res, 502, { error: e.message }); }
-      out = out.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
-      if (!out) return send(res, 502, { error: 'the brain returned an empty prompt — try again' });
-      return send(res, 200, { prompt: out });
+      if (!tasks) return send(res, 502, { error: 'the brain returned nothing — try again' });
+      return send(res, 200, { prompt: buildEditWrapper(mod, d, text, tasks) });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
