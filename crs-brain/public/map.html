@@ -1008,6 +1008,10 @@ function toggleBoard(){ boardOpen=!boardOpen;
   document.getElementById('board').classList.toggle('open',boardOpen);
   document.body.classList.toggle('board-open',boardOpen);
   document.getElementById('boardBtn').classList.toggle('on',boardOpen);
+  // Tell the host app so it can un-float its composer — the board is pinned to our
+  // bottom and would otherwise sit behind the chat input. Covers BOTH the app's
+  // Kanban button and this in-map BOARD button.
+  if(EMBED && window.parent.setMapBoardOpen){ try{ window.parent.setMapBoardOpen(boardOpen); }catch{} }
   if(boardOpen) renderBoard(); else closePv(); }
 document.getElementById('boardTabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
   boardTab=b.dataset.t; document.querySelectorAll('#boardTabs button').forEach(x=>x.classList.toggle('on',x===b));

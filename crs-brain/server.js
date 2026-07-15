@@ -456,6 +456,32 @@ function formatToolInput(name, input) {
   for (const k of Object.keys(p)) if (!seen.has(k) && p[k] != null && p[k] !== '') lines.push(fmt(k, p[k]));
   return lines.join('\n') || '(no parameters)';
 }
+// Concise one-line summary of what a tool is actually DOING — shown as the work-block
+// label (like Claude's chat UI: "Read PROGRESS.md", "$ git status") instead of a
+// generic "Reading / Working". Computed once the tool inputs have fully streamed in.
+function summarizeTool(name, input) {
+  const p = input && typeof input === 'object' ? input : {};
+  const base = (s) => String(s).split(/[\\/]/).pop() || String(s);
+  const clip = (s, n = 72) => { s = String(s).replace(/\s+/g, ' ').trim(); return s.length > n ? s.slice(0, n) + '…' : s; };
+  const n = (name || '').toLowerCase();
+  const bare = n.replace(/^mcp__/, '');
+  if (n === 'read') return 'Read ' + base(p.file_path || p.path || '');
+  if (n === 'edit' || n === 'multiedit') return 'Edit ' + base(p.file_path || p.path || '');
+  if (n === 'write') return 'Write ' + base(p.file_path || p.path || '');
+  if (n === 'notebookedit') return 'Edit ' + base(p.notebook_path || p.file_path || '');
+  if (n === 'grep') return 'Grep ' + clip(p.pattern || '', 48) + (p.path || p.glob ? ' in ' + base(p.path || p.glob) : '');
+  if (n === 'glob') return 'Glob ' + clip(p.pattern || p.glob || '', 56);
+  if (n === 'ls') return 'List ' + base(p.path || '');
+  if (n === 'bash') return p.description ? clip(p.description) : '$ ' + clip(p.command || '', 68);
+  if (n === 'webfetch') { try { return 'Fetch ' + new URL(p.url).host; } catch { return 'Fetch ' + clip(p.url || '', 48); } }
+  if (n === 'websearch') return 'Search “' + clip(p.query || '', 48) + '”';
+  if (n === 'task' || n === 'agent') return 'Agent · ' + clip(p.description || p.prompt || '', 56);
+  if (n === 'todowrite') return 'Update plan';
+  // Buildprint / MCP / anything else: humanize the tool name, append the salient arg.
+  const label = bare.replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  const arg = p.description || p.file_path || p.path || p.prompt || p.query || p.branch || '';
+  return arg ? label + ' · ' + clip(arg, 56) : label;
+}
 // Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
 // text deltas as they arrive. Uses the Max subscription (no API key).
 // hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
@@ -465,6 +491,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onThink = hooks.onThink || (() => {});   // extended-thinking text
   const onBlock = hooks.onBlock || (() => {});    // work-block boundary: {kind:'thinking'|'tool', tool?}
   const onDetail = hooks.onDetail || (() => {});  // tool parameters for the current work block
+  const onLabel = hooks.onLabel || (() => {});    // concise action label once tool inputs are known
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -512,6 +539,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     function flushTool() {
       if (!toolAcc) return;
       let input = {}; try { input = JSON.parse(toolAcc.json || '{}'); } catch {}
+      onLabel(summarizeTool(toolAcc.name, input));
       onDetail(formatToolInput(toolAcc.name, input));
       toolAcc = null;
     }
@@ -880,6 +908,7 @@ const server = http.createServer(async (req, res) => {
           onThink: (t) => sse({ type: 'think', text: t }),
           onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
           onDetail: (t) => sse({ type: 'detail', text: t }),
+          onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, runOpts);
         const finalText = result.text || streamed;
@@ -936,6 +965,7 @@ const server = http.createServer(async (req, res) => {
           onThink: (t) => sse({ type: 'think', text: t }),
           onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
           onDetail: (t) => sse({ type: 'detail', text: t }),
+          onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
         chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso() });
@@ -976,6 +1006,7 @@ const server = http.createServer(async (req, res) => {
           onThink: (t) => sse({ type: 'think', text: t }),
           onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
           onDetail: (t) => sse({ type: 'detail', text: t }),
+          onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, {
           model: (body.model || cfg.model || '').toString() || undefined,

@@ -43,16 +43,28 @@
   /* swappable views (chat/dashboard/file/map) fill the space above the persistent composer */
   .content-area{flex:1;min-height:0;position:relative;display:flex;flex-direction:column;overflow:hidden}
   .content-area > *{min-height:0}
+  /* map mode: let the galaxy background fill the whole area, with the composer floating over its bottom */
+  .col.center.map-mode .composer-wrap{position:absolute;left:0;right:0;bottom:0;z-index:5;background:transparent;pointer-events:none}
+  .col.center.map-mode .composer-wrap > *{pointer-events:auto}
 
-  /* sidebar collapse (desktop only) */
+  /* sidebar collapse (desktop only) — collapses to a narrow icon rail, not hidden */
   @media (min-width:901px){
-    .app.lcol{grid-template-columns:0 1fr 330px}
-    .app.rcol{grid-template-columns:274px 1fr 0}
-    .app.lcol.rcol{grid-template-columns:0 1fr 0}
-    .app.lcol .col.left,.app.rcol .col.right{display:none}
-    .app.lcol .expand-handle.left{display:inline-flex}
-    .app.rcol .expand-handle.right{display:inline-flex}
+    .app.lcol{grid-template-columns:54px 1fr 330px}
+    .app.rcol{grid-template-columns:274px 1fr 54px}
+    .app.lcol.rcol{grid-template-columns:54px 1fr 54px}
+    /* hide the full panel content, reveal its icon rail */
+    .app.lcol .col.left > :not(.side-rail){display:none}
+    .app.rcol .col.right > :not(.side-rail){display:none}
+    .app.lcol .col.left .side-rail{display:flex}
+    .app.rcol .col.right .side-rail{display:flex}
   }
+  /* narrow icon rail shown when a panel is collapsed */
+  .side-rail{display:none;flex-direction:column;align-items:center;gap:5px;padding:12px 0;overflow:hidden}
+  .side-rail button{width:38px;height:38px;border-radius:9px;background:none;border:1px solid transparent;color:var(--secondary);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.15s;flex:0 0 auto;font-family:inherit}
+  .side-rail button:hover{color:var(--primary);background:var(--panel2);border-color:var(--line)}
+  .side-rail button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .side-rail .rsep{width:22px;height:1px;background:var(--line);margin:5px 0;flex:0 0 auto}
+  .side-rail .rspring{flex:1;min-height:6px}
   .col-collapse{margin-left:auto;background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:.15s;padding:0}
   .col-collapse:hover{color:var(--primary);border-color:var(--accent);background:var(--panel2)}
   .col-collapse svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -169,6 +181,10 @@
 
   /* composer */
   .composer-wrap{padding:12px 18px 30px}
+  /* Map view: let the galaxy iframe fill the whole center (incl. behind the composer) and float the
+     composer on top so its dark background extends below the chat input — no seam. */
+  .col.center.map-mode .composer-wrap{position:absolute;left:0;right:0;bottom:0;background:transparent;z-index:10;pointer-events:none}
+  .col.center.map-mode .composer-wrap > *{pointer-events:auto}
   /* Claude-app-style composer: text on top, controls row beneath */
   .composer{display:flex;flex-direction:column;gap:6px;background:var(--panel);border:1px solid var(--line2);border-radius:16px;padding:12px 12px 9px;transition:border-color .15s,box-shadow .15s;max-width:830px;margin:0 auto}
   .composer:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-tint)}
@@ -481,6 +497,19 @@
 <div class="app">
   <!-- LEFT -->
   <div class="col left">
+    <!-- collapsed icon rail (shown when the sidebar is narrowed) -->
+    <div class="side-rail">
+      <button title="Expand sidebar" onclick="railExpand('left')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chevron"/></svg></button>
+      <div class="rsep"></div>
+      <button title="Home — dashboard" onclick="showDashboard()"><svg viewBox="0 0 24 24"><use href="#i-logo"/></svg></button>
+      <button title="New conversation" onclick="newChat()"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
+      <button title="Chats" onclick="railTab('chats')"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg></button>
+      <button title="Buildprint" onclick="railTab('buildprint')"><svg viewBox="0 0 24 24"><use href="#i-ingest"/></svg></button>
+      <button title="Files" onclick="railTab('files')"><svg viewBox="0 0 24 24"><use href="#i-folder"/></svg></button>
+      <div class="rsep"></div>
+      <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
+      <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
+    </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="sidenav">
@@ -513,7 +542,7 @@
   </div>
 
   <!-- CENTER -->
-  <div class="col center">
+  <div class="col center" id="centerCol">
     <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <button class="expand-handle right" title="Show usage & progress" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
@@ -578,6 +607,13 @@
 
   <!-- RIGHT -->
   <div class="col right">
+    <!-- collapsed icon rail (shown when the panel is narrowed) -->
+    <div class="side-rail">
+      <button title="Expand panel" onclick="railExpand('right')"><svg viewBox="0 0 24 24" style="transform:rotate(180deg)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chevron"/></svg></button>
+      <div class="rsep"></div>
+      <button title="Usage &amp; limits" onclick="railExpand('right')"><svg viewBox="0 0 24 24"><use href="#i-gauge"/></svg></button>
+      <button title="Recent files" onclick="railExpand('right')"><svg viewBox="0 0 24 24"><use href="#i-file"/></svg></button>
+    </div>
     <h2 class="rtop">Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse panel" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
     <div class="rscroll">
       <div class="usage" id="usage"></div>
@@ -706,6 +742,13 @@ function toggleCol(side){
   const collapsed = app.classList.toggle(cls);
   localStorage.setItem('collapse_'+side, collapsed?'1':'0');
 }
+// Rail button → expand the panel back to full width.
+function railExpand(side){
+  document.querySelector('.app').classList.remove(side==='left'?'lcol':'rcol');
+  localStorage.setItem('collapse_'+side, '0');
+}
+// Rail tab button → expand the sidebar, then switch to that tab.
+function railTab(t){ railExpand('left'); setTab(t); }
 (function restoreCols(){
   const app = document.querySelector('.app');
   if(localStorage.getItem('collapse_left')==='1') app.classList.add('lcol');
@@ -868,7 +911,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -876,25 +919,37 @@ function ensureChatView(){
   if(state.chatId) showChat(); else newChat();
 }
 // Embedded galaxy map — same page, shown above the persistent chat input (no more popup window).
-let mapLoaded=false;
+let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('mapView').style.display='flex';
-  $('centerTitle').textContent='Galaxy map';
+  if(mode==='board'||mode==='ideas') mapBoardOpen=true;
+  // Galaxy view floats the composer over the map so its bg bleeds below the input.
+  // The kanban board is a drawer pinned to the iframe's bottom, so map-mode would
+  // hide its lower rows behind the composer — keep the composer in normal flow while it's open.
+  $('centerCol').classList.toggle('map-mode', mode!=='board' && !mapBoardOpen);
+  $('centerTitle').textContent = mode==='board' ? 'Kanban board' : 'Galaxy map';
   const fr=$('mapFrame');
   const hash = mode==='board' ? '#board' : mode==='ideas' ? '#ideas' : '';
   if(!mapLoaded){ fr.src='/map'+hash; mapLoaded=true; }
   else if(mode){ try{ fr.contentWindow.location.hash=mode; }catch{} }
   if(innerWidth<=900) mob(null);
 }
+// Called BY the embedded map (window.parent) when its board drawer opens/closes, so the
+// composer un-floats and the board never hides behind the chat input.
+function setMapBoardOpen(open){
+  mapBoardOpen=!!open;
+  if($('mapView').style.display==='none') return;
+  $('centerCol').classList.toggle('map-mode', !open);
+}
 
 // ---------- dashboard (home) ----------
 function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode');
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('centerTitle').textContent='Dashboard';
   if(innerWidth<=900) mob(null);
@@ -1026,10 +1081,11 @@ function onFilesPicked(ev){ const files=[...ev.target.files]; ev.target.value=''
 // ---------- streaming chat: Buildprint-style work blocks + typewriter answer ----------
 function wLabel(kind,tool){
   if(kind==='thinking') return 'Thinking';
-  const t=(tool||'').toLowerCase();
-  if(/read|grep|glob|fetch|search/.test(t)) return 'Reading';
-  if(/edit|write|notebook/.test(t)) return 'Building';
-  return 'Working';
+  // Show the real tool name up front (refined to the actual action — file/command —
+  // once the tool inputs stream in via the 'label' event). Never a vague "Working".
+  const raw=(tool||'').replace(/^mcp__/,'').replace(/[_-]+/g,' ').trim();
+  if(!raw) return 'Working';
+  return raw.replace(/\b\w/g,c=>c.toUpperCase());
 }
 function fmtDur(ms){
   const s=Math.floor(ms/1000);
@@ -1073,7 +1129,7 @@ async function streamChat(text, opts={}){
     el.innerHTML='<button class="whead" type="button"><svg class="wchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wlabel">'+esc(wLabel(kind,tool))+'</span><span class="wtime">0s</span></button><div class="wbody"></div>';
     el.querySelector('.whead').onclick=()=>el.classList.toggle('open');
     blocksEl.appendChild(el);
-    activeCard={el,timeEl:el.querySelector('.wtime'),bodyEl:el.querySelector('.wbody'),start:performance.now(),kind,text:''};
+    activeCard={el,timeEl:el.querySelector('.wtime'),bodyEl:el.querySelector('.wbody'),labelEl:el.querySelector('.wlabel'),start:performance.now(),kind,text:''};
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
   function appendThink(t){
@@ -1132,6 +1188,7 @@ async function streamChat(text, opts={}){
         if(ev.type==='meta'){ live.chatId=ev.id; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
+        else if(ev.type==='label'){ if(activeCard&&ev.text){ activeCard.labelEl.textContent=ev.text; } }
         else if(ev.type==='detail'){ if(activeCard){ activeCard.text += (activeCard.text?'\n':'')+(ev.text||''); activeCard.bodyEl.textContent=activeCard.text; if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight; } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
         else if(ev.type==='delta'){ if(activeCard) finalizeCard(); full+=ev.text; }
@@ -1264,7 +1321,7 @@ async function openFile(p){
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode');
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');
