@@ -1,0 +1,21 @@
+{
+  "id": "83ee9e2d-83f9-4ccc-8d8b-5876ae9cdc7c",
+  "title": "Do you know how to clone element",
+  "sessionId": "465eff3c-363b-4951-8e4a-3bc168d92b89",
+  "bp": true,
+  "created": "2026-07-15T23:47:23.732Z",
+  "updated": "2026-07-15T23:47:53.101Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Do you know how to clone element",
+      "ts": "2026-07-15T23:47:23.733Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Yes. In Buildprint, cloning an element (an element and its whole subtree) is done with:\n\n```\nbuildprint copy element --source <existing element path> --path <destination parent>\n```\n\n- `--source` — the element you want to clone, e.g. `pages/home/elements/sidebar` (the element directory or its `element.json`).\n- `--path` — where the copy lands: a canvas root (like `pages/home`) or another element to nest it under.\n\nExample from the CLI's own help:\n```\nbuildprint copy element --source pages/home/elements/sidebar --path pages/home\n```\n\nThat drops a duplicate of `sidebar` (and everything inside it) onto the `home` page.\n\nA couple of notes for our workflow:\n- The copy lands in the workspace files only. To push it to Bubble it still goes through the loop — savepoint → `buildprint apply` → `buildprint check`.\n- If you're not sure of the exact source path, `buildprint tree <page>` shows the element structure so you can grab the right one.\n\nWant me to clone a specific element? Tell me which one and where it should go, and I'll sync first, plan the step, and run it past you before applying.",
+      "ts": "2026-07-15T23:47:53.101Z"
+    }
+  ]
+}
