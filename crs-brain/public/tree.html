@@ -181,6 +181,15 @@ async function toggle(id){
   else{ expanded.add(id); if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } } }
   render();
 }
+// Hand a prompt to the CRS Brain Buildprint chat (opens a new bp chat, pastes it in the composer).
+function sendToBp(text){
+  if(!text || /^⏳|^⚠|Writing your Buildprint/.test(text)) return false;
+  try{ localStorage.setItem('crs_bp_compose', text); }catch(e){}
+  if(window.opener && !window.opener.closed){
+    try{ window.opener.postMessage({type:'bp-compose'}, location.origin); window.opener.focus(); return true; }catch(e){}
+  }
+  location.href='/#bp-compose'; return true; // opened directly (no opener) → navigate this window
+}
 async function genEdit(id){
   const req=document.getElementById('req-'+id), text=(req.value||'').trim();
   if(!text){ req.focus(); return; }
@@ -194,7 +203,8 @@ async function genEdit(id){
   try{
     const r=await fetch('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,text})});
     const j=await r.json(); clearInterval(tick);
-    const out=r.ok&&j.prompt ? j.prompt : ('⚠ '+(j.error||('HTTP '+r.status))); ta.value=out; if(r.ok&&j.prompt) promptCache[id+':edit']=out;
+    const out=r.ok&&j.prompt ? j.prompt : ('⚠ '+(j.error||('HTTP '+r.status))); ta.value=out;
+    if(r.ok&&j.prompt){ promptCache[id+':edit']=out; sendToBp(out); } // open the Buildprint chat with it
   }catch(e){ clearInterval(tick); ta.value='⚠ '+e.message; }
   finally{ if(btn){ btn.disabled=false; if(btn.dataset.html) btn.innerHTML=btn.dataset.html; } }
 }
@@ -248,7 +258,7 @@ function detailHTML(id){
       </div>
       <div class="plabel" style="margin-top:6px"><b style="color:var(--secondary)">Edit</b> = the Brain turns your text into a ready-to-paste Buildprint prompt (savepoint, Pattern A, tokens, verify — applies directly). <b style="color:var(--secondary)">Sync</b> = read-only audit that reports back into the brain.</div>
       <div class="promptbox" id="pb-${id}">
-        <div class="prow"><span class="plabel" id="pl-${id}"></span><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div>
+        <div class="prow"><span class="plabel" id="pl-${id}"></span><div style="display:flex;gap:6px"><button class="btn primary" title="Open the Brain's Buildprint chat with this prompt" onclick="sendToBp(document.getElementById('pt-${id}').value)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 6l6 6-6 6"/></svg>Buildprint chat</button><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div></div>
         <textarea id="pt-${id}" readonly spellcheck="false"></textarea>
       </div>
     </div>

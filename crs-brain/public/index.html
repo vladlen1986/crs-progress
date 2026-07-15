@@ -1913,11 +1913,25 @@ function openFromHash(){
     setTab('files'); openFile(p);
   } else if(location.hash.startsWith('#explore=')){
     openExpl(decodeURIComponent(location.hash.slice(9)));
+  } else if(location.hash==='#bp-compose'){
+    consumeBpCompose();
   }
 }
+// A prompt handed off from the Progress Tree: open a NEW Buildprint chat with it
+// pre-filled in the composer, ready for the user to review + send.
+function consumeBpCompose(){
+  let p=''; try{ p=localStorage.getItem('crs_bp_compose')||''; }catch(e){}
+  if(!p) return;
+  try{ localStorage.removeItem('crs_bp_compose'); }catch(e){}
+  if(history.replaceState) history.replaceState(null,'',location.pathname+location.search); // drop #bp-compose
+  newBpChat();
+  const inp=$('input'); if(inp){ inp.value=p; inp.dispatchEvent(new Event('input')); inp.focus(); inp.setSelectionRange(0,0); inp.scrollTop=0; }
+}
+// Cross-window handoff: the Tree (a separate window) posts this to its opener (this app).
+addEventListener('message',e=>{ if(e.origin===location.origin && e.data && e.data.type==='bp-compose') consumeBpCompose(); });
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('explWrap').classList.contains('show')) closeExpl(); });
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>
