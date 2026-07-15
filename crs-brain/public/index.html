@@ -638,7 +638,9 @@
         <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
+      <button class="ghost" id="backBtn" style="display:none" onclick="goBack()" title="Back to where you were">← Back</button>
       <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
+      <button class="ghost" id="downloadBtn" style="display:none" onclick="downloadFile()" title="Download this file">↓ Download</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
@@ -1026,7 +1028,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1049,7 +1051,7 @@ let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
   if(board) mapBoardOpen=true;
@@ -1081,7 +1083,7 @@ function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
@@ -1472,9 +1474,11 @@ function renderExpl(){
 }
 
 async function openFile(p){
+  if(currentView()!=='file') state.beforeFile=currentView();
   bumpView();
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
+  $('backBtn').style.display=''; $('downloadBtn').style.display='';
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); markView('');
   $('centerTitle').textContent=p;
@@ -1506,6 +1510,27 @@ function toggleEdit(){
 async function saveFile(){
   await api('/api/file',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:state.filePath,content:$('fileEdit').value})});
   toast('Saved  ·  '+state.filePath); state.editing=false; $('saveBtn').style.display='none'; $('editToggle').classList.remove('on'); openFile(state.filePath);
+}
+// Download the currently-open file (any type — served raw with a forced filename).
+function downloadFile(){
+  if(!state.filePath) return;
+  const a=document.createElement('a');
+  a.href='/api/raw?path='+encodeURIComponent(state.filePath);
+  a.download=state.filePath.split('/').pop();
+  document.body.appendChild(a); a.click(); a.remove();
+}
+// Which center view is showing right now (used to return there via Back).
+function currentView(){
+  if($('fileView').style.display!=='none') return 'file';
+  if($('mapView').style.display!=='none') return 'map';
+  if($('bubbleView').style.display!=='none') return 'bubble';
+  if($('dashView').style.display!=='none') return 'dash';
+  return 'chat';
+}
+// Back out of the file preview to wherever the user was.
+function goBack(){
+  const v=state.beforeFile;
+  if(v==='chat') showChat(); else if(v==='map') showMap(); else if(v==='bubble') showBubble(); else showDashboard();
 }
 
 // ---------- progress ----------
@@ -1623,7 +1648,7 @@ async function showBubble(){
   bumpView();
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
   $('centerCol').classList.remove('map-mode');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('bubbleView').style.display='flex';
   $('centerTitle').textContent='Bubble data'; markView('');
   if(innerWidth<=900) mob(null);
