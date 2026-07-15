@@ -124,6 +124,12 @@
   .center-head{padding:0 20px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;height:58px;flex:0 0 58px;background:rgba(19,19,24,.55);backdrop-filter:blur(10px)}
   .center-head .title{color:var(--primary);font-weight:600;font-size:15px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .center-head .spacer{margin-left:auto}
+  /* view switcher: Chat · Map · Kanban · List */
+  .viewseg{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:2px;gap:1px;flex:0 0 auto}
+  .viewseg button{background:none;border:none;color:var(--muted);font-family:inherit;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s;white-space:nowrap}
+  .viewseg button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+  .viewseg button:hover{color:var(--secondary)}
+  .viewseg button.on{background:var(--accent);color:#fff}
   .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:.15s}
   .ghost:hover{border-color:var(--line3);color:var(--primary)}
   .ghost.on{color:var(--primary);background:var(--accent-soft)} /* active = bg+text only (CRS rule) */
@@ -391,7 +397,10 @@
     .mbtn{display:inline-flex;align-items:center;justify-content:center}
     .col-collapse,.expand-handle{display:none!important}
     .center-head{padding:0 10px;gap:8px}
-    .center-head .title{font-size:13px}
+    .center-head .title{font-size:13px;min-width:0}
+    /* icon-only view switcher on phones so the header fits */
+    .viewseg .vlbl{display:none}
+    .viewseg button{padding:6px 9px}
     .sel{padding:6px 20px 6px 6px;font-size:11px;max-width:86px}
     .chat{padding:16px 10px 10px}
     .composer-wrap{padding:8px 10px 12px}
@@ -513,10 +522,6 @@
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
-    <div class="sidenav">
-      <button onclick="showMap()" title="Second-brain galaxy map"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
-      <button onclick="openKanban()" title="Folder kanban board"><svg class="ic sm" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg> Kanban</button>
-    </div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
       <button id="tabBp" onclick="setTab('buildprint')">Buildprint</button>
@@ -551,7 +556,12 @@
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
       <button class="mbtn" title="Usage & progress" onclick="mob('right')">▤</button>
-      <button class="ghost" onclick="showMap()" title="Second-brain galaxy map" style="display:inline-flex;align-items:center;gap:6px"><svg class="ic sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg> Map</button>
+      <div class="viewseg" id="viewSeg">
+        <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
+        <button data-v="map" onclick="setView('map')" title="Galaxy map"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg><span class="vlbl">Map</span></button>
+        <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
+        <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
+      </div>
       <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
@@ -912,13 +922,24 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
   if($('chatView').style.display!=='none') return;
   if(state.chatId) showChat(); else newChat();
 }
+// ---------- view switcher: Chat · Map · Kanban · List ----------
+// Kanban and List are the SAME embedded board (files as columns vs. one vertical
+// list); Map is the galaxy; Chat is the conversation.
+function setView(v){
+  if(v==='chat') ensureChatView();
+  else if(v==='map') showMap();
+  else if(v==='kanban') showMap('kanban');
+  else if(v==='list') showMap('list');
+}
+function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.v===v)); }
+
 // Embedded galaxy map — same page, shown above the persistent chat input (no more popup window).
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
@@ -926,16 +947,21 @@ function showMap(mode){
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('mapView').style.display='flex';
-  if(mode==='board'||mode==='ideas') mapBoardOpen=true;
+  const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
+  if(board) mapBoardOpen=true;
   // Galaxy view floats the composer over the map so its bg bleeds below the input.
-  // The kanban board is a drawer pinned to the iframe's bottom, so map-mode would
+  // The board (kanban/list) is a drawer pinned to the iframe's bottom, so map-mode would
   // hide its lower rows behind the composer — keep the composer in normal flow while it's open.
-  $('centerCol').classList.toggle('map-mode', mode!=='board' && !mapBoardOpen);
-  $('centerTitle').textContent = mode==='board' ? 'Kanban board' : 'Galaxy map';
+  $('centerCol').classList.toggle('map-mode', !board && !mapBoardOpen);
+  $('centerTitle').textContent = mode==='list' ? 'List' : mode==='ideas' ? 'Ideas' : board ? 'Kanban' : 'Galaxy map';
+  markView(mode==='list' ? 'list' : board ? 'kanban' : 'map');
+  // First load: carry the initial view in the hash (the map's boot reads it). Once
+  // loaded, call the map's applyView() directly so re-selecting a view always syncs
+  // the board (open/close, files/ideas tab, columns/list) — no same-hash no-op.
+  const hash = mode==='list' ? '#list' : mode==='ideas' ? '#ideas' : board ? '#board' : '';
   const fr=$('mapFrame');
-  const hash = mode==='board' ? '#board' : mode==='ideas' ? '#ideas' : '';
   if(!mapLoaded){ fr.src='/map'+hash; mapLoaded=true; }
-  else if(mode){ try{ fr.contentWindow.location.hash=mode; }catch{} }
+  else { try{ fr.contentWindow.applyView(mode||'map'); }catch{} }
   if(innerWidth<=900) mob(null);
 }
 // Called BY the embedded map (window.parent) when its board drawer opens/closes, so the
@@ -952,7 +978,7 @@ function showDashboard(){
   state.chatId=null; state.filePath=null;
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode');
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
-  $('centerTitle').textContent='Dashboard';
+  $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
 }
@@ -1322,7 +1348,7 @@ async function openFile(p){
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode');
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); markView('');
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');
