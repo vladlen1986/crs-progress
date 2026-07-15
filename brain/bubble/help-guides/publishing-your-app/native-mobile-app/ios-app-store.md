@@ -27,7 +27,7 @@ Throughout this guide we will be setting up and utilizing both to connect our Mo
 {% hint style="info" %}
 **Terminology guide:** Throughout this guide we use terminology specifically related to publishing apps in the iOS app store. Please see the article below for a comprehensive terminology table.
 
-Article: [Native mobile app terminology](/help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-app-terminology)
+Article: [Native mobile app terminology](/help-guides/getting-started/building-for/native-ios-and-android/native-mobile-app-terminology)
 {% endhint %}
 
 ## Preparing

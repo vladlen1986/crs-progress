@@ -1,5 +1,5 @@
 # Building for...
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for... · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
 
 A native mobile app and a web app are not fundamentally different. They both offer the user a visual interface built on top of a foundation of workflows and a database. The primary difference lies in how they are delivered to the user.
 
@@ -33,8 +33,8 @@ The two methods of development are by no means mutually exclusive; in fact, many
 
 You can get started with mobile development using the resources below:
 
-Article series: [Building for native iOS and Android](/help-guides/getting-started/building-for.../native-ios-and-android)\
-Article: [Mobile app quick start guide](/help-guides/getting-started/building-for.../native-ios-and-android/mobile-app-quick-start-guide)
+Article series: [Building for native iOS and Android](/help-guides/getting-started/building-for/native-ios-and-android)\
+Article: [Mobile app quick start guide](/help-guides/getting-started/building-for/native-ios-and-android/mobile-app-quick-start-guide)
 
 #### Cross-platform compatibility
 
@@ -45,11 +45,11 @@ Building and maintaining native apps traditionally requires building separate ve
 To learn more about the differences between the two, keep reading this article series:
 
 {% content-ref url="/pages/qjpk9D8O5tZqZnOI1t6M" %}
-[Web](/help-guides/getting-started/building-for.../web)
+[Web](/help-guides/getting-started/building-for/web)
 {% endcontent-ref %}
 
 {% content-ref url="/pages/EVWy0mSe4tjmyf8ejh8Y" %}
-[Native iOS and Android](/help-guides/getting-started/building-for.../native-ios-and-android)
+[Native iOS and Android](/help-guides/getting-started/building-for/native-ios-and-android)
 {% endcontent-ref %}
 
 ### Web wrappers and PWAs

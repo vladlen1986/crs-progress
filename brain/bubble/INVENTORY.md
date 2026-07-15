@@ -115,23 +115,23 @@ Every page, in sidebar order. URL = `https://manual.bubble.io` + path (append `.
 
 #### help-guides/getting-started (60)
 - Getting started — /help-guides/getting-started
-- Building for... — /help-guides/getting-started/building-for...
-- Web — /help-guides/getting-started/building-for.../web
-- Native iOS and Android — /help-guides/getting-started/building-for.../native-ios-and-android
-- Mobile app quick start guide — /help-guides/getting-started/building-for.../native-ios-and-android/mobile-app-quick-start-guide
-- What is a native mobile app? — /help-guides/getting-started/building-for.../native-ios-and-android/what-is-a-native-mobile-app
-- Native mobile vs. web development — /help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-vs.-web-development
-- Differences in native and web elements — /help-guides/getting-started/building-for.../native-ios-and-android/differences-in-native-and-web-elements
-- Payments in mobile apps — /help-guides/getting-started/building-for.../native-ios-and-android/payments-in-mobile-apps
-- In-app purchases — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases
-- IAP on Apple devices — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/iap-on-apple-devices
-- IAP on Android devices — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/iap-on-android-devices
-- Setting up subscriptions — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/setting-up-subscriptions
-- Getting ready for Production — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/getting-ready-for-production
-- Apple IAP checklist — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/getting-ready-for-production/apple-iap-checklist
-- Android IAP checklist — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/getting-ready-for-production/android-iap-checklist
-- Workflow and language — /help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/workflow-and-language-updates
-- Native mobile app terminology — /help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-app-terminology
+- Building for... — /help-guides/getting-started/building-for
+- Web — /help-guides/getting-started/building-for/web
+- Native iOS and Android — /help-guides/getting-started/building-for/native-ios-and-android
+- Mobile app quick start guide — /help-guides/getting-started/building-for/native-ios-and-android/mobile-app-quick-start-guide
+- What is a native mobile app? — /help-guides/getting-started/building-for/native-ios-and-android/what-is-a-native-mobile-app
+- Native mobile vs. web development — /help-guides/getting-started/building-for/native-ios-and-android/native-mobile-vs.-web-development
+- Differences in native and web elements — /help-guides/getting-started/building-for/native-ios-and-android/differences-in-native-and-web-elements
+- Payments in mobile apps — /help-guides/getting-started/building-for/native-ios-and-android/payments-in-mobile-apps
+- In-app purchases — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases
+- IAP on Apple devices — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/iap-on-apple-devices
+- IAP on Android devices — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/iap-on-android-devices
+- Setting up subscriptions — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/setting-up-subscriptions
+- Getting ready for Production — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/getting-ready-for-production
+- Apple IAP checklist — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/getting-ready-for-production/apple-iap-checklist
+- Android IAP checklist — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/getting-ready-for-production/android-iap-checklist
+- Workflow and language — /help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/workflow-and-language-updates
+- Native mobile app terminology — /help-guides/getting-started/building-for/native-ios-and-android/native-mobile-app-terminology
 - Building your first app — /help-guides/getting-started/building-your-first-app
 - Planning features — /help-guides/getting-started/building-your-first-app/planning-features
 - Database structure — /help-guides/getting-started/building-your-first-app/database-structure
