@@ -1,5 +1,5 @@
 # Differences in native and web elements
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/differences-in-native-and-web-elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/differences-in-native-and-web-elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
 
 ## Views
 

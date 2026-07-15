@@ -51,10 +51,21 @@ if mm>10:
     print(f'FATAL: {mm} title mismatches — aborting'); sys.exit(1)
 
 import urllib.parse
+# Windows-safe path segments: NTFS can't store names ending in '.' or ' ' and
+# reserves CON/PRN/AUX/NUL/COM1-9/LPT1-9 — a verbatim URL slug like
+# "building-for..." breaks `git checkout` on the office PC. Sanitize each segment.
+_RESERVED={'con','prn','aux','nul'}|{f'com{i}' for i in range(1,10)}|{f'lpt{i}' for i in range(1,10)}
+def winsafe(path):
+    out=[]
+    for seg in path.split('/'):
+        seg=seg.rstrip('. ')
+        if seg.split('.')[0].lower() in _RESERVED: seg='_'+seg
+        out.append(seg or '_')
+    return '/'.join(out)
 new_files={}
 index=defaultdict(list)
 for (title,url),block in zip(urls,parts):
-    path=urllib.parse.urlparse(url).path.strip('/') or 'index'
+    path=winsafe(urllib.parse.urlparse(url).path.strip('/') or 'index')
     rel=path+'.md'
     body=block.split('\n',1)[1] if '\n' in block else ''
     content=f'# {title}\n> Source: {url} · Captured: {TODAY} (verbatim from manual.bubble.io llms-full.txt)\n\n'+body.strip()+'\n'

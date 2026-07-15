@@ -1,5 +1,5 @@
 # Native mobile app terminology
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-app-terminology · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/native-mobile-app-terminology · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
 
 While the Native Mobile App Editor is similar to building a regular Bubble app in many ways, there are some new terms and concepts introduced specifically for mobile development. Some of these terms may be familiar, but we recommend reviewing them to ensure you’re aligned with the exact definitions we’ll be using throughout the documentation.
 

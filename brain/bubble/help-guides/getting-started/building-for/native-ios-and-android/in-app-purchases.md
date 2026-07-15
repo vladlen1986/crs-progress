@@ -1,5 +1,5 @@
 # In-app purchases
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
 
 ## Introduction
 

@@ -38,7 +38,7 @@ With Bubble, you can build for web, mobile or both at the same time. The guides 
 {% hint style="info" %}
 To get quickly started with native mobile app development, check out our Quick Start Guide below:
 
-Article: [Mobile app quick start guide](/help-guides/getting-started/building-for.../native-ios-and-android/mobile-app-quick-start-guide)
+Article: [Mobile app quick start guide](/help-guides/getting-started/building-for/native-ios-and-android/mobile-app-quick-start-guide)
 {% endhint %}
 
 ## Your learning and building journey

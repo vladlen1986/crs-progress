@@ -4,5 +4,5 @@
 {% hint style="info" %}
 The native mobile app builder is now in **public beta**, and its documentation has been moved into the main User Manual and Core Reference. You can explore it in the introductory article series below:
 
-Article: [Building for Native iOS and Android](/help-guides/getting-started/building-for.../native-ios-and-android)
+Article: [Building for Native iOS and Android](/help-guides/getting-started/building-for/native-ios-and-android)
 {% endhint %}

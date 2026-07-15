@@ -1,5 +1,5 @@
 # Payments in mobile apps
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/payments-in-mobile-apps · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/payments-in-mobile-apps · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
 
 {% hint style="warning" %}
 **Note:**
@@ -46,7 +46,7 @@ For these categories, you can use any payment processor, including Stripe, PayPa
 
 Bubble currently supports subscriptions through in-app purchases. This means you can offer recurring subscription products in your native mobile app and have them processed through Apple's or Google's billing systems. You can read more about in-app purchases in the article series below:
 
-Article series: [In-app purchases](/help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases)
+Article series: [In-app purchases](/help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases)
 
 #### Choosing a payment approach
 
