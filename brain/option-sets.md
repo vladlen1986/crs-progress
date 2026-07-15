@@ -90,6 +90,7 @@ OS - Activity Action · OS - Activity Severity · OS - Activity Source · OS - A
 
 - [x] Buildprint inventory of actual Bubble Option Sets → ingested 2026-07-15 (98 sets: 74 live / 24 deleted)
 - [ ] Reconcile spec'd OS list against Bubble as modules get built (note: OS - Notification Entity Type / Event Type exist but are EMPTY — fill when Notifications module is built)
+- [ ] **Reconcile `OS - Module`: 47 live entries in Bubble vs the locked 46-module list** (data/CRS_Module_OptionSets.xlsx / decisions.md 2026-04-28) — find the extra entry, decide keep/soft-delete
 - [ ] Fix in-set duplicates: os___days_before has two live "This Month" options
 - [ ] Decide whether `OS - Company` (single "Otium" option) gets retired once FOREX Rate + the_board move to the Company DT
 
