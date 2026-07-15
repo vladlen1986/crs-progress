@@ -4,7 +4,7 @@
   "sessionId": "0a5d2c34-7a4e-4492-ab52-acf282437741",
   "bp": false,
   "created": "2026-07-15T22:56:02.131Z",
-  "updated": "2026-07-15T23:00:14.181Z",
+  "updated": "2026-07-15T23:01:38.689Z",
   "messages": [
     {
       "role": "user",
@@ -38,6 +38,17 @@
       "role": "assistant",
       "content": "Done. Three files updated:\n\n1. **`decisions.md`** — new top entry (2026-07-16) locking User as a Pattern A exception: property-only isolation, no company field, with the why (Property→Company single-parent) and the standing preconditions (`User.property` must stay required + single-valued; one-user-one-property must hold).\n\n2. **`brain/buildprint/generated/2026-07-16-user-management-audit.md`** — Task 4 now tells BP *not* to flag User's missing company field as a gap, and the new flag makes BP verify the three preconditions the exception actually depends on (property is direct, single-valued, never empty).\n\n3. **`brain/security.md`** — User row flipped from ⚠️ gap to ✅ approved exception, plus a note under the tally so the \"0/46 Pattern A\" line stops implying User is unresolved.\n\nOne thing to keep on your radar, per the decision: the isolation is only airtight while `User.property` is **required and single-valued**. If a signup-before-assignment flow ever creates a User with an empty property, that user is invisible (fails closed — acceptable), but if `property` ever becomes a list, isolation leaks. Worth a form-validation guard when you do UM Pass-2.",
       "ts": "2026-07-15T23:00:14.181Z"
+    },
+    {
+      "role": "user",
+      "content": "where is the prompt file ? give it to me",
+      "ts": "2026-07-15T23:01:30.765Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "That's the file, ready to paste into Buildprint. Path again: `brain/buildprint/generated/2026-07-16-user-management-audit.md`.",
+      "ts": "2026-07-15T23:01:38.689Z"
     }
   ]
 }
