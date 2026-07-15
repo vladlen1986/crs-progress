@@ -9,9 +9,16 @@ Multi-tenant SaaS for casino surveillance, operations, HR, and compliance. Built
 ```
 crs/
 ├── README.md                          ← you are here
+├── CLAUDE.md                          AI assistant context — rules & locked facts
+├── PROGRESS.md                        CRS Brain app build checkpoint
+├── decisions.md                       Append-only architecture/commercial rulings
+│
+├── brain/                             LIVING INFRASTRUCTURE LEDGER (read INDEX.md first)
+│   ├── database.md · option-sets.md · security.md · workflows.md · migrations.md
+│   └── bubble/ · buildprint/ · bubble-forum/   (verbatim manuals + curated forum)
 │
 ├── specs/                             AUTHORITATIVE SPECS
-│   ├── CRS_Blueprint.html             Full spec — 39 modules, 10 complete
+│   ├── CRS_Blueprint.html             Full spec — 46 modules
 │   ├── CRS_Blueprint_Source.html      Editable source (regenerated via scripts/)
 │   └── Blueprint_Clear_Picture.html   Per-module progress tracker (tabs)
 │
@@ -26,7 +33,11 @@ crs/
 │   └── CRS_Coming_Soon.html           Coming Soon page pattern
 │
 ├── data/                              BUBBLE DATA
-│   └── CRS_Module_OptionSets.xlsx     OS - Module (39), OS - Module Section (7), OS - Module Status (3)
+│   └── CRS_Module_OptionSets.xlsx     OS - Module (46), OS - Module Section (7), OS - Module Status — mirrors of the Bubble OS
+│
+├── pricing/                           tiers.md — locked pricing
+├── audits/                            Audit reports
+├── crs-brain/                         CRS Brain app (local second-brain tool; see PROGRESS.md)
 │
 └── scripts/                           BUILD PIPELINE
     ├── build_blueprint.py             Regenerates CRS_Blueprint.html
@@ -40,34 +51,31 @@ crs/
 
 ## Module count
 
-**39 modules across 7 sections.**
+**46 modules across 7 sections (locked 2026-04-28; Bubble `OS - Module` is the authoritative list, xlsx mirrors it).**
 
-| Section | Total | Complete | Pending |
-|---|---:|---:|---:|
-| Admin / Core | 9 | 5 | 4 |
-| Operations | 5 | 3 | 2 |
-| Surveillance | 6 | 0 | 6 |
-| Guests | 5 | 0 | 5 |
-| HR / Employees | 9 | 2 | 7 |
-| Compliance | 4 | 0 | 4 |
-| Communication | 3 | 0 | 3 |
+| Section | Modules |
+|---|---:|
+| Admin / Core | 11 |
+| Operations | 9 |
+| HR / Employees | 9 |
+| Surveillance | 6 |
+| Guests | 6 |
+| Compliance | 3 |
+| Communication | 2 |
 
-Status breakdown:
-- **Live (10):** Reporting, Task Manager, Request for Investigation, Casino Settings, User Management, Roles & Permissions, Notifications, System Activity Log, Employee Management, Onboarding (was Onboarding + Job Board, now split)
-- **Coming Soon (~7):** Daily Activity Log, End of Shift Report, CCTV Audits, Equipment Inspection Log, Malfunction Log, Dashboard, Subscription & Tier, Fiscal Week Management, Info Board, Guest Management
-- **Roadmap (~22):** Everything else
+Status: **all 46 on roadmap** (reality reset 2026-04-27 — earlier live/soon labels were aspirational; nothing shipped in the new architecture yet). The legacy app being rebuilt covers Reporting/Tasks/CCTV Audits functionality — its real as-built state is inventoried in `brain/` (2026-07-15).
 
 ---
 
 ## Architecture quick facts
 
-- **Multi-tenant:** Company + Property tenancy. MVP = 1 property per company.
+- **Multi-tenant:** Company + Property tenancy (Pattern A — strict isolation; every business DT carries both fields, privacy rules check both). MVP = 1 property per company.
 - **Routing:** Single `App` page (SPA), URL parameter `v` selects module.
 - **Permissions:** Custom Role DT + fixed Permission Option Set + per-user extras.
 - **Audit:** Single `ActivityLog` DT, polymorphic `subject_type`/`subject_id`, async via Schedule API Workflow.
 - **GDPR:** Hybrid anonymize/soft-delete/retain.
 - **Search:** Hybrid (Native Bubble + Scious Omnisearch + Typesense).
-- **Tiers:** 5 subscription tiers (Subscription & Tier module on roadmap).
+- **Tiers:** 3 subscription tiers (Core / Pro / Enterprise; 5 internal tier slots reserved). See pricing/tiers.md.
 
 ---
 
@@ -75,16 +83,17 @@ Status breakdown:
 
 ### Read the specs
 
-1. **`specs/CRS_Blueprint.html`** — Open in browser. Full spec for all 39 modules with descriptions, data types, components, privacy rules, workflows.
-2. **`design/design.md`** — All design rules, naming conventions, locked decisions.
+1. **`brain/INDEX.md`** — the living ledger: real as-built Bubble state (schema, option sets, privacy, workflows) since the 2026-07-15 inventory.
+2. **`specs/CRS_Blueprint.html`** — Open in browser. Full spec for all 46 modules with descriptions, data types, components, privacy rules, workflows.
+3. **`design/design.md`** — All design rules, naming conventions, locked decisions.
 
-### Set up Bubble Option Sets
+### Bubble Option Sets
 
-Use **`data/CRS_Module_OptionSets.xlsx`** to populate three Option Sets in Bubble:
+The module Option Sets already exist in Bubble (test branch) — **Bubble is authoritative, `data/CRS_Module_OptionSets.xlsx` mirrors it**:
 
-1. **`OS - Module Status`** (3 values) — sheet 1
-2. **`OS - Module Section`** (7 values) — sheet 2
-3. **`OS - Module`** (39 values) — sheet 3
+1. **`OS - Module Status`** (6 values as-built)
+2. **`OS - Module Section`** (7 values)
+3. **`OS - Module`** (47 live values as-built — reconciliation vs the locked 46 pending, see brain/option-sets.md)
 
 Each `OS - Module` row has: label, icon_code (Bootstrap Icons), section, status, sort_order, page_route, description.
 

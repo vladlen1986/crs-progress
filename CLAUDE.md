@@ -187,6 +187,8 @@ See `decisions.md` 2026-05-01 for the original rule set and
 
 `brain/` is the living infrastructure ledger. **Read `brain/INDEX.md` first** for any question about database schema, option sets, privacy rules, backend workflows, or migrations — it maps every domain to its file and links the authoritative sources. One fact lives in exactly one file; brain/ links to decisions.md / design/ / specs/, never duplicates them. After each Buildprint session, ingest the session report via CRS Brain's "Ingest to Brain" button (attach the .md → Ingest) — it routes facts into the right brain/ files and appends brain/changelog.md.
 
+**As of 2026-07-15 the "Current state" sections in brain/ reflect the first full real-state inventory of the Bubble test branch** (110 DTs, 98 option sets, 29 backend + 343 page workflows, complete privacy-rule tracker) — they are as-built facts, no longer spec-only. Key standing fact: 0 live DTs currently meet Pattern A; the rollout plan lives in brain/security.md.
+
 ## When in doubt
 
 1. Check `brain/INDEX.md` for infrastructure state (schema, OS, security, workflows, migrations)
