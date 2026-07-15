@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-07-14**.
+Last updated: **2026-07-15**.
 
 ---
 
@@ -31,9 +31,9 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 5. **Remove Progress from right sidebar** — DONE. Deleted the `<h2>Progress</h2>` + `<div id="progress">` from `.rscroll`; `loadProgress()` guarded with `const box=$('progress'); if(!box) return;`. Dashboard's own progress render untouched.
 
 ## 4. Next up (ordered)
-1. **Run the INVENTORY packet** (Build plan panel → Draft Buildprint prompt → review → send). Everything in brain/ is spec-only until this real-state inventory is ingested; it's the prerequisite for all module packets.
-2. Structural apply-gate for bp chats (PreToolUse hook / narrowed allowedTools so `buildprint apply` physically can't run before the plan is approved) — the guardrail is currently prose-only in prompts.
-3. ~~Task 30~~ — **SHIPPED 2026-07-15** (build packets + prompt drafter; see §3 of decisions log).
+1. ~~Run the INVENTORY packet~~ — **DONE 2026-07-15** via a bp chat (read-only, 6 parallel agents): full real-state inventory of the test branch ingested into brain/ (110 DTs → 46 live/64 deleted, 98 OS, 29 backend WFs, 343 page WFs, privacy tracker, legacy-cleanup list). brain/ is no longer spec-only. See brain/changelog.md 2026-07-15.
+2. **Draft the Pattern A rollout packet** (next Buildprint build work): fix candidate no-auth endpoint `add_user_to_read_by_all_reports_copy` → 06 Employee PII → 24 no-rules DTs → 15 public-everyone DTs. Source: brain/security.md tracker.
+3. Structural apply-gate for bp chats (PreToolUse hook / narrowed allowedTools so `buildprint apply` physically can't run before the plan is approved) — the guardrail is currently prose-only in prompts.
 4. Task 33 — per-chat attachments bar; Task 27 pinned messages; Task 28 chat folders; Task 29 legacy-file tagging.
 5. Audit backlog: `crs-brain/data/docs/app-audit-2026-07-15.md` (bpTrack resilience, queued-prompt chat binding, digest scheduling, Bubble-entity map, ideas→packet promotion).
 
@@ -65,6 +65,18 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 ---
 
 ## Decisions log (append-only)
+
+### 2026-07-15 — Session: Bubble data view + brain-sync loop
+- **New "Bubble data" view** (dashboard quick action + collapsed-rail DB icon): tabs Data types │ Option sets │ Pages │ Styles, parsed LIVE from the cloned Buildprint workspace by `GET /api/bubble/state` (`bubbleState()` in server.js — reads each `data_types/<x>/type.json` fields + privacy_role, `option_sets/<x>/option-set.json` values, `pages/<x>/page.json` + workflow/element counts, styles/). Every live DT row shows **company ✓/✗ + property ✓/✗ Pattern A badges** (red/green), field + privacy-role counts, expandable field table + privacy roles; option sets expand to value chips (display + db_value); filter box; "deleted" toggle (64 soft-deleted DT relics hidden by default).
+- **"⟳ Refresh from Bubble"** → `POST /api/bubble/refresh` = `buildprint sync` + re-parse + diff vs the brain-ingest baseline (does NOT advance it). Banner: "N file(s) changed since the brain last ingested → **Sync into brain**" (hands off to the existing bpTrack streaming ingest) or "✓ Brain is up to date with Bubble". Verified live: sync ran clean, up-to-date banner shown.
+- **Packet generation now grounded in live Bubble state**: `/api/plans/generate` adds the workspace via `--add-dir` and PLAN_GEN_PROMPT instructs: check data_types/option_sets reality, trust the workspace over brain/ on conflict, flag drift in step details.
+- Verified in-browser desktop + mobile (46 live DTs render w/ correct badges, tabs/filter/expand work, no console errors, no mobile overflow).
+
+### 2026-07-15 — Session: Buildprint INVENTORY ingested (bp chat, read-only)
+- Ran the prerequisite real-state inventory of the test branch (`buildprint sync` clean at `a297cb2b`; 6 parallel read-only agents over data_types/option_sets/pages/api/settings; `buildprint audit` re-run — same 45 highs; zero workspace edits, no apply).
+- Headlines: 110 DTs = 46 live + 64 soft-deleted, **0 live DTs meet Pattern A** (24 no-rules, 15 public-everyone incl. 06 Employee PII with autobind, 2 company-only, 4 property-only, 11 Report logged-in-only); 98 OS = 74 live + 24 deleted; 29 backend WFs (19 ignore privacy rules; 1 candidate PUBLIC no-auth endpoint `add_user_to_read_by_all_reports_copy`); 343 page WFs with a concrete legacy-cleanup list.
+- Ingested into brain/ (database, option-sets, security, workflows, migrations, design + changelog) and refreshed the dev-tracking files (this file, CLAUDE.md, README.md). Inventory numbers cross-checked: audit's 39 public-data-types = inventory's 24+15 exactly.
+- Discrepancies for Vlad: `OS - Module` has 47 live entries vs the locked 46 module list; no RE_CasinoSettings page exists (queue item 1 not started); country-migration run-status unverified. Decision candidates for decisions.md (NOT appended — Vlad's call): Company/Property own-table privacy-rule shape as Pattern A exceptions; fate of the 64 soft-deleted DTs.
 
 ### 2026-07-15 — Session: deep audit + Build packets (Task 30 shipped)
 - Ran a 6-agent deep analysis of the app (90 findings; report at `crs-brain/data/docs/app-audit-2026-07-15.md` — unfixed items are the standing backlog).

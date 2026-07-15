@@ -16,7 +16,7 @@ const http = require('http');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const { spawn } = require('child_process');
+const { spawn, execFileSync } = require('child_process');
 const crypto = require('crypto');
 
 // macOS/Linux: apps launched by double-click get a minimal PATH that misses
@@ -382,7 +382,11 @@ const PLAN_GEN_PROMPT = [
   'build steps, each sized to exactly ONE Buildprint session (one bounded change set).',
   'FIRST read: brain/INDEX.md, brain/database.md, brain/option-sets.md, brain/security.md, decisions.md',
   '(architecture entries), CLAUDE.md (locked rules, naming, sections), crs-brain/data/progress.json,',
-  'crs-brain/data/ideas.json. Ground every step in what those files actually say — never invent modules,',
+  'crs-brain/data/ideas.json. If the cloned Bubble workspace is in your context (an added directory with',
+  'data_types/, option_sets/, pages/), ALSO check the LIVE state there — what actually exists in Bubble',
+  'right now (each data_types/<x>/type.json lists fields + privacy_role; note "deleted": true relics).',
+  'Where brain/ and the workspace disagree, trust the workspace and flag the drift in the step detail.',
+  'Ground every step in what those files actually say — never invent modules,',
   'fields, or features. The module MUST be one of the locked 46 modules (authoritative: the Bubble Option Set,',
   'mirrored in data/CRS_Module_OptionSets.xlsx and the section lists in CLAUDE.md). If the requested module is',
   'not one of them, output {"error":"<why>"} and nothing else.',
@@ -460,6 +464,63 @@ async function bpSyncDiff() {
   const ns = (await bpGit(ws, ['diff', '--name-status', base, head])).out;
   const changed = ns ? ns.split('\n').filter(Boolean) : [];
   return { ok: true, first: false, ws, base, head, changed };
+}
+
+// ---- Bubble app state (parsed from the cloned Buildprint workspace) ---------
+// Turns the workspace files into a structured entity map the UI can browse:
+// data types (fields, privacy roles, Pattern A flags), option sets, pages, styles.
+function readJson(p) { try { return JSON.parse(fs.readFileSync(p, 'utf8')); } catch { return null; } }
+function bubbleState() {
+  const ws = findBpWorkspace();
+  if (!ws) return { ready: false };
+  const st = { ready: true, app: ws.app, branch: ws.branch, syncedAt: null, dataTypes: [], optionSets: [], pages: [], styles: [] };
+  try { // last sync time = last commit touching the workspace
+    st.syncedAt = execFileSync('git', ['log', '-1', '--format=%cI'], { cwd: ws.dir }).toString().trim() || null;
+  } catch {}
+  // data types
+  try {
+    for (const slug of fs.readdirSync(path.join(ws.dir, 'data_types'))) {
+      const j = readJson(path.join(ws.dir, 'data_types', slug, 'type.json'));
+      if (!j) continue;
+      const fields = Object.entries(j.fields || {}).map(([key, f]) => ({ key, display: f.display || key, type: f.value || '?', comment: f.comment || null }));
+      const names = new Set(fields.map((f) => (f.display || '').toLowerCase()));
+      const roles = Object.values(j.privacy_role || {}).map((r) => r.display || '?');
+      st.dataTypes.push({
+        slug, display: j.display || slug, deleted: !!j.deleted, exposedApi: !!j.exposed_api,
+        fields, fieldCount: fields.length,
+        privacyRoles: roles, privacyCount: roles.length,
+        hasCompany: names.has('company'), hasProperty: names.has('property'),
+      });
+    }
+    st.dataTypes.sort((a, b) => (a.deleted - b.deleted) || a.display.localeCompare(b.display));
+  } catch {}
+  // option sets
+  try {
+    for (const slug of fs.readdirSync(path.join(ws.dir, 'option_sets'))) {
+      const j = readJson(path.join(ws.dir, 'option_sets', slug, 'option-set.json'));
+      if (!j) continue;
+      const values = Object.values(j.values || {})
+        .sort((a, b) => (a.sort_factor || 0) - (b.sort_factor || 0))
+        .map((v) => ({ display: v.display || '?', dbValue: v.db_value ?? null }));
+      st.optionSets.push({ slug, display: j.display || slug, deleted: !!j.deleted, values, count: values.length });
+    }
+    st.optionSets.sort((a, b) => (a.deleted - b.deleted) || a.display.localeCompare(b.display));
+  } catch {}
+  // pages (+ workflow / element counts)
+  try {
+    for (const slug of fs.readdirSync(path.join(ws.dir, 'pages'))) {
+      const j = readJson(path.join(ws.dir, 'pages', slug, 'page.json'));
+      if (!j) continue;
+      let wf = 0, el = 0;
+      try { wf = fs.readdirSync(path.join(ws.dir, 'pages', slug, 'workflows')).length; } catch {}
+      try { el = fs.readdirSync(path.join(ws.dir, 'pages', slug, 'elements')).length; } catch {}
+      st.pages.push({ slug, name: j.name || slug, workflows: wf, elements: el });
+    }
+    st.pages.sort((a, b) => a.name.localeCompare(b.name));
+  } catch {}
+  // styles (names only)
+  try { st.styles = fs.readdirSync(path.join(ws.dir, 'styles')).filter((n) => !n.startsWith('.')).sort(); } catch {}
+  return st;
 }
 
 // ---- helpers ---------------------------------------------------------------
@@ -1197,9 +1258,12 @@ const server = http.createServer(async (req, res) => {
       const cfg = loadSettings();
       let raw = '';
       try {
+        // Give the generator the LIVE Bubble workspace too (read-only context) so
+        // packets reflect actual current state, not just the brain ledger.
+        const ws = findBpWorkspace();
         const result = await runClaudeStream(
           `Generate the build packet for module: ${module_}${notes ? `\n\nExtra context from Vlad: ${notes}` : ''}`,
-          null, {}, { model: cfg.model, effort: cfg.effort, systemPrompt: PLAN_GEN_PROMPT });
+          null, {}, { model: cfg.model, effort: cfg.effort, systemPrompt: PLAN_GEN_PROMPT, ...(ws ? { addDirs: [ws.dir] } : {}) });
         raw = (result.text || '').trim();
       } catch (e) { return send(res, 502, { error: e.message }); }
       // Strip code fences if the model added them despite instructions.
@@ -1241,6 +1305,19 @@ const server = http.createServer(async (req, res) => {
       const step = packet && packet.steps.find((s) => s.id === body.stepId);
       if (!step) return send(res, 404, { error: 'packet/step not found' });
       return send(res, 200, { prompt: bpStepPrompt(packet, step) });
+    }
+
+    // ---- Bubble app data (parsed from the cloned workspace) ----
+    if (p === '/api/bubble/state' && req.method === 'GET') {
+      return send(res, 200, bubbleState());
+    }
+    // Pull the latest snapshot from Bubble (buildprint sync), re-parse, and report
+    // what changed since the brain last ingested. Does NOT advance the ingest
+    // baseline — "Sync into brain" (bp/track) owns that.
+    if (p === '/api/bubble/refresh' && req.method === 'POST') {
+      const r = await bpSyncDiff();
+      if (r.error) return send(res, 502, { error: r.error });
+      return send(res, 200, { state: bubbleState(), first: !!r.first, changed: r.changed || [], base: r.base || null, head: r.head || null });
     }
 
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.

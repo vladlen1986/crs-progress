@@ -493,6 +493,47 @@
   .np-gen input:focus{border-color:var(--accent)}
   .np-gen .pdraft{margin-top:0}
 
+  /* Bubble data view — live app structure from the Buildprint workspace */
+  .bub-head{display:flex;align-items:center;gap:10px;padding:12px 18px 10px;border-bottom:1px solid var(--line);flex-wrap:wrap;flex:0 0 auto}
+  .bub-tabs{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:2px;gap:1px}
+  .bub-tabs button{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;transition:.15s;white-space:nowrap}
+  .bub-tabs button:hover{color:var(--secondary)}
+  .bub-tabs button.on{background:var(--accent);color:#fff}
+  .bub-q{flex:1;min-width:110px;max-width:250px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--primary);padding:6px 9px;font-size:12px;font-family:inherit;outline:none}
+  .bub-q:focus{border-color:var(--accent)}
+  .bub-del{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:11.5px;cursor:pointer;user-select:none}
+  .bub-meta{padding:8px 18px 0;color:var(--muted);font-size:11.5px;flex:0 0 auto}
+  .bub-banner{margin:10px 18px 0;border:1px solid var(--warn);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--secondary);display:flex;align-items:center;gap:10px;flex-wrap:wrap;flex:0 0 auto}
+  .bub-banner .pdraft{margin-top:0}
+  .bub-body{flex:1;overflow:auto;padding:12px 18px 30px}
+  .bdt{border:1px solid var(--line);border-radius:8px;margin-bottom:8px;overflow:hidden}
+  .bdt .bd-row{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;flex-wrap:wrap}
+  .bdt .bd-row:hover{background:var(--panel2)}
+  .bdt .nm{color:var(--primary);font-weight:600;font-size:12.5px}
+  .bdt.deleted .nm{color:var(--muted);text-decoration:none;opacity:.75}
+  .bdt .slug{color:var(--muted);font-size:10.5px;font-family:var(--mono)}
+  .bdt .sp{margin-left:auto}
+  .badge{font-size:9.5px;letter-spacing:.4px;padding:2px 7px;border:1px solid var(--line);border-radius:10px;color:var(--muted);text-transform:uppercase;white-space:nowrap}
+  .badge.ok{color:var(--good);border-color:rgba(34,197,94,.35)}
+  .badge.bad{color:var(--danger);border-color:rgba(239,68,68,.35)}
+  .badge.warn{color:var(--warn);border-color:rgba(245,158,11,.35)}
+  .bdt .bd-detail{display:none;border-top:1px solid var(--line);padding:10px 12px 12px}
+  .bdt.open .bd-detail{display:block}
+  .bd-detail table{width:100%;border-collapse:collapse;font-size:11.5px}
+  .bd-detail td{padding:4px 10px 4px 0;border-bottom:1px solid var(--line);color:var(--secondary);vertical-align:top}
+  .bd-detail tr:last-child td{border-bottom:none}
+  .bd-detail td.ft{color:var(--muted);font-family:var(--mono);font-size:10.5px;white-space:nowrap}
+  .bd-detail .dlbl{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:10px 0 5px}
+  .oschip{display:inline-flex;gap:6px;align-items:center;border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin:0 5px 5px 0;font-size:11px;color:var(--secondary)}
+  .oschip .db{color:var(--muted);font-family:var(--mono);font-size:9.5px}
+  @media (max-width:900px){
+    .bub-head{padding:10px 10px 8px;gap:7px}
+    .bub-meta,.bub-banner{padding-left:10px;padding-right:10px;margin-left:10px;margin-right:10px}
+    .bub-banner{margin-left:0;margin-right:0}
+    .bub-body{padding:10px 10px 24px}
+    .bub-q{max-width:none}
+  }
+
   /* sidebar nav (Map / Kanban) */
   .sidenav{display:flex;gap:6px;margin:2px 12px 8px}
   .sidenav button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
@@ -530,6 +571,7 @@
   <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24"><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/><path d="M4 11.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></symbol>
   <symbol id="i-chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></symbol>
   <symbol id="i-doc-sm" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/></symbol>
   <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 20a8 8 0 1 1 16 0"/><line x1="12" y1="20" x2="15.5" y2="12.5"/></symbol>
@@ -551,6 +593,7 @@
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
+      <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
@@ -614,6 +657,23 @@
       <!-- embedded galaxy map (was a separate /map page; now lives above the chat input) -->
       <div id="mapView" style="display:none;flex:1;min-height:0">
         <iframe id="mapFrame" title="Galaxy map" style="width:100%;height:100%;border:0;display:block"></iframe>
+      </div>
+      <!-- Bubble app data — live structure parsed from the cloned Buildprint workspace -->
+      <div id="bubbleView" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
+        <div class="bub-head">
+          <div class="bub-tabs" id="bubTabs">
+            <button data-t="dataTypes" class="on" onclick="bubTab('dataTypes')">Data types</button>
+            <button data-t="optionSets" onclick="bubTab('optionSets')">Option sets</button>
+            <button data-t="pages" onclick="bubTab('pages')">Pages</button>
+            <button data-t="styles" onclick="bubTab('styles')">Styles</button>
+          </div>
+          <input class="bub-q" id="bubQ" placeholder="Filter…" autocomplete="off" oninput="renderBubble()">
+          <label class="bub-del" title="Bubble keeps deleted entities as relics — show them too"><input type="checkbox" id="bubDel" onchange="renderBubble()"> deleted</label>
+          <button class="ghost" id="bubRefresh" onclick="refreshBubble()" title="buildprint sync — pull the latest snapshot from Bubble">⟳ Refresh from Bubble</button>
+        </div>
+        <div class="bub-meta" id="bubMeta"></div>
+        <div class="bub-banner" id="bubBanner" style="display:none"></div>
+        <div class="bub-body" id="bubBody"></div>
       </div>
     </div>
     <!-- persistent composer — always visible on every view -->
@@ -965,7 +1025,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -987,7 +1047,7 @@ function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
@@ -1019,7 +1079,7 @@ function setMapBoardOpen(open){
 function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('centerCol').classList.remove('map-mode');
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode');
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
@@ -1067,6 +1127,7 @@ async function renderDashboard(){
     <section><div class="lbl">Quick actions</div><div class="actions">
       ${A('i-plus','New conversation','Ask anything about CRS','newChat()')}
       ${A('i-ingest','Buildprint task','Operate your Bubble app','newBpChat()')}
+      ${A('i-db','Bubble data','Data types, option sets, pages — live from Buildprint','showBubble()')}
       ${A('i-logo','Galaxy map','Explore the brain visually','showMap()')}
       ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
       ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
@@ -1413,7 +1474,7 @@ async function openFile(p){
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); markView('');
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); markView('');
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');
@@ -1552,6 +1613,89 @@ async function applyModelSettings(){
   try{ await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({model,effort})});
     toast($('modelSel').selectedOptions[0].text+'  ·  '+$('effortSel').selectedOptions[0].text+' effort');
   }catch(e){ toast('Could not save: '+e.message); }
+}
+
+// ---------- Bubble data: live app structure from the Buildprint workspace ----------
+let bubState=null, bubTabName='dataTypes', bubChanged=null;
+async function showBubble(){
+  bumpView();
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
+  $('centerCol').classList.remove('map-mode');
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('bubbleView').style.display='flex';
+  $('centerTitle').textContent='Bubble data'; markView('');
+  if(innerWidth<=900) mob(null);
+  if(!bubState){
+    $('bubBody').innerHTML='<div class="pempty" style="padding:8px 2px">Loading the Bubble workspace…</div>';
+    try{ bubState=await api('/api/bubble/state'); }
+    catch(e){ $('bubBody').innerHTML='<div class="pempty" style="padding:8px 2px">Could not read the workspace: '+esc(e.message)+'</div>'; return; }
+  }
+  renderBubble();
+}
+function bubTab(t){ bubTabName=t; document.querySelectorAll('#bubTabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t)); renderBubble(); }
+function agoIso(iso){ if(!iso) return '—'; const m=Math.round((Date.now()-new Date(iso).getTime())/60000); if(m<1) return 'just now'; if(m<60) return m+'m ago'; const h=Math.round(m/60); if(h<48) return h+'h ago'; return Math.round(h/24)+'d ago'; }
+function renderBubble(){
+  const st=bubState; if(!st) return;
+  if(!st.ready){
+    $('bubMeta').textContent='';
+    $('bubBody').innerHTML='<div class="pempty" style="padding:8px 2px">Buildprint workspace not found — link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.</div>';
+    return;
+  }
+  const q=($('bubQ').value||'').trim().toLowerCase();
+  const showDel=$('bubDel').checked;
+  const liveDT=st.dataTypes.filter(d=>!d.deleted), delDT=st.dataTypes.length-liveDT.length;
+  const liveOS=st.optionSets.filter(o=>!o.deleted), delOS=st.optionSets.length-liveOS.length;
+  $('bubMeta').innerHTML=`<b style="color:var(--secondary)">${esc(st.app)}</b> · branch <b style="color:var(--secondary)">${esc(st.branch)}</b> · synced ${agoIso(st.syncedAt)} · ${liveDT.length} live data types (${delDT} deleted) · ${liveOS.length} option sets · ${st.pages.length} pages`;
+  // changes-not-in-brain banner (populated by Refresh)
+  const ban=$('bubBanner');
+  if(bubChanged&&bubChanged.length){
+    ban.style.display='flex';
+    ban.innerHTML=`<b style="color:var(--warn)">${bubChanged.length} file(s)</b> changed in Bubble since the brain last ingested — prompts may be stale until synced.
+      <button class="pdraft" onclick="bpTrack()">Sync into brain →</button>`;
+  } else if(bubChanged){ ban.style.display='flex'; ban.innerHTML='<span style="color:var(--good)">✓ Brain is up to date with Bubble.</span>'; }
+  else ban.style.display='none';
+  const body=$('bubBody');
+  const match=(...xs)=>!q||xs.some(x=>(x||'').toLowerCase().includes(q));
+  if(bubTabName==='dataTypes'){
+    const rows=st.dataTypes.filter(d=>(showDel||!d.deleted)&&match(d.display,d.slug,...d.fields.map(f=>f.display)));
+    body.innerHTML=rows.map(d=>`<div class="bdt${d.deleted?' deleted':''}" onclick="this.classList.toggle('open')">
+      <div class="bd-row"><span class="nm">${esc(d.display)}</span><span class="slug">${esc(d.slug)}</span><span class="sp"></span>
+        ${d.deleted?'<span class="badge">deleted</span>':''}
+        <span class="badge">${d.fieldCount} fields</span>
+        <span class="badge">${d.privacyCount} privacy</span>
+        ${d.deleted?'':`<span class="badge ${d.hasCompany?'ok':'bad'}">company ${d.hasCompany?'✓':'✗'}</span><span class="badge ${d.hasProperty?'ok':'bad'}">property ${d.hasProperty?'✓':'✗'}</span>`}
+        ${d.exposedApi?'<span class="badge warn">api</span>':''}</div>
+      <div class="bd-detail" onclick="event.stopPropagation()">
+        <table>${d.fields.map(f=>`<tr><td>${esc(f.display)}</td><td class="ft">${esc(f.type)}</td><td>${esc(f.comment||'')}</td></tr>`).join('')||'<tr><td>No fields</td></tr>'}</table>
+        ${d.privacyRoles.length?`<div class="dlbl">Privacy roles</div>${d.privacyRoles.map(r=>`<span class="oschip">${esc(r)}</span>`).join('')}`:'<div class="dlbl" style="color:var(--danger)">No privacy roles</div>'}
+      </div></div>`).join('')||'<div class="pempty" style="padding:8px 2px">No matches.</div>';
+  } else if(bubTabName==='optionSets'){
+    const rows=st.optionSets.filter(o=>(showDel||!o.deleted)&&match(o.display,o.slug,...o.values.map(v=>v.display)));
+    body.innerHTML=rows.map(o=>`<div class="bdt${o.deleted?' deleted':''}" onclick="this.classList.toggle('open')">
+      <div class="bd-row"><span class="nm">${esc(o.display)}</span><span class="slug">${esc(o.slug)}</span><span class="sp"></span>
+        ${o.deleted?'<span class="badge">deleted</span>':''}<span class="badge">${o.count} options</span></div>
+      <div class="bd-detail" onclick="event.stopPropagation()">
+        ${o.values.map(v=>`<span class="oschip">${esc(v.display)}${v.dbValue!=null?`<span class="db">${esc(String(v.dbValue))}</span>`:''}</span>`).join('')||'No options'}
+      </div></div>`).join('')||'<div class="pempty" style="padding:8px 2px">No matches.</div>';
+  } else if(bubTabName==='pages'){
+    const rows=st.pages.filter(p=>match(p.name,p.slug));
+    body.innerHTML=rows.map(p=>`<div class="bdt"><div class="bd-row" style="cursor:default"><span class="nm">${esc(p.name)}</span><span class="slug">${esc(p.slug)}</span><span class="sp"></span>
+      <span class="badge">${p.workflows} workflows</span><span class="badge">${p.elements} elements</span></div></div>`).join('')||'<div class="pempty" style="padding:8px 2px">No matches.</div>';
+  } else {
+    const rows=st.styles.filter(s=>match(s));
+    body.innerHTML=rows.map(s=>`<span class="oschip">${esc(s)}</span>`).join('')||'<div class="pempty" style="padding:8px 2px">No matches.</div>';
+  }
+}
+// buildprint sync → re-parse → show what changed since the brain last ingested.
+async function refreshBubble(){
+  const btn=$('bubRefresh'); btn.disabled=true; btn.textContent='Syncing from Bubble…';
+  try{
+    const r=await api('/api/bubble/refresh',{method:'POST'});
+    bubState=r.state; bubChanged=r.first?[]:(r.changed||[]);
+    renderBubble();
+    toast(bubChanged.length? bubChanged.length+' file(s) changed since the last brain sync' : 'Up to date — brain matches Bubble');
+  }catch(e){ toast('Refresh failed: '+e.message); }
+  btn.disabled=false; btn.textContent='⟳ Refresh from Bubble';
 }
 
 // ---------- build plan: packets → Buildprint prompts ----------
@@ -1730,6 +1874,7 @@ async function bpStatus(){
 async function bpTrack(){
   if(state.sending) return;
   bumpView();
+  bubChanged=null;   // the ingest owns these changes now — clear the Bubble-data banner
   state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
