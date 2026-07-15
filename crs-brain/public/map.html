@@ -203,6 +203,14 @@
     .dock .dbody{max-height:32vh}
     body.board-open .dock{bottom:calc(54vh + 18px)}
     .board{height:54vh;min-height:0}
+    /* Embedded on a phone: the kanban/list board fills the screen — no galaxy behind
+       it, no floating map chrome. (The app's own header switches views.) transform:none
+       pins it full-screen deterministically instead of relying on the slide translate. */
+    body.embed.board-open .board{top:0;height:auto;min-height:0;background:#101013;transform:none;transition:none}
+    body.embed.board-open .brand,
+    body.embed.board-open .menu-btn,
+    body.embed.board-open .panel,
+    body.embed.board-open .hint{display:none}
     .board .bhead{flex-wrap:wrap;gap:8px;padding:10px 13px 6px}
     .board .bhead .bseg,.board .bhead .bsearch{margin-left:0}
     .board .bhead .bsearch{width:auto;flex:1 1 120px;min-width:110px}
@@ -877,7 +885,10 @@ function draw(){
 
 // ---- main loop ----------------------------------------------------------------------
 let last=performance.now();
-function loop(now){ const dt=Math.min(50,now-last); last=now; step(dt); draw(); requestAnimationFrame(loop); }
+function loop(now){ last=now;
+  // On a phone the open board fully covers the galaxy — don't burn battery drawing it.
+  if(EMBED && boardOpen && innerWidth<=720){ requestAnimationFrame(loop); return; }
+  const dt=Math.min(50,now-last); step(dt); draw(); requestAnimationFrame(loop); }
 
 // ---- interaction ----------------------------------------------------------------------
 function toWorld(px,py){ return { x:(px-W/2-cam.x)/cam.k, y:(py-H/2-cam.y)/cam.k }; }
@@ -1317,7 +1328,7 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
 
 // ---- boot ----------------------------------------------------------------------------
 // Embedded in the app: the app's composer is the one chat, so drop the map's own dock.
-if(EMBED){ const dk=document.getElementById('dock'); if(dk) dk.style.display='none'; }
+if(EMBED){ document.body.classList.add('embed'); const dk=document.getElementById('dock'); if(dk) dk.style.display='none'; }
 fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); applyView(modeFromHash()); })
   .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#A6A6A6">Could not load the repo tree — is the CRS Brain server running?</div>'); });
 // Files-as-a-list vs. columns: same board data, just stack the folder columns vertically.

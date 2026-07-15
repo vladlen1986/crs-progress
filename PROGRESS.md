@@ -64,6 +64,10 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 
 ## Decisions log (append-only)
 
+### 2026-07-15 — Session: mobile full-screen kanban/list
+- On a phone, Kanban/List showed the full galaxy with the board crammed into a bottom drawer (+ the map's floating chrome and the settings panel overlapping). Now on mobile (`@media max-width:720px`) when the map is embedded (`body.embed`, set in boot) and the board is open, the board **fills the screen** (`top:0`, `transform:none`, opaque bg) and the galaxy chrome hides (`.brand`, `.menu-btn`, `.panel`, `.hint`). `transform:none` was required — the slide-`translateY` fought the height override and left the board mispositioned (stuck at ~translateY(105%)). The canvas rAF loop pauses while the board covers the screen (battery). Map view (board closed) still shows the galaxy + chrome. Desktop unchanged (rules are mobile-scoped; board stays a drawer over the galaxy).
+- Verified live at 375px: Kanban = full-screen swipeable columns; List = full-screen vertical list; Map = galaxy. Desktop kanban still a drawer (screenshot-confirmed). No console errors.
+
 ### 2026-07-15 — Session: view switcher + mobile fixes + CRS-only meaning
 - **Chat · Map · Kanban · List segmented toggle** in the center header (replaces the standalone Map button; removed the redundant sidebar `.sidenav`). `setView()` + `markView()` sync the active segment. Kanban and List are the SAME embedded board — `map.html` gained `applyView(mode)` (exposed on `window`, also driven by `#board`/`#list`/`#ideas` on first load) + `setBoardLayout()`; **List** = board columns stacked vertically (`body.blist` CSS). Map closes the board; Kanban/List open it (files, columns/list); Ideas → ideas board. Icon-only on mobile so the header fits.
 - **Mobile connection fix**: the phone got ERR_CONNECTION_REFUSED because two turns earlier I restarted the server WITHOUT `CRS_BRAIN_HOST=0.0.0.0` (localhost-only). Restarted on all interfaces — but that server dies with the session; **Vlad must relaunch `start-mobile.command` for persistent mobile** (Tailscale `100.114.97.93:4317`, PIN in `crs-brain/.pin`).
