@@ -301,11 +301,15 @@ const BP_PROMPT = (ws) => [
   `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
   `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
   'pages/, option_sets/, styles/, api/, settings/…).',
-  'THE LOOP: `buildprint sync` FIRST (pull latest Bubble snapshot) → edit the files → `buildprint check`',
-  '(must pass) → `buildprint apply` (push to Bubble). Useful: `buildprint audit` (security scan),',
-  '`buildprint sync status`, `buildprint changelog <a> <b>`.',
+  'THE LOOP (follow it exactly): (0) `buildprint sync` FIRST (pull the latest Bubble snapshot). (1) PLAN the',
+  'change as numbered steps and get Vlad\'s go-ahead before any apply. (2) Then execute ONE step at a time —',
+  'for EACH step: create a savepoint (`buildprint savepoint`, named for the step) → `buildprint apply` →',
+  '`buildprint check`. A savepoint before every apply so each step is independently rollback-able; if check',
+  'reports a problem, STOP and fix it or restore that savepoint before continuing. NEVER bundle multiple steps',
+  'into one apply. Useful: `buildprint audit` (security scan), `buildprint sync status`,',
+  '`buildprint savepoint list` / `restore`, `buildprint changelog <a> <b>`.',
   'HARD GUARDRAILS (from brain/buildprint/crs-brain-operations.md and decisions.md 2026-05-01):',
-  '(1) TEST branch only — NEVER live. (2) Always sync before working. (3) check must pass before apply.',
+  '(1) TEST branch only — NEVER live. (2) Always sync before working. (3) Savepoint before every apply; run check after every apply.',
   '(4) NEVER use --force-apply / --no-check / sync --reset without Vlad approving in THIS chat.',
   '(5) Before the FIRST apply of a request, state the exact plan (files/entities + expected Bubble effect)',
   'and get Vlad\'s go-ahead. (6) Pattern A: every business Data Type needs company + property fields and a',
@@ -973,7 +977,7 @@ function buildEditPrompt(mod, d) {
   const L = [];
   L.push(`# Buildprint Prompt — Build / advance ${mod.name}`);
   L.push('');
-  L.push(`**On TEST/DEV branch only. Create savepoint "Before ${mod.name} build" first. Run \`buildprint check\` after each task. Do not push to live. Apply directly without confirmation.**`);
+  L.push(`**On TEST/DEV branch only, never live. Run \`buildprint sync\` first, then PLAN the steps. Work ONE task at a time — for EACH task: create a savepoint (\`buildprint savepoint "${mod.name} — Task N"\`) → \`buildprint apply\` → \`buildprint check\`. If check fails, stop and fix or restore that savepoint before continuing.**`);
   L.push('');
   L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML — that is the visual spec.`);
   L.push('');
@@ -1001,7 +1005,7 @@ function buildEditPrompt(mod, d) {
   L.push('');
   L.push(checklistMd(mod));
   L.push('');
-  L.push('**TEST/DEV only. Savepoint made. `buildprint check` after each task. Do not push to live.**');
+  L.push('**TEST/DEV only, never live. Loop per task: savepoint → apply → `buildprint check`. If check fails, restore the savepoint. Plan first; one step per apply.**');
   return L.join('\n');
 }
 
@@ -1049,7 +1053,7 @@ const EDIT_TASKS_PROMPT = [
   '',
   'Rules:',
   '- Start with `## Task 0 — Locate + report`: find the relevant page/reusable + elements + data types and report BEFORE changing anything.',
-  '- Then `## Task 1 — …`, `## Task 2 — …` for the actual change Vlad asked for. Use exact-dimension tables when Vlad gives specs.',
+  '- Then `## Task 1 — …`, `## Task 2 — …` for the actual change Vlad asked for. Use exact-dimension tables when Vlad gives specs. Make each Task a self-contained step that can be applied and checked on its own (Buildprint does savepoint → apply → check per task).',
   '- End with a final `## Task N — Verify + report`: prove it works (measure / getComputedStyle), list styles reused vs created, quote privacy rules + guards, and the [NEG] tests Vlad must run.',
   '- Bake in CRS locked rules where the task touches them: Pattern A (every business DT has company + property + a privacy rule checking BOTH; exceptions Company/Property/Subscription/system); permission-based access; every write via a PRIVATE server-guarded backend workflow (Current User server-side, no UI-only writes, no auto-bind on sensitive fields, tenant check on passed Things); UI on named Dark + (Light) paired styles from design.md tokens (zero inline colors; find styles first, create + showcase only if nothing fits; theming = full style swap).',
   '- Scope strictly to what Vlad asked — no unrelated work. Reference real elements / data types from the context where known; otherwise tell Task 0 to inventory them. Keep it tight.',
@@ -1066,7 +1070,7 @@ function buildEditWrapper(mod, d, requestText, tasks) {
   const L = [];
   L.push(`# Buildprint edit — ${mod.name}`);
   L.push('');
-  L.push(`**On TEST/DEV branch only. Create savepoint "${label}" first. Run \`buildprint check\` after each task. Do not push to live. Apply directly without confirmation.**`);
+  L.push(`**On TEST/DEV branch only, never live. Run \`buildprint sync\` first, then PLAN the steps. Work ONE task at a time — for EACH task: create a savepoint (\`buildprint savepoint "${label} — Task N"\`) → \`buildprint apply\` → \`buildprint check\`. If check fails, stop and fix or restore that savepoint before continuing.**`);
   L.push('');
   L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML.`);
   L.push('');
@@ -1079,7 +1083,7 @@ function buildEditWrapper(mod, d, requestText, tasks) {
   L.push('');
   L.push(checklistMd(mod));
   L.push('');
-  L.push('**TEST/DEV only. Savepoint made. `buildprint check` after each task. Do not push to live.**');
+  L.push('**TEST/DEV only, never live. Loop per task: savepoint → apply → `buildprint check`. If check fails, restore the savepoint. Plan first; one step per apply.**');
   return L.join('\n');
 }
 
