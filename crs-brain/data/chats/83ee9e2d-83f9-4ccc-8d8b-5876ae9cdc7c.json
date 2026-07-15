@@ -4,7 +4,7 @@
   "sessionId": "465eff3c-363b-4951-8e4a-3bc168d92b89",
   "bp": true,
   "created": "2026-07-15T23:47:23.732Z",
-  "updated": "2026-07-15T23:47:53.101Z",
+  "updated": "2026-07-15T23:48:54.342Z",
   "messages": [
     {
       "role": "user",
@@ -16,6 +16,17 @@
       "role": "assistant",
       "content": "Yes. In Buildprint, cloning an element (an element and its whole subtree) is done with:\n\n```\nbuildprint copy element --source <existing element path> --path <destination parent>\n```\n\n- `--source` — the element you want to clone, e.g. `pages/home/elements/sidebar` (the element directory or its `element.json`).\n- `--path` — where the copy lands: a canvas root (like `pages/home`) or another element to nest it under.\n\nExample from the CLI's own help:\n```\nbuildprint copy element --source pages/home/elements/sidebar --path pages/home\n```\n\nThat drops a duplicate of `sidebar` (and everything inside it) onto the `home` page.\n\nA couple of notes for our workflow:\n- The copy lands in the workspace files only. To push it to Bubble it still goes through the loop — savepoint → `buildprint apply` → `buildprint check`.\n- If you're not sure of the exact source path, `buildprint tree <page>` shows the element structure so you can grab the right one.\n\nWant me to clone a specific element? Tell me which one and where it should go, and I'll sync first, plan the step, and run it past you before applying.",
       "ts": "2026-07-15T23:47:53.101Z"
+    },
+    {
+      "role": "user",
+      "content": "lets say i have one reusable element, and in web app there is a function to clone it and give indiferrent id to it",
+      "ts": "2026-07-15T23:48:32.162Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Exactly that. A reusable is a top-level *root*, so the equivalent of the Bubble editor's \"clone this reusable\" is:\n\n```\nbuildprint copy root --kind reusable --source \"<original reusable>\" --name \"<new name>\"\n```\n\n- `--source` — the reusable you're cloning. Can be its **display name**, its root id, or raw key.\n- `--name` — the name for the new copy.\n- `--kind reusable` — tells it this is a reusable (use `mobile_reusable` for a mobile one).\n\nOn your \"different id\" point — yes, that's automatic. The copy is created as a brand-new root with its own freshly-generated Bubble id, distinct from the original, just like the editor does. You don't specify the id; Buildprint generates a unique one. Everything inside (child elements, their ids, workflows on the reusable) gets duplicated under new ids too, so the clone is fully independent of the source.\n\nTwo things to keep in mind:\n- The clone lands in the workspace files first. To get it into the actual Bubble app it still goes through the loop: sync → savepoint → `buildprint apply` → `buildprint check`.\n- If two reusables share the same display name it'll be ambiguous, so prefer the exact name (or id) for `--source`.\n\nWant me to clone a specific reusable? Give me the source name and what you want the copy called — I'll `buildprint sync` first, show you the one-step plan, and only apply once you say go.",
+      "ts": "2026-07-15T23:48:54.342Z"
     }
   ]
 }
