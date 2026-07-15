@@ -29,16 +29,6 @@
       "order": 2
     },
     {
-      "id": "user_management",
-      "name": "User Management",
-      "section": "Admin / Core",
-      "route": "users",
-      "icon": "person-gear",
-      "status": "in-progress",
-      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
-      "order": 3
-    },
-    {
       "id": "fiscal_week_mgmt",
       "name": "Fiscal Week Management",
       "section": "Admin / Core",
@@ -46,6 +36,16 @@
       "icon": "calendar",
       "status": "not-started",
       "note": "3rd of 4 foundation. Fiscal Week DT + Close/Edit perms exist.",
+      "order": 3
+    },
+    {
+      "id": "user_management",
+      "name": "User Management",
+      "section": "Admin / Core",
+      "route": "users",
+      "icon": "person-gear",
+      "status": "in-progress",
+      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
       "order": 4
     },
     {
