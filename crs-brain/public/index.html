@@ -139,14 +139,17 @@
   .sel option{background:var(--panel2);color:var(--primary)}
 
   /* chat */
-  .chat{flex:1;overflow:auto;padding:26px 18px 10px}
-  .msg{display:flex;gap:14px;max-width:830px;margin:0 auto 22px;animation:msgIn .45s cubic-bezier(.2,.7,.2,1) both}
-  .avatar{width:30px;height:30px;border-radius:9px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;font-weight:600;margin-top:1px}
-  .avatar.bot{background:var(--grad);color:#fff;font-size:14px}
-  .avatar.you{background:var(--panel2);border:1px solid var(--line2);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.3px}
-  .content{min-width:0;flex:1}
-  .msg.user .bubble{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:10px 14px;color:var(--primary);display:inline-block;max-width:100%}
+  .chat{flex:1;overflow:auto;padding:28px 18px 12px}
+  /* Claude-style: no avatars, a tighter reading column, airy spacing */
+  .msg{display:block;max-width:744px;margin:0 auto 26px;animation:msgIn .4s cubic-bezier(.2,.7,.2,1) both}
+  .avatar{display:none}
+  .content{min-width:0}
+  /* user turn = subtle rounded bubble, right-aligned, content-width */
+  .msg.user .content{display:flex;justify-content:flex-end}
+  .msg.user .bubble{background:var(--panel2);border:none;border-radius:16px;padding:10px 15px;color:var(--primary);display:inline-block;max-width:88%;font-size:15px;line-height:1.6;text-align:left}
+  /* assistant turn = clean bright prose, no bubble */
   .body{color:var(--secondary)}
+  .msg.assistant .body{color:#E6E6E6;font-size:15px;line-height:1.72}
   .dim{color:var(--muted)}
 
   /* streaming reveal */
@@ -264,6 +267,29 @@
   .md .md-img,.doc .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
   .md a[data-path]{color:var(--accent2);border-bottom:1px dashed rgba(96,165,250,.4)}
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
+
+  /* Claude-style chat prose — brighter, airier than the file viewer; scoped to chat */
+  .hbackleft{margin-right:8px}
+  .msg.assistant .body p,.msg.assistant .body li{color:#E6E6E6}
+  .msg.assistant .body p{margin:0 0 1em}
+  .msg.assistant .body>*:last-child{margin-bottom:0}
+  .msg.assistant .body h1,.msg.assistant .body h2,.msg.assistant .body h3{margin:1.15em 0 .5em;border:none;padding:0}
+  .msg.assistant .body h1{font-size:19px}
+  .msg.assistant .body h2{font-size:16.5px}
+  .msg.assistant .body h3{font-size:14.5px}
+  .msg.assistant .body ul,.msg.assistant .body ol{margin:.55em 0;padding-left:24px}
+  .msg.assistant .body li{margin:.32em 0}
+  .msg.assistant .body pre{border-radius:10px;background:#0d0d10;margin:1em 0}
+  .msg.assistant .body code{font-size:13px}
+  .msg.assistant .body>hr{border:none;border-top:1px solid var(--line);margin:1.4em 0}
+
+  /* file chips in chat: show a download button on hover */
+  .matt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;color:var(--primary);text-decoration:none}
+  .matt .matt-name{color:var(--primary)}
+  .matt-dl{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;color:var(--muted);opacity:0;transition:.15s;flex:0 0 auto}
+  .matt:hover .matt-dl{opacity:1}
+  .matt-dl:hover{background:var(--elev);color:var(--primary)}
+  .matt-dl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
   /* quick-open palette (Cmd/Ctrl+K) */
   .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
@@ -628,6 +654,7 @@
     <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <button class="expand-handle right" title="Show usage & progress" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
+      <button class="ghost hbackleft" id="backBtn" style="display:none" onclick="goBack()" title="Back to where you were">← Back</button>
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
@@ -638,7 +665,6 @@
         <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
-      <button class="ghost" id="backBtn" style="display:none" onclick="goBack()" title="Back to where you were">← Back</button>
       <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
       <button class="ghost" id="downloadBtn" style="display:none" onclick="downloadFile()" title="Download this file">↓ Download</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
@@ -957,7 +983,14 @@ async function delChat(id){
   if(!confirm('Delete "'+t+'"? This cannot be undone.')) return;
   await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
 
-function attsHtml(atts){ return atts&&atts.length?`<div class="msg-atts">${atts.map(x=>`<span class="matt">${svg('i-clip','sm')} ${esc((''+x).split('/').pop())}</span>`).join('')}</div>`:''; }
+function attsHtml(atts){
+  if(!atts||!atts.length) return '';
+  return `<div class="msg-atts">${atts.map(x=>{
+    const p=(''+x), name=p.split('/').pop();
+    return `<span class="matt" title="${esc(name)}">${svg('i-clip','sm')}<span class="matt-name">${esc(name)}</span>`
+      +`<a class="matt-dl" href="/api/raw?path=${encodeURIComponent(p)}" download="${esc(name)}" title="Download ${esc(name)}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a></span>`;
+  }).join('')}</div>`;
+}
 function userMsgEl(content, atts){
   const el=document.createElement('div'); el.className='msg user';
   const body=content?esc(content).replace(/\n/g,'<br>'):'<span class="dim">(files attached)</span>';
