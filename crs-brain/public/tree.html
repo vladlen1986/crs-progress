@@ -87,6 +87,18 @@
   .reqta{width:100%;height:70px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--primary);font-family:var(--sans);font-size:12.5px;line-height:1.5;padding:9px 11px;resize:vertical;margin-bottom:8px}
   .reqta:focus{border-color:var(--accent);outline:none}
   .reqta::placeholder{color:var(--muted)}
+  /* checklist */
+  .chklist{display:flex;flex-direction:column;gap:5px}
+  .chk{display:flex;align-items:center;gap:9px}
+  .chk-state{flex:0 0 auto;width:20px;height:20px;border-radius:5px;border:1px solid var(--line2);background:var(--panel2);color:var(--muted);cursor:pointer;font-size:12px;line-height:1;display:flex;align-items:center;justify-content:center;font-family:inherit;padding:0}
+  .chk-state.partial{color:var(--warn);border-color:rgba(245,158,11,.4)}
+  .chk-state.done{color:var(--good);border-color:rgba(34,197,94,.4)}
+  .chk-state:hover{border-color:var(--line3)}
+  .chk-label{flex:0 0 auto;font-size:12.5px;color:var(--secondary);width:210px;max-width:46%}
+  .chk-detail{flex:1;min-width:0;background:transparent;border:none;border-bottom:1px dashed var(--line2);color:var(--muted);font-family:var(--sans);font-size:11.5px;padding:2px}
+  .chk-detail:focus{outline:none;border-bottom-color:var(--accent);color:var(--secondary)}
+  .chk-detail::placeholder{color:var(--line3)}
+  .chkprog{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 6px}
   .promptbox .prow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .promptbox .plabel{font-size:11px;color:var(--muted)}
   select.filt{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer}
@@ -159,6 +171,9 @@ function renderSummary(){
 }
 function move(idx,dir){ const j=idx+dir; if(j<0||j>=DATA.modules.length)return; const[m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m); render(); scheduleSave(); }
 function cycle(idx){ const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length]; render(); scheduleSave(); }
+function findMod(id){ return DATA.modules.find(m=>m.id===id); }
+function cycleChk(id,ci){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; const s=m.checklist[ci].state; m.checklist[ci].state=s==='todo'?'partial':s==='partial'?'done':'todo'; render(); scheduleSave(); }
+function setChkDetail(id,ci,v){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; m.checklist[ci].detail=v; scheduleSave(); } // no re-render: keeps input focus
 
 async function toggle(id){
   if(expanded.has(id)) expanded.delete(id);
@@ -194,6 +209,9 @@ function detailHTML(id){
   const d=detailCache[id];
   if(!d) return '<div class="detail"><div class="dsec none">Loading…</div></div>';
   if(d.error) return `<div class="detail"><div class="dsec none">Could not load detail: ${esc(d.error)}</div></div>`;
+  const m0=findMod(id), cl=(m0&&m0.checklist)||[];
+  const cdone=cl.filter(c=>c.state==='done').length;
+  const checklist=`<div class="dsec"><h4>Definition of done — <span style="color:var(--secondary)">${cdone}/${cl.length}</span></h4><div class="chklist">${cl.map((c,ci)=>`<div class="chk"><button class="chk-state ${c.state}" title="click: todo → partial → done" onclick="cycleChk('${id}',${ci})">${c.state==='done'?'✓':c.state==='partial'?'◐':'○'}</button><span class="chk-label">${esc(c.label)}</span><input class="chk-detail" value="${esc(c.detail||'')}" placeholder="notes… e.g. 128/128 done" oninput="setChkDetail('${id}',${ci},this.value)"></div>`).join('')}</div></div>`;
   const sec=(title,body,empty)=> body&&body.trim() ? `<div class="dsec"><h4>${title}</h4><pre>${esc(body)}</pre></div>` : `<div class="dsec"><h4>${title}</h4><div class="none">${empty}</div></div>`;
   let mentions='';
   if(d.mentions&&d.mentions.length){
@@ -207,6 +225,7 @@ function detailHTML(id){
   if(d.userManual) links.push(`<a href="/api/file?path=${encodeURIComponent(d.userManual)}" target="_blank">User manual ↗</a>`);
   links.push(`<a href="/api/file?path=brain%2FSTATUS.md" target="_blank">STATUS.md ↗</a>`);
   return `<div class="detail"><div class="dgrid">
+    ${checklist}
     ${sec('Status detail (brain/STATUS.md)', d.statusBlock, 'No expanded status block yet — only the Core-7 row in STATUS.md.')}
     ${sec('Data types & data model', d.dataModel, d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')}
     ${sec('Option sets', d.optionSets, d.documented?'—':'Not documented yet.')}
@@ -255,6 +274,7 @@ function render(){
           `<button title="Move down" ${idx===DATA.modules.length-1?'disabled':''} onclick="event.stopPropagation();move(${idx},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>`+
         `</div>`+
         `<div class="body" onclick="toggle('${m.id}')"><span class="caret">▶</span><div class="bodytext"><div class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span>${docTag}</div><div class="note">${esc(m.note||'')}</div></div></div>`+
+        `<span class="chkprog" title="checklist done / total">${(m.checklist||[]).filter(c=>c.state==='done').length}/${(m.checklist||[]).length||8}</span>`+
         `<button class="pill ${m.status}" title="Click to change status" onclick="event.stopPropagation();cycle(${idx})">${LABEL[m.status]||m.status}</button>`+
       `</div>`+
       (open?detailHTML(m.id):'');

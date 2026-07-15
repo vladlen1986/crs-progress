@@ -875,6 +875,29 @@ function loadModulesDoc() {
   try { return JSON.parse(fs.readFileSync(MODULES_FILE, 'utf8')); }
   catch { return { modules: [] }; }
 }
+// Per-module definition-of-done checklist. Editable in the tree; also injected into
+// every generated Buildprint prompt as acceptance criteria.
+const CHECKLIST_TEMPLATE = [
+  ['ui', 'UI elements built'], ['ux', 'UX / workflows working'],
+  ['db', 'Data types as planned (company + property)'], ['os', 'Option sets in place'],
+  ['privacy', 'Privacy rules (Pattern A) in place'], ['perms', 'Backend protection (permission-based)'],
+  ['theme', 'Theme (dark + light)'], ['tested', 'Security [NEG] tested'],
+];
+const CHECK_STATES = new Set(['todo', 'partial', 'done']);
+function defaultChecklist() { return CHECKLIST_TEMPLATE.map(([key, label]) => ({ key, label, state: 'todo', detail: '' })); }
+function sanitizeChecklist(cl) {
+  if (!Array.isArray(cl) || !cl.length) return defaultChecklist();
+  return cl.map((c) => ({
+    key: String(c.key || '').slice(0, 24), label: String(c.label || '').slice(0, 120),
+    state: CHECK_STATES.has(c.state) ? c.state : 'todo', detail: String(c.detail || '').slice(0, 200),
+  }));
+}
+// Render a module's checklist as markdown acceptance criteria.
+function checklistMd(mod) {
+  const cl = (Array.isArray(mod.checklist) && mod.checklist.length) ? mod.checklist : defaultChecklist();
+  const mark = (s) => (s === 'done' ? '[x]' : s === 'partial' ? '[~]' : '[ ]');
+  return cl.map((c) => `- ${mark(c.state)} ${c.label}${c.detail ? ` — ${c.detail}` : ''}`).join('\n');
+}
 function _readRepo(rel) { try { return fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8'); } catch { return ''; } }
 function _escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
 // Extract a markdown section: from the heading matching startRe until the next
@@ -973,6 +996,11 @@ function buildEditPrompt(mod, d) {
   L.push('## Task 4 — Verify, then report');
   L.push('Run the [STRUCT]/[POS] items from brain/security-test-checklist.md. Confirm with evidence: Pattern A privacy rule quoted on every DT touched; server-side guard quoted on every write; Data API not exposed for those DTs; dark + light both via swapped styles (getComputedStyle proof); zero new searches on render where avoidable. Report: element mapping, styles reused vs created (+ showcased), privacy rules + guards quoted, measured key dimensions, and the **[NEG] tests I must run** (second-tenant / property-admin / low-perm). Flag any spec point Bubble genuinely cannot hit and give your closest compliant alternative — never silently substitute.');
   L.push('');
+  L.push('## Acceptance criteria — module definition of done');
+  L.push('This change must not regress any item below. Report each item\'s final state (`[x]` done / `[~]` partial / `[ ]` not started):');
+  L.push('');
+  L.push(checklistMd(mod));
+  L.push('');
   L.push('**TEST/DEV only. Savepoint made. `buildprint check` after each task. Do not push to live.**');
   return L.join('\n');
 }
@@ -994,6 +1022,9 @@ function buildSyncPrompt(mod, d) {
   L.push('3. **Security (STRUCT+POS)** — per business DT: quote the privacy rule (company AND property?), state Data API exposure, quote each write\'s server-side guard. Flag public-everyone / no-rules / logged-in-only DTs, UI-only writes, auto-bind on sensitive fields, public uploaders.');
   L.push('4. **Findings** — ranked SECURITY > FUNCTIONAL > POLISH (severity, exact entity/expression, fix). Then the **[NEG] tests a human must run**.');
   L.push('5. **Delta vs the ledger** — where brain/STATUS.md is wrong for this module.');
+  L.push('6. **Definition of done** — verify each item below against the live app and report its true state (`[x]` done / `[~]` partial / `[ ]` not started) with evidence:');
+  L.push('');
+  L.push(checklistMd(mod));
   L.push('');
   L.push('## Output');
   L.push('(a) A human-readable report, and (b) a fenced `json` block so the CRS Brain can ingest it back into STATUS.md + the Progress Tree:');
@@ -1018,6 +1049,7 @@ const EDIT_GEN_PROMPT = [
   '- First line, bold: **On TEST/DEV branch only. Create savepoint "<short label>" first. Run `buildprint check` after each task. Do not push to live. Apply directly without confirmation.**',
   '- Then a bold **Attached:** line naming ONLY the source files relevant to this task: design.md (tokens/naming/theme) and CRS-style-system.md for any UI/style work; brain/security-test-checklist.md for any data/privacy/permission/workflow work; the module technical reference when one exists; and tell Vlad to attach the module design HTML if pixel dimensions are needed.',
   '- Number the work: `## Task 0 — Locate + report` (find the relevant page/reusable + elements + data types and report BEFORE changing anything), then `## Task 1 — …`, `## Task 2 — …` for the actual change. Use exact-dimension tables when Vlad gives specs. The FINAL task is always verify (measure/prove) + report: what changed, styles reused vs created (+ showcased), privacy rules + guards quoted, and the [NEG] tests Vlad must run.',
+  '- Then a `## Acceptance criteria — module definition of done` section: reproduce the module definition-of-done checklist provided in the context (keep the `[x]`/`[~]`/`[ ]` marks), and state that this change must not regress any `[x]` item and that Buildprint must report each item\'s final state.',
   '- Close with a bold repeat of the guardrail line.',
   '',
   'BAKE IN these CRS locked rules wherever the task touches them:',
@@ -1389,8 +1421,10 @@ const server = http.createServer(async (req, res) => {
     // Progress Tree — priority-ordered module list (reorderable in the app). Plain
     // JSON, git-versioned. Seeded from data/CRS_Module_OptionSets.xlsx + brain/STATUS.md.
     if (p === '/api/modules' && req.method === 'GET') {
-      try { return send(res, 200, JSON.parse(fs.readFileSync(MODULES_FILE, 'utf8'))); }
-      catch { return send(res, 200, { updated: '', statusVocab: ['done', 'in-progress', 'not-started', 'roadmap'], modules: [] }); }
+      const doc = loadModulesDoc();
+      (doc.modules || []).forEach((m) => { if (!Array.isArray(m.checklist) || !m.checklist.length) m.checklist = defaultChecklist(); });
+      if (!doc.statusVocab) doc.statusVocab = ['done', 'in-progress', 'not-started', 'roadmap'];
+      return send(res, 200, doc);
     }
     if (p === '/api/modules' && req.method === 'PUT') {
       const body = await readJsonBody(req);
@@ -1401,7 +1435,7 @@ const server = http.createServer(async (req, res) => {
         id: String(m.id || ''), name: String(m.name || ''), section: String(m.section || ''),
         route: String(m.route || ''), icon: String(m.icon || ''),
         status: VOCAB.has(m.status) ? m.status : 'roadmap',
-        note: String(m.note || ''), order: i + 1,
+        note: String(m.note || ''), checklist: sanitizeChecklist(m.checklist), order: i + 1,
       }));
       if (!body.statusVocab) body.statusVocab = ['done', 'in-progress', 'not-started', 'roadmap'];
       fs.writeFileSync(MODULES_FILE, JSON.stringify(body, null, 2));
@@ -1441,6 +1475,7 @@ const server = http.createServer(async (req, res) => {
         d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
         d.perms ? 'Permissions:\n' + d.perms : '',
         d.workflows ? 'Workflows:\n' + d.workflows : '',
+        'DEFINITION-OF-DONE CHECKLIST (reproduce as ## Acceptance criteria):\n' + checklistMd(mod),
       ].filter(Boolean).join('\n\n');
       const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — turn this into a Buildprint edit prompt for this module:\n${text}`;
       const cfg = loadSettings();
