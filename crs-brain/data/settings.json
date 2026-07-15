@@ -1,5 +1,5 @@
 {
-  "model": "claude-opus-4-8",
-  "effort": "high",
+  "model": "claude-fable-5",
+  "effort": "xhigh",
   "manualsCheckedAt": 1784018753224
 }
