@@ -4,6 +4,18 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-15 — Product status consolidated into the brain + Progress Tree page
+
+Pulled the scattered progress/design/module docs off the Desktop `Files` export (215 files across V0–V7) into the brain as the canonical, dated set. Ended the three-way "progress" name collision.
+
+- **brain/STATUS.md** — NEW canonical CRS *product* build tracker. Reconciled from the June-8 `progress.md` board + June-11 UM session handoff + the 2026-07-15 live-Bubble inventory. Keeps the V6 skeleton (status vocab, NOW/NEXT/BLOCKED, all-46 Core-7 table, full-18 for active modules) and adds §0.5 "as-built reality check" (0/46 Pattern A, 39 public DTs, 06 Employee PII). Flags UM items to verify in the live app.
+- **brain/modules/** — NEW. Preserved 4 orphaned canonical docs that existed only on the Desktop: Casino Settings + Roles & Permissions technical references and user manuals. (R&P tech ref = the per-module template.)
+- **brain/security-test-checklist.md** — NEW. The standing STRUCT/POS/NEG per-module security gate (was Desktop-only).
+- **PROGRESS.md → crs-brain/BRAIN_APP_PROGRESS.md** — renamed to kill the product-vs-tool collision (it tracks the Brain *tool*, not the product). README + this INDEX updated.
+- **crs-brain/data/progress.json** — refreshed from 2026-05-02 (stale) to current foundation-refactor state (Now: UM security pass; Done: R&P, Casino Settings, Design System).
+- **crs-brain/data/modules.json + public/tree.html** — NEW "Progress Tree" page: all 46 modules in build-priority order (foundation-4 first), reorder via drag or ↑↓, click-to-cycle status, auto-saves. Seeded from data/CRS_Module_OptionSets.xlsx + STATUS.md.
+- **Not touched: decisions.md** (append-only, Vlad's). Design.md and the Blueprint were already newest in the repo — Desktop copies were older; nothing pulled.
+
 ## 2026-07-15 — Dev-tracking files refreshed against the inventory
 
 Follow-up pass routing the inventory into the remaining development files:

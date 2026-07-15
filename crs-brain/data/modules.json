@@ -1,0 +1,472 @@
+{
+  "updated": "2026-07-15",
+  "note": "CRS product build-priority tree. Reorder in the brain app (Progress Tree). Statuses: done / in-progress / not-started / roadmap. Seed: data/CRS_Module_OptionSets.xlsx (46) + brain/STATUS.md. Per-module detail in brain/STATUS.md §3 + brain/modules/.",
+  "statusVocab": [
+    "done",
+    "in-progress",
+    "not-started",
+    "roadmap"
+  ],
+  "modules": [
+    {
+      "id": "casino_settings",
+      "name": "Casino Settings",
+      "section": "Admin / Core",
+      "route": "settings",
+      "icon": "gear",
+      "status": "done",
+      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
+      "order": 1
+    },
+    {
+      "id": "roles_permissions",
+      "name": "Roles & Permissions",
+      "section": "Admin / Core",
+      "route": "roles",
+      "icon": "shield-check",
+      "status": "done",
+      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
+      "order": 2
+    },
+    {
+      "id": "user_management",
+      "name": "User Management",
+      "section": "Admin / Core",
+      "route": "users",
+      "icon": "person-gear",
+      "status": "in-progress",
+      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
+      "order": 3
+    },
+    {
+      "id": "fiscal_week_mgmt",
+      "name": "Fiscal Week Management",
+      "section": "Admin / Core",
+      "route": "fiscal-week",
+      "icon": "calendar",
+      "status": "not-started",
+      "note": "3rd of 4 foundation. Fiscal Week DT + Close/Edit perms exist.",
+      "order": 4
+    },
+    {
+      "id": "subscription",
+      "name": "Subscription & Tier",
+      "section": "Admin / Core",
+      "route": "subscription",
+      "icon": "credit-card",
+      "status": "roadmap",
+      "note": "",
+      "order": 5
+    },
+    {
+      "id": "notifications",
+      "name": "Notifications",
+      "section": "Admin / Core",
+      "route": "notifications",
+      "icon": "bell",
+      "status": "roadmap",
+      "note": "",
+      "order": 6
+    },
+    {
+      "id": "activity_log",
+      "name": "System Activity Log",
+      "section": "Admin / Core",
+      "route": "activity",
+      "icon": "journal-text",
+      "status": "roadmap",
+      "note": "",
+      "order": 7
+    },
+    {
+      "id": "import_export",
+      "name": "Import & Export",
+      "section": "Admin / Core",
+      "route": "import-export",
+      "icon": "arrow-down-up",
+      "status": "roadmap",
+      "note": "",
+      "order": 8
+    },
+    {
+      "id": "integrations",
+      "name": "API & Integrations",
+      "section": "Admin / Core",
+      "route": "integrations",
+      "icon": "plug",
+      "status": "roadmap",
+      "note": "",
+      "order": 9
+    },
+    {
+      "id": "contacts",
+      "name": "Contacts",
+      "section": "Admin / Core",
+      "route": "contacts",
+      "icon": "person-rolodex",
+      "status": "roadmap",
+      "note": "",
+      "order": 10
+    },
+    {
+      "id": "support_center",
+      "name": "Support Center",
+      "section": "Admin / Core",
+      "route": "support",
+      "icon": "question-circle",
+      "status": "roadmap",
+      "note": "",
+      "order": 11
+    },
+    {
+      "id": "dashboard",
+      "name": "Dashboard",
+      "section": "Operations",
+      "route": "dashboard",
+      "icon": "speedometer2",
+      "status": "roadmap",
+      "note": "",
+      "order": 12
+    },
+    {
+      "id": "reporting",
+      "name": "Reporting",
+      "section": "Operations",
+      "route": "reports",
+      "icon": "file-earmark-text",
+      "status": "in-progress",
+      "note": "Live in legacy app (13K records). Cross-tenant readable — needs Pattern A.",
+      "order": 13
+    },
+    {
+      "id": "task_management",
+      "name": "Task Manager",
+      "section": "Operations",
+      "route": "tasks",
+      "icon": "check2-square",
+      "status": "not-started",
+      "note": "Task/Subtask DTs live but public + API-exposed.",
+      "order": 14
+    },
+    {
+      "id": "rfi",
+      "name": "Request for Investigation",
+      "section": "Operations",
+      "route": "rfi",
+      "icon": "envelope-open",
+      "status": "roadmap",
+      "note": "",
+      "order": 15
+    },
+    {
+      "id": "malfunction_log",
+      "name": "Malfunction Log",
+      "section": "Operations",
+      "route": "malfunction",
+      "icon": "exclamation-triangle",
+      "status": "roadmap",
+      "note": "",
+      "order": 16
+    },
+    {
+      "id": "lost_found",
+      "name": "Lost & Found",
+      "section": "Operations",
+      "route": "lost-and-found",
+      "icon": "box-seam",
+      "status": "roadmap",
+      "note": "",
+      "order": 17
+    },
+    {
+      "id": "break_list",
+      "name": "Break List",
+      "section": "Operations",
+      "route": "break-list",
+      "icon": "arrow-left-right",
+      "status": "roadmap",
+      "note": "",
+      "order": 18
+    },
+    {
+      "id": "meetings",
+      "name": "Meetings",
+      "section": "Operations",
+      "route": "meetings",
+      "icon": "calendar-event",
+      "status": "roadmap",
+      "note": "",
+      "order": 19
+    },
+    {
+      "id": "chain_of_command",
+      "name": "Chain of Command",
+      "section": "Operations",
+      "route": "chain-of-command",
+      "icon": "diagram-3",
+      "status": "roadmap",
+      "note": "",
+      "order": 20
+    },
+    {
+      "id": "daily_activity_log",
+      "name": "Daily Activity Log",
+      "section": "Surveillance",
+      "route": "dal",
+      "icon": "clipboard2-pulse",
+      "status": "roadmap",
+      "note": "",
+      "order": 21
+    },
+    {
+      "id": "gaming_day_report",
+      "name": "Gaming Day Report",
+      "section": "Surveillance",
+      "route": "gdr",
+      "icon": "journal-bookmark",
+      "status": "roadmap",
+      "note": "",
+      "order": 22
+    },
+    {
+      "id": "cctv_audits",
+      "name": "CCTV Audits",
+      "section": "Surveillance",
+      "route": "cctv-audits",
+      "icon": "camera-video",
+      "status": "roadmap",
+      "note": "",
+      "order": 23
+    },
+    {
+      "id": "investigation_cases",
+      "name": "Investigation Cases",
+      "section": "Surveillance",
+      "route": "investigations",
+      "icon": "folder2-open",
+      "status": "roadmap",
+      "note": "",
+      "order": 24
+    },
+    {
+      "id": "advantage_play_analyzer",
+      "name": "Advantage Play Analyzer",
+      "section": "Surveillance",
+      "route": "advantage-play-analyzer",
+      "icon": "graph-up-arrow",
+      "status": "roadmap",
+      "note": "",
+      "order": 25
+    },
+    {
+      "id": "alert_center",
+      "name": "Alert Center",
+      "section": "Surveillance",
+      "route": "alerts",
+      "icon": "broadcast",
+      "status": "roadmap",
+      "note": "",
+      "order": 26
+    },
+    {
+      "id": "guest_management",
+      "name": "Guest Management",
+      "section": "Guests",
+      "route": "guests",
+      "icon": "person-circle",
+      "status": "roadmap",
+      "note": "",
+      "order": 27
+    },
+    {
+      "id": "visitor_management",
+      "name": "Visitor Management",
+      "section": "Guests",
+      "route": "visitor-management",
+      "icon": "person-badge",
+      "status": "roadmap",
+      "note": "",
+      "order": 28
+    },
+    {
+      "id": "guest_watchlist",
+      "name": "Guest Watchlist",
+      "section": "Guests",
+      "route": "guest-watchlist",
+      "icon": "binoculars",
+      "status": "roadmap",
+      "note": "",
+      "order": 29
+    },
+    {
+      "id": "guest_barring",
+      "name": "Guest Barring",
+      "section": "Guests",
+      "route": "guest-barring",
+      "icon": "journal-x",
+      "status": "roadmap",
+      "note": "",
+      "order": 30
+    },
+    {
+      "id": "guest_opportunist",
+      "name": "Guest Opportunist List",
+      "section": "Guests",
+      "route": "guest-opportunist",
+      "icon": "incognito",
+      "status": "roadmap",
+      "note": "",
+      "order": 31
+    },
+    {
+      "id": "blackbook_network",
+      "name": "Blackbook Network",
+      "section": "Guests",
+      "route": "blackbook",
+      "icon": "globe-americas",
+      "status": "roadmap",
+      "note": "",
+      "order": 32
+    },
+    {
+      "id": "employee_management",
+      "name": "Employee Management",
+      "section": "HR / Employees",
+      "route": "employees",
+      "icon": "people",
+      "status": "not-started",
+      "note": "Employee DT live but PII public-everyone (brain/security.md).",
+      "order": 33
+    },
+    {
+      "id": "job_board",
+      "name": "Job Board",
+      "section": "HR / Employees",
+      "route": "job-board",
+      "icon": "briefcase",
+      "status": "roadmap",
+      "note": "",
+      "order": 34
+    },
+    {
+      "id": "onboarding",
+      "name": "Onboarding",
+      "section": "HR / Employees",
+      "route": "onboarding",
+      "icon": "person-check",
+      "status": "roadmap",
+      "note": "",
+      "order": 35
+    },
+    {
+      "id": "attendance",
+      "name": "Attendance",
+      "section": "HR / Employees",
+      "route": "attendance",
+      "icon": "clock",
+      "status": "roadmap",
+      "note": "",
+      "order": 36
+    },
+    {
+      "id": "scheduling",
+      "name": "Scheduling",
+      "section": "HR / Employees",
+      "route": "scheduling",
+      "icon": "calendar-week",
+      "status": "roadmap",
+      "note": "",
+      "order": 37
+    },
+    {
+      "id": "leave_management",
+      "name": "Leave Management",
+      "section": "HR / Employees",
+      "route": "leave",
+      "icon": "airplane",
+      "status": "roadmap",
+      "note": "",
+      "order": 38
+    },
+    {
+      "id": "disciplinary_actions",
+      "name": "Disciplinary Actions",
+      "section": "HR / Employees",
+      "route": "disciplinary-actions",
+      "icon": "exclamation-octagon",
+      "status": "roadmap",
+      "note": "",
+      "order": 39
+    },
+    {
+      "id": "appraisals",
+      "name": "Appraisals",
+      "section": "HR / Employees",
+      "route": "appraisals",
+      "icon": "hand-thumbs-up",
+      "status": "roadmap",
+      "note": "",
+      "order": 40
+    },
+    {
+      "id": "payroll",
+      "name": "Payroll",
+      "section": "HR / Employees",
+      "route": "payroll",
+      "icon": "cash-stack",
+      "status": "roadmap",
+      "note": "",
+      "order": 41
+    },
+    {
+      "id": "policy_library",
+      "name": "Policy Library",
+      "section": "Compliance",
+      "route": "policies",
+      "icon": "book",
+      "status": "roadmap",
+      "note": "",
+      "order": 42
+    },
+    {
+      "id": "house_rules",
+      "name": "House Rules",
+      "section": "Compliance",
+      "route": "house-rules",
+      "icon": "bank",
+      "status": "roadmap",
+      "note": "",
+      "order": 43
+    },
+    {
+      "id": "sensitive_equipment",
+      "name": "Sensitive Equipment",
+      "section": "Compliance",
+      "route": "sensitive-equipment",
+      "icon": "safe",
+      "status": "roadmap",
+      "note": "",
+      "order": 44
+    },
+    {
+      "id": "info_board",
+      "name": "Info Board",
+      "section": "Communication",
+      "route": "info-board",
+      "icon": "megaphone",
+      "status": "roadmap",
+      "note": "",
+      "order": 45
+    },
+    {
+      "id": "intercom",
+      "name": "Intercom",
+      "section": "Communication",
+      "route": "intercom",
+      "icon": "chat-quote",
+      "status": "roadmap",
+      "note": "",
+      "order": 46
+    }
+  ]
+}

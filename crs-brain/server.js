@@ -59,6 +59,7 @@ const CHATS_DIR = path.join(DATA_DIR, 'chats');
 const ATTACH_DIR = path.join(DATA_DIR, 'attachments');
 const DOCS_DIR = path.join(DATA_DIR, 'docs');
 const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
+const MODULES_FILE = path.join(DATA_DIR, 'modules.json');
 const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 
@@ -1223,6 +1224,29 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    // Progress Tree — priority-ordered module list (reorderable in the app). Plain
+    // JSON, git-versioned. Seeded from data/CRS_Module_OptionSets.xlsx + brain/STATUS.md.
+    if (p === '/api/modules' && req.method === 'GET') {
+      try { return send(res, 200, JSON.parse(fs.readFileSync(MODULES_FILE, 'utf8'))); }
+      catch { return send(res, 200, { updated: '', statusVocab: ['done', 'in-progress', 'not-started', 'roadmap'], modules: [] }); }
+    }
+    if (p === '/api/modules' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      if (!body || !Array.isArray(body.modules)) return send(res, 400, { error: 'modules array required' });
+      const VOCAB = new Set(['done', 'in-progress', 'not-started', 'roadmap']);
+      // Renumber order by array position; keep only known fields; guard status.
+      body.modules = body.modules.map((m, i) => ({
+        id: String(m.id || ''), name: String(m.name || ''), section: String(m.section || ''),
+        route: String(m.route || ''), icon: String(m.icon || ''),
+        status: VOCAB.has(m.status) ? m.status : 'roadmap',
+        note: String(m.note || ''), order: i + 1,
+      }));
+      if (!body.statusVocab) body.statusVocab = ['done', 'in-progress', 'not-started', 'roadmap'];
+      fs.writeFileSync(MODULES_FILE, JSON.stringify(body, null, 2));
+      autoCommit('progress tree');
+      return send(res, 200, { ok: true, count: body.modules.length });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
