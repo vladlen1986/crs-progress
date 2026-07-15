@@ -10,6 +10,8 @@ Every `privacy_role` in every live data type read via Buildprint workspace. **Re
 
 Tally (46 live DTs): NO RULES ×24 · public-everyone (unconditional read/search) ×15 · company-only ×2 · property-only ×4 · logged-in-only ×1.
 
+> **Exception resolved (2026-07-16):** the `User` DT's property-only rule is now an **approved Pattern A exception**, not a gap (decisions.md 2026-07-16) — property-only pins company transitively because Property→Company is single-parent and a user belongs to one property. The remaining property-only rows are still under review. Do not re-flag User as non-compliant.
+
 - Access model locked: **permission-based, not role-based** (decisions.md 2026-04-17) — custom Role DT + fixed `OS - Permission` + per-user extras list.
 - GDPR strategy locked: **hybrid anonymize / soft-delete / retain** (decisions.md 2026-04-17). Supporting DTs spec'd: GDPRSettings, PrivacyPolicy, ApplicantErasureRequest.
 
@@ -22,7 +24,7 @@ Tally (46 live DTs): NO RULES ×24 · public-everyone (unconditional read/search
 | 37 Attachment | ⚠️ company-only | + "Visible to creator" rule; missing property check |
 | 31 Role (`permission_groups`) | ⚠️ property-only | everyone-role locked down (grants nothing, non-filterable fields) — best-practice shape, just missing company |
 | 31.1 Role Audit Log | ⚠️ property-only | |
-| User | ⚠️ property-only | "Same property as current user"; company fields on User are deleted |
+| User | ✅ property-only (approved exception) | "Same property as current user"; no company field by design. **Pattern A exception — decisions.md 2026-07-16:** property-only pins company transitively (Property→Company single-parent, one user = one property). NOT a gap. Precondition: `User.property` must stay required + single-valued |
 | 11 Report (13K records) | 🔴 logged-in only | ANY authenticated user of ANY tenant can search/view all reports + autobind 73 fields. Rule is *named* "company" but only checks logged-in |
 | **public-everyone ×15** | 🔴 unconditional read/search | 06 Employee (**PII: passport, national ID, DOB, phone — plus auto-binding for everyone**), 08 Guest, 02 Casino Section, 02.1 Casino Location, 10 Report Type, 12 Employee Link, 13 Guest Link, 21 Comment, 22 Fiscal Week, FOREX Rate, 28 Tag, 29_0 Task, 29_1 Subtask (**+ create/modify/delete via API for any logged-in user, `exposed_api: true`**), 29_3 Task Key Point, Message/Task-Depricated |
 | **NO RULES ×24** | 🔴 publicly readable | 01.2 Division, 01.3 Department, 07 Employee Position, 09 Report Group, 14 Event Status, 15 Inspector_Tables, 23 Game Type, 24 Identified By, 25 Inspector's Focus, 26 Info Board, 27 Membership Status, 29_2 Subtask Update, 30 User Group, 32 EGM, 33 Gaming Date, 34 Info Board Category, 36 Notification, 55 Audit Template/Run/Checklist Item/Response, Country, Report Comparison, User Audit Log |

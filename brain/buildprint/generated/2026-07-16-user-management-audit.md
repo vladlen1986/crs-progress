@@ -31,6 +31,8 @@ List User fields (present vs expected: role single, property direct), any `searc
 ## Task 4 — Privacy rules (quote verbatim)
 For User (and any Employee/Role it reads), **quote the privacy rule verbatim** and classify: `Pattern-A` / `company-only` / `property-only` / `logged-in-only` / `public-everyone` / `NO RULES`. State Data API exposure for each (exposed yes/no).
 
+**Note on the User DT specifically:** property-only is the **intended, approved** shape for User — it is a documented Pattern A exception (property-only pins company transitively, since Property→Company is single-parent and a user belongs to one property). Do **not** flag User's missing `company` field as a gap. Instead verify the three preconditions the exception relies on (see the flag below).
+
 ## Task 5 — Workflow / backend guards
 For every create/edit/delete/state-change (create-user, assign-role, deactivate, reset-password): name the workflow, its `expose` / `auth_unecessary` settings, and the **first** trigger condition. Flag any UI-only or auto-bind write.
 
@@ -48,6 +50,7 @@ Named paired styles vs inline colors; swap-only theming (`theme_is_dark = no`); 
 - **Confirm or refute:** the mobile **Filters** button opens a working bottom sheet — report the element + the workflow that shows it, or "not found / no-op".
 - **Confirm or refute:** a **live-seed** workflow still exists that inserts demo users — name it, or "not found".
 - **Confirm or refute:** User `is_active = no` actually enforces logout on app load — quote the enforcing condition, or "not found".
+- **Confirm or refute:** the User privacy rule is `Current User's property = This Thing's property` (property-only), `User.property` is a **direct single-valued** field, and it is **required / never empty** on every User. If all three hold, isolation is airtight via Property→Company and this is the approved Pattern-A exception (**not a gap**). If `property` is a list, or can be empty, or the rule traverses — **that** is the finding; report it.
 
 ## [NEG] — CANNOT-TEST (owner login can't prove these; list for Vlad, do not "confirm")
 1. A **second-tenant** user cannot enumerate or open this property's users. (Manual: log in as a user in another company/property; open User Management; try search/URL-id; expect nothing.)

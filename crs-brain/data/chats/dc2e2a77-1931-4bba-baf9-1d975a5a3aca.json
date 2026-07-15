@@ -4,7 +4,7 @@
   "sessionId": "0a5d2c34-7a4e-4492-ab52-acf282437741",
   "bp": false,
   "created": "2026-07-15T22:56:02.131Z",
-  "updated": "2026-07-15T22:58:40.873Z",
+  "updated": "2026-07-15T23:00:14.181Z",
   "messages": [
     {
       "role": "user",
@@ -27,6 +27,17 @@
       "role": "assistant",
       "content": "You're right — that's not a security hole. If `property` is a single-valued link to a Property that has exactly one `company`, then `This Thing's property = Current User's property` transitively pins company too. Two Users can't share a property but differ in company. So property-only gives full tenant isolation on User, and a company check would be redundant. I concede the security point.\n\nTwo things still genuinely need a call, though — neither is \"add company back\":\n\n1. **It contradicts the *letter* of the locked decision, not the spirit.** CLAUDE.md and decisions.md 2026-04-27 say *every* business DT carries **both** fields and checks **both**. Property-only satisfies the *goal* (strict isolation) but breaks the *rule as written* — which is why `brain/security.md` keeps listing User as a \"gap\" and every future audit will re-flag it. Fix that by recording User as a **deliberate Pattern-A exception** (\"property-only is sufficient because Property→Company is single-parent\") in decisions.md. Otherwise you re-litigate this every audit.\n\n2. **The isolation holds *only if* `property` is always set and single-valued.** The moment a User has an empty `property` (legacy import, signup-before-assignment), the rule matches nothing — or worse, if it's ever a list, it leaks. That's the real thing to verify, not the missing company field.\n\nSo I'd **replace** the contradiction flag with this instead:\n\n> **Confirm or refute:** the User DT rule is `Current User's property = This Thing's property` (property-only), `property` is a **direct single-valued** field, and it is **required / never empty** on every User. If all three hold, isolation is airtight via Property→Company and this is Pattern-A-equivalent (**note for decisions.md as an intended exception**), not a gap.\n\nWant me to swap that flag into the saved prompt, and separately draft the one-line decisions.md exception entry so security.md can stop flagging User?",
       "ts": "2026-07-15T22:58:40.873Z"
+    },
+    {
+      "role": "user",
+      "content": "yes confirmed property only no need company",
+      "ts": "2026-07-15T22:59:07.222Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Three files updated:\n\n1. **`decisions.md`** — new top entry (2026-07-16) locking User as a Pattern A exception: property-only isolation, no company field, with the why (Property→Company single-parent) and the standing preconditions (`User.property` must stay required + single-valued; one-user-one-property must hold).\n\n2. **`brain/buildprint/generated/2026-07-16-user-management-audit.md`** — Task 4 now tells BP *not* to flag User's missing company field as a gap, and the new flag makes BP verify the three preconditions the exception actually depends on (property is direct, single-valued, never empty).\n\n3. **`brain/security.md`** — User row flipped from ⚠️ gap to ✅ approved exception, plus a note under the tally so the \"0/46 Pattern A\" line stops implying User is unresolved.\n\nOne thing to keep on your radar, per the decision: the isolation is only airtight while `User.property` is **required and single-valued**. If a signup-before-assignment flow ever creates a User with an empty property, that user is invisible (fails closed — acceptable), but if `property` ever becomes a list, isolation leaks. Worth a form-validation guard when you do UM Pass-2.",
+      "ts": "2026-07-15T23:00:14.181Z"
     }
   ]
 }
