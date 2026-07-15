@@ -1,0 +1,25 @@
+{
+  "activePacket": "inventory",
+  "packets": [
+    {
+      "id": "inventory",
+      "module": "Inventory",
+      "title": "Plan-mode inventory of the real Bubble app (prerequisite)",
+      "createdAt": "2026-07-15T12:00:08.901Z",
+      "updatedAt": "2026-07-15T12:01:31.229Z",
+      "steps": [
+        {
+          "id": "inv-1",
+          "title": "Inventory the actual Bubble state on test",
+          "entities": "ALL data_types/, option_sets/, pages/*/workflows, settings/privacy — READ-ONLY",
+          "detail": "Sync the test branch, then produce a complete inventory of what actually exists in Bubble today: every Data Type with its fields (flagging which lack company/property), every Option Set with counts, every privacy rule (flagging company-only rules), and legacy workflows worth keeping or deleting. NO edits, NO apply — this is discovery.",
+          "constraints": "Read-only session. Do not modify or apply anything.",
+          "verify": "Inventory written into brain/database.md, brain/option-sets.md, brain/security.md (\"Current state\" sections) + one dated brain/changelog.md entry. Everything in brain/ stops being spec-only.",
+          "status": "prompted",
+          "chatId": null,
+          "promptedAt": null
+        }
+      ]
+    }
+  ]
+}
