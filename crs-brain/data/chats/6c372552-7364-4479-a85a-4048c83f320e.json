@@ -1,0 +1,21 @@
+{
+  "id": "6c372552-7364-4479-a85a-4048c83f320e",
+  "title": "the map backgeound shall expand below the chat input",
+  "sessionId": "b65ca410-dbe4-423c-bd11-47354e2e70c7",
+  "bp": false,
+  "created": "2026-07-15T00:19:16.268Z",
+  "updated": "2026-07-15T00:21:47.119Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "the map backgeound shall expand below the chat input",
+      "ts": "2026-07-15T00:19:16.268Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The change makes the map view float the composer on top of the galaxy iframe instead of sitting below it.\n\n**What I changed** (`crs-brain/public/index.html`):\n- Added `id=\"centerCol\"` to the center column.\n- New CSS: in `.map-mode`, `.composer-wrap` becomes `position:absolute; bottom:0; background:transparent`. That frees its space so the `flex:1` content area (and the map iframe inside it) expands to the bottom of the column — the galaxy now renders **behind and below** the composer. `pointer-events` is off on the padding and back on for the composer itself, so clicks in the empty area still reach the map.\n- Toggle the `map-mode` class: added in `showMap()`, removed in `showChat()`, `showDashboard()`, and `openFile()`.\n\nThe composer stays a solid pill (its `var(--panel)` background) floating over the starfield, so it's still readable with no seam. Reload the app on the Map view to see it.",
+      "ts": "2026-07-15T00:21:47.119Z"
+    }
+  ]
+}
