@@ -9,7 +9,7 @@ Last updated: **2026-07-14**.
 ## 1. Sprint goal
 Make CRS Brain a complete, polished cockpit for building CRS: chat grounded in `brain/`, a living galaxy map, a Buildprint copilot that operates the Bubble app and auto-syncs changes back into the ledger, mobile access, and a clean file/OS-style experience.
 
-## 2. Done this session (all committed locally; `main` is ~88 commits ahead of origin — NOT pushed)
+## 2. Done this session (all committed AND pushed — origin/main in sync as of 2026-07-15, verified via `git ls-remote`)
 Core app (`crs-brain/`):
 - **Server** `crs-brain/server.js` — zero-dep Node server; chat relay via headless `claude -p` (parameterized `runClaudeStream(msg, sessionId, hooks, opts)` — `opts.cwd/systemPrompt/addDirs/model/effort/signal`); endpoints: `/api/chat` (streaming, `body.bp` routes to Buildprint workspace), `/api/chats`, `/api/search-chats`, `/api/file`, `/api/files` (tree w/ `size`+`mtime`), `/api/recent-edited`, `/api/raw`, `/api/open`, `/api/attach`, `/api/savedoc`, `/api/progress`, `/api/ideas`, `/api/usage[/enable|disable|populate]`, `/api/auth/*`, `/api/digest-context`, `/api/bp/status|track`, `/map`.
 - **Main UI** `crs-brain/public/index.html` — dashboard home; left sidebar tabs Chats│Buildprint│Files; center chat (streaming w/ thinking/tool blocks, stop, regenerate); file viewer/editor; Cmd/Ctrl+K palette; drag-drop/paste attach; images inline; clickable file paths → open (html→default browser via `/api/open`).
@@ -36,7 +36,7 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 3. Task 27 pinned messages; Task 28 chat folders (delete→Uncategorized); Task 29 meaningful dashboard + legacy-file tagging.
 
 ## 5. Open decisions (need Vlad's call)
-- **GitHub push** — `main` is ~88 commits ahead; not pushed (no `gh` auth on this Mac). Options: (a) `gh auth login` then `git push`; (b) GitHub Desktop (installer was in Downloads) → Push origin. Blocks office-PC sync + backup.
+- ~~**GitHub push**~~ — RESOLVED: `origin/main` is in sync with local `HEAD` (GitHub `refs/heads/main` = latest commit, verified 2026-07-15 via `git ls-remote`). Pushes reach GitHub via Vlad's interactive git/GitHub Desktop; note the SANDBOXED non-interactive shell here can't push (no cached creds — `git push` dry-run fails), so don't rely on `git push` from an automated session. **Windows work-PC sync = `git pull`.**
 - **claude.ai chat export** — never delivered (watcher timed out). Optional: Settings→Privacy→Export data → `node crs-brain/import-chats.js --claude-export <conversations.json>`.
 - **MCP for Buildprint** — CLI (editing) is wired; MCP (live data/logs/WU/tests) offered but not set up. `--allowedTools` already includes `mcp__buildprint`; user runs `claude mcp add -s user …` with token when ready.
 - **node_modules in git** — `crs-brain/node_modules/` is committed (repo bloat, cross-platform churn). Should move to `.gitignore` + document `npm install` on clone — but that's a change to make deliberately, not silently.
