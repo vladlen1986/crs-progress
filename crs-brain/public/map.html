@@ -885,10 +885,11 @@ function draw(){
 
 // ---- main loop ----------------------------------------------------------------------
 let last=performance.now();
-function loop(now){ last=now;
+function loop(now){
+  const dt=Math.min(50,now-last); last=now;   // dt BEFORE updating last (the 50ms cap absorbs pauses)
   // On a phone the open board fully covers the galaxy — don't burn battery drawing it.
   if(EMBED && boardOpen && innerWidth<=720){ requestAnimationFrame(loop); return; }
-  const dt=Math.min(50,now-last); step(dt); draw(); requestAnimationFrame(loop); }
+  step(dt); draw(); requestAnimationFrame(loop); }
 
 // ---- interaction ----------------------------------------------------------------------
 function toWorld(px,py){ return { x:(px-W/2-cam.x)/cam.k, y:(py-H/2-cam.y)/cam.k }; }

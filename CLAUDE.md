@@ -100,14 +100,21 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 
 ## Tooling & workflow
 
-### Bubble work via Buildprint (added 2026-05-01)
+### Bubble work via Buildprint (added 2026-05-01; CLI flow since 2026-07-14)
 
 For schema changes, Option Sets, and workflow edits in Bubble:
-- Use Buildprint Build mode on DEV branch
-- Claude writes the Buildprint prompt; user pastes into Buildprint
-- Plan mode for inventory/discovery; Build mode only for actual changes
-- Always review Buildprint plan before approving
-- Never run Buildprint on live before May 31 cutover
+- Operated through the **Buildprint CLI** from CRS Brain's Buildprint chat mode
+  (bp:true chats) against the cloned **TEST branch worktree**
+  (`~/projects/crs-bubble/<app>/test`) — no website paste needed.
+- The loop is always `buildprint sync` → edit files → `buildprint check` (must
+  pass) → `buildprint apply`. Plan-before-first-apply: the copilot states its
+  exact plan and waits for approval. Never `--force-apply` / `--no-check` /
+  `sync --reset` without explicit approval. TEST branch only — never live.
+- Build packets (crs-brain/data/plans.json, managed in the app's Build plan
+  panel) break a module into one-session steps; each step expands into a
+  guardrail-hardened Buildprint prompt.
+- After each session, changes are ingested back into `brain/` (auto-tracking
+  or the Ingest button).
 
 For repo work (decisions.md, CLAUDE.md, audits):
 - Claude Code as before, PERMISSION MODE pattern
@@ -115,7 +122,8 @@ For repo work (decisions.md, CLAUDE.md, audits):
 For strategy / design / UX decisions:
 - Direct chat with Claude
 
-See `decisions.md` 2026-05-01 for full rule set and prompt patterns.
+See `decisions.md` 2026-05-01 for the original rule set and
+`brain/buildprint/crs-brain-operations.md` for the operational guardrails.
 
 ---
 

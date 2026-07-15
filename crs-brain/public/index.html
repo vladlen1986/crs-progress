@@ -300,7 +300,10 @@
   .action .at{color:var(--primary);font-size:13.5px;font-weight:600}
   .action .ad{font-size:11.5px;color:var(--muted);line-height:1.4}
   .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 17px}
+  /* min-width:0 lets grid items shrink below their nowrap content (long chat titles)
+     — without it the shared column grows past the viewport on mobile */
+  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:15px 17px;min-width:0}
+  .drow .rt{min-width:0}
   .dcard h3{color:var(--primary);font-size:12.5px;font-weight:600;margin:0 0 4px;display:flex;align-items:center;gap:8px}
   .dcard h3 .cnt{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500}
   .drow{display:flex;align-items:center;gap:9px;padding:9px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--secondary);cursor:pointer}
@@ -320,7 +323,7 @@
   .bp-panel{flex:1;display:flex;flex-direction:column;min-height:0}
   .bp-head{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
   .bp-head .bp-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 7px}
-  .bp-head .bp-dot.on{background:var(--success);box-shadow:0 0 8px var(--success)}
+  .bp-head .bp-dot.on{background:var(--good);box-shadow:0 0 8px var(--good)}
   .bp-head #bpWs{color:var(--secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .bp-head .refresh{margin-left:auto}
   .bp-log{flex:1;overflow:auto;padding:12px 12px 6px;min-height:0}
@@ -339,7 +342,7 @@
   .bp-composer textarea:focus{border-color:var(--accent)}
   .bp-conn{font-size:10.5px;color:var(--muted);padding:2px 14px 8px;display:flex;align-items:center;gap:6px}
   .bp-conn .bp-ok,.bp-conn .bp-off{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
-  .bp-conn .bp-ok{background:var(--success);box-shadow:0 0 7px var(--success)}
+  .bp-conn .bp-ok{background:var(--good);box-shadow:0 0 7px var(--good)}
   .bp-conn .bp-off{background:var(--muted)}
   /* right panel scroll + recent files */
   .col.right .rscroll{flex:1;overflow:auto;min-height:0}
@@ -460,6 +463,35 @@
   .usage .off{color:var(--secondary);display:flex;align-items:center;gap:7px;margin-bottom:9px}
   .usage .disable{background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:9px}
   .usage .disable:hover{color:var(--primary)}
+
+  /* build-plan panel (right column) — packet steps → Buildprint prompts */
+  .plan{padding:0 14px 6px}
+  .plan .pkt-head{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--primary);font-weight:600;margin:2px 0 5px}
+  .plan .pkt-head .cnt{margin-left:auto;color:var(--muted);font-weight:500;font-size:10.5px}
+  .plan .pksel{width:100%;margin:0 0 8px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:7px;padding:6px 8px;font-size:11.5px;font-family:inherit}
+  .plan .pstep{display:flex;align-items:flex-start;gap:8px;padding:7px 2px;border-bottom:1px solid var(--line);cursor:pointer}
+  .plan .pstep:last-child{border-bottom:none}
+  .plan .pdot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--line3);margin-top:4px;flex:0 0 8px}
+  .plan .pstep.active .pdot{background:var(--accent);border-color:var(--accent)}
+  .plan .pstep.done .pdot{background:var(--good);border-color:var(--good)}
+  .plan .pt{flex:1;font-size:12px;color:var(--secondary);line-height:1.45;min-width:0}
+  .plan .pstep.active .pt{color:var(--primary)}
+  .plan .pdetail{display:none;font-size:11px;color:var(--muted);margin-top:3px;line-height:1.5}
+  .plan .pstep.open .pdetail{display:block}
+  .plan .pst{font-size:9.5px;letter-spacing:.6px;text-transform:uppercase;color:var(--muted);padding:2px 6px;border:1px solid var(--line);border-radius:6px;flex:0 0 auto;margin-top:2px}
+  .plan .pst:hover{color:var(--primary);border-color:var(--line3)}
+  .plan .pempty{color:var(--muted);font-size:11.5px;line-height:1.55;padding:4px 0 8px}
+  .pdraft{display:inline-flex;align-items:center;gap:5px;margin-top:6px;background:var(--accent);border:none;color:#fff;border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
+  .pdraft:hover{background:#2563EB}
+  .pdraft:disabled{opacity:.5;cursor:default}
+  /* dashboard build-plan card bits */
+  .np-mod{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:8px 0 3px}
+  .np-title{font-size:13px;color:var(--primary);font-weight:600;line-height:1.45;margin-bottom:4px}
+  .np-verify{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:2px}
+  .np-gen{display:flex;gap:6px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+  .np-gen input{flex:1;margin:0;background:var(--panel2);border:1px solid var(--line);color:var(--primary);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;min-width:0}
+  .np-gen input:focus{border-color:var(--accent)}
+  .np-gen .pdraft{margin-top:0}
 
   /* sidebar nav (Map / Kanban) */
   .sidenav{display:flex;gap:6px;margin:2px 12px 8px}
@@ -628,6 +660,8 @@
     <h2 class="rtop">Usage <button class="refresh" onclick="refreshUsage(this)" title="Refresh usage"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button><button class="col-collapse" title="Collapse panel" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button></h2>
     <div class="rscroll">
       <div class="usage" id="usage"></div>
+      <h2>Build plan <button class="refresh" onclick="loadPlan()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
+      <div class="plan" id="planPanel"></div>
       <h2>Recently opened</h2>
       <div class="recent" id="recentOpened"></div>
       <h2>Recently edited <button class="refresh" onclick="loadRecentEdited()" title="Reload"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button></h2>
@@ -778,9 +812,11 @@ function setTab(t){ state.tab=t;
   $('chatActions').style.display = t==='chats' ? '' : 'none';
   $('bpActions').style.display = t==='buildprint' ? '' : 'none';
   $('fileFilter').style.display = t==='files' ? '' : 'none';
-  // Clicking Chats while a file/dashboard is open → show the chat interface
-  // (a fresh empty conversation), never leave a file in the center.
-  if(t==='chats' && $('chatView').style.display==='none') newChat();
+  // Clicking Chats while a file/dashboard is open → return to the conversation
+  // you were in (don't discard your place); fresh chat only if there is none.
+  if(t==='chats' && $('chatView').style.display==='none'){ state.chatId ? openChat(state.chatId) : newChat(); }
+  // Buildprint tab: re-check CLI status (it may have been linked after page load).
+  if(t==='buildprint') bpStatus();
 }
 
 // ---------- Project-only file filter ----------
@@ -853,7 +889,10 @@ async function openChat(id){
   $('centerTitle').textContent=(state.bp?'🔨 ':'')+(chat.title||'Conversation');
   $('input').placeholder = state.bp?bpPh:normPh;
   renderChat(chat.messages); loadChats(); }
-async function delChat(id){ await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
+async function delChat(id){
+  const t=(state.chatList||[]).find(c=>c.id===id)?.title||'this chat';
+  if(!confirm('Delete "'+t+'"? This cannot be undone.')) return;
+  await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
 
 function attsHtml(atts){ return atts&&atts.length?`<div class="msg-atts">${atts.map(x=>`<span class="matt">${svg('i-clip','sm')} ${esc((''+x).split('/').pop())}</span>`).join('')}</div>`:''; }
 function userMsgEl(content, atts){
@@ -869,14 +908,18 @@ function botMsgEl(){
 }
 function renderChat(messages){
   const log=$('chatLog'); log.innerHTML='';
+  let lastBot=null, lastBotMsg=null;
   for(const m of messages){
-    if(m.role==='user'){ log.appendChild(userMsgEl(m.content, m.attachments)); }
+    if(m.role==='user'){ log.appendChild(userMsgEl(m.content, m.attachments)); lastBot=null; }
     else{
       const el=botMsgEl(); el.querySelector('.body').innerHTML=renderMd(m.content||'');
       if(m.content) addReplyActions(el, m.content);
-      log.appendChild(el);
+      log.appendChild(el); lastBot=el; lastBotMsg=m;
     }
   }
+  // Reopened chats keep their controls: Try again on the final reply, and
+  // Continue when it was stopped mid-stream (persisted as partial:true).
+  if(lastBot) addRetryBar(lastBot, !!(lastBotMsg&&lastBotMsg.partial));
   log.scrollTop=log.scrollHeight;
 }
 
@@ -984,12 +1027,14 @@ function showDashboard(){
 }
 async function renderDashboard(){
   const box=$('dashView');
-  const [files,chatsR,progress,ideas]=await Promise.all([
+  const [files,chatsR,progress,ideas,plansD]=await Promise.all([
     api('/api/files').catch(()=>({tree:[]})),
     api('/api/chats').catch(()=>({chats:[]})),
     api('/api/progress').catch(()=>({columns:{},missing:[]})),
     fetch('/api/ideas').then(r=>r.json()).catch(()=>({columns:{}})),
+    api('/api/plans').catch(()=>null),
   ]);
+  if(plansD) plansCache=plansD;
   let nFiles=0,bubble=0,build=0,forum=0,docs=0;
   (function walk(ns,pfx){ for(const n of ns){ if(n.type==='dir') walk(n.children,pfx+n.name+'/');
     else { nFiles++; const p=pfx+n.name;
@@ -1030,8 +1075,16 @@ async function renderDashboard(){
 
     <section><div class="dash-cols">
       <div class="dcard"><h3>${svg('i-sparkle','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>${chatRows}</div>
-      <div class="dcard"><h3>${svg('i-gauge','sm')} Progress</h3>
-        <div class="lbl" style="margin:6px 0 2px;font-size:9.5px">Now</div>${nowRows}
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Build plan</h3>
+        ${(()=>{ const pk=activePacket(); const st=pk&&pk.steps.find(s=>s.status==='pending');
+          if(pk&&st) return `<div class="np-mod">${esc(pk.module)} · next Buildprint step</div>
+            <div class="np-title">${esc(st.title)}</div>
+            ${st.verify?`<div class="np-verify">Verify: ${esc(st.verify)}</div>`:''}
+            <button class="pdraft" onclick="draftStepPrompt('${pk.id}','${st.id}')">${svg('i-send','sm')} Draft Buildprint prompt</button>`;
+          if(pk) return `<div class="dempty">Every step in “${esc(pk.module)}” is past pending — advance statuses in the right panel or generate the next module's packet below.</div>`;
+          return '<div class="dempty">No build packet yet — generate one below.</div>'; })()}
+        <div class="np-gen"><input id="npModule" placeholder="Module name… (exactly as locked)" onkeydown="if(event.key==='Enter')genPacket()"><button class="pdraft" onclick="genPacket()">Generate packet</button></div>
+        <div class="lbl" style="margin:12px 0 2px;font-size:9.5px">Now</div>${nowRows}
         ${next.length?`<div class="lbl" style="margin:12px 0 2px;font-size:9.5px">Next</div>${nextRows}`:''}
         ${missing.length?`<div class="lbl" style="margin:12px 0 2px;font-size:9.5px;color:#EF4444">Gaps</div>${missing.slice(0,3).map(x=>pRow(x,'#EF4444')).join('')}`:''}
       </div>
@@ -1212,7 +1265,8 @@ async function streamChat(text, opts={}){
         const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
         const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
         let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
-        if(ev.type==='meta'){ live.chatId=ev.id; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
+        if(ev.type==='meta'){ live.chatId=ev.id; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; }
+          if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
         else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='label'){ if(activeCard&&ev.text){ activeCard.labelEl.textContent=ev.text; } }
@@ -1237,7 +1291,10 @@ async function streamChat(text, opts={}){
     // Only touch the composer/queue if this stream still owns the active view —
     // otherwise the user has moved on and a different stream (or none) is in charge.
     if(mine()){ state.sending=false; state.abort=null; setGenerating(false); dequeue(); }
-    loadChats(); loadProgress();
+    loadChats(); loadProgress(); loadPlan();
+    // Ingest & Buildprint chats write files into brain/ — refresh the tree,
+    // Cmd+K index, and Recently-edited so new files appear without a reload.
+    if(opts.ingest || live.bp){ loadFiles(); loadRecentEdited(); }
   }
 }
 
@@ -1311,12 +1368,20 @@ function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftil
 function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
 
 // ---------- Finder/Explorer-style file browser ----------
-let explTree=[], explPath='';
+let explTree=[], explPath='', explAll=false;
 async function openExpl(dir){ try{ explTree=(await api('/api/files')).tree; }catch{ explTree=[]; }
-  explPath=dir||''; $('explWrap').classList.add('show'); renderExpl(); }
+  explPath=dir||'';
+  // Dashboard tiles link into reference dirs (brain/bubble, crs-brain/data/docs…)
+  // that the project filter hides — auto-show everything for those, else the
+  // explorer opens dead empty. Project dirs keep the normal filtered view.
+  explAll = !!explPath && !nodeExistsIn(filterTree(explTree), explPath) && nodeExistsIn(explTree, explPath);
+  $('explWrap').classList.add('show'); renderExpl(); }
+function nodeExistsIn(root, pathStr){ let nodes=root;
+  for(const part of pathStr.split('/')){ const n=(nodes||[]).find(x=>x.type==='dir'&&x.name===part); if(!n) return false; nodes=n.children; }
+  return true; }
 function closeExpl(){ $('explWrap').classList.remove('show'); }
 function explGoto(p){ explPath=p; renderExpl(); }
-function explNodeAt(pathStr){ const root=filterTree(explTree);
+function explNodeAt(pathStr){ const root=explAll?explTree:filterTree(explTree);
   if(!pathStr) return {children:root};
   let nodes=root, node=null;
   for(const part of pathStr.split('/')){ node=(nodes||[]).find(n=>n.type==='dir'&&n.name===part); if(!node) return {children:[]}; nodes=node.children; }
@@ -1489,6 +1554,86 @@ async function applyModelSettings(){
   }catch(e){ toast('Could not save: '+e.message); }
 }
 
+// ---------- build plan: packets → Buildprint prompts ----------
+// A packet = one module's ordered, one-session-sized build steps. Each step can be
+// expanded into a guardrail-hardened Buildprint prompt that prefills a bp chat.
+let plansCache=null;
+const STEP_ORDER=['pending','prompted','applied','verified','ingested'];
+async function loadPlan(){
+  const box=$('planPanel'); if(!box) return;
+  try{ plansCache=await api('/api/plans'); }catch{ box.innerHTML='<div class="pempty">Could not load the build plan.</div>'; return; }
+  renderPlan();
+}
+function activePacket(){
+  if(!plansCache||!plansCache.packets||!plansCache.packets.length) return null;
+  return plansCache.packets.find(p=>p.id===plansCache.activePacket) || plansCache.packets[plansCache.packets.length-1];
+}
+function renderPlan(){
+  const box=$('planPanel'); if(!box) return;
+  const pk=activePacket();
+  if(!pk){ box.innerHTML='<div class="pempty">No build packets yet. On the dashboard, type a module name and hit <b>Generate packet</b> — the brain drafts one-session build steps grounded in brain/.</div>'; return; }
+  const done=pk.steps.filter(s=>s.status==='verified'||s.status==='ingested').length;
+  const firstPending=pk.steps.find(s=>s.status==='pending');
+  let html='';
+  if(plansCache.packets.length>1){
+    html+=`<select class="pksel" onchange="switchPacket(this.value)">${plansCache.packets.map(p=>`<option value="${p.id}"${p.id===pk.id?' selected':''}>${esc(p.module)} — ${esc(p.title||'').slice(0,40)}</option>`).join('')}</select>`;
+  }
+  html+=`<div class="pkt-head">${esc(pk.module)}<span class="cnt">${done}/${pk.steps.length} done</span></div>`;
+  html+=pk.steps.map(s=>{
+    const cls=(s.status==='verified'||s.status==='ingested')?'done':(s===firstPending?'active':'');
+    return `<div class="pstep ${cls}" onclick="this.classList.toggle('open')">
+      <span class="pdot"></span>
+      <span class="pt">${esc(s.title)}
+        <div class="pdetail">${esc(s.detail||'')}${s.entities?`<br><b>Entities:</b> ${esc(s.entities)}`:''}${s.verify?`<br><b>Verify:</b> ${esc(s.verify)}`:''}${s.chatId?`<br><a href="#" onclick="event.stopPropagation();openChat('${s.chatId}');return false">→ open its Buildprint chat</a>`:''}</div>
+        ${s===firstPending?`<br><button class="pdraft" onclick="event.stopPropagation();draftStepPrompt('${pk.id}','${s.id}')">${svg('i-send','sm')} Draft Buildprint prompt</button>`:''}
+      </span>
+      <span class="pst" title="Click to advance status · shift-click to revert" onclick="event.stopPropagation();cycleStep('${pk.id}','${s.id}',event.shiftKey)">${s.status}</span>
+    </div>`;
+  }).join('');
+  box.innerHTML=html;
+}
+function switchPacket(id){ if(!plansCache) return; plansCache.activePacket=id; putPlans(); renderPlan(); }
+async function putPlans(){ try{ await api('/api/plans',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(plansCache)}); }catch(e){ toast('Plan save failed: '+e.message); } }
+function cycleStep(pkId,stId,back){
+  const pk=plansCache.packets.find(p=>p.id===pkId); const st=pk&&pk.steps.find(s=>s.id===stId); if(!st) return;
+  const i=STEP_ORDER.indexOf(st.status);
+  st.status=STEP_ORDER[Math.max(0,Math.min(STEP_ORDER.length-1, i+(back?-1:1)))];
+  pk.updatedAt=new Date().toISOString();
+  putPlans(); renderPlan();
+}
+// Draft the guardrailed prompt for a step and prefill a NEW Buildprint chat.
+// Never auto-send — Vlad reviewing the prompt IS the plan-before-apply gate.
+async function draftStepPrompt(pkId,stId){
+  let r; try{ r=await api('/api/plans/step-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({packetId:pkId,stepId:stId})}); }
+  catch(e){ return toast('Could not draft: '+e.message); }
+  state.planRef={packetId:pkId,stepId:stId};
+  newBpChat();
+  const inp=$('input'); inp.value=r.prompt; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus();
+  toast('Review the prompt, then send — sending marks the step as prompted.');
+}
+// Once the bp chat actually starts (meta returns its id), link the step to it.
+function markPlanPrompted(chatId){
+  const ref=state.planRef; if(!ref) return; state.planRef=null;
+  const pk=((plansCache&&plansCache.packets)||[]).find(p=>p.id===ref.packetId); const st=pk&&pk.steps.find(s=>s.id===ref.stepId); if(!st) return;
+  if(st.status==='pending') st.status='prompted';
+  st.chatId=chatId||st.chatId; st.promptedAt=new Date().toISOString(); pk.updatedAt=st.promptedAt;
+  putPlans(); renderPlan();
+}
+// Generate a packet for a module (dashboard card) — takes 1-3 min, grounded in brain/.
+async function genPacket(){
+  const inp=$('npModule'); const module=((inp&&inp.value)||'').trim();
+  if(!module) return toast('Type the module name first (exactly as locked)');
+  document.querySelectorAll('.np-gen .pdraft').forEach(b=>{ b.disabled=true; b.textContent='Generating… (1–3 min)'; });
+  try{
+    const r=await api('/api/plans/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({module})});
+    toast('Packet ready — '+r.packet.steps.length+' steps for '+module);
+    await loadPlan(); renderDashboard();
+  }catch(e){
+    toast('Generate failed: '+e.message);
+    document.querySelectorAll('.np-gen .pdraft').forEach(b=>{ b.disabled=false; b.textContent='Generate packet'; });
+  }
+}
+
 // ---------- live usage / limits ----------
 function fmtAgo(ms){ const s=Math.max(0,Math.round((Date.now()-ms)/1000)); if(s<60)return s+'s ago'; const m=Math.round(s/60); if(m<60)return m+'m ago'; const h=Math.round(m/60); return h+'h ago'; }
 function fmtReset(sec){ const ms=sec*1000-Date.now(); if(ms<=0) return 'resetting…'; const m=Math.round(ms/60000); if(m<60) return 'resets in '+m+'m'; const h=Math.floor(m/60), mm=m%60; if(h<24) return 'resets in '+h+'h '+mm+'m'; const d=Math.floor(h/24); return 'resets in '+d+'d '+(h%24)+'h'; }
@@ -1625,7 +1770,7 @@ function openFromHash(){
 }
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('explWrap').classList.contains('show')) closeExpl(); });
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

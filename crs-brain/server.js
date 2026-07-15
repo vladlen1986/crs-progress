@@ -277,14 +277,11 @@ function findBpWorkspace() {
     for (const app of fs.readdirSync(root)) {
       const appDir = path.join(root, app);
       if (!fs.existsSync(path.join(appDir, '.buildprint'))) continue;
+      // HARD GUARDRAIL: only ever operate on the test/dev branch clones. No fallback
+      // to "whatever subdir exists" — that could silently select a live-branch clone.
       for (const b of ['test', 'dev']) {
         const w = path.join(appDir, b);
         if (fs.existsSync(w)) return { app, branch: b, dir: w };
-      }
-      // fall back to first branch subdir
-      for (const b of fs.readdirSync(appDir)) {
-        const w = path.join(appDir, b);
-        if (b !== '.buildprint' && fs.statSync(w).isDirectory()) return { app, branch: b, dir: w };
       }
     }
   } catch {}
@@ -336,6 +333,98 @@ const BP_TRACK_PROMPT = [
   '(company + property + both-field privacy rule on every business DT) and flag any changed DT that violates it.',
   'End with a short "Brain updated:" list, file by file, plus anything that needs Vlad\'s decision.',
 ].join(' ');
+
+// ---- Build packets (plan → Buildprint prompt pipeline) ----------------------
+// A "build packet" is the missing artifact between an idea and a Buildprint
+// prompt: an ordered list of one-session-sized steps for ONE module, each step
+// carrying enough structure (entities/detail/constraints/verify) to expand into
+// a guardrail-hardened Buildprint prompt. Stored in data/plans.json.
+const PLANS_FILE = path.join(DATA_DIR, 'plans.json');
+const STEP_STATUSES = ['pending', 'prompted', 'applied', 'verified', 'ingested'];
+function seedPlans() {
+  return {
+    activePacket: 'inventory',
+    packets: [{
+      id: 'inventory',
+      module: 'Inventory',
+      title: 'Plan-mode inventory of the real Bubble app (prerequisite)',
+      createdAt: nowIso(), updatedAt: nowIso(),
+      steps: [{
+        id: 'inv-1',
+        title: 'Inventory the actual Bubble state on test',
+        entities: 'ALL data_types/, option_sets/, pages/*/workflows, settings/privacy — READ-ONLY',
+        detail: 'Sync the test branch, then produce a complete inventory of what actually exists in Bubble today: every Data Type with its fields (flagging which lack company/property), every Option Set with counts, every privacy rule (flagging company-only rules), and legacy workflows worth keeping or deleting. NO edits, NO apply — this is discovery.',
+        constraints: 'Read-only session. Do not modify or apply anything.',
+        verify: 'Inventory written into brain/database.md, brain/option-sets.md, brain/security.md ("Current state" sections) + one dated brain/changelog.md entry. Everything in brain/ stops being spec-only.',
+        status: 'pending', chatId: null, promptedAt: null,
+      }],
+    }],
+  };
+}
+function loadPlans() {
+  try { return JSON.parse(fs.readFileSync(PLANS_FILE, 'utf8')); }
+  catch { const s = seedPlans(); try { fs.writeFileSync(PLANS_FILE, JSON.stringify(s, null, 2)); } catch {} return s; }
+}
+function savePlans(p) { fs.writeFileSync(PLANS_FILE, JSON.stringify(p, null, 2)); }
+function validPlans(body) {
+  if (!body || !Array.isArray(body.packets)) return 'packets must be an array';
+  for (const pk of body.packets) {
+    if (!pk || typeof pk.module !== 'string' || !Array.isArray(pk.steps)) return 'every packet needs module + steps[]';
+    for (const st of pk.steps) if (!st || !STEP_STATUSES.includes(st.status)) return `step status must be one of ${STEP_STATUSES.join('|')}`;
+  }
+  return null;
+}
+
+// System prompt for packet generation: grounded in the ledger, locked to the
+// real module list, output strictly JSON.
+const PLAN_GEN_PROMPT = [
+  'You generate a BUILD PACKET for one module of the CRS Bubble app. A build packet is an ordered list of',
+  'build steps, each sized to exactly ONE Buildprint session (one bounded change set).',
+  'FIRST read: brain/INDEX.md, brain/database.md, brain/option-sets.md, brain/security.md, decisions.md',
+  '(architecture entries), CLAUDE.md (locked rules, naming, sections), crs-brain/data/progress.json,',
+  'crs-brain/data/ideas.json. Ground every step in what those files actually say — never invent modules,',
+  'fields, or features. The module MUST be one of the locked 46 modules (authoritative: the Bubble Option Set,',
+  'mirrored in data/CRS_Module_OptionSets.xlsx and the section lists in CLAUDE.md). If the requested module is',
+  'not one of them, output {"error":"<why>"} and nothing else.',
+  'STEP ORDER: discovery (what exists now, read-only) → data types + option sets → privacy rules → backend/',
+  'page workflows → UI (pages/reusables per the naming rules) → verification. Merge or drop stages that the',
+  'ledger shows are already done. 3-7 steps total; each step must be completable in one focused session.',
+  'EVERY step that creates or modifies a Data Type MUST state: company + property fields required, plus a',
+  'privacy rule checking Current User\'s company = This Thing\'s company AND Current User\'s property = This',
+  'Thing\'s property (Pattern A) — or cite the decisions.md exception that exempts it.',
+  'OUTPUT: ONLY a JSON object, no prose, no code fences: {"title": "<packet title>", "steps": [{"title": str,',
+  '"entities": "<exact Bubble entities touched: DT/OS/page/workflow names>", "detail": "<what to build and the',
+  'expected Bubble behavior>", "constraints": "<what must NOT change>", "verify": "<observable success criteria>"}]}',
+].join(' ');
+
+// Expand one packet step into a guardrail-hardened Buildprint prompt.
+// Pure template — no LLM call. All crs-brain-operations.md rules baked in.
+function bpStepPrompt(packet, step) {
+  const ws = findBpWorkspace();
+  const wsLine = ws ? `workspace ${ws.dir} (app "${ws.app}", branch "${ws.branch}")` : 'workspace ~/projects/crs-bubble/<app>/test';
+  return [
+    `BRANCH: test — ${wsLine}. TEST ONLY. Never reference or touch the live branch.`,
+    '',
+    `MODULE: ${packet.module}`,
+    `TASK (one bounded change — do not combine unrelated work): ${step.title}`,
+    `TARGET ENTITIES: ${step.entities || '(state them in your plan)'}`,
+    `EXPECTED BEHAVIOR: ${step.detail || ''}`,
+    `DO NOT CHANGE: ${step.constraints || 'anything outside the entities above; no live data; no auth/payment flows'}`,
+    '',
+    'PROCESS (mandatory):',
+    '1. Run `buildprint sync` FIRST — editor changes are invisible until synced.',
+    '2. PLAN FIRST: inspect the current state, then state your exact plan (files/entities to change + expected Bubble effect) and STOP for my go-ahead before any apply.',
+    '3. After approval: edit → `buildprint check` (must pass) → `buildprint apply`.',
+    '4. FORBIDDEN without my explicit approval in this chat: --force-apply, --no-check, sync --reset.',
+    '',
+    "SCHEMA INVARIANT (Pattern A): every business Data Type created or modified gets `company` AND `property` fields and a privacy rule checking Current User's company = This Thing's company AND Current User's property = This Thing's property. Never company-only. Exceptions only if listed in decisions.md.",
+    'UI RULES: naming prefixes per CLAUDE.md (#PP - / #GR - / #FG -), styles from design/tokens.css only, every search/RG constrained by Current User\'s property.',
+    'NOTE: Buildprint edits app STRUCTURE only (schema, option sets, workflows, pages, styles) — if this task implies editing database records, stop and tell me.',
+    '',
+    `SUCCESS CRITERIA: ${step.verify || 'state them in your plan'}`,
+    'CLOSE-OUT: report exactly what changed (entity by entity) so it can be ingested into brain/.',
+  ].join('\n');
+}
 
 function runBuildprint(args, ws) {
   return new Promise((resolve) => {
@@ -921,7 +1010,14 @@ const server = http.createServer(async (req, res) => {
         autoCommit(chat.title);
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
       } catch (e) {
-        sse({ type: 'error', error: e.message });
+        // Persist the chat anyway — otherwise the user's message (and a brand-new
+        // chat entirely) vanishes on a claude error, with no retry possible.
+        try {
+          if (streamed) chat.messages.push({ role: 'assistant', content: streamed, ts: nowIso(), partial: true });
+          chat.updated = nowIso();
+          saveChat(chat);
+        } catch {}
+        sse({ type: 'error', error: e.message, id: chat.id });
       }
       return res.end();
     }
@@ -968,11 +1064,12 @@ const server = http.createServer(async (req, res) => {
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
-        chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso() });
+        chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         chat.sessionId = result.sessionId; saveChat(chat);
-        fs.writeFileSync(BP_TRACK_FILE, r.head);   // advance baseline only on success
-        autoCommit('buildprint sync → brain');
-        sse({ type: 'done', id: chat.id, reply: result.text || streamed });
+        // Advance the baseline ONLY on a completed ingest — an aborted run must stay
+        // re-syncable, else those Bubble changes become permanently invisible.
+        if (!result.aborted) { fs.writeFileSync(BP_TRACK_FILE, r.head); autoCommit('buildprint sync → brain'); }
+        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, reply: result.text || streamed });
       } catch (e) { sse({ type: 'error', error: e.message }); }
       return res.end();
     }
@@ -1053,7 +1150,9 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/settings' && req.method === 'PUT') {
       const body = await readJsonBody(req);
       const cur = loadSettings();
+      // Merge — never drop keys other callers may have stored in settings.json.
       const next = {
+        ...cur,
         model: (body.model || cur.model).toString(),
         effort: (body.effort || cur.effort).toString(),
       };
@@ -1075,6 +1174,73 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(IDEAS_FILE, JSON.stringify(body, null, 2));
       autoCommit('ideas board');
       return send(res, 200, { ok: true });
+    }
+
+    // ---- Build packets: plan → Buildprint prompt pipeline ----
+    if (p === '/api/plans' && req.method === 'GET') {
+      return send(res, 200, loadPlans());
+    }
+    if (p === '/api/plans' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      const bad = validPlans(body);
+      if (bad) return send(res, 400, { error: bad });
+      savePlans(body);
+      autoCommit('build packets');
+      return send(res, 200, { ok: true });
+    }
+    // Generate a build packet for one module, grounded in the brain ledger.
+    if (p === '/api/plans/generate' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const module_ = (body.module || '').toString().trim();
+      if (!module_) return send(res, 400, { error: 'module required' });
+      const notes = (body.notes || '').toString().trim();
+      const cfg = loadSettings();
+      let raw = '';
+      try {
+        const result = await runClaudeStream(
+          `Generate the build packet for module: ${module_}${notes ? `\n\nExtra context from Vlad: ${notes}` : ''}`,
+          null, {}, { model: cfg.model, effort: cfg.effort, systemPrompt: PLAN_GEN_PROMPT });
+        raw = (result.text || '').trim();
+      } catch (e) { return send(res, 502, { error: e.message }); }
+      // Strip code fences if the model added them despite instructions.
+      const jsonText = raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+      let parsed;
+      try { parsed = JSON.parse(jsonText); }
+      catch { return send(res, 502, { error: 'could not parse the generated packet', raw }); }
+      if (parsed.error) return send(res, 422, { error: parsed.error });
+      if (!parsed.title || !Array.isArray(parsed.steps) || !parsed.steps.length) {
+        return send(res, 502, { error: 'generated packet has no steps', raw });
+      }
+      const plans = loadPlans();
+      const packet = {
+        id: crypto.randomUUID(),
+        module: module_,
+        title: parsed.title,
+        createdAt: nowIso(), updatedAt: nowIso(),
+        steps: parsed.steps.map((s, i) => ({
+          id: `s${i + 1}-${crypto.randomBytes(3).toString('hex')}`,
+          title: (s.title || `Step ${i + 1}`).toString(),
+          entities: (s.entities || '').toString(),
+          detail: (s.detail || '').toString(),
+          constraints: (s.constraints || '').toString(),
+          verify: (s.verify || '').toString(),
+          status: 'pending', chatId: null, promptedAt: null,
+        })),
+      };
+      plans.packets.push(packet);
+      plans.activePacket = packet.id;
+      savePlans(plans);
+      autoCommit(`build packet: ${module_}`);
+      return send(res, 200, { packet });
+    }
+    // Expand one step into a guardrail-hardened Buildprint prompt (no LLM call).
+    if (p === '/api/plans/step-prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const plans = loadPlans();
+      const packet = plans.packets.find((x) => x.id === body.packetId);
+      const step = packet && packet.steps.find((s) => s.id === body.stepId);
+      if (!step) return send(res, 404, { error: 'packet/step not found' });
+      return send(res, 200, { prompt: bpStepPrompt(packet, step) });
     }
 
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
@@ -1211,7 +1377,8 @@ async function maybeTrackBuildprint() {
     if (!r || r.error || r.first || !r.changed || !r.changed.length) { bpTracking = false; return; }
     console.log(`  ⟳ Buildprint changed (${r.changed.length} file(s)) — updating brain ledger…`);
     const listShown = r.changed.slice(0, 150);
-    const message = `Changed in the CRS Bubble app (test) since last sync — git name-status ${r.base.slice(0, 7)}..${r.head.slice(0, 7)}:\n\n${listShown.join('\n')}\n\nUpdate the brain ledger to reflect these changes.`;
+    const autoMore = r.changed.length > 150 ? `\n…and ${r.changed.length - 150} more files (run \`git diff --name-status ${r.base.slice(0, 7)} ${r.head.slice(0, 7)}\` for the full list)` : '';
+    const message = `Changed in the CRS Bubble app (test) since last sync — git name-status ${r.base.slice(0, 7)}..${r.head.slice(0, 7)}:\n\n${listShown.join('\n')}${autoMore}\n\nUpdate the brain ledger to reflect these changes.`;
     const chat = { id: crypto.randomUUID(), title: 'Buildprint sync (auto) — ' + nowIso().slice(0, 16).replace('T', ' '), bp: true, sessionId: null, created: nowIso(), updated: nowIso(), messages: [{ role: 'user', content: `Auto-sync ${r.changed.length} change(s) from Buildprint.`, ts: nowIso() }] };
     const cfg = loadSettings();
     const result = await runClaudeStream(message, null, {}, { model: cfg.model, effort: cfg.effort, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
