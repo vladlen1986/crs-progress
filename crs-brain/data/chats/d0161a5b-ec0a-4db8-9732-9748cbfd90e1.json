@@ -1,0 +1,21 @@
+{
+  "id": "d0161a5b-ec0a-4db8-9732-9748cbfd90e1",
+  "title": "kanban opens behind the chat its not right",
+  "sessionId": "50dce703-8600-413c-ba8e-bc81772a0cba",
+  "bp": false,
+  "created": "2026-07-15T01:08:14.517Z",
+  "updated": "2026-07-15T01:09:39.986Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "kanban opens behind the chat its not right",
+      "ts": "2026-07-15T01:08:14.517Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The change (`crs-brain/public/index.html:891`):\n\n- `map-mode` is now toggled off for board mode, so the composer stays in normal flow and the kanban drawer renders fully in the space **above** the input instead of behind it. The galaxy map keeps its bleed-below-the-input look.\n- Title now reads \"Kanban board\" vs \"Galaxy map\" so the header matches what's shown.\n\nReload the app and hit **Kanban** to confirm the board now sits above the chat input. One edge case I left alone: if you open Kanban then close the drawer *inside* the map (✕), the galaxy won't bleed under the input until you re-open via the Map button — that's cosmetic and hard to hook from outside the iframe. Say the word if you want it addressed too.",
+      "ts": "2026-07-15T01:09:39.986Z"
+    }
+  ]
+}
