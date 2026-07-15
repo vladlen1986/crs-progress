@@ -121,7 +121,8 @@ const VOCAB=['done','in-progress','not-started','roadmap'];
 const LABEL={'done':'Done','in-progress':'In progress','not-started':'Not started','roadmap':'Roadmap'};
 const COLOR={done:'var(--good)','in-progress':'var(--warn)','not-started':'var(--muted)',roadmap:'var(--accent2)'};
 let DATA={modules:[]}, saveTimer=null, dragId=null;
-const expanded=new Set(), detailCache={}, promptCache={};
+const expanded=new Set(), detailCache={}, promptCache={}, lastKind={};
+const KLABEL={edit:'EDIT prompt — paste into the Buildprint app (applies directly)',sync:'SYNC prompt — read-only, reports back into the brain'};
 
 async function load(){
   try{
@@ -161,13 +162,15 @@ async function toggle(id){
   else{ expanded.add(id); if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } } }
   render();
 }
-async function genPrompt(id){
-  const box=document.getElementById('pb-'+id); const ta=document.getElementById('pt-'+id);
-  box.classList.add('show'); ta.value='Generating…';
-  if(promptCache[id]){ ta.value=promptCache[id]; return; }
+async function genPrompt(id,kind){
+  const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id);
+  box.classList.add('show'); lastKind[id]=kind; if(lbl) lbl.textContent=KLABEL[kind];
+  const key=id+':'+kind;
+  if(promptCache[key]){ ta.value=promptCache[key]; return; }
+  ta.value='Generating…';
   try{
-    const r=await fetch('/api/modules/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
-    const j=await r.json(); promptCache[id]=j.prompt||('error: '+(j.error||'no prompt')); ta.value=promptCache[id];
+    const r=await fetch('/api/modules/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,kind})});
+    const j=await r.json(); promptCache[key]=j.prompt||('error: '+(j.error||'no prompt')); ta.value=promptCache[key];
   }catch(e){ ta.value='error: '+e.message; }
 }
 function copyPrompt(id){ const ta=document.getElementById('pt-'+id); ta.select(); navigator.clipboard.writeText(ta.value); const b=document.getElementById('cp-'+id); const o=b.textContent; b.textContent='✓ Copied'; setTimeout(()=>b.textContent=o,1400); }
@@ -196,13 +199,14 @@ function detailHTML(id){
     ${sec('Workflows', d.workflows, d.documented?'—':'Not documented yet.')}
     ${mentions}
     <div class="dsec"><h4>Files</h4><div class="filelinks">${links.join('')}</div></div>
-    <div class="dsec"><h4>Buildprint prompt</h4>
+    <div class="dsec"><h4>Buildprint prompts</h4>
       <div class="genbar">
-        <button class="btn primary" onclick="genPrompt('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Generate Buildprint prompt</button>
-        <span class="plabel">Pre-filled with this module's current brain context · Test-branch, read-only guardrails baked in</span>
+        <button class="btn primary" onclick="genPrompt('${id}','edit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Edit prompt → Buildprint app</button>
+        <button class="btn" onclick="genPrompt('${id}','sync')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5m2-3v5h-5M20 12a8 8 0 0 1-14 5m-2 3v-5h5"/></svg>Read &amp; sync → brain</button>
       </div>
+      <div class="plabel" style="margin-top:6px"><b style="color:var(--secondary)">Edit</b> = paste into the Buildprint app (applies directly, savepoint first). <b style="color:var(--secondary)">Sync</b> = read-only audit that reports back into the brain. Both markdown, pre-filled with this module's current context.</div>
       <div class="promptbox" id="pb-${id}">
-        <div class="prow"><span class="plabel">Copy into Buildprint (or the Brain's Buildprint chat)</span><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div>
+        <div class="prow"><span class="plabel" id="pl-${id}"></span><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div>
         <textarea id="pt-${id}" readonly spellcheck="false"></textarea>
       </div>
     </div>
@@ -245,7 +249,7 @@ function render(){
     item.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(item.dataset.idx);if(dragId===null||dragId===to)return;const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const[mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();});
     // restore prompt if it was generated
     list.appendChild(item);
-    if(open&&promptCache[m.id]){ const pb=document.getElementById('pb-'+m.id),pt=document.getElementById('pt-'+m.id); if(pb&&pt){pb.classList.add('show');pt.value=promptCache[m.id];} }
+    if(open&&lastKind[m.id]){ const k=lastKind[m.id],key=m.id+':'+k; const pb=document.getElementById('pb-'+m.id),pt=document.getElementById('pt-'+m.id),pl=document.getElementById('pl-'+m.id); if(pb&&pt&&promptCache[key]){pb.classList.add('show');pt.value=promptCache[key];if(pl)pl.textContent=KLABEL[k];} }
   });
   if(!list.children.length) list.innerHTML='<div class="empty">No modules for this filter.</div>';
 }

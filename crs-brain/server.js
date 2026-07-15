@@ -935,42 +935,75 @@ function moduleDetail(mod) {
     statusBlock, dataModel, optionSets, perms, workflows, mentions,
   };
 }
-// Assemble a ready-to-paste Buildprint prompt for one module, pre-filled with the
-// module's current brain context. Deterministic (reads live files) so it is always up to date.
-function buildModulePrompt(mod, d) {
+// Two prompt flavours per module, both markdown, both pre-filled with live brain context:
+//  - EDIT  → paste into the Buildprint APP to actually build/change (applies directly).
+//  - SYNC  → read-only audit that reports + emits JSON to ingest back into the brain.
+
+function buildEditPrompt(mod, d) {
   const today = new Date().toISOString().slice(0, 10);
-  const ind = (s) => s.split('\n').map((l) => '    ' + l).join('\n');
+  const attach = [
+    'design.md (source of truth — §2 tokens, §13 naming, §23 type scale, §25 theme)',
+    'CRS-style-system.md (approval = showcased on the `design_system` page)',
+    'brain/security-test-checklist.md (the standing security gate)',
+  ];
+  if (d.techRef) attach.push(`${d.techRef} (current as-built technical reference for this module)`);
   const L = [];
-  L.push(`MODULE: ${mod.name}   .   section: ${mod.section}   .   route: ${mod.route || '(unset)'}   .   tracked status: ${mod.status}`);
+  L.push(`# Buildprint Prompt — Build / advance ${mod.name}`);
   L.push('');
-  L.push('You are working the CRS Bubble app on the TEST branch. Run `buildprint sync` FIRST. Test branch only, never Live. Do NOT use --force-apply / --no-check / sync --reset. Read-only unless I approve an apply in THIS chat; show the plan and stop before the first apply.');
+  L.push(`**On TEST/DEV branch only. Create savepoint "Before ${mod.name} build" first. Run \`buildprint check\` after each task. Do not push to live. Apply directly without confirmation.**`);
   L.push('');
-  L.push("PATTERN A (locked): every business data type carries BOTH `company` and `property` fields, and its privacy rule checks `Current User's company = This Thing's company AND Current User's property = This Thing's property`. Access is permission-based (`Current User's role's permissions contains <perm>`). Known exceptions: Company, Property, Subscription, system-level configs.");
+  L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML — that is the visual spec.`);
   L.push('');
-  L.push(`KNOWN CONTEXT FOR THIS MODULE (from the CRS brain, ${today}):`);
-  L.push(`- Tracked status: ${mod.status}${mod.note ? ' - ' + mod.note : ''}`);
-  if (d.statusBlock) L.push('- STATUS.md detail:\n' + ind(d.statusBlock));
-  if (d.dataModel) L.push('- Data model (from technical reference):\n' + ind(d.dataModel));
-  if (d.optionSets) L.push('- Option sets:\n' + ind(d.optionSets));
-  if (d.perms) L.push('- Permissions:\n' + ind(d.perms));
-  if (d.workflows) L.push('- Workflows:\n' + ind(d.workflows));
-  if (d.mentions.length) { L.push('- Referenced in the brain ledger:'); d.mentions.forEach((m) => L.push(`    ${m.file} - ${m.count} mention(s)`)); }
-  if (!d.documented && !d.statusBlock) L.push('- Not yet documented in the brain. Inventory it from the workspace first (data_types/, option_sets/, pages/, permissions).');
+  L.push(`**Context (CRS brain, ${today}):** ${mod.name} · section ${mod.section} · route \`${mod.route || '(unset)'}\` · tracked status **${mod.status}**${mod.note ? ` — ${mod.note}` : ''}`);
   L.push('');
-  const building = mod.status === 'not-started' || mod.status === 'roadmap';
-  L.push('TASK:');
-  if (building) {
-    L.push(`Plan the build of "${mod.name}". First INVENTORY what already exists for it in the workspace (data types, option sets, reusables, pages, permissions). Then produce a step-by-step build packet: data model (each business DT gets company + property + a Pattern A privacy rule), permissions (grouped), a private server-guarded backend workflow for every write, UI on named dark+light paired styles, then run the security checklist (brain/security-test-checklist.md). State the plan and STOP for my go-ahead before any apply.`);
-  } else {
-    L.push(`AUDIT "${mod.name}" (read-only) against its Core-7 / full-18 dimensions and the security checklist (brain/security-test-checklist.md). For every business DT it touches: quote the privacy rule (does it check company AND property?), state Data API exposure, and quote each write's server-side guard. Flag public-everyone / no-rules / logged-in-only DTs and any UI-only or auto-bind writes. Rank findings SECURITY > FUNCTIONAL > POLISH, list the [NEG] tests I must run as a second-tenant / property-admin user, and note where the tracked status is wrong.`);
-  }
+  L.push('## Task 0 — Locate + report');
+  L.push(`Find the ${mod.name} page/reusable (\`# ${mod.name}\`${mod.route ? `, route \`${mod.route}\`` : ''}). List its current element tree, the data types it reads/writes, and their existing privacy rules + permissions. Report reusable + element names before changing anything.`);
   L.push('');
-  L.push('OUTPUT: (a) a human-readable report, and (b) a ```json block so it can be ingested back into the Progress Tree:');
-  L.push(`    { "id": "${mod.id}", "name": "${mod.name}", "section": "${mod.section}", "status": "done|in-progress|not-started|roadmap",`);
-  L.push('      "core7": {"ui":"","ux":"","db":"","perms":"","privacy":"","wf_crud":"","theme":""},');
-  L.push('      "dataTypes": [], "optionSets": [], "reusables": [],');
-  L.push('      "security_findings": [{"severity":"","where":"","issue":"","fix":""}], "neg_tests_todo": [] }');
-  L.push('Never invent modules, fields, or rules - if something is not in the workspace, say "not found".');
+  L.push('## Task 1 — Data model (Pattern A)');
+  if (d.dataModel) { L.push('Current as-built data model (from the technical reference — verify against the workspace, do not trust blindly):'); L.push(''); L.push(d.dataModel); L.push(''); }
+  L.push("Every BUSINESS data type this module uses must carry both `company` and `property` fields and a privacy rule whose isolation check is `Current User's company = This Thing's company AND Current User's property = This Thing's property` (super-admin override allowed; everyone-else grants nothing). Add any missing fields/rules. Known exceptions: Company, Property, Subscription, system configs.");
+  L.push('');
+  L.push('## Task 2 — Permissions + server-guarded workflows');
+  if (d.perms) { L.push('Permissions per the reference:'); L.push(''); L.push(d.perms); L.push(''); }
+  L.push("Access is permission-based (`Current User's role's permissions contains <perm>`). EVERY create/edit/delete/state-change runs through a PRIVATE backend workflow (`expose:false`, `auth_unecessary:false`) with a permission trigger condition, reading Current User server-side. No UI-only writes; no auto-bind on access/status/money/ownership fields. A write that takes a passed Thing also needs an explicit tenant check on that Thing.");
+  L.push('');
+  L.push('## Task 3 — UI + theming (tokens + approved styles — find first, create last)');
+  L.push('Build the UI on named **Dark + (Light) paired styles** from design.md tokens — zero inline/literal colors. For every value, map: spec value → design.md token → existing approved style on the `design_system` page. Reuse existing styles; only where nothing fits, create the pair per §13 naming and **showcase it on the `design_system` page** (list every creation + why nothing fit). Theming = full style swap only (the one allowed conditional is `dark_theme is "no"` swapping the entire applied style); zero property-level color conditionals; interaction states live inside each style of the pair.');
+  L.push('');
+  L.push('## Task 4 — Verify, then report');
+  L.push('Run the [STRUCT]/[POS] items from brain/security-test-checklist.md. Confirm with evidence: Pattern A privacy rule quoted on every DT touched; server-side guard quoted on every write; Data API not exposed for those DTs; dark + light both via swapped styles (getComputedStyle proof); zero new searches on render where avoidable. Report: element mapping, styles reused vs created (+ showcased), privacy rules + guards quoted, measured key dimensions, and the **[NEG] tests I must run** (second-tenant / property-admin / low-perm). Flag any spec point Bubble genuinely cannot hit and give your closest compliant alternative — never silently substitute.');
+  L.push('');
+  L.push('**TEST/DEV only. Savepoint made. `buildprint check` after each task. Do not push to live.**');
+  return L.join('\n');
+}
+
+function buildSyncPrompt(mod, d) {
+  const today = new Date().toISOString().slice(0, 10);
+  const L = [];
+  L.push(`# Buildprint Prompt — Audit ${mod.name} + sync to brain (READ-ONLY)`);
+  L.push('');
+  L.push('**On TEST branch only, never Live. Run `buildprint sync` FIRST. READ-ONLY — make zero changes: no apply, no --force-apply, no --no-check, no sync --reset.**');
+  L.push('');
+  L.push(`**Context (CRS brain, ${today}):** ${mod.name} · section ${mod.section} · route \`${mod.route || '(unset)'}\` · tracked status **${mod.status}**${mod.note ? ` — ${mod.note}` : ''}`);
+  if (d.statusBlock) { L.push(''); L.push('Known status detail (brain/STATUS.md):'); L.push(''); L.push(d.statusBlock); }
+  L.push('');
+  L.push('## Audit tasks (read-only)');
+  L.push(`Reuse brain/security-test-checklist.md — [STRUCT]/[POS] you can prove, [NEG] needs a human. For **${mod.name}**:`);
+  L.push('1. **Identity** — its page/reusable + route; the data types it reads/writes (display + slug).');
+  L.push('2. **Core-7 rating** — ✅ done / 🟡 partial / 🔴 missing / ➖ n/a with one-line evidence each: UI · UX · DB (company+property?) · Perms · Privacy (tenant isolation built?) · WF-CRUD (guarded?) · Theme. Then one overall status: done / in-progress / not-started / roadmap.');
+  L.push('3. **Security (STRUCT+POS)** — per business DT: quote the privacy rule (company AND property?), state Data API exposure, quote each write\'s server-side guard. Flag public-everyone / no-rules / logged-in-only DTs, UI-only writes, auto-bind on sensitive fields, public uploaders.');
+  L.push('4. **Findings** — ranked SECURITY > FUNCTIONAL > POLISH (severity, exact entity/expression, fix). Then the **[NEG] tests a human must run**.');
+  L.push('5. **Delta vs the ledger** — where brain/STATUS.md is wrong for this module.');
+  L.push('');
+  L.push('## Output');
+  L.push('(a) A human-readable report, and (b) a fenced `json` block so the CRS Brain can ingest it back into STATUS.md + the Progress Tree:');
+  L.push('```json');
+  L.push(`{ "id": "${mod.id}", "name": "${mod.name}", "section": "${mod.section}", "status": "done|in-progress|not-started|roadmap",`);
+  L.push('  "core7": {"ui":"","ux":"","db":"","perms":"","privacy":"","wf_crud":"","theme":""},');
+  L.push('  "dataTypes": [], "optionSets": [], "reusables": [],');
+  L.push('  "security_findings": [{"severity":"","where":"","issue":"","fix":""}], "neg_tests_todo": [] }');
+  L.push('```');
+  L.push('Never invent modules, fields, or rules — if something is not in the workspace, say "not found".');
   return L.join('\n');
 }
 
@@ -1360,11 +1393,15 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, moduleDetail(mod));
     }
     // Per-module Buildprint prompt, pre-filled with the module's up-to-date context.
+    // kind: 'edit' → paste into Buildprint app (applies); 'sync' → read-only audit → brain.
     if (p === '/api/modules/prompt' && req.method === 'POST') {
       const body = await readJsonBody(req);
       const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
       if (!mod) return send(res, 404, { error: 'module not found' });
-      return send(res, 200, { prompt: buildModulePrompt(mod, moduleDetail(mod)) });
+      const d = moduleDetail(mod);
+      const kind = body && body.kind === 'edit' ? 'edit' : 'sync';
+      const prompt = kind === 'edit' ? buildEditPrompt(mod, d) : buildSyncPrompt(mod, d);
+      return send(res, 200, { kind, prompt });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
