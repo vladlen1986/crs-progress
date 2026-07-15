@@ -9,16 +9,6 @@
   ],
   "modules": [
     {
-      "id": "casino_settings",
-      "name": "Casino Settings",
-      "section": "Admin / Core",
-      "route": "settings",
-      "icon": "gear",
-      "status": "done",
-      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
-      "order": 1
-    },
-    {
       "id": "roles_permissions",
       "name": "Roles & Permissions",
       "section": "Admin / Core",
@@ -26,6 +16,16 @@
       "icon": "shield-check",
       "status": "done",
       "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
+      "order": 1
+    },
+    {
+      "id": "casino_settings",
+      "name": "Casino Settings",
+      "section": "Admin / Core",
+      "route": "settings",
+      "icon": "gear",
+      "status": "done",
+      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
       "order": 2
     },
     {
