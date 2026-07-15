@@ -1007,6 +1007,29 @@ function buildSyncPrompt(mod, d) {
   return L.join('\n');
 }
 
+// System prompt: turn Vlad's plain-language request into a ready-to-paste Buildprint EDIT prompt.
+const EDIT_GEN_PROMPT = [
+  'You are the CRS Buildprint PROMPT WRITER. Vlad describes, in plain language, a change he wants made to the CRS',
+  'Bubble app. You output ONE ready-to-paste Buildprint prompt in MARKDOWN that Vlad will paste directly into the',
+  'Buildprint app to APPLY that change. Output ONLY the prompt — no preamble, no explanation, and do NOT wrap the',
+  'whole thing in a code fence.',
+  '',
+  'HOUSE STYLE — follow it exactly:',
+  '- First line, bold: **On TEST/DEV branch only. Create savepoint "<short label>" first. Run `buildprint check` after each task. Do not push to live. Apply directly without confirmation.**',
+  '- Then a bold **Attached:** line naming ONLY the source files relevant to this task: design.md (tokens/naming/theme) and CRS-style-system.md for any UI/style work; brain/security-test-checklist.md for any data/privacy/permission/workflow work; the module technical reference when one exists; and tell Vlad to attach the module design HTML if pixel dimensions are needed.',
+  '- Number the work: `## Task 0 — Locate + report` (find the relevant page/reusable + elements + data types and report BEFORE changing anything), then `## Task 1 — …`, `## Task 2 — …` for the actual change. Use exact-dimension tables when Vlad gives specs. The FINAL task is always verify (measure/prove) + report: what changed, styles reused vs created (+ showcased), privacy rules + guards quoted, and the [NEG] tests Vlad must run.',
+  '- Close with a bold repeat of the guardrail line.',
+  '',
+  'BAKE IN these CRS locked rules wherever the task touches them:',
+  "- Pattern A: every business data type carries company + property fields and a privacy rule checking `Current User's company = This Thing's company AND Current User's property = This Thing's property` (super-admin override; everyone-else grants nothing). Exceptions: Company, Property, Subscription, system configs.",
+  "- Permission-based access (`Current User's role's permissions contains <perm>`). Every create/edit/delete/state-change goes through a PRIVATE server-guarded backend workflow (expose:false, auth_unecessary:false), Current User resolved server-side; no UI-only writes; no auto-bind on access/status/money/ownership fields; a write taking a passed Thing needs an explicit tenant check on it.",
+  '- UI on named Dark + (Light) paired styles from design.md tokens; zero inline/literal colors; theming = full style swap only (one `dark_theme` conditional swaps the whole style); use only styles showcased on the design_system page — find first, create the pair + showcase it only if nothing fits.',
+  '',
+  'Scope STRICTLY to what Vlad asked — do not invent unrelated work. Use the MODULE CONTEXT provided so the prompt',
+  'references real elements / data types / permissions where known; where something is unknown, tell Buildprint to',
+  'inventory it in Task 0 rather than guessing. Keep it tight, concrete, and buildable.',
+].join('\n');
+
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
 function serveStatic(res, urlPath) {
@@ -1402,6 +1425,34 @@ const server = http.createServer(async (req, res) => {
       const kind = body && body.kind === 'edit' ? 'edit' : 'sync';
       const prompt = kind === 'edit' ? buildEditPrompt(mod, d) : buildSyncPrompt(mod, d);
       return send(res, 200, { kind, prompt });
+    }
+    // Text-driven EDIT prompt: Vlad types what he wants; the brain writes a proper
+    // Buildprint prompt from it, grounded in the module's brain context + live workspace.
+    if (p === '/api/modules/edit-prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      const text = (body && body.text || '').toString().trim();
+      if (!text) return send(res, 400, { error: 'Describe what you want done first.' });
+      const d = moduleDetail(mod);
+      const ctx = [
+        `MODULE: ${mod.name} · section ${mod.section} · route ${mod.route || '(unset)'} · tracked status ${mod.status}${mod.note ? ' — ' + mod.note : ''}`,
+        d.statusBlock ? 'STATUS.md detail:\n' + d.statusBlock : '',
+        d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
+        d.perms ? 'Permissions:\n' + d.perms : '',
+        d.workflows ? 'Workflows:\n' + d.workflows : '',
+      ].filter(Boolean).join('\n\n');
+      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — turn this into a Buildprint edit prompt for this module:\n${text}`;
+      const cfg = loadSettings();
+      const ws = findBpWorkspace();
+      let out = '';
+      try {
+        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: cfg.effort, systemPrompt: EDIT_GEN_PROMPT, ...(ws ? { addDirs: [ws.dir] } : {}) });
+        out = (result.text || '').trim();
+      } catch (e) { return send(res, 502, { error: e.message }); }
+      out = out.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+      if (!out) return send(res, 502, { error: 'the brain returned an empty prompt — try again' });
+      return send(res, 200, { prompt: out });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.

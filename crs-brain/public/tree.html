@@ -84,6 +84,9 @@
   .promptbox{margin-top:10px;display:none}
   .promptbox.show{display:block}
   .promptbox textarea{width:100%;height:230px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--secondary);font-family:var(--mono);font-size:11.5px;line-height:1.5;padding:11px;resize:vertical}
+  .reqta{width:100%;height:70px;background:var(--bg);border:1px solid var(--line2);border-radius:8px;color:var(--primary);font-family:var(--sans);font-size:12.5px;line-height:1.5;padding:9px 11px;resize:vertical;margin-bottom:8px}
+  .reqta:focus{border-color:var(--accent);outline:none}
+  .reqta::placeholder{color:var(--muted)}
   .promptbox .prow{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .promptbox .plabel{font-size:11px;color:var(--muted)}
   select.filt{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:6px 10px;font-size:12px;font-family:inherit;cursor:pointer}
@@ -121,7 +124,7 @@ const VOCAB=['done','in-progress','not-started','roadmap'];
 const LABEL={'done':'Done','in-progress':'In progress','not-started':'Not started','roadmap':'Roadmap'};
 const COLOR={done:'var(--good)','in-progress':'var(--warn)','not-started':'var(--muted)',roadmap:'var(--accent2)'};
 let DATA={modules:[]}, saveTimer=null, dragId=null;
-const expanded=new Set(), detailCache={}, promptCache={}, lastKind={};
+const expanded=new Set(), detailCache={}, promptCache={}, lastKind={}, editReq={};
 const KLABEL={edit:'EDIT prompt — paste into the Buildprint app (applies directly)',sync:'SYNC prompt — read-only, reports back into the brain'};
 
 async function load(){
@@ -162,6 +165,18 @@ async function toggle(id){
   else{ expanded.add(id); if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } } }
   render();
 }
+async function genEdit(id){
+  const req=document.getElementById('req-'+id), text=(req.value||'').trim();
+  if(!text){ req.focus(); return; }
+  editReq[id]=text;
+  const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id);
+  box.classList.add('show'); lastKind[id]='edit'; if(lbl) lbl.textContent=KLABEL.edit;
+  ta.value='Writing the Buildprint prompt from your request… (uses the model — a few seconds)';
+  try{
+    const r=await fetch('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,text})});
+    const j=await r.json(); const out=j.prompt||('⚠ '+(j.error||'no prompt returned')); ta.value=out; promptCache[id+':edit']=out;
+  }catch(e){ ta.value='⚠ '+e.message; }
+}
 async function genPrompt(id,kind){
   const box=document.getElementById('pb-'+id), ta=document.getElementById('pt-'+id), lbl=document.getElementById('pl-'+id);
   box.classList.add('show'); lastKind[id]=kind; if(lbl) lbl.textContent=KLABEL[kind];
@@ -200,11 +215,13 @@ function detailHTML(id){
     ${mentions}
     <div class="dsec"><h4>Files</h4><div class="filelinks">${links.join('')}</div></div>
     <div class="dsec"><h4>Buildprint prompts</h4>
+      <label class="plabel" style="display:block;margin-bottom:5px">Describe the edit / feature you want — the Brain writes the Buildprint prompt from your words (grounded in this module + the live app):</label>
+      <textarea id="req-${id}" class="reqta" spellcheck="true" oninput="editReq['${id}']=this.value" placeholder="e.g. Add a Status filter (Active / Inactive / All) to the user list, wired to the already-loaded list — dark + light, no new searches."></textarea>
       <div class="genbar">
-        <button class="btn primary" onclick="genPrompt('${id}','edit')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Edit prompt → Buildprint app</button>
+        <button class="btn primary" onclick="genEdit('${id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h7l-1 8 10-12h-7z"/></svg>Write Buildprint edit prompt</button>
         <button class="btn" onclick="genPrompt('${id}','sync')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12a8 8 0 0 1 14-5m2-3v5h-5M20 12a8 8 0 0 1-14 5m-2 3v-5h5"/></svg>Read &amp; sync → brain</button>
       </div>
-      <div class="plabel" style="margin-top:6px"><b style="color:var(--secondary)">Edit</b> = paste into the Buildprint app (applies directly, savepoint first). <b style="color:var(--secondary)">Sync</b> = read-only audit that reports back into the brain. Both markdown, pre-filled with this module's current context.</div>
+      <div class="plabel" style="margin-top:6px"><b style="color:var(--secondary)">Edit</b> = the Brain turns your text into a ready-to-paste Buildprint prompt (savepoint, Pattern A, tokens, verify — applies directly). <b style="color:var(--secondary)">Sync</b> = read-only audit that reports back into the brain.</div>
       <div class="promptbox" id="pb-${id}">
         <div class="prow"><span class="plabel" id="pl-${id}"></span><button class="btn" id="cp-${id}" onclick="copyPrompt('${id}')">Copy</button></div>
         <textarea id="pt-${id}" readonly spellcheck="false"></textarea>
@@ -249,7 +266,10 @@ function render(){
     item.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(item.dataset.idx);if(dragId===null||dragId===to)return;const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const[mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();});
     // restore prompt if it was generated
     list.appendChild(item);
-    if(open&&lastKind[m.id]){ const k=lastKind[m.id],key=m.id+':'+k; const pb=document.getElementById('pb-'+m.id),pt=document.getElementById('pt-'+m.id),pl=document.getElementById('pl-'+m.id); if(pb&&pt&&promptCache[key]){pb.classList.add('show');pt.value=promptCache[key];if(pl)pl.textContent=KLABEL[k];} }
+    if(open){
+      const req=document.getElementById('req-'+m.id); if(req&&editReq[m.id]!==undefined) req.value=editReq[m.id];
+      if(lastKind[m.id]){ const k=lastKind[m.id],key=m.id+':'+k; const pb=document.getElementById('pb-'+m.id),pt=document.getElementById('pt-'+m.id),pl=document.getElementById('pl-'+m.id); if(pb&&pt&&promptCache[key]){pb.classList.add('show');pt.value=promptCache[key];if(pl)pl.textContent=KLABEL[k];} }
+    }
   });
   if(!list.children.length) list.innerHTML='<div class="empty">No modules for this filter.</div>';
 }
