@@ -1468,7 +1468,9 @@ function serveStatic(res, urlPath) {
   if (!abs.startsWith(PUBLIC_DIR)) return send(res, 403, { error: 'forbidden' });
   fs.readFile(abs, (err, data) => {
     if (err) return send(res, 404, { error: 'not found' });
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(abs)] || 'application/octet-stream' });
+    // no-cache so the browser always revalidates — the app's HTML/JS/CSS change
+    // often; without this, a plain refresh (F5) serves a stale cached page.
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(abs)] || 'application/octet-stream', 'Cache-Control': 'no-cache, must-revalidate' });
     res.end(data);
   });
 }
