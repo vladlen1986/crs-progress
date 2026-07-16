@@ -36,7 +36,9 @@
 | Clone a branch as editable files | ✅ `project clone` | — | each branch = a git worktree |
 | Read/understand app structure | ✅ `summary`/`tree`/`context`/`find` | ✅ (via agent) | pages, RE, workflows, DTs, OS, styles, settings |
 | Search Bubble **data** records | ✅ `data` (read) | ✅ search/fetch/aggregate | **READ-ONLY**; bypasses privacy rules (editor access) |
-| Read server **logs** + workload usage | ✅ (`exploring-logs`) | ✅ | draws on logs allowance; sensitive (emails/IDs) |
+| Read server **logs** + workload usage | ❌ *(no CLI command)* | ✅ | **MCP or the web log dashboard only** — the CLI has no `logs` command. Draws on the logs allowance (not runtime); sensitive (emails/IDs) |
+| Run Manual / API **automations** | ❌ *(no CLI command)* | ✅ | MCP-only from a Claude session |
+| Manage log **monitors** | ❌ *(no CLI command)* | ✅ | MCP/web-only |
 | **Edit** app structure (pages/WF/DT/OS/styles/settings/API-connector) | ✅ edit files → `apply` | ❌ *data tools can't edit* | MCP can *start agents* that edit (= web runtime) |
 | Edit Bubble **database Things** | ❌ | ❌ | neither can create/modify/delete Things |
 | Validate edits | ✅ `check` | — | the gate before `apply` |
@@ -44,8 +46,7 @@
 | Savepoints (Bubble restore points) | ✅ `savepoint create/list/restore` | — | goes through Bubble, per branch |
 | Branches + merge | ✅ `branch`/`merge` | ✅ list branches | branching from **live is not allowed** |
 | Security audit | ✅ `audit` | — | public DTs, public backend WFs, exposed uploaders, etc. |
-| Automations (Manual/API) | — | ✅ run | side effects possible — treat as a write |
-| Tests / test users / monitors | ✅ `test-user`, browser `login`/`screenshot` (local) | ✅ manage | **web test *runs* use runtime** |
+| Tests / test users | ✅ `test-user`, browser `login`/`screenshot` (local) | ✅ manage | **web test *runs* use runtime** |
 | Fetch private secrets | ✅ `secret` (explicit) | ❌ (filtered from snapshots) | you can pull them; don't paste them anywhere |
 | Diff two branches | ✅ `changelog <a> <b>` | — | markdown or `--json` |
 
@@ -83,8 +84,9 @@
 Plan/Build is a **chat** concept ("every chat has an edit mode"). For a CLI-only workflow there is no toggle;
 you just run read vs write commands. The mapping:
 
-- **Plan mode (read, no edits)** ⇒ CLI: `sync` → `summary`/`tree`/`context`/`find` → `data` (read) → `audit`
-  → logs. Use for: understanding the app, debugging, planning a change, reviewing risk. *Cannot apply edits.*
+- **Plan mode (read, no edits)** ⇒ CLI: `sync` → `summary`/`tree`/`context`/`find` → `data` (read) →
+  `audit`. (Server **logs** + workload usage are **MCP or web-dashboard only** — the CLI can't read them.)
+  Use for: understanding the app, debugging, planning a change, reviewing risk. *Cannot apply edits.*
 - **Build mode (edit)** ⇒ CLI: edit the shredded files → `check` → `apply`. Use for: actually implementing a
   feature. Requires Bubble collaborator **Edit access** + a non-read-only branch.
 
