@@ -118,6 +118,7 @@
   .item:hover{background:var(--panel2)}
   .item.on{background:var(--accent-soft);color:var(--primary)}
   .item .meta{margin-left:auto;color:var(--muted);font-size:11px;background:var(--veil);border-radius:20px;padding:0 7px;line-height:17px}
+  .item .bpi{color:var(--accent2);flex:0 0 auto;width:14px;height:14px}
   .item .x{opacity:0;color:var(--muted);font-size:13px;transition:.15s}
   .item:hover .x{opacity:.7}
   .item .x:hover{color:var(--danger)}
@@ -296,6 +297,23 @@
   .qchip .qtxt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .qchip .qx{cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px;border-radius:50%}
   .qchip .qx:hover{color:var(--danger)}
+
+  /* chat mode switch (Chat · Buildprint) — sits above the composer */
+  .chatmode{display:flex;justify-content:center;margin:0 auto 10px;max-width:830px}
+  .col.center.no-composer .chatmode{display:none}
+  .seg2{display:inline-flex;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
+  .seg2 button{background:none;border:none;color:var(--muted);font:inherit;font-size:12.5px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s}
+  .seg2 button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
+  .seg2 button.on{background:var(--accent);color:#fff}
+  .seg2 button:not(.on):hover{color:var(--secondary)}
+  /* chat starter template cards (mode-aware) */
+  .tcards{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:580px;margin:24px auto 0}
+  .tcard{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;transition:.15s;font-family:inherit}
+  .tcard:hover{border-color:var(--line3);background:var(--elev)}
+  .tcard .tct{color:var(--primary);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px}
+  .tcard .tct svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--accent2);flex:0 0 16px}
+  .tcard .tcd{color:var(--muted);font-size:11.5px;margin-top:5px;line-height:1.45}
+  @media (max-width:560px){.tcards{grid-template-columns:1fr}}
 
   /* live generation meter — elapsed + running input/output tokens */
   .genmeter{display:none;align-items:center;gap:10px;max-width:830px;margin:0 auto 8px;padding:6px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;font-size:11.5px;color:var(--secondary);width:max-content}
@@ -789,22 +807,18 @@
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
-      <button id="tabChats" class="on" onclick="setTab('chats')">Chats</button>
-      <button id="tabBp" onclick="setTab('buildprint')">Buildprint</button>
+      <button id="tabChats" class="on" onclick="setTab('chats')">Conversations</button>
       <button id="tabFiles" onclick="setTab('files')">Files</button>
     </div>
     <div id="chatActions">
-      <input class="chat-search" id="chatSearch" placeholder="Search chats…" autocomplete="off" oninput="onChatSearch(this.value)">
+      <input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)">
       <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
       <button class="newbtn" onclick="runDigest()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg> Weekly digest</button>
+      <button class="newbtn" onclick="bpTrack()" title="Pull the latest Buildprint changes into the brain ledger"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> Sync Buildprint → brain</button>
     </div>
-    <div id="bpActions" style="display:none">
-      <button class="newbtn" onclick="newBpChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New Buildprint task</button>
-      <button class="newbtn" onclick="bpTrack()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> Sync from Buildprint → brain</button>
-      <div class="bp-conn" id="bpConn">checking Buildprint…</div>
-    </div>
+    <div id="bpActions" style="display:none"><div class="bp-conn" id="bpConn">checking Buildprint…</div></div>
     <div class="pane" id="paneChats"></div>
-    <div class="pane hide" id="paneBuildprint"></div>
+    <div class="pane hide" id="paneBuildprint" style="display:none"></div>
     <div class="pane hide tree" id="paneFiles"></div>
     <div class="tabs" id="fileFilter" style="display:none;margin-top:0">
       <button id="ffCrs" class="on" onclick="setFileFilter(true)">Project</button>
@@ -877,6 +891,12 @@
     </div>
     <!-- persistent composer — always visible on every view -->
     <div class="composer-wrap">
+        <div class="chatmode" id="chatMode">
+          <div class="seg2">
+            <button data-m="chat" class="on" onclick="setChatMode(false)"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg> Chat</button>
+            <button data-m="bp" onclick="setChatMode(true)"><svg viewBox="0 0 24 24"><use href="#i-terminal"/></svg> Buildprint</button>
+          </div>
+        </div>
         <div class="genmeter" id="genMeter"></div>
         <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
@@ -1048,17 +1068,14 @@ document.addEventListener('click',e=>{
 });
 
 // ---------- tabs ----------
-function setTab(t){ state.tab=t;
-  $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files'); $('tabBp').classList.toggle('on',t==='buildprint');
-  $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files'); $('paneBuildprint').classList.toggle('hide',t!=='buildprint');
+function setTab(t){ if(t==='buildprint') t='chats';   // buildprint is now a composer mode, not a sidebar tab
+  state.tab=t;
+  $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files');
+  $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files');
   $('chatActions').style.display = t==='chats' ? '' : 'none';
-  $('bpActions').style.display = t==='buildprint' ? '' : 'none';
   $('fileFilter').style.display = t==='files' ? '' : 'none';
-  // Clicking Chats while a file/dashboard is open → return to the conversation
-  // you were in (don't discard your place); fresh chat only if there is none.
+  // Clicking Conversations while a file/dashboard is open → return to where you were.
   if(t==='chats' && $('chatView').style.display==='none'){ state.chatId ? openChat(state.chatId) : newChat(); }
-  // Buildprint tab: re-check CLI status (it may have been linked after page load).
-  if(t==='buildprint') bpStatus();
 }
 
 // ---------- Project-only file filter ----------
@@ -1080,7 +1097,7 @@ function filterTree(tree){ if(!state.crsOnly) return tree;
 // ---------- chats ----------
 function chatItemEl(c){
   const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
-  d.innerHTML=`<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">${svg('i-x','sm')}</span>`;
+  d.innerHTML=`${c.bp?`<svg class="ic sm bpi" viewBox="0 0 24 24" title="Buildprint"><use href="#i-terminal"/></svg>`:''}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">${svg('i-x','sm')}</span>`;
   d.onclick=(e)=>{ if(e.target.closest('.x')){delChat(c.id);return;} openChat(c.id); };
   return d;
 }
@@ -1092,11 +1109,11 @@ function onChatSearch(q){ clearTimeout(chatSearchT);
   chatSearchT=setTimeout(async()=>{ q=q.trim();
     if(!q){ loadChats(); return; }
     try{ const {chats}=await api('/api/search-chats?q='+encodeURIComponent(q));
-      const box=$('paneChats'); const normal=chats.filter(c=>!c.bp);
-      box.innerHTML = normal.length? '' : '<div class="empty" style="padding:12px">No chats match “'+esc(q)+'”.</div>';
-      for(const c of normal){ const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
+      const box=$('paneChats');
+      box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations match “'+esc(q)+'”.</div>';
+      for(const c of chats){ const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
         d.style.flexDirection='column'; d.style.alignItems='stretch';
-        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center"><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span><span class="meta">${c.count}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
+        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center">${c.bp?`<svg class="ic sm bpi" viewBox="0 0 24 24"><use href="#i-terminal"/></svg>`:''}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span><span class="meta">${c.count}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
         d.onclick=()=>openChat(c.id); box.appendChild(d); }
     }catch{}
   }, 180);
@@ -1105,16 +1122,37 @@ function onChatSearch(q){ clearTimeout(chatSearchT);
 async function loadChats(){
   const {chats}=await api('/api/chats');
   state.chatList=chats;
-  const normal=chats.filter(c=>!c.bp), bp=chats.filter(c=>c.bp);
-  $('paneChats').innerHTML = normal.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
-  for(const c of normal) $('paneChats').appendChild(chatItemEl(c));
-  $('paneBuildprint').innerHTML = bp.length? '' : '<div class="empty" style="padding:12px">No Buildprint tasks yet. Start one — it operates your Bubble app on the test branch.</div>';
-  for(const c of bp) $('paneBuildprint').appendChild(chatItemEl(c));
+  // unified list — Buildprint tasks marked with a terminal glyph (mode is a composer switch now)
+  $('paneChats').innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
+  for(const c of chats) $('paneChats').appendChild(chatItemEl(c));
 }
-function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure. Finished a Buildprint session? Attach the report and hit <b style="color:var(--accent2)">Ingest to Brain</b> — every fact gets routed to its file.</div></div>'; }
-function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="background:var(--accent)">🔨</div><div class="hero-t">Buildprint task</div><div class="hero-s">Operate your CRS Bubble app on the <b style="color:var(--primary)">test</b> branch — I run Buildprint (sync → edit → check → apply) and log results to the brain. I show the plan before applying, never touch live.<br><br>Try: <i>"run a security audit"</i> · <i>"list data types with no privacy rules"</i> · <i>"add company + property fields and a Pattern A rule to 01.3 Department — plan first"</i></div></div>'; }
-function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; $('input').placeholder='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)'; loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; state.bp=true; setTab('buildprint'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='🔨 New Buildprint task'; $('input').placeholder='Tell Buildprint what to do on the test branch…'; loadChats(); $('input').focus(); }
+// mode-aware chat starter templates — clicking a card seeds the input
+const TEMPLATES={
+  chat:[
+    {i:'i-gauge',t:'What changed recently?',d:'Recent commits + brain updates',s:'What changed in the CRS project recently?'},
+    {i:'i-alert',t:'What’s blocking?',d:'Open decisions & blockers',s:'What is blocking the next module, and which decisions are still open?'},
+    {i:'i-file',t:'Explain a decision',d:'Locked architecture rationale',s:'Explain the Pattern A multi-tenant decision and its trade-offs.'},
+    {i:'i-check',t:'What’s missing?',d:'Gaps vs the spec',s:'What is missing for Pattern A privacy rules across the business data types?'},
+  ],
+  bp:[
+    {i:'i-search',t:'Audit a module (read-only)',d:'Report state, change nothing',s:'Run a READ-ONLY audit of a module: report its data types, privacy rules, and workflows. Do not change anything.'},
+    {i:'i-terminal',t:'Write a build prompt for…',d:'Draft a guardrailed prompt',s:'Write a Buildprint prompt to add company + property fields and a Pattern A privacy rule to a module — plan first, test branch only.'},
+    {i:'i-alert',t:'List DTs with no privacy rule',d:'Security gap scan',s:'List all data types that have no privacy rule, or whose rule does not check both company AND property.'},
+    {i:'i-check',t:'Fix pass (plan-first)',d:'Savepoint → apply → check',s:'Do a fix pass on the current module: state the plan, take a savepoint, apply ONE change, run check. Stop if check fails.'},
+  ],
+};
+function seedInput(text){ const inp=$('input'); if(!inp)return; inp.value=text; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus(); }
+function seedTpl(mode,idx){ const t=(TEMPLATES[mode]||[])[idx]; if(t) seedInput(t.s); }
+function heroCards(mode){ return '<div class="tcards">'+(TEMPLATES[mode]||[]).map((t,i)=>`<button class="tcard" onclick="seedTpl('${mode}',${i})"><span class="tct">${svg(t.i,'sm')} ${esc(t.t)}</span><span class="tcd">${esc(t.d)}</span></button>`).join('')+'</div>'; }
+function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure.</div>'+heroCards('chat')+'</div>'; }
+function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="background:var(--accent)">'+svg('i-terminal')+'</div><div class="hero-t">Buildprint task</div><div class="hero-s">Operate your CRS Bubble app on the <b style="color:var(--primary)">test</b> branch — plan → apply → check, logged to the brain, never live.</div>'+heroCards('bp')+'</div>'; }
+// reflect state.bp into the composer mode switch + placeholder
+function reflectMode(){ document.querySelectorAll('#chatMode .seg2 button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='bp')===(state.bp===true))); const inp=$('input'); if(inp) inp.placeholder=state.bp?bpPh:normPh; }
+function setChatMode(bp){ state.bp=!!bp; reflectMode();
+  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; }
+  if(bp) bpStatus(); }
+function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; state.bp=true; setTab('chats'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
 const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
@@ -1124,12 +1162,12 @@ async function openChat(id){
     const live=state.live; live.gen=state.viewGen; state.chatId=id; state.bp=live.bp; showChat();
     const log=$('chatLog'); log.innerHTML=''; log.appendChild(userMsgEl(live.userText, live.atts)); log.appendChild(live.node);
     $('centerTitle').textContent=(state.bp?'🔨 ':'')+((state.chatList||[]).find(c=>c.id===id)?.title||'Conversation');
-    $('input').placeholder = state.bp?bpPh:normPh; state.sending=true; setGenerating(true);
+    reflectMode(); state.sending=true; setGenerating(true);
     log.scrollTop=log.scrollHeight; loadChats(); return;
   }
   state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); state.bp=chat.bp===true;
   $('centerTitle').textContent=(state.bp?'🔨 ':'')+(chat.title||'Conversation');
-  $('input').placeholder = state.bp?bpPh:normPh;
+  reflectMode();
   renderChat(chat.messages); loadChats(); }
 async function delChat(id){
   const t=(state.chatList||[]).find(c=>c.id===id)?.title||'this chat';
