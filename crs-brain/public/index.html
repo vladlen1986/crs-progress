@@ -1836,6 +1836,19 @@ function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftil
 function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
 
 // ---------- Finder/Explorer-style file browser ----------
+// Source-agnostic filesystem ops. Branch A = real repo writes via /api/fs/* (all
+// guarded server-side by safeRepoPath). Every ops rejection surfaces its message.
+const FS = {
+  persistent: true,   // Branch A: mutations change the real repo
+  tree(){ return api('/api/files').then(r=>r.tree||[]); },
+  read(p){ return api('/api/file?path='+encodeURIComponent(p)).then(r=>r.content); },
+  _post(op,body){ return api('/api/fs/'+op,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); },
+  create(dir,name,type){ return this._post('create',{dir,name,type}); },
+  rename(p,newName){ return this._post('rename',{path:p,newName}); },
+  move(paths,targetDir){ return this._post('move',{paths,targetDir}); },
+  duplicate(p){ return this._post('duplicate',{path:p}); },
+  del(paths){ return this._post('delete',{paths}); },
+};
 let explTree=[], explPath='', explAll=false;
 async function openExpl(dir){ try{ explTree=(await api('/api/files')).tree; }catch{ explTree=[]; }
   explPath=dir||'';

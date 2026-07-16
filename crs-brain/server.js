@@ -1536,6 +1536,66 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true });
     }
 
+    // ---- OS-explorer filesystem mutations (all guarded by safeRepoPath) --------
+    // create file/folder, rename, move (batch), duplicate, delete (batch). Real,
+    // persistent changes under REPO_ROOT only. Illegal names + traversal rejected.
+    if (p.startsWith('/api/fs/') && req.method === 'POST') {
+      const body = await readJsonBody(req) || {};
+      const badName = (n) => !n || /[\/\\]/.test(n) || /[<>:"|?*\x00-\x1f]/.test(n) || n === '.' || n === '..' || n.length > 255;
+      try {
+        if (p === '/api/fs/create') {
+          if (badName(body.name)) return send(res, 400, { error: 'invalid name' });
+          const abs = safeRepoPath((body.dir ? body.dir + '/' : '') + body.name);
+          if (fs.existsSync(abs)) return send(res, 409, { error: 'already exists' });
+          if (body.type === 'folder') fs.mkdirSync(abs, { recursive: false });
+          else { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, ''); }
+          return send(res, 200, { ok: true, path: (body.dir ? body.dir + '/' : '') + body.name });
+        }
+        if (p === '/api/fs/rename') {
+          if (badName(body.newName)) return send(res, 400, { error: 'invalid name' });
+          const abs = safeRepoPath(body.path);
+          const dst = path.join(path.dirname(abs), body.newName);
+          if (!dst.startsWith(REPO_ROOT + path.sep)) return send(res, 400, { error: 'forbidden' });
+          if (fs.existsSync(dst)) return send(res, 409, { error: 'name already in use' });
+          fs.renameSync(abs, dst);
+          const rel = path.relative(REPO_ROOT, dst).split(path.sep).join('/');
+          return send(res, 200, { ok: true, path: rel });
+        }
+        if (p === '/api/fs/move') {
+          const targetDir = safeRepoPath(body.targetDir || '');
+          if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) return send(res, 400, { error: 'target is not a folder' });
+          const moved = [];
+          for (const rel of (body.paths || [])) {
+            const src = safeRepoPath(rel);
+            const dst = path.join(targetDir, path.basename(src));
+            if (dst === src || path.dirname(src) === targetDir) continue;            // no-op
+            if ((targetDir + path.sep).startsWith(src + path.sep)) return send(res, 400, { error: 'cannot move a folder into itself' });
+            if (fs.existsSync(dst)) return send(res, 409, { error: `"${path.basename(src)}" already exists in the target` });
+            fs.renameSync(src, dst);
+            moved.push(path.relative(REPO_ROOT, dst).split(path.sep).join('/'));
+          }
+          return send(res, 200, { ok: true, moved });
+        }
+        if (p === '/api/fs/duplicate') {
+          const src = safeRepoPath(body.path);
+          const ext = path.extname(src), base = path.basename(src, ext), dir = path.dirname(src);
+          let dst = path.join(dir, `${base} copy${ext}`), i = 2;
+          while (fs.existsSync(dst)) dst = path.join(dir, `${base} copy ${i++}${ext}`);
+          fs.cpSync(src, dst, { recursive: true });
+          return send(res, 200, { ok: true, path: path.relative(REPO_ROOT, dst).split(path.sep).join('/') });
+        }
+        if (p === '/api/fs/delete') {
+          for (const rel of (body.paths || [])) {
+            const abs = safeRepoPath(rel);
+            if (abs === REPO_ROOT) return send(res, 400, { error: 'refusing to delete repo root' });
+            fs.rmSync(abs, { recursive: true, force: true });
+          }
+          return send(res, 200, { ok: true });
+        }
+        return send(res, 404, { error: 'unknown fs op' });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+
     if (p === '/api/chats' && req.method === 'GET') {
       return send(res, 200, { chats: listChats() });
     }
