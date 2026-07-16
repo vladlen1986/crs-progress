@@ -4,7 +4,28 @@
 
 Last updated: **2026-07-16**.
 
-> **New session? Read this 2026-07-16 log first — it captures the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
+> **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
+
+---
+
+## Session 2026-07-16 (cont.) — Buildprint-style activity blocks, action log + rollback, wishlist
+
+Follow-on to the session below. All committed to `main` (still NOT pushed — push via GitHub Desktop).
+
+### What was built
+1. **Grouped agent activity (like the Buildprint web agent)** — `public/index.html`. The bp/chat stream no longer renders one bordered box per tool. A run of consecutive tool/thinking steps now folds under ONE collapsible **"Worked for Xs"** header (ticks "Working Ns" live, freezes to "Worked for Ns"), with assistant prose between groups. Each step is a clean **icon + label** row (icon auto-picked from tool/label: sparkle=thinking, terminal=`$`/buildprint/git, magnifier=grep/explore/audit, doc=file read, globe=web, pencil=edit/apply), **expandable** to reveal its thinking/detail; the group header collapses the whole list. All CRS dark tokens. New helper `stepIco()`; streaming model rewritten to `group`/`activeStep` (kept `startCard`/`finalizeCard` names for call sites). Verified by replaying a synthetic SSE stream through the real render path (no model call).
+2. **Action log (activity ledger) + rollback** — the app now records **every action**, so "when did I do X / roll back to before it" is answerable.
+   - **Storage:** append-only `crs-brain/data/action-log.jsonl` (gitignored — per-machine runtime ledger; the real rollback targets are **Bubble savepoints**, which are shared across machines). Helpers `logAction()` / `readActionLog()` in `server.js`.
+   - **Auto-capture of CLI mutations:** `crs-brain/bp-log.js` is a **PostToolUse hook** (wired alongside `bp-guard.js` in `data/bp-guard-settings.json`) that logs every `buildprint`/`git` command the copilot runs — classified (savepoint/apply/data/branch/cli), with the savepoint label + branch + ok/fail extracted. So each apply is indexed to the savepoint taken just before it.
+   - **UI actions logged:** chat sends (server-side, the intent anchor), and Progress-Tree status/reorder/prompt-gen (client `logAct()` in `tree.html`).
+   - **Endpoints:** `GET /api/action-log?q=&type=&since=&limit=`, `POST /api/action-log`.
+   - **Activity Log page** — `public/activity.html` (Home card "Activity log" + side-rail clock icon). Day-grouped timeline, search, type filters with counts, color badges, monospace command rows, ⚑ savepoint / ⌥ branch / failed tags, and a **⟲ Roll back** button on apply/savepoint/data/branch/bp-chat rows that opens a bp chat pre-filled to find the right savepoint and restore the TEST branch to just before that action.
+   - **Agent awareness:** `BP_PROMPT` now has an ACTION LOG & ROLLBACK block — read `action-log.jsonl` to answer "when did I…", and for rollback: find the savepoint → `savepoint list` → `savepoint restore` on test → `sync`. **Honesty rule baked in:** savepoint-restore reverts structure/workflows only — it does NOT undo DB record writes (Buildprint can't delete Things); those need Bubble deletion or a data backup.
+3. **Second Brain Improvements wishlist** — `crs-brain/WISHLIST.md`, a hand-editable todo list for the app itself. Seeded with Vlad's asks: **daily Bubble-forum check** → update `brain/bubble/`; **track `bubble.io/release-notes`** → keep the brain current on new Bubble features. Two features flagged to research (mechanics NOT assumed): **style-swapping in conditions** (clean path for the dark/light theme feature) and **global expressions**.
+
+### Next up (carried + new)
+- Build the wishlist P1s: the **release-notes / forum watchers** (and then document style-swapping + global expressions in `brain/bubble/`).
+- Everything from the prior session's "Next up" still stands (install `agent-browser`, Sync audits, User Management Pass-2, Pattern A rollout).
 
 ---
 
