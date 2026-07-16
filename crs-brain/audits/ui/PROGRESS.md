@@ -17,13 +17,21 @@
 - W10 (partial): Claude auth + Buildprint token link (`/api/connections/buildprint-link`).
 - FINDINGS.md + PLAN.md written.
 
+## Done (cont.)
+- Phase-0/1 setup complete: branch, secrets, audit dirs, FINDINGS/PLAN/PROGRESS, decisions entry.
+- Screenshot pipeline (`shoot.sh`, headless Chrome) + baseline captures in `audits/ui/00-baseline/`.
+- Fixed misplaced `crs-brain/brain/reference/…` → `brain/reference/…`.
+- **W4 DONE** — Chat/Buildprint mode switch above the input; mode-aware template cards that seed the input;
+  unified "Conversations" sidebar with bp badges; Buildprint sidebar tab retired. Verified (cards swap + seed,
+  no console errors). Commit `3106c55`.
+
 ## In progress
-- Phase-0/1 setup + deliverables (this pass).
+- (between workstreams)
 
 ## Next (ordered — see PLAN.md)
-- Screenshot pipeline + baseline. → W1 token audit → W2 sidebar/right-bar → **W4 chat mode-switch + templates**
-  → W3 states → W7 icons → W5 kanban → W6 tree → W10 SMTP/secrets → W9 per-type → W11 Bubble KB → W12 toolset
-  → W8 NAV-TEST → Phase 2 FINAL.
+- W1 token audit (grep raw hex → tokens, both themes) → W2 right-bar decision recorded (done in decisions.md) +
+  sidebar states → W3 dashboard states → W7 icon audit → **W5 kanban** → **W6 progress tree** → W10 SMTP/secrets
+  → W9 per-type prefs → W11 Bubble best-practices KB → W12 toolset doc → W8 NAV-TEST → Phase 2 FINAL.
 
 ## Blocked
 - _(none yet)_
