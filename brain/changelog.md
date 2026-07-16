@@ -4,6 +4,15 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-16 — Added user Hakan Dagtas (test DB data write)
+
+Created one User record on the test branch via `buildprint data create user` (data write, not a structure/apply change — no savepoint coverage).
+
+- New User `1784160880823x840719729024083600`: username "Hakan Dagtas", email `hakan.dagtas@crs.casino`, role **Casino Manager** (`1781297183409x538108718105358800`), property `1777600688821x296736103093115700`, linked to Employee "Hakan Dagtas" (`1745859145980x114721783901847550`, dept **Senior Management** `1711124559469x986187671739301900`). Flags: is_active, must_change_password, dark_theme all true; Bubble auto-set user_signed_up.
+- Vlad picked "any employee under Senior Management / any role, change later"; Hakan Dagtas was the match. Role Casino Manager per original ask.
+- No existing user was linked to that employee beforehand (checked). No password set — login requires a reset/invite through the app.
+- Note: DB holds ~21 user records while the UM page shows 19 (page filters some out). CLI quirk: search by `username`/`employee` field aliases intermittently errored ("missing field on type User"); verified via Created-Date-desc fetch instead.
+
 ## 2026-07-15 — Product status consolidated into the brain + Progress Tree page
 
 Pulled the scattered progress/design/module docs off the Desktop `Files` export (215 files across V0–V7) into the brain as the canonical, dated set. Ended the three-way "progress" name collision.
