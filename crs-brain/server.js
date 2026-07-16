@@ -1656,6 +1656,14 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/zip' && req.method === 'GET') {
       try {
         const zlib = require('zlib');
+        // zlib.crc32 needs Node >= 20.15; the app's floor is 18 → pure-JS fallback
+        let crc32 = zlib.crc32;
+        if (typeof crc32 !== 'function') {
+          if (!global._crcT) { const t = new Uint32Array(256);
+            for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } global._crcT = t; }
+          crc32 = (buf) => { const T = global._crcT; let c = 0xFFFFFFFF;
+            for (let i = 0; i < buf.length; i++) c = T[(c ^ buf[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; };
+        }
         const one = u.searchParams.get('path');
         const many = (u.searchParams.get('paths') || '').split(',').filter(Boolean);
         const roots = one ? [one] : many;
@@ -1677,7 +1685,7 @@ const server = http.createServer(async (req, res) => {
         for (const en of entries) {
           const data = fs.readFileSync(en.abs);
           const name = Buffer.from(en.zrel.replace(/^\/+/, ''), 'utf8');
-          const crc = zlib.crc32(data) >>> 0;
+          const crc = crc32(data) >>> 0;
           const mt = new Date(fs.statSync(en.abs).mtimeMs);
           const t = ((mt.getHours() << 11) | (mt.getMinutes() << 5) | (mt.getSeconds() >> 1)) & 0xffff;
           const dt = ((Math.max(0, mt.getFullYear() - 1980) << 9) | ((mt.getMonth() + 1) << 5) | mt.getDate()) & 0xffff;
