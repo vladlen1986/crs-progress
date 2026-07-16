@@ -4,6 +4,26 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-16 — Added 10 users across 10 departments (test DB data write)
+
+Batch data write on the test branch: 10 User records via `buildprint data create user`, each linked to an existing Employee from a distinct department, with a randomly assigned role (Super Admin excluded from the random pool). Same field pattern as the Hakan record; property defaulted to standard `1777600688821x296736103093115700` (employees carry no property field). No passwords set — login needs reset/invite.
+
+| Username | Email | Dept | Role |
+|---|---|---|---|
+| Teona Beridze | teona.beridze@crs.casino | Cage | CCTV Operator |
+| Irakli Loria | irakli.loria@crs.casino | F&B | Casino Shift Manager |
+| Maia Turmanidze | maia.turmanidze@crs.casino | Housekeeping | CCTV Supervisor |
+| Amiran Iremadze | amiran.iremadze@crs.casino | Technical Maintenance | CCTV Asst. Manager |
+| Tamta Tsetskhladze | tamta.tsetskhladze@crs.casino | Live Game | CCTV Manager |
+| Omar Goliuki | omar.goliuki@crs.casino | Security | Casino Pit Boss |
+| Tamar Mrevlishvili | tamar.mrevlishvili@crs.casino | Human Resources | Casino Manager |
+| Tengiz Davitadze | tengiz.davitadze@crs.casino | IT | Property Admin |
+| Davit Kublashvili | davit.kublashvili@crs.casino | Finance | CCTV Operator |
+| Ana Torchinava | ana.torchinava@crs.casino | Corporate & Legal Affairs | Casino Shift Manager |
+
+- All 10 employees confirmed to have no prior user link before creation. Verified post-write via Created-Date-desc fetch.
+- Env note: Python/Node are not permission-allowlisted in this workspace, so selection/dedup was done with buildprint queries + Grep rather than a script.
+
 ## 2026-07-16 — Added user Hakan Dagtas (test DB data write)
 
 Created one User record on the test branch via `buildprint data create user` (data write, not a structure/apply change — no savepoint coverage).
