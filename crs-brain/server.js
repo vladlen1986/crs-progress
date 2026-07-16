@@ -888,7 +888,7 @@ function walk(dir, baseRel = '') {
     if (e.isDirectory()) {
       if (IGNORE_DIRS.has(e.name) || IGNORE_DIRS.has(rel)) continue;
       const children = walk(path.join(dir, e.name), rel);
-      if (children.length) out.push({ type: 'dir', name: e.name, path: rel, children });
+      out.push({ type: 'dir', name: e.name, path: rel, children });   // include empty dirs (explorer needs new/empty folders to show)
     } else {
       const ext = path.extname(e.name).toLowerCase();
       if (!ALLOWED_EXT.has(ext)) continue;
@@ -1583,6 +1583,21 @@ const server = http.createServer(async (req, res) => {
           while (fs.existsSync(dst)) dst = path.join(dir, `${base} copy ${i++}${ext}`);
           fs.cpSync(src, dst, { recursive: true });
           return send(res, 200, { ok: true, path: path.relative(REPO_ROOT, dst).split(path.sep).join('/') });
+        }
+        if (p === '/api/fs/copy') {
+          const targetDir = safeRepoPath(body.targetDir || '');
+          if (!fs.existsSync(targetDir) || !fs.statSync(targetDir).isDirectory()) return send(res, 400, { error: 'target is not a folder' });
+          const out = [];
+          for (const rel of (body.paths || [])) {
+            const src = safeRepoPath(rel);
+            if ((targetDir + path.sep).startsWith(src + path.sep)) return send(res, 400, { error: 'cannot copy a folder into itself' });
+            const ext = path.extname(src), b = path.basename(src, ext);
+            let dst = path.join(targetDir, path.basename(src)), i = 1;
+            while (fs.existsSync(dst)) { dst = path.join(targetDir, `${b} copy${i > 1 ? ' ' + i : ''}${ext}`); i++; }
+            fs.cpSync(src, dst, { recursive: true });
+            out.push(path.relative(REPO_ROOT, dst).split(path.sep).join('/'));
+          }
+          return send(res, 200, { ok: true, copied: out });
         }
         if (p === '/api/fs/delete') {
           for (const rel of (body.paths || [])) {

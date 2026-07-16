@@ -1925,6 +1925,7 @@ const FS = {
   create(dir,name,type){ return this._post('create',{dir,name,type}); },
   rename(p,newName){ return this._post('rename',{path:p,newName}); },
   move(paths,targetDir){ return this._post('move',{paths,targetDir}); },
+  copy(paths,targetDir){ return this._post('copy',{paths,targetDir}); },
   duplicate(p){ return this._post('duplicate',{path:p}); },
   del(paths){ return this._post('delete',{paths}); },
 };
@@ -2072,11 +2073,91 @@ function explSetupMain(){
   $('explSide').addEventListener('click',(e)=>{ const tw=e.target.closest('.tw[data-tw]'); const en=e.target.closest('.en[data-path]'); if(!en) return;
     if(tw){ const p=en.dataset.path; EX.open.has(p)?EX.open.delete(p):EX.open.add(p); renderExpl(); return; } explGoto(en.dataset.path); });
   m.addEventListener('keydown', explKey);
+  m.addEventListener('contextmenu',(e)=>{ e.preventDefault(); hidePeek(); const el=e.target.closest('[data-path]');
+    if(el){ const p=el.dataset.path; if(!EX.sel.has(p)){ EX.sel.clear(); EX.sel.add(p); EX.cur=p; renderExpl(); } EX.menuTarget=p; }
+    else { EX.sel.clear(); EX.cur=null; renderExpl(); EX.menuTarget=null; }
+    explMenuAt(e.clientX,e.clientY,explBuildMenu(EX.menuTarget)); });
+  $('explMenu').addEventListener('click',(e)=>{ const b=e.target.closest('button[data-act]'); if(!b||b.disabled) return; const act=b.dataset.act; explCloseMenu(); explAct(act, EX.menuTarget); });
+  document.addEventListener('mousedown',(e)=>{ if(!e.target.closest('#explMenu')) explCloseMenu(); });
 }
+
+// ----- context menu + file ops (Task 4 + Task 7) -----
+function explCloseMenu(){ const mn=$('explMenu'); if(mn){ mn.classList.remove('show'); mn.innerHTML=''; } }
+function explMenuAt(x,y,html){ const mn=$('explMenu'); mn.innerHTML=html; mn.classList.add('show');
+  const w=mn.offsetWidth,h=mn.offsetHeight; mn.style.left=Math.min(x,innerWidth-w-6)+'px'; mn.style.top=Math.min(y,innerHeight-h-6)+'px'; }
+function explBuildMenu(target){
+  const mi=(label,act,{sh='',dis=false}={})=>`<button ${dis?'disabled':''} data-act="${act}"><span>${esc(label)}</span>${sh?`<span class="sh">${sh}</span>`:''}</button>`;
+  const div='<div class="div"></div>', hasClip=!!EX.clip;
+  if(target==null) return mi('New folder','newfolder',{sh:'⌘N'})+mi('New file','newfile')+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+mi('Sort by name','sortname')+mi('Sort by date','sortdate')+mi(EX.view==='list'?'Grid view':'List view','toggleview');
+  const node=explVisible().find(n=>n.path===target)||{type:'file'};
+  const multi=EX.sel.size>1;
+  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+mi('New file inside','newfile')+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
+  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
+}
+async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
+function explSelectPath(p){ EX.sel=new Set([p]); EX.cur=p; renderExpl(); }
+async function explAct(act,target){
+  try{
+    if(act==='open'){ const n=explVisible().find(x=>x.path===target); if(n) n.type==='dir'?explGoto(n.path):explOpenFile(n.path); }
+    else if(act==='rename'){ if(target!=null) explBeginRename(target); }
+    else if(act==='newfolder'){ explNew('folder', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path); }
+    else if(act==='newfile'){ explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path); }
+    else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
+    else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
+    else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }
+    else if(act==='paste'){ await explPaste(); }
+    else if(act==='delete'){ await explDelete(); }
+    else if(act==='copypath'){ try{ await navigator.clipboard.writeText(target); }catch{} toast('Path copied'); }
+    else if(act==='props'){ explProps(target); }
+    else if(act==='selall'){ EX.sel=new Set(explVisible().map(n=>n.path)); renderExpl(); }
+    else if(act==='sortname'){ explDoSort('name'); }
+    else if(act==='sortdate'){ explDoSort('date'); }
+    else if(act==='toggleview'){ explSetView(EX.view==='list'?'grid':'list'); }
+  }catch(e){ toast(e.message); }
+}
+async function explNew(type,dir){
+  if(dir!=null && dir!==EX.path) explGoto(dir); const d=EX.path;
+  const existing=new Set((explNodeAt(d).children||[]).map(n=>n.name));
+  let base=type==='folder'?'New folder':'untitled.md', name=base, i=2;   // new files default to .md (an allowed type) so they appear in the tree
+  while(existing.has(name)) name=(type==='folder'?'New folder '+i:'untitled '+i+'.md'),i++;
+  try{ await FS.create(d, name, type); await explReload(); const np=(d?d+'/':'')+name; explSelectPath(np); explBeginRename(np); }
+  catch(e){ toast(e.message); }
+}
+function explBeginRename(path){
+  const el=$('explMain').querySelector(`[data-path="${CSS.escape(path)}"]`); if(!el) return;
+  const nameEl=el.querySelector('.rn')||el.querySelector('.nm'); if(!nameEl) return;
+  const cur=path.split('/').pop();
+  const inp=document.createElement('input'); inp.className='expl-rename'; inp.value=cur;
+  nameEl.replaceWith(inp); inp.focus(); const dot=cur.lastIndexOf('.'); inp.setSelectionRange(0, dot>0?dot:cur.length);
+  let done=false;
+  const commit=async(save)=>{ if(done) return; done=true; const nn=inp.value.trim();
+    if(save && nn && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path); return; }catch(e){ toast(e.message); } }
+    await explReload(); explSelectPath(path); };
+  inp.addEventListener('keydown',(e)=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); commit(true); } else if(e.key==='Escape'){ e.preventDefault(); commit(false); } });
+  inp.addEventListener('blur',()=>commit(true));
+}
+async function explPaste(){ if(!EX.clip) return; const {mode,paths}=EX.clip;
+  try{ if(mode==='cut'){ await FS.move(paths,EX.path); EX.clip=null; } else { await FS.copy(paths,EX.path); }
+    await explReload(); toast(mode==='cut'?'Moved here':'Pasted'); }catch(e){ toast(e.message); } }
+async function explDelete(){ const paths=[...EX.sel]; if(!paths.length) return;
+  const label=paths.length===1?`“${paths[0].split('/').pop()}”`:`${paths.length} items`;
+  if(!confirm(`Delete ${label}? This can’t be undone.`)) return;
+  try{ await FS.del(paths); EX.sel.clear(); EX.cur=null; await explReload(); toast('Deleted '+label); }catch(e){ toast(e.message); } }
+function explProps(target){ const n=explVisible().find(x=>x.path===target); if(!n) return;
+  const info=[`Name:  ${n.name}`,`Type:  ${n.type==='dir'?'Folder':(extOf(n.name).toUpperCase()||'File')}`,`Path:  ${n.path}`];
+  if(n.type==='file') info.push(`Size:  ${fmtSize(n.size)||'—'}`); if(n.mtime) info.push(`Modified:  ${new Date(n.mtime).toLocaleString()}`);
+  alert(info.join('\n')); }
 function explKey(e){
   if(e.key==='Escape'){ EX.sel.clear(); EX.cur=null; renderExpl(); return; }
   if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){ e.preventDefault(); EX.sel=new Set(explVisible().map(n=>n.path)); EX.cur=EX.cur||[...EX.sel][0]; renderExpl(); return; }
   if(e.key==='Backspace'){ e.preventDefault(); explUp(); return; }
+  if(e.key==='F2'){ e.preventDefault(); if(EX.cur!=null) explBeginRename(EX.cur); return; }
+  if(e.key==='Delete'){ e.preventDefault(); explDelete(); return; }
+  const cmd=e.metaKey||e.ctrlKey, k=e.key.toLowerCase();
+  if(cmd&&k==='c'){ e.preventDefault(); if(EX.sel.size){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); } return; }
+  if(cmd&&k==='x'){ e.preventDefault(); if(EX.sel.size){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); } return; }
+  if(cmd&&k==='v'){ e.preventDefault(); explPaste(); return; }
+  if(cmd&&k==='n'){ e.preventDefault(); explNew('folder'); return; }
   const items=explVisible(); if(!items.length) return; const paths=items.map(n=>n.path);
   let idx=EX.cur!=null?paths.indexOf(EX.cur):-1;
   const cols=EX.view==='grid'?Math.max(1,Math.floor($('explMain').clientWidth/106)):1;
