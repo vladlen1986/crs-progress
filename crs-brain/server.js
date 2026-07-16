@@ -193,6 +193,72 @@ async function compileMemory(userText) {
   } catch { return []; }
 }
 
+// ---- wishlist (Brain-app improvement todos, managed in the UI) --------------
+// Canonical JSON the Wishlist page edits; WISHLIST.md is regenerated for humans/git.
+const WISHLIST_JSON = path.join(DATA_DIR, 'wishlist.json');
+const WISHLIST_MD = path.join(BRAIN_DIR, 'WISHLIST.md');
+const WISHLIST_SECTIONS = ['Bubble platform awareness', 'App features / UX', 'Automation / agent behavior'];
+const WL_STATUS = ['idea', 'in-progress', 'done'];
+const WL_PRIO = ['P1', 'P2', 'P3', ''];
+function seedWishlist() {
+  return {
+    sections: WISHLIST_SECTIONS,
+    items: [
+      { id: 'w-forum', section: 'Bubble platform awareness', title: 'Daily Bubble forum check', priority: 'P1', status: 'idea',
+        detail: "Once a day, scan the Bubble forum and update the brain's Bubble-forum documents (brain/bubble/) with anything new/relevant (plugins, gotchas, patterns, breaking changes). Append to a dated digest, not overwrite." },
+      { id: 'w-relnotes', section: 'Bubble platform awareness', title: 'Track bubble.io/release-notes', priority: 'P1', status: 'idea',
+        detail: "Watch the release-notes page; when something lands that affects how CRS is built, record it in a brain reference (e.g. brain/bubble/release-notes.md) and flag it if it changes a locked decision or unblocks a feature.\n\nResearch + document (mechanics NOT yet verified):\n- Style swapping in conditions: swap an element's whole style inside a conditional instead of overriding each property. If true, the clean way to build the dark/light theme feature.\n- Global expressions: lots of community talk; confirm how they work and whether they help CRS." },
+      { id: 'w-loops', section: 'Automation / agent behavior', title: 'Task loops with limit-aware auto-resume', priority: 'P1', status: 'idea',
+        detail: "Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check." },
+      { id: 'w-bugfix', section: 'Automation / agent behavior', title: 'Auto-check + fix Bubble.io-reported issues', priority: 'P2', status: 'idea',
+        detail: "Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying." },
+    ],
+  };
+}
+function renderWishlistMd(doc) {
+  const mark = (s) => (s === 'done' ? '[x]' : s === 'in-progress' ? '[~]' : '[ ]');
+  let out = '# CRS Brain — Improvements Wishlist\n\n> Managed in the app (**Wishlist** page). This file is generated from `data/wishlist.json` — edits here are overwritten on the next save in the app.\n\n';
+  out += 'Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priority.\n\n---\n\n';
+  for (const sec of doc.sections) {
+    out += `## ${sec}\n\n`;
+    const items = doc.items.filter((i) => i.section === sec && i.status !== 'done');
+    if (!items.length) { out += '_(no open items)_\n\n'; continue; }
+    for (const it of items) {
+      out += `- ${mark(it.status)} ${it.priority ? `**(${it.priority})** ` : ''}**${it.title}**`;
+      if (it.detail) out += '\n  ' + String(it.detail).split('\n').join('\n  ');
+      out += '\n';
+    }
+    out += '\n';
+  }
+  const done = doc.items.filter((i) => i.status === 'done');
+  out += '---\n\n## Done\n\n';
+  if (!done.length) out += '_(nothing shipped yet)_\n';
+  else for (const it of done) out += `- [x] **${it.title}**${it.ts ? `  _(${it.ts.slice(0, 10)})_` : ''}\n`;
+  return out + '\n';
+}
+function saveWishlist(doc) {
+  const sections = Array.isArray(doc.sections) && doc.sections.length ? doc.sections.map(String) : WISHLIST_SECTIONS.slice();
+  const clean = {
+    sections,
+    items: (Array.isArray(doc.items) ? doc.items : []).map((it, i) => ({
+      id: String(it.id || ('w-' + crypto.randomUUID().slice(0, 6))),
+      section: sections.includes(it.section) ? it.section : sections[0],
+      title: String(it.title || '').slice(0, 200),
+      detail: String(it.detail || '').slice(0, 4000),
+      priority: WL_PRIO.includes(it.priority) ? it.priority : '',
+      status: WL_STATUS.includes(it.status) ? it.status : 'idea',
+      order: i, ts: it.ts || new Date().toISOString(),
+    })),
+  };
+  fs.writeFileSync(WISHLIST_JSON, JSON.stringify(clean, null, 2));
+  try { fs.writeFileSync(WISHLIST_MD, renderWishlistMd(clean)); } catch {}
+  return clean;
+}
+function loadWishlist() {
+  try { const d = JSON.parse(fs.readFileSync(WISHLIST_JSON, 'utf8')); if (!Array.isArray(d.sections) || !d.sections.length) d.sections = WISHLIST_SECTIONS.slice(); return d; }
+  catch { return saveWishlist(seedWishlist()); }
+}
+
 const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
@@ -1682,6 +1748,18 @@ const server = http.createServer(async (req, res) => {
       const arr = loadMemory().filter((m) => m.id !== id);
       saveMemoryArr(arr);
       return send(res, 200, { ok: true, count: arr.length });
+    }
+
+    // Wishlist — Brain-app improvement todos, managed in the Wishlist page.
+    if (p === '/api/wishlist' && req.method === 'GET') {
+      return send(res, 200, { ...loadWishlist(), statuses: WL_STATUS, priorities: WL_PRIO });
+    }
+    if (p === '/api/wishlist' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      if (!body || !Array.isArray(body.items)) return send(res, 400, { error: 'items array required' });
+      const saved = saveWishlist(body);
+      autoCommit('wishlist');
+      return send(res, 200, { ok: true, count: saved.items.length });
     }
 
     // Progress Tree — priority-ordered module list (reorderable in the app). Plain
