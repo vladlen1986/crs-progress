@@ -2494,7 +2494,19 @@ function explSetupMain(){
 function explDragStart(e){ if(e.target.closest('.expl-rename')){ e.preventDefault(); return; }   // let text-selection drags work inside the rename input
   const el=e.target.closest('[data-path]'); if(!el){ e.preventDefault(); return; } const p=el.dataset.path;
   if(!EX.sel.has(p)){ EX.sel.clear(); EX.sel.add(p); EX.cur=p; explPaintSel(); }
-  EX.dragPaths=[...EX.sel]; e.dataTransfer.effectAllowed='move'; try{ e.dataTransfer.setData('text/plain', EX.dragPaths.join('\n')); }catch{}
+  EX.dragPaths=[...EX.sel]; e.dataTransfer.effectAllowed='copyMove'; try{ e.dataTransfer.setData('text/plain', EX.dragPaths.join('\n')); }catch{}
+  // OS drag-out (Chromium-only DownloadURL; one item per drag — folder or
+  // multi-selection = one ZIP). Internal drops are unaffected: in-app targets
+  // read EX.dragPaths, never this. Non-Chromium: skip silently (Download menu).
+  if(window.chrome){ try{
+    const org=location.origin;
+    if(EX.dragPaths.length===1){
+      const p1=EX.dragPaths[0], n1=explNodeByPath(p1), nm=p1.split('/').pop();
+      if(n1&&n1.type==='dir') e.dataTransfer.setData('DownloadURL', `application/zip:${nm}.zip:${org}/api/zip?path=${encodeURIComponent(p1)}`);
+      else { const MM={md:'text/markdown',txt:'text/plain',json:'application/json',html:'text/html',css:'text/css',js:'text/javascript',csv:'text/csv',pdf:'application/pdf',png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',svg:'image/svg+xml',webp:'image/webp'};
+        e.dataTransfer.setData('DownloadURL', `${MM[extOf(nm)]||'application/octet-stream'}:${nm}:${org}/api/raw?path=${encodeURIComponent(p1)}&dl=1`); }
+    } else e.dataTransfer.setData('DownloadURL', `application/zip:selection.zip:${org}/api/zip?paths=${encodeURIComponent(EX.dragPaths.join(','))}`);
+  }catch{} }
   const g=$('explDrag'); g.innerHTML=EX.dragPaths.length>1?`<b>${EX.dragPaths.length}</b>&nbsp;items`:esc(p.split('/').pop()); g.style.display='flex'; g.style.top='-9999px'; g.style.left='0';
   try{ e.dataTransfer.setDragImage(g, 14, 16); }catch{} hidePeek(); explCloseMenu(); }
 function explDropTarget(e){ const row=e.target.closest('.expl-row.dir[data-path],.expl-item.dir[data-path]'); if(row) return row.dataset.path;
@@ -2646,8 +2658,17 @@ function explBuildMenu(target){
   const node=explVisible().find(n=>n.path===target)||{type:'file'};
   const multi=EX.sel.size>1;
   const favItem=mi(explIsFav(target)?'Remove from Favorites':'Add to Favorites','fav');
-  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+favItem+mi('Copy path','copypath')+mi('Properties','props');
-  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+favItem+mi('Copy path','copypath')+mi('Properties','props');
+  // OS-interop: Download / ZIP / clipboard-content items. NO "copy file to OS
+  // clipboard" — browsers can't put real files on it; Download is the equivalent.
+  const kind=ICON_EXT2TYPE[extOf(target.split('/').pop())]||'gen';
+  const zipItem=mi('Download as ZIP','zipdl');
+  const dlItems = multi ? zipItem
+    : node.type==='dir' ? zipItem
+    : mi('Download','download')
+      + (/^(md|txt|json|yml|csv|html|css|js|py)$/.test(kind)?mi('Copy content','copycontent'):'')
+      + (kind==='img' && window.ClipboardItem && navigator.clipboard?.write ? mi('Copy image','copyimage'):'');
+  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
+  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
 }
 async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
 function explSelectPath(p){ EX.sel=new Set([p]); EX.cur=p; renderExpl(); }
@@ -2665,6 +2686,18 @@ async function explAct(act,target){
     else if(act==='paste'){ await explPaste(); }
     else if(act==='delete'){ await explDelete(); }
     else if(act==='fav'){ if(target!=null) explFavToggle(target); }
+    else if(act==='download'){ const a=document.createElement('a'); a.href='/api/raw?path='+encodeURIComponent(target)+'&dl=1'; a.download=target.split('/').pop(); document.body.appendChild(a); a.click(); a.remove(); }
+    else if(act==='zipdl'){ const a=document.createElement('a');
+      a.href=EX.sel.size>1?'/api/zip?paths='+encodeURIComponent([...EX.sel].join(',')):'/api/zip?path='+encodeURIComponent(target);
+      document.body.appendChild(a); a.click(); a.remove(); }
+    else if(act==='copycontent'){ const txt=await FS.read(target);
+      try{ await navigator.clipboard.writeText(txt); toast('Content copied'); }
+      catch{ const ta=document.createElement('textarea'); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); toast('Content copied'); } }
+    else if(act==='copyimage'){
+      const blob=await (await fetch('/api/raw?path='+encodeURIComponent(target))).blob();
+      const png=await new Promise((res)=>{ const img=new Image(); img.onload=()=>{ const c=document.createElement('canvas'); c.width=img.naturalWidth; c.height=img.naturalHeight; c.getContext('2d').drawImage(img,0,0); c.toBlob(res,'image/png'); }; img.onerror=()=>res(null); img.src=URL.createObjectURL(blob); });
+      if(!png){ toast('Could not decode image'); return; }
+      await navigator.clipboard.write([new ClipboardItem({'image/png':png})]); toast('Image copied'); }
     else if(act==='copypath'){ try{ await navigator.clipboard.writeText(target); }catch{} toast('Path copied'); }
     else if(act==='props'){ explProps(target); }
     else if(act==='selall'){ EX.sel=new Set(explVisible().map(n=>n.path)); renderExpl(); }
@@ -2718,6 +2751,20 @@ function explBeginRename(path){
   inp.addEventListener('input',()=>inp.classList.remove('err'));
   inp.addEventListener('blur',()=>commit(true,true));   // backup path when blur does fire
 }
+// OS-clipboard paste: files copied in Windows Explorer/Finder → Ctrl+V uploads
+// them into the current folder (screenshots arrive as image.png, auto-suffixed
+// server-side). No files on the clipboard → the INTERNAL paste runs unchanged.
+// Search/rename inputs keep native text paste (focus scoping from pass 2).
+document.addEventListener('paste',(e)=>{
+  if(!$('explWrap')?.classList.contains('show') || EX.min) return;
+  if(e.target.closest && e.target.closest('input,textarea,[contenteditable="true"]')) return;
+  const inExpl=document.activeElement===$('explMain') || $('explMain')?.contains(document.activeElement) || (e.target.closest&&e.target.closest('.expl'));
+  if(!inExpl) return;
+  clearTimeout(EX._pasteWait);
+  const files=Array.from((e.clipboardData&&e.clipboardData.files)||[]);
+  if(files.length){ e.preventDefault(); explUploadBatch(files.map((f,i)=>({file:f, rel:f.name||('image'+(i?' '+i:'')+'.png')})), EX.path); }
+  else explPaste();
+});
 // Outside-click commit (capture: runs BEFORE the marquee/window-drag handlers,
 // whose preventDefault blocks the focus change that pass-2's blur-commit relied
 // on). Inside the input (caret/selection) → keep editing.
@@ -2786,7 +2833,7 @@ function explKey(e){
   const cmd=e.metaKey||e.ctrlKey, k=e.key.toLowerCase();
   if(cmd&&k==='c'){ e.preventDefault(); if(EX.sel.size){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); } return; }
   if(cmd&&k==='x'){ e.preventDefault(); if(EX.sel.size){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); } return; }
-  if(cmd&&k==='v'){ e.preventDefault(); explPaste(); return; }
+  if(cmd&&k==='v'){ EX._pasteWait=setTimeout(()=>explPaste(), 90); return; }   // defer: the paste EVENT decides (OS files vs internal clipboard)
   if(cmd&&k==='n'){ e.preventDefault(); explNew('folder'); return; }
   const items=explVisible(); if(!items.length) return; const paths=items.map(n=>n.path);
   let idx=EX.cur!=null?paths.indexOf(EX.cur):-1;
