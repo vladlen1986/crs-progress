@@ -4,7 +4,7 @@
   "sessionId": "7e223465-8e16-47db-ab93-5dff123f45a3",
   "bp": false,
   "created": "2026-07-16T01:41:23.410Z",
-  "updated": "2026-07-16T01:41:36.231Z",
+  "updated": "2026-07-16T01:43:16.605Z",
   "messages": [
     {
       "role": "user",
@@ -16,6 +16,17 @@
       "role": "assistant",
       "content": "Yes — but data writes only, no schema/structure changes.\n\nToday (2026-07-16) on the test branch you had two data-write sessions, both logged in `brain/changelog.md`:\n\n1. **Hakan Dagtas** — 1 User record created (`buildprint data create user`), role Casino Manager, linked to a Senior Management employee.\n2. **10 users across 10 departments** — batch User creation, each linked to an existing Employee from a distinct department with a random role (Super Admin excluded).\n\n**No structure changes** — no data types, fields, option sets, or privacy rules were touched. These were `data create` operations (no savepoint coverage), not `apply` changes. None have passwords set, so login needs a reset/invite.\n\nNet effect: DB now holds ~21 User records (UM page shows 19 due to filtering).",
       "ts": "2026-07-16T01:41:36.231Z"
+    },
+    {
+      "role": "user",
+      "content": "give me summary what has changed in crs brain today in terms of functionality can you ?",
+      "ts": "2026-07-16T01:42:27.416Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's what changed in the **CRS Brain app** today (2026-07-16) — functionality only, 41 commits plus some uncommitted wishlist work. Two working sessions:\n\n## Buildprint cockpit — made it operate the CLI safely at $0 runtime\n- **Hard safety gate** (`crs-brain/bp-guard.js`) — a PreToolUse deny-hook wired into every agent spawn. Blocks apply-to-live, `--force-apply`, `--no-check`, `sync --reset`, data deletes, `rm -rf`, `git reset --hard`, etc. Verified firing.\n- **Enforced operating loop** in the bp prompt: `sync` → plan + your approval → per-step `savepoint → apply → check`. Test branch only.\n- **Speed + eyes:** allowed local Node/Python scripting for fast selection/dedup; wired `agent-browser` for screenshots/theme testing (still needs `npm install -g agent-browser` to switch on).\n- Disabled the 20-min auto-sync (`bpAutoTrack:false`) — it was creating stale \"concurrent agent\" noise.\n\n## Progress Tree page (`public/tree.html`)\n- All 46 modules in build-priority order; drag/↑↓ reorder, click-to-cycle status, editable 8-item definition-of-done checklist, expandable detail panel that aggregates brain knowledge.\n- **Per-module Buildprint prompt generation** — type a request in plain language → Brain writes a proper bp prompt → auto-opens the bp chat with it pasted.\n\n## Activity log + rollback\n- Every action now recorded (`data/action-log.jsonl`); a PostToolUse hook (`bp-log.js`) auto-captures every buildprint/git command, indexed to the savepoint taken just before each apply.\n- New **Activity Log page** (`public/activity.html`) — day-grouped timeline, search, filters, and a **⟲ Roll back** button that opens a bp chat pre-filled to restore the test branch to just before that action.\n\n## Persistent memory (never-forget)\n- Say \"remember this / don't forget…\" in any chat → a compile pass rewrites it into atomic `{category,title,fact}` entries, saved to `data/memory.json` (committed, cross-machine). Injected into every system prompt so the agent always honors it. New **Memory page** to view/add/forget entries.\n\n## Chat UI polish\n- Agent activity now folds into Buildprint-style collapsible **\"Worked for Xs\"** blocks (icon+label rows, expandable) instead of one box per tool.\n- Claude-style responses, modern tables, file hover-download chips, viewer Back/Download buttons, inline images. Ingest fix: attachment content embedded inline (stops the filesystem hunt).\n\n## Wishlist (`WISHLIST.md` + Wishlist page — uncommitted server work in progress)\n- Hand-editable app-improvement todo list with a `/api/wishlist` GET/PUT backend that regenerates the markdown. Seeded with your P1s: daily Bubble-forum check, track `bubble.io/release-notes`, limit-aware task-loop auto-resume, and auto-fix Bubble-reported issues.\n\n## Housekeeping\n- Stopped tracking `crs-brain/node_modules` (per-OS native builds); prompt standard + 4 templates added under `brain/buildprint/`.\n\n**Note:** all committed to `main` but **not pushed** — ~50 commits ahead of origin (push via GitHub Desktop). The wishlist `server.js`/`index.html` changes are still uncommitted.",
+      "ts": "2026-07-16T01:43:16.605Z"
     }
   ]
 }
