@@ -2095,7 +2095,10 @@ async function openExpl(dir){
   EX.open.clear(); let acc=''; for(const part of EX.path.split('/').filter(Boolean)){ acc=acc?acc+'/'+part:part; EX.open.add(acc); }
   EX.hist=[EX.path]; EX.hi=0; EX.sel.clear(); EX.cur=null;
   if($('explSearch')) $('explSearch').value='';
-  explInitWindow(); setupExplPeek(); renderExpl(); $('explMain').focus();
+  // fresh window state on open — stale fullscreen/snap/minimize flags from a
+  // previous open inverted the fullscreen toggle (the "two clicks" bug)
+  EX.fs=null; EX.snap=null; EX.min=false; $('minBar')?.querySelector('[data-win="expl"]')?.remove();
+  explInitWindow(); explMaxBtnIcon(); setupExplPeek(); renderExpl(); $('explMain').focus();
 }
 // ----- window chrome: draggable + resizable, position/size persist per session -----
 function explDefaultRect(){ const w=Math.min(1040,innerWidth*.95), h=Math.min(680,innerHeight*.9);
@@ -2122,7 +2125,18 @@ function explSnapTo(zone){ const pre=EX.snap?EX.snap.pre:{...EX.rect};
   EX.snap={zone, pre}; EX.rect=explZoneRect(zone); explApplyRect(); }
 function explUnsnapRestore(){ if(!EX.snap) return; EX.rect={...EX.snap.pre}; EX.snap=null; explApplyRect(); }
 // ----- window controls: minimize · maximize/restore · fullscreen (per window) -----
-function minBarEl(){ let b=$('minBar'); if(!b){ b=document.createElement('div'); b.id='minBar'; document.body.appendChild(b); } return b; }
+// The minimized bar lives in the app WORK AREA: bottom-left of the content
+// region (right of the app sidebar), following the LIVE offset — never a
+// hardcoded pixel, never over app chrome.
+function placeMinBar(){ const b=$('minBar'); if(!b) return; const wa=explWorkArea();
+  b.style.left=(wa.x+6)+'px'; b.style.bottom=Math.max(10, innerHeight-(wa.y+wa.h))+'px'; }
+function minBarEl(){ let b=$('minBar');
+  if(!b){ b=document.createElement('div'); b.id='minBar'; document.body.appendChild(b);
+    addEventListener('resize',placeMinBar);
+    const c=document.getElementById('centerCol');
+    if(c && window.ResizeObserver){ new ResizeObserver(placeMinBar).observe(c); }   // sidebar collapse/resize → follow
+  }
+  placeMinBar(); return b; }
 function addMinChip(id, iconHtml, label, onRestore, onClose){
   minBarEl().querySelector(`[data-win="${id}"]`)?.remove();
   const c=document.createElement('div'); c.className='minchip'; c.dataset.win=id;
@@ -2142,8 +2156,14 @@ function explMaxBtnIcon(){ const b=$('explMaxBtn'); if(!b) return;
   b.innerHTML=(EX.snap&&EX.snap.zone==='top')
     ? '<svg viewBox="0 0 24 24"><path d="M8.5 8.5V6a2 2 0 0 1 2-2H18a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-2.5"/><rect x="4" y="8.5" width="11.5" height="11.5" rx="2"/></svg>'
     : '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg>'; }
+// Fullscreen is a DIRECT state: one click enters from ANY prior state (normal /
+// maximized / snapped). The truth test is the actual rect, not a flag — a stale
+// flag (e.g. surviving a close/reopen) can never invert the toggle again.
+function explIsFullscreen(){ return !!EX.fs && EX.rect.x===0 && EX.rect.y===0 && EX.rect.w===innerWidth && EX.rect.h===innerHeight; }
 function explFsToggle(){
-  if(!EX.fs){ EX.fs={rect:{...EX.rect}, snap:EX.snap}; EX.snap={zone:'fs', pre:EX.fs.rect};
+  if(!explIsFullscreen()){
+    EX.fs={rect:(EX.snap&&EX.snap.zone!=='fs')?{...EX.snap.pre}:{...EX.rect}, snap:(EX.snap&&EX.snap.zone!=='fs')?EX.snap:null};
+    EX.snap={zone:'fs', pre:EX.fs.rect};
     EX.rect={x:0,y:0,w:innerWidth,h:innerHeight}; explApplyRect(); }
   else { EX.snap=EX.fs.snap; EX.rect=EX.fs.snap?explZoneRect(EX.fs.snap.zone):{...EX.fs.rect}; EX.fs=null; explApplyRect(); }
   explMaxBtnIcon(); }
