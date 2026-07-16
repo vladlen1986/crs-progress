@@ -1083,7 +1083,7 @@
       <div class="expl-crumb" id="explCrumb"></div>
       <label class="expl-search" id="explSearchBox">
         <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
-        <input id="explSearch" type="text" placeholder="Search" oninput="explOnSearch()" spellcheck="false">
+        <input id="explSearch" type="text" placeholder="Search" oninput="explOnSearch()" onkeydown="explSearchKey(event)" spellcheck="false">
         <button class="rc" id="explRecur" title="Search all subfolders" onclick="explToggleRecursive()">ALL</button>
         <button class="clr" title="Clear" onclick="explClearSearch()">✕</button>
       </label>
@@ -1997,7 +1997,8 @@ function explOpenFile(p){ if(isHtml(p)){ apiOpen(p); return; } state.explReturn=
 
 // ----- search -----
 let explSearchT=null;
-function explOnSearch(){ clearTimeout(explSearchT); explSearchT=setTimeout(()=>{ EX.q=$('explSearch').value.trim(); $('explSearchBox').classList.toggle('has',!!EX.q); EX.sel.clear(); EX.cur=null; renderExpl(); }, 160); }
+function explOnSearch(){ clearTimeout(explSearchT); explSearchT=setTimeout(()=>{ EX.q=$('explSearch').value.trim(); $('explSearchBox').classList.toggle('has',!!EX.q); EX.sel.clear(); EX.cur=null; renderExpl(); }, 200); }
+function explSearchKey(e){ if(e.key==='Escape'){ e.stopPropagation(); explClearSearch(); } else if(e.key==='Enter'){ clearTimeout(explSearchT); EX.q=e.target.value.trim(); renderExpl(); } }
 function explToggleRecursive(){ EX.recursive=!EX.recursive; renderExpl(); }
 function explClearSearch(){ $('explSearch').value=''; EX.q=''; $('explSearchBox').classList.remove('has'); renderExpl(); $('explSearch').focus(); }
 
