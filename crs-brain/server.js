@@ -499,6 +499,8 @@ function lanIps() {
 }
 
 // Which files the brain lists in the file browser.
+// True binaries with no in-app handling — hidden from the file tree (blacklist).
+const DENY_EXT = new Set(['.exe', '.dll', '.node', '.pyc', '.obj', '.lib', '.pdb', '.so', '.dylib']);
 const ALLOWED_EXT = new Set([
   '.md', '.txt', '.json', '.html', '.css', '.py', '.js', '.csv', '.yml', '.yaml',
   '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
@@ -891,7 +893,10 @@ function walk(dir, baseRel = '') {
       out.push({ type: 'dir', name: e.name, path: rel, children });   // include empty dirs (explorer needs new/empty folders to show)
     } else {
       const ext = path.extname(e.name).toLowerCase();
-      if (!ALLOWED_EXT.has(ext)) continue;
+      // Blacklist, not whitelist: the explorer must show what's really there
+      // (pdf/xlsx/docx/extension-less included). Only unhandleable binaries and
+      // build junk are hidden. ALLOWED_EXT still filters the app's other views.
+      if (DENY_EXT.has(ext)) continue;
       let size = 0, mtime = 0;
       try { const st = fs.statSync(path.join(dir, e.name)); size = st.size; mtime = st.mtimeMs; } catch {}
       out.push({ type: 'file', name: e.name, path: rel, ext, size, mtime });
