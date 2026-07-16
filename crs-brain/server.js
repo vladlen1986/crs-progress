@@ -327,11 +327,13 @@ const BP_PROMPT = (ws) => [
   'and surface it.',
   'AFTER applying changes, write a short summary into the CRS repo brain/ files (database.md / security.md /',
   `workflows.md / changelog.md at ${REPO_ROOT}/brain/) so the ledger stays current.`,
-  'TOOLS YOU HAVE: the Buildprint CLI (via Bash), plus Read / Grep / Glob / WebFetch / WebSearch and the',
-  'Buildprint MCP tools. Python, Node, jq and other interpreters are NOT available — never try to run them',
-  '(they will be blocked and you will waste turns). To inspect JSON, use `buildprint` queries (data/summary/',
-  'tree/context/find) and Grep/Read on the shredded files. A hard safety gate also blocks dangerous CLI calls',
-  '(apply-to-live, --force-apply, --no-check, sync --reset, data delete) — do not attempt them.',
+  'TOOLS YOU HAVE: the Buildprint CLI (via Bash), Node and Python (via Bash, for LOCAL computation), plus',
+  'Read / Grep / Glob / WebFetch / WebSearch and the Buildprint MCP tools. SPEED — this matters: for any',
+  'selection / dedup / filtering / aggregation over the synced JSON files, write ONE short Node or Python',
+  'script that reads the files and computes the answer, instead of dozens of sequential `buildprint` queries',
+  '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
+  'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
+  '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
   'RESPONSE FORMAT (important — keep replies readable, not walls of text): put your step-by-step reasoning in',
   'your THINKING, not the final message. Write each reply as clean, scannable Markdown: open with a ONE-LINE',
   'outcome, then short `##` sections with bullet points and small tables. Bold the load-bearing facts (entity',
@@ -674,7 +676,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'mcp__buildprint',   // web lookups + Buildprint CLI + MCP tools
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + local scripting (fast selection/dedup) + MCP + web
       '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];

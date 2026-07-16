@@ -13,8 +13,6 @@ process.stdin.on('end', () => {
     const j = JSON.parse(input || '{}');
     cmd = String((j.tool_input && (j.tool_input.command || j.tool_input.cmd)) || '');
   } catch { process.exit(0); }            // can't parse → don't block
-  if (!/\bbuildprint\b/i.test(cmd)) process.exit(0);   // only guard buildprint calls
-
   const c = cmd.toLowerCase();
   const deny = (why) => {
     process.stderr.write(
@@ -24,6 +22,13 @@ process.stdin.on('end', () => {
     );
     process.exit(2);
   };
+
+  // Destructive LOCAL ops (Node/Python are allowed for fast local compute — guard the footguns):
+  if (/\brm\s+-[a-z]*[rf]/.test(c)) return deny('recursive/force `rm -rf` is blocked — delete single temp files by name instead.');
+  if (/\bgit\s+reset\s+--hard/.test(c)) return deny('`git reset --hard` discards local work.');
+  if (/\bgit\s+clean\s+-[a-z]*f/.test(c)) return deny('`git clean -f` deletes untracked files.');
+
+  if (!/\bbuildprint\b/i.test(cmd)) process.exit(0);   // remaining checks are buildprint-only
 
   // Flag-level bypasses of validation / safety
   if (/--force-apply/.test(c)) return deny('`--force-apply` bypasses check freshness, validation, and large-apply safety.');
