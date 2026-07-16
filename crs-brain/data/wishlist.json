@@ -1,0 +1,59 @@
+{
+  "sections": [
+    "Bubble platform awareness",
+    "App features / UX",
+    "Automation / agent behavior"
+  ],
+  "items": [
+    {
+      "id": "w-forum",
+      "section": "Bubble platform awareness",
+      "title": "Daily Bubble forum check",
+      "detail": "Once a day, scan the Bubble forum and update the brain's Bubble-forum documents (brain/bubble/) with anything new/relevant (plugins, gotchas, patterns, breaking changes). Append to a dated digest, not overwrite.",
+      "priority": "P1",
+      "status": "idea",
+      "order": 0,
+      "ts": "2026-07-16T01:43:07.599Z"
+    },
+    {
+      "id": "w-relnotes",
+      "section": "Bubble platform awareness",
+      "title": "Track bubble.io/release-notes",
+      "detail": "Watch the release-notes page; when something lands that affects how CRS is built, record it in a brain reference (e.g. brain/bubble/release-notes.md) and flag it if it changes a locked decision or unblocks a feature.\n\nResearch + document (mechanics NOT yet verified):\n- Style swapping in conditions: swap an element's whole style inside a conditional instead of overriding each property. If true, the clean way to build the dark/light theme feature.\n- Global expressions: lots of community talk; confirm how they work and whether they help CRS.",
+      "priority": "P2",
+      "status": "idea",
+      "order": 1,
+      "ts": "2026-07-16T01:42:31.863Z"
+    },
+    {
+      "id": "w-loops",
+      "section": "Automation / agent behavior",
+      "title": "Task loops with limit-aware auto-resume",
+      "detail": "Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check.",
+      "priority": "P1",
+      "status": "idea",
+      "order": 2,
+      "ts": "2026-07-16T01:42:31.863Z"
+    },
+    {
+      "id": "w-bugfix",
+      "section": "Automation / agent behavior",
+      "title": "Auto-check + fix Bubble.io-reported issues",
+      "detail": "Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying.",
+      "priority": "P2",
+      "status": "idea",
+      "order": 3,
+      "ts": "2026-07-16T01:42:31.863Z"
+    },
+    {
+      "id": "w-v7d9rf",
+      "section": "App features / UX",
+      "title": "Dark/light theme toggle",
+      "detail": "",
+      "priority": "P2",
+      "status": "idea",
+      "order": 4,
+      "ts": "2026-07-16T01:43:07.598Z"
+    }
+  ]
+}
