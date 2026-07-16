@@ -23,6 +23,12 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-07-16 (cont. 5) — explorer fix pass 3
+
+Six defects (`explorer-fix3:` commits), all root-caused in-browser first: (1) context menu didn't close on empty-space left-click — the pass-2 marquee's `preventDefault` on pointerdown cancels the derived mousedown the closer listened on → closer moved to pointerdown; dismissing click is consumed (no marquee/selection change); Esc/scroll/drag also close. (2) menu hover de-accented to sidebar language (--panel2 + --primary; Delete = error tint) + arrow-key nav (`.kbf`, style identical to hover). (3) rename now commits on outside click — pass-2's blur-commit was unreachable behind the same preventDefault; document-level CAPTURE pointerdown commits first (empty → silent revert), clicked row keeps its selection. (4) "links still dark blue" = the hover-PREVIEW card (.pk-md had zero rules — UA default); popup fix had landed; peek fully tokenized. (5) fullscreen took two clicks — EX.fs/EX.snap survived close/reopen inverting the toggle; fullscreen is now a direct state (rect is the truth test) + state reset on open. (6) minimized chips moved into the work area (live offset via ResizeObserver on #centerCol). Harness notes: this headless pane freezes CSS transitions + lacks document focus — style verifications done with transition-disabled reads / class-based focus.
+
+---
+
 ## Session 2026-07-16 (cont. 4) — icon system + explorer fix pass 2
 
 **Icons (`icons:` commits):** approved two-tier generator implemented verbatim in `public/icons.js` (≥40px badge tier / <40px glyph tier, memoized), swapped at every render site (list 20 / grid 56 / tree+favs 16 / peek 20 / popup 20+64 / props 28 / dashboard 20), old EXT_COLOR/fileKind system deleted. Gotcha fixed: the module's top-level consts collided with app globals in the classic-script SPA and killed the whole main script — wrapped in an IIFE. Flag: JetBrains Mono isn't web-loaded (resolves only if installed locally).
