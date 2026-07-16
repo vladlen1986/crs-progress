@@ -1,4 +1,7 @@
 // CRS file icons — approved 2026-07-17. Do not modify geometry/colors/glyphs.
+// Wrapped in an IIFE: the app is a classic-script SPA (one shared global scope),
+// so the module's consts (esc, TYPES, …) must not collide with the app's.
+(function(){
 const SHEET='#2A2A2A', FOLD='#3D3D3D', LINE='#565656';
 
 const TYPES={ // type: [badge label, color]
@@ -68,3 +71,4 @@ function fileIcon(nameOrExt, s){
 window.fileIcon = fileIcon;
 window.ICON_TYPES = TYPES;
 window.ICON_EXT2TYPE = EXT2TYPE;
+})();
