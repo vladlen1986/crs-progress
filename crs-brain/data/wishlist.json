@@ -76,13 +76,23 @@
       "ts": "2026-07-16T01:56:41.997Z"
     },
     {
+      "id": "w-anr0tw",
+      "section": "App features / UX",
+      "title": "Add AI TOOLS AND CAPABILITIES THAT CLAUDE CODE HAVE AND SKILLS",
+      "detail": "",
+      "priority": "P1",
+      "status": "idea",
+      "order": 7,
+      "ts": "2026-07-16T01:59:24.028Z"
+    },
+    {
       "id": "w-modelrouting",
       "section": "Automation / agent behavior",
       "title": "Smart model routing - save tokens, best model per task",
       "detail": "Stop running Opus on everything. Auto-pick the cheapest capable model per task: Haiku 4.5 / Sonnet 5 (lower effort) for mechanical/bulk work (data selection, dedup, bulk creates, simple edits, prompt formatting), and Opus 4.8 + high reasoning effort ONLY for architecture, security, privacy-rule, and hard-reasoning work. A tiny Opus classifier pass can judge task complexity and route it. Goal: minimize tokens/cost while keeping quality.",
       "priority": "P1",
       "status": "idea",
-      "order": 7,
+      "order": 8,
       "ts": "2026-07-16T01:57:47.518Z"
     }
   ]
