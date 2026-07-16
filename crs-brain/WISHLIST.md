@@ -19,7 +19,7 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
 
 ## App features / UX
 
-_(no open items)_
+- [ ] **(P1)** **In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the cli**
 
 ## Automation / agent behavior
 
