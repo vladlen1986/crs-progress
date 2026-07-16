@@ -674,8 +674,12 @@
   .tico svg{width:16px;height:16px;display:block}
   .tico.lg{width:56px;height:56px} .tico.lg svg{width:56px;height:56px}   /* grid tier is 56 — folders/thumbs align with 56px file icons */
   .tico img{width:100%;height:100%;object-fit:cover;border-radius:4px}
-  .expl-rename{background:var(--bg);border:1px solid var(--accent);border-radius:4px;color:var(--primary);font:inherit;font-size:inherit;padding:1px 4px;outline:none;width:100%;max-width:100%;box-sizing:border-box}
+  .expl-rename{background:var(--bg);border:1px solid var(--accent);border-radius:4px;color:var(--primary);font:inherit;font-size:inherit;padding:1px 4px;outline:none;width:100%;max-width:100%;box-sizing:border-box;min-width:40px}
+  .expl-rename.err{border-color:var(--danger)}
+  .ren-wrap{display:inline-flex;align-items:center;gap:2px;min-width:0;flex:1}
+  .ext-ghost{color:var(--muted);pointer-events:none;user-select:none;flex:0 0 auto}
   .expl-item .expl-rename{text-align:center;font-size:11px}
+  .expl-item .ren-wrap{justify-content:center;max-width:100%}
   .expl-marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-tint);pointer-events:none;z-index:3;border-radius:2px}
   body.no-select, body.no-select *{user-select:none!important}   /* active marquee/drag: nothing highlights, incl. behind the window */
   .expl-snapprev{position:fixed;z-index:69;background:var(--accent-tint);border:1px solid var(--accent);border-radius:10px;display:none;pointer-events:none}
@@ -683,13 +687,22 @@
   .winctl{display:flex;gap:2px;flex:0 0 auto;align-items:center}
   .winctl button{width:28px;height:28px;border-radius:7px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s ease-in-out,color .16s ease-in-out}
   .winctl button:hover{background:var(--panel2);color:var(--primary)}
+  .winctl button:active{background:var(--line3)}
   .winctl button.close:hover{background:rgba(239,68,68,.15);color:var(--danger)}
+  .winctl a.dl{transition:background .16s ease-in-out,color .16s ease-in-out}
+  .winctl a.dl:hover{background:var(--panel2);color:var(--primary)!important}
+  .winctl a.dl:active{background:var(--line3)}
   .winctl svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   #minBar{position:fixed;left:10px;bottom:10px;z-index:99;display:flex;gap:8px}
   .minchip{display:flex;align-items:center;gap:8px;background:var(--elev);border:1px solid var(--line2);border-radius:9px;padding:7px 11px;font-size:12px;color:var(--secondary);cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}
   .minchip:hover{color:var(--primary);border-color:var(--line3)}
   .minchip .cx{border:0;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px}
   .minchip .cx:hover{color:var(--danger)}
+  /* CRS cursor + caret: dark arrow (outlined for dark surfaces) scoped to the
+     explorer + popup; native hand kept for pointer targets (a custom hand glyph
+     reads janky cross-platform — deliberate partial fallback). Accent caret. */
+  .expl, .docpop .dp-box{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M4.5 2.5L17.5 11.4 11.2 12.4 14.7 18.9 12.1 20.3 8.6 13.8 4.5 16.9z' fill='%231E1E1E' stroke='%23E0E0E0' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, default}
+  .expl input, .expl-rename, .docpop input, .docpop textarea{caret-color:var(--accent)}
   .expl-status{grid-area:status;border-top:1px solid var(--line);padding:6px 14px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:14px}
   .expl-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;pointer-events:none}
   .expl-skel{height:24px;margin:7px 14px;border-radius:6px;background:linear-gradient(90deg,var(--panel2),var(--elev),var(--panel2));background-size:200% 100%;animation:shimmer 1.2s infinite}
@@ -746,6 +759,15 @@
   .docpop .dp-md code{font-family:var(--mono);font-size:.9em;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
   .docpop .dp-md pre{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto}
   .docpop .dp-md pre code{background:none;border:0;padding:0}
+  /* CRS-token audit (spec list): links, blockquote bar, hr, full table grid */
+  .docpop .dp-md a{color:#3B82F6;text-decoration:none}
+  .docpop .dp-md a:hover{color:var(--accent-hover,#2563EB);text-decoration:underline}
+  .docpop .dp-md blockquote{border-left:3px solid var(--line3);color:var(--muted);margin:1em 0;padding:2px 0 2px 14px}
+  .docpop .dp-md hr{border:0;border-top:1px solid var(--line2);margin:1.2em 0}
+  .docpop .dp-md thead th{background:var(--panel2)}
+  .docpop .dp-md th,.docpop .dp-md td{border:1px solid var(--line2)}
+  .docpop .dp-md tbody tr:first-child td{border-top:1px solid var(--line2)}   /* chat style zeroes it; popup wants a full grid */
+  .docpop .dp-md pre,.docpop .dp-md code{border-color:var(--line2)}
   .docpop pre.dp-code{margin:0;padding:20px 24px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#D8D8D8;white-space:pre;overflow:auto;min-height:100%}
   .h-c{color:var(--muted);font-style:italic}.h-s{color:#7EC699}.h-n{color:#E5C07B}.h-k{color:#61AFEF}
   .docpop .dp-tblwrap{padding:18px 22px;overflow:auto}
@@ -2274,7 +2296,7 @@ async function openDocPopup(p){
   }
   show('<div class="dp-card"><span class="pk-load">Loading…</span></div>');
   let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
-  if(/^(md|markdown)$/.test(ext)) show(`<div class="dp-md">${renderMd(content)}</div>`);
+  if(/^(md|markdown)$/.test(ext)) show(`<div class="dp-md md">${renderMd(content)}</div>`);
   else if(ext==='csv'||ext==='tsv') show(csvTable(content));
   else show(`<pre class="dp-code">${hlCode(content.slice(0,300000))}</pre>`);
 }
@@ -2544,16 +2566,33 @@ async function explNew(type,dir,ext){
 function explBeginRename(path){
   const el=$('explMain').querySelector(`[data-path="${CSS.escape(path)}"]`); if(!el) return;
   const nameEl=el.querySelector('.rn')||el.querySelector('.nm'); if(!nameEl) return;
+  el.draggable=false;
   const cur=path.split('/').pop();
-  const inp=document.createElement('input'); inp.className='expl-rename'; inp.value=cur;
-  nameEl.replaceWith(inp); inp.focus(); const dot=cur.lastIndexOf('.'); inp.setSelectionRange(0, dot>0?dot:cur.length);
+  const isDir=el.dataset.dir==='1';
+  // Split on the LAST dot only. dot>0 means leading-dot names (.gitignore) count
+  // as extension-less: the whole name is editable. Folders always full-name.
+  const dot=cur.lastIndexOf('.');
+  const hasExt=!isDir && dot>0;
+  const base=hasExt?cur.slice(0,dot):cur, ext=hasExt?cur.slice(dot):'';
+  const wrap=document.createElement('span'); wrap.className='ren-wrap';
+  const inp=document.createElement('input'); inp.className='expl-rename'; inp.value=base;
+  wrap.appendChild(inp);
+  if(ext){ const g=document.createElement('span'); g.className='ext-ghost';
+    g.textContent=ext; g.title='The extension can’t be changed here'; wrap.appendChild(g); }
+  nameEl.replaceWith(wrap); inp.focus(); inp.select();
   let done=false;
-  const commit=async(save)=>{ if(done) return; done=true; const nn=inp.value.trim();
-    if(save && nn && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path);
+  const commit=async(save, fromBlur)=>{ if(done) return;
+    const nb=inp.value.trim();
+    if(save && !nb){ if(fromBlur){ done=true; await explReload(); explSelectPath(path); return; }
+      inp.classList.add('err'); inp.focus(); return; }   // empty basename blocked inline
+    done=true;
+    const nn=nb+ext;   // extension ALWAYS reattached — cannot be edited or dropped
+    if(save && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path);
       toastUndo(`Renamed to “${nn}”`, ()=>FS.rename(r.path, cur)); return; }catch(e){ toast(e.message); } }
     await explReload(); explSelectPath(path); };
-  inp.addEventListener('keydown',(e)=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); commit(true); } else if(e.key==='Escape'){ e.preventDefault(); commit(false); } });
-  inp.addEventListener('blur',()=>commit(true));
+  inp.addEventListener('keydown',(e)=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); commit(true,false); } else if(e.key==='Escape'){ e.preventDefault(); commit(false,false); } });
+  inp.addEventListener('input',()=>inp.classList.remove('err'));
+  inp.addEventListener('blur',()=>commit(true,true));
 }
 // ----- undo safety net: 6s toast with an inverse op (no trash system) -----
 let undoTimer=null;
