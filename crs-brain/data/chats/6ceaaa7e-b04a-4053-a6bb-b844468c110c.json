@@ -1,0 +1,21 @@
+{
+  "id": "6ceaaa7e-b04a-4053-a6bb-b844468c110c",
+  "title": "did i have any database changes today ?",
+  "sessionId": "7e223465-8e16-47db-ab93-5dff123f45a3",
+  "bp": false,
+  "created": "2026-07-16T01:41:23.410Z",
+  "updated": "2026-07-16T01:41:36.231Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "did i have any database changes today ?",
+      "ts": "2026-07-16T01:41:23.410Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Yes — but data writes only, no schema/structure changes.\n\nToday (2026-07-16) on the test branch you had two data-write sessions, both logged in `brain/changelog.md`:\n\n1. **Hakan Dagtas** — 1 User record created (`buildprint data create user`), role Casino Manager, linked to a Senior Management employee.\n2. **10 users across 10 departments** — batch User creation, each linked to an existing Employee from a distinct department with a random role (Super Admin excluded).\n\n**No structure changes** — no data types, fields, option sets, or privacy rules were touched. These were `data create` operations (no savepoint coverage), not `apply` changes. None have passwords set, so login needs a reset/invite.\n\nNet effect: DB now holds ~21 User records (UM page shows 19 due to filtering).",
+      "ts": "2026-07-16T01:41:36.231Z"
+    }
+  ]
+}
