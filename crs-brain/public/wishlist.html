@@ -70,7 +70,23 @@
   .iacts button{width:26px;height:22px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:.12s}
   .iacts button:hover{background:var(--panel2);color:var(--primary)}
   .iacts button.del:hover{color:var(--danger)}
+  .iacts button.cc:hover{color:var(--accent)}
+  .iacts button.cc.busy{color:var(--accent);pointer-events:none}
+  .iacts button.cc.busy svg{animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
   .iacts svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  /* Claude Code prompt preview modal */
+  .pm{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center;z-index:60;padding:24px}
+  .pm.show{display:flex}
+  .pm .box{background:var(--panel);border:1px solid var(--line2);border-radius:14px;max-width:820px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .pm .bh{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .pm .bh h3{margin:0;font-size:14px;color:var(--primary);font-weight:600;flex:1}
+  .pm .bh .mtag{font-size:10.5px;color:var(--muted);border:1px solid var(--line2);border-radius:5px;padding:2px 7px}
+  .pm .bh button{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;padding:6px 11px;font:inherit;font-size:12.5px;cursor:pointer}
+  .pm .bh button:hover{color:var(--primary);border-color:var(--line3)}
+  .pm .bh button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .pm pre{margin:0;padding:16px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--secondary);white-space:pre-wrap;word-break:break-word}
 
   .donesec{margin-top:26px}
   .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:13px}
@@ -101,6 +117,18 @@
   <div id="list"></div>
 </div>
 <div class="toast" id="toast"></div>
+
+<div class="pm" id="pm" onclick="if(event.target===this)closePm()">
+  <div class="box">
+    <div class="bh">
+      <h3>Claude Code prompt</h3>
+      <span class="mtag" id="pmModel"></span>
+      <button class="primary" onclick="copyPm(this)">Copy</button>
+      <button onclick="closePm()">Close</button>
+    </div>
+    <pre id="pmText"></pre>
+  </div>
+</div>
 
 <script>
 const $=(id)=>document.getElementById(id);
@@ -155,6 +183,7 @@ function itemHtml(it){
         <div class="idetail" contenteditable="true" spellcheck="false" data-id="${it.id}" onblur="editDetail('${it.id}',this)">${esc(it.detail||'')}</div>
       </div>
       <div class="iacts">
+        <button class="cc" title="Generate a Claude Code prompt from this item → copy to clipboard" onclick="genPrompt('${it.id}',this)"><svg viewBox="0 0 24 24"><path d="M4 17l6-6-6-6M12 19h8"/></svg></button>
         <button title="Move up" onclick="move('${it.id}',-1)"><svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></button>
         <button title="Move down" onclick="move('${it.id}',1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
         <button class="del" title="Delete" onclick="delItem('${it.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
@@ -183,6 +212,31 @@ function addItem(){
   $('addTitle').value=''; render(); scheduleSave(); toast('Added');
 }
 function delItem(id){ DATA.items=DATA.items.filter(i=>i.id!==id); render(); scheduleSave(); toast('Deleted'); }
+
+// --- Claude Code prompt generator (per item) ---
+async function copyText(t){
+  try{ await navigator.clipboard.writeText(t); return true; }
+  catch(e){ try{ const ta=document.createElement('textarea'); ta.value=t; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); const ok=document.execCommand('copy'); ta.remove(); return ok; }catch(_){ return false; } }
+}
+async function genPrompt(id,btn){
+  if(btn.classList.contains('busy'))return;
+  btn.classList.add('busy'); toast('Generating Claude Code prompt…');
+  try{
+    const r=await fetch('/api/wishlist/prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})});
+    const d=await r.json();
+    if(!r.ok) throw new Error(d.error||'failed');
+    const copied=await copyText(d.prompt);
+    openPm(d.prompt, d.routed?('routed → '+shortModel(d.model)):shortModel(d.model));
+    toast(copied?'Prompt copied ✓':'Generated — use Copy button');
+  }catch(e){ toast('Error: '+e.message); }
+  finally{ btn.classList.remove('busy'); }
+}
+function shortModel(m){ m=String(m||''); if(/haiku/i.test(m))return'Haiku 4.5'; if(/sonnet/i.test(m))return'Sonnet 5'; if(/opus/i.test(m))return'Opus 4.8'; return m; }
+function openPm(text,model){ $('pmText').textContent=text; $('pmModel').textContent=model||''; $('pm').classList.add('show'); }
+function closePm(){ $('pm').classList.remove('show'); }
+async function copyPm(btn){ const ok=await copyText($('pmText').textContent); btn.textContent=ok?'Copied ✓':'Copy failed'; setTimeout(()=>btn.textContent='Copy',1400); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape')closePm(); });
+
 load();
 </script>
 </body>
