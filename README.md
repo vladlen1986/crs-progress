@@ -40,8 +40,13 @@ crs/
 ├── pricing/                           tiers.md — locked pricing
 ├── audits/                            Audit reports
 ├── crs-brain/                         CRS Brain app (local second-brain tool; see crs-brain/BRAIN_APP_PROGRESS.md)
-│   ├── public/tree.html               Progress Tree — modules in build-priority order (reorderable)
-│   └── data/modules.json              Progress Tree data (46 modules, priority + status)
+│   ├── public/index.html              App shell: chat + Buildprint copilot, OS-style file explorer (windowed,
+│   │                                  drag/drop ⇄ Windows Explorer, document popup, undo, favorites), dashboard
+│   ├── public/map.html                Galaxy map (+ kanban board views)
+│   ├── public/tree.html               Progress Tree — 46 modules in build-priority order (reorderable)
+│   ├── public/{wishlist,memory,activity}.html   App-improvement todos · persistent memory · action log
+│   ├── public/icons.js                Approved two-tier file-icon system
+│   └── data/                          App state (modules, wishlist, memory, settings — git-synced)
 │
 └── scripts/                           BUILD PIPELINE
     ├── build_blueprint.py             Regenerates CRS_Blueprint.html

@@ -23,6 +23,16 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Current feature set (snapshot 2026-07-16 — read this instead of all the logs)
+
+- **Chat + Buildprint copilot** (`index.html`): Claude-style chat, grouped "Worked for Xs" activity blocks, mode switch, persistent **memory** ("remember this…" → compiled + injected into every prompt; `memory.html`), **action log** with savepoint-aware rollback (`activity.html`), hard safety gate (`bp-guard.js`) + auto command logging (`bp-log.js`), guardrailed prompt generation (PROMPT-STANDARD + templates).
+- **OS-style file explorer** (in `index.html`): windowed (drag/resize/snap/maximize/fullscreen/minimize-chips), list+grid views, marquee/kb selection, context menus with typed New-file submenu, inline extension-masked rename, cut/copy/paste, drag-drop moves with spring-loaded folders, 6s **Undo**, favorites + collapsible sidebar, recursive search, item-anchored hover previews (files AND folders), **document popup** (md rendered / code highlighted / csv table / pdf embed / html sandbox), **OS interop** (drag in from Explorer incl. folders, Ctrl+V OS files/screenshots, drag OUT via DownloadURL, Download / ZIP / Copy-content menu). Explorer always shows the FULL repo tree; server ops all `safeRepoPath`-guarded (`/api/fs/*`, `/api/upload`, `/api/zip`).
+- **Icons**: approved two-tier generator `icons.js` (badge tier ≥40px / glyph tier <40px), used at every render site.
+- **Other pages**: `map.html` galaxy map + kanban (dept hubs all linked to the CLAUDE.MD center; promoted subfolder clusters are namespaced — a `#data` id collision used to leave one hub floating), `tree.html` Progress Tree (46 modules), `wishlist.html` (app todos + Claude-Code prompt generator per item).
+- **Cross-platform**: zero-dep server, node_modules gitignored (per-OS builds), `.gitattributes` line-ending lock, `doctor.js` health check, `start.bat` / `start.command` launchers.
+
+---
+
 ## Session 2026-07-16 (cont. 6) — explorer ⇄ OS file interop
 
 `explorer-os:` commits. **Server:** `POST /api/upload?dir&rel` (raw-body-per-file — deliberate deviation from multipart: zero-dep, per-file guards/progress/cancel; safeRepoPath + illegal-name + blocked-dirs + 100MB `UPLOAD_MAX` + collision auto-suffix; `rel` subpaths recreate folder trees), `GET /api/zip?path|paths` (hand-rolled STORE-only zip, `zlib.crc32`, UTF-8 names, validated with bsdtar), `/api/raw?dl=1` → attachment (default stays inline — raw is also the preview source). **Client:** external drags (`types` has 'Files') upload to the current/hovered folder with a dashed accent "Drop to upload" overlay + cancellable progress toast + flash-select; `webkitGetAsEntry` folder traversal (1000-file/32-depth caps); Ctrl+V uploads OS-clipboard files (paste event decides; internal clipboard unchanged; 90ms keydown fallback); drag-out via Chromium `DownloadURL` (single file raw, folder/multi = zip; internal DnD unaffected); menu gains Download / Download as ZIP / Copy content / Copy image (feature-detected). NOT possible (by contract, not simulated): copying real files TO the OS clipboard; non-Chromium drag-out (degrades to Download). Hand-test still needed (headless pane can't do real OS drags): drag 3 files in from Explorer, drag a folder in, drag STATUS.md out to desktop, paste a screenshot.

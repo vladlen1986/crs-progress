@@ -408,7 +408,10 @@ function buildGraph(){
       if(n.type!=='dir'){ rootFiles.push(n); continue; }
       const big=[], rest=[];
       for(const c of n.children){ (c.type==='dir'&&cntFiles(c.children)>=PROMOTE ? big : rest).push(c); }
-      for(const b of big) depts.push({name:b.name, folder:b.path, children:b.children});
+      // promoted subfolders keep their parent in the name — otherwise e.g.
+      // crs-brain/data collides with the top-level data/ (duplicate '#data' ids
+      // left one hub floating with no working links)
+      for(const b of big) depts.push({name:n.name+'/'+b.name, folder:b.path, children:b.children});
       if(cntFiles(rest)) depts.push({name:n.name, folder:n.path, children:rest});
     }
     if(rootFiles.length) depts.push({name:'root', folder:'', children:rootFiles});
