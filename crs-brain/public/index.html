@@ -2603,19 +2603,33 @@ function explBeginRename(path){
     g.textContent=ext; g.title='The extension can’t be changed here'; wrap.appendChild(g); }
   nameEl.replaceWith(wrap); inp.focus(); inp.select();
   let done=false;
-  const commit=async(save, fromBlur)=>{ if(done) return;
+  // outside=true → OS behavior: commit like Enter, but an empty/invalid value
+  // reverts SILENTLY; and the selection the outside click just made is preserved
+  // (no explSelectPath steal) — the click proceeds normally after the commit.
+  const finish=async(selPath)=>{ await explReload(); selPath?explSelectPath(selPath):explPaintSel(); };
+  const commit=async(save, outside)=>{ if(done) return;
     const nb=inp.value.trim();
-    if(save && !nb){ if(fromBlur){ done=true; await explReload(); explSelectPath(path); return; }
-      inp.classList.add('err'); inp.focus(); return; }   // empty basename blocked inline
-    done=true;
+    if(save && !nb){ if(outside){ done=true; EX._renameCommit=null; await finish(null); return; }
+      inp.classList.add('err'); inp.focus(); return; }   // empty basename blocked inline (Enter)
+    done=true; EX._renameCommit=null;
     const nn=nb+ext;   // extension ALWAYS reattached — cannot be edited or dropped
-    if(save && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path);
+    if(save && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload();
+      outside?explPaintSel():explSelectPath(r.path);
       toastUndo(`Renamed to “${nn}”`, ()=>FS.rename(r.path, cur)); return; }catch(e){ toast(e.message); } }
-    await explReload(); explSelectPath(path); };
+    await finish(outside?null:path); };
+  EX._renameCommit=()=>commit(true,true);
   inp.addEventListener('keydown',(e)=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); commit(true,false); } else if(e.key==='Escape'){ e.preventDefault(); commit(false,false); } });
   inp.addEventListener('input',()=>inp.classList.remove('err'));
-  inp.addEventListener('blur',()=>commit(true,true));
+  inp.addEventListener('blur',()=>commit(true,true));   // backup path when blur does fire
 }
+// Outside-click commit (capture: runs BEFORE the marquee/window-drag handlers,
+// whose preventDefault blocks the focus change that pass-2's blur-commit relied
+// on). Inside the input (caret/selection) → keep editing.
+document.addEventListener('pointerdown',(e)=>{
+  if(!EX._renameCommit) return;
+  if(e.target.closest('.ren-wrap')) return;
+  EX._renameCommit();
+}, true);
 // ----- undo safety net: 6s toast with an inverse op (no trash system) -----
 let undoTimer=null;
 function ensureUToast(){ let u=$('uToast'); if(u) return u;
