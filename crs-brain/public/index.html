@@ -2142,6 +2142,17 @@ function csvTable(txt){
 function ensureDocPop(){ let d=$('docPop'); if(d) return d;
   d=document.createElement('div'); d.className='docpop'; d.id='docPop'; document.body.appendChild(d);
   d.addEventListener('click',(e)=>{ if(e.target===d) closeDocPopup(); });
+  // focus-scoped select-all: Ctrl/Cmd+A selects the DOCUMENT's content, never the
+  // page behind; inputs inside the popup keep native select-all behavior.
+  d.addEventListener('keydown',(e)=>{
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){
+      if(e.target.closest('input,textarea,[contenteditable="true"]')) return;
+      e.preventDefault();
+      const body=d.querySelector('.dp-body'); if(!body) return;
+      const r=document.createRange(); r.selectNodeContents(body);
+      const s=getSelection(); s.removeAllRanges(); s.addRange(r);
+    }
+  });
   return d; }
 function closeDocPopup(){ const d=$('docPop'); if(d){ d.classList.remove('show'); d.innerHTML=''; } }
 async function openDocPopup(p){
@@ -2151,7 +2162,7 @@ async function openDocPopup(p){
   const head=`<div class="dp-head">${fic(name,20)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
     <a title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;color:var(--secondary)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
     <button title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`;
-  const show=(body)=>{ d.innerHTML=`<div class="dp-box">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); };
+  const show=(body)=>{ d.innerHTML=`<div class="dp-box" tabindex="-1">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); d.querySelector('.dp-box').focus(); };
   if(isImg(name)) return show(`<div class="dp-imgwrap"><img src="${raw}" alt=""></div>`);
   if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
   if(/^(xlsx?|xlsm|docx?|zip|7z|rar|woff2?|ttf|bin|dat)$/.test(ext) ){
