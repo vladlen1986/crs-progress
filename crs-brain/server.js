@@ -115,6 +115,84 @@ function readActionLog(limit = 500, filter = {}) {
   return out.slice(-limit).reverse();   // newest first
 }
 
+// ---- persistent memory (never-forget) --------------------------------------
+// A structured, categorized store the agent ALWAYS sees (injected into every
+// system prompt) and appends to when the user says "remember this". Raw text is
+// never stored verbatim — a compile pass rewrites it into atomic, categorized
+// facts. Canonical = memory.json; memory.md is generated for humans + git.
+const MEMORY_JSON = path.join(DATA_DIR, 'memory.json');
+const MEMORY_MD = path.join(DATA_DIR, 'memory.md');
+const MEMORY_CATEGORIES = ['Preferences', 'Product', 'Decisions', 'People', 'Technical', 'Workflow', 'Reminders', 'Other'];
+const MEMORY_TRIGGER = /\b(remember (this|that|the following)|please remember|save (this|it|that)? ?(to|in|into) memory|add (this|it|that)? ?to memory|note (this )?to (memory|self)|keep (this )?in mind|don'?t forget|make a (mental )?note|memori[sz]e)\b/i;
+function loadMemory() { try { return JSON.parse(fs.readFileSync(MEMORY_JSON, 'utf8')); } catch { return []; } }
+function renderMemoryMd(arr) {
+  const byCat = {};
+  for (const m of arr) (byCat[m.category] || (byCat[m.category] = [])).push(m);
+  let out = '# CRS Brain — Memory\n\n> Persistent, structured memory the Brain always honors. Auto-written when you say "remember this"; safe to edit by hand. Canonical copy is `memory.json`.\n\n';
+  for (const cat of MEMORY_CATEGORIES) {
+    const items = byCat[cat]; if (!items || !items.length) continue;
+    out += `## ${cat}\n`;
+    for (const m of items) out += `- **${m.title}** — ${m.fact}${m.ts ? `  _(${m.ts.slice(0, 10)})_` : ''}\n`;
+    out += '\n';
+  }
+  return out;
+}
+function saveMemoryArr(arr) {
+  fs.writeFileSync(MEMORY_JSON, JSON.stringify(arr, null, 2));
+  try { fs.writeFileSync(MEMORY_MD, renderMemoryMd(arr)); } catch {}
+}
+// Compact rendering injected into every system prompt so the agent always honors it.
+function memoryForPrompt() {
+  const arr = loadMemory();
+  if (!arr.length) return '';
+  const lines = arr.map((m) => `- [${m.category}] ${m.title}: ${m.fact}`);
+  return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
+}
+function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+function looksLikeSecret(s) { return /\b(bp_[A-Za-z0-9]{6,}|sk-[A-Za-z0-9]{10,})\b|\b(password|passwd|secret|api[_-]?key|token)\b\s*[:=]\s*\S+/i.test(s || ''); }
+// Add compiled entries; dedup by (category + normalized title) → update in place.
+function addMemories(entries) {
+  const arr = loadMemory();
+  const added = [];
+  const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  for (const e of (entries || [])) {
+    const category = MEMORY_CATEGORIES.includes(e.category) ? e.category : 'Other';
+    const title = (e.title || '').toString().trim().slice(0, 120);
+    const fact = (e.fact || '').toString().trim().slice(0, 600);
+    if (!fact || !title) continue;
+    if (looksLikeSecret(fact) || looksLikeSecret(title)) continue;   // never store secrets
+    const hit = arr.find((m) => m.category === category && norm(m.title) === norm(title));
+    if (hit) { hit.fact = fact; hit.ts = new Date().toISOString(); added.push(hit); }
+    else { const m = { id: crypto.randomUUID().slice(0, 8), category, title, fact, ts: new Date().toISOString() }; arr.push(m); added.push(m); }
+  }
+  if (added.length) saveMemoryArr(arr);
+  return added;
+}
+// Reinforcement system prompt. The real control is the user-message directive
+// below — and running from a NEUTRAL cwd so the repo's CLAUDE.md isn't auto-loaded
+// (that context made the model editorialize "already documented" instead of extract).
+const MEMORY_COMPILE_PROMPT = 'You are a strict information-extraction function. You do not chat, use tools, or judge whether facts are already known — you only transform the input note into a JSON array of memory entries and output nothing else.';
+// Run a fast, focused compile pass and persist the result. Returns the saved entries.
+async function compileMemory(userText) {
+  try {
+    const cfg = loadSettings();
+    const instruction =
+      'Extract the durable fact(s) the user wants remembered from the NOTE below. ' +
+      'Output ONLY a JSON array — no prose, no explanation, no markdown, no code fences. ' +
+      'Do NOT judge whether a fact is already documented elsewhere; just extract what the note asks to remember. ' +
+      'Split unrelated facts into separate items; rewrite each in your own words (never copy verbatim); resolve relative dates to absolute; skip any password/token/secret. ' +
+      'Each item: {"category": one of ' + MEMORY_CATEGORIES.join('|') + ', "title": "a <=8-word label", "fact": "one or two self-contained specific sentences"}. ' +
+      'Category guide: Preferences = how the user wants things done; Product = CRS facts/scope; Decisions = choices made; Technical = implementation details; Workflow = process/tooling; People = person facts; Reminders = time-bound notes. ' +
+      'If the note truly contains nothing durable to remember, output [].\n\nNOTE:\n<<<\n' + (userText || '') + '\n>>>';
+    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir() });
+    const txt = (res.text || '').trim();
+    const match = txt.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    const arr = JSON.parse(match[0]);
+    return Array.isArray(arr) ? addMemories(arr) : [];
+  } catch { return []; }
+}
+
 const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
@@ -1383,9 +1461,21 @@ const server = http.createServer(async (req, res) => {
           const ws = findBpWorkspace();
           if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
           runOpts.cwd = ws.dir;
-          runOpts.systemPrompt = BP_PROMPT(ws);
+          runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
           runOpts.addDirs = [REPO_ROOT];
+        } else {
+          runOpts.systemPrompt = withMemory(SYSTEM_PROMPT);   // same for the general assistant
         }
+        // "Remember this" → compile the message into structured memory in the
+        // background; emit a toast when saved. Runs concurrently with the reply,
+        // and is awaited before the stream ends so the save is guaranteed.
+        const wantMemory = !ingest && !body.regenerate && MEMORY_TRIGGER.test(message || '');
+        const memPromise = wantMemory
+          ? compileMemory(message).then((saved) => {
+              if (saved && saved.length) sse({ type: 'memory-saved', entries: saved.map((m) => ({ category: m.category, title: m.title, fact: m.fact })) });
+              return saved;
+            }).catch(() => [])
+          : Promise.resolve([]);
         const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
           onThink: (t) => sse({ type: 'think', text: t }),
@@ -1402,6 +1492,7 @@ const server = http.createServer(async (req, res) => {
         chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         saveChat(chat);
         autoCommit(chat.title);
+        await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
       } catch (e) {
         // Persist the chat anyway — otherwise the user's message (and a brand-new
@@ -1573,6 +1664,24 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req) || {};
       logAction({ source: 'app', type: body.type || 'action', summary: body.summary || '', chatId: body.chatId || null, meta: body.meta || null });
       return send(res, 200, { ok: true });
+    }
+
+    // Persistent memory — structured, categorized facts the agent always honors.
+    if (p === '/api/memory' && req.method === 'GET') {
+      return send(res, 200, { categories: MEMORY_CATEGORIES, entries: loadMemory() });
+    }
+    if (p === '/api/memory' && req.method === 'POST') {   // manual add / compile-from-text
+      const body = await readJsonBody(req) || {};
+      let saved = [];
+      if (body.text && !body.fact) saved = await compileMemory(body.text);   // compile free text
+      else saved = addMemories([{ category: body.category, title: body.title, fact: body.fact }]);
+      return send(res, 200, { ok: true, entries: saved });
+    }
+    if (p === '/api/memory' && req.method === 'DELETE') {
+      const id = u.searchParams.get('id');
+      const arr = loadMemory().filter((m) => m.id !== id);
+      saveMemoryArr(arr);
+      return send(res, 200, { ok: true, count: arr.length });
     }
 
     // Progress Tree — priority-ordered module list (reorderable in the app). Plain

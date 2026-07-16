@@ -640,6 +640,7 @@
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
       <button title="Progress Tree — modules in build-priority order" onclick="window.open('/tree.html','crstree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
       <button title="Activity log — every action, timestamped" onclick="window.open('/activity.html','crsactivity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
+      <button title="Memory — what the brain always remembers" onclick="window.open('/memory.html','crsmemory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -1187,6 +1188,7 @@ async function renderDashboard(){
       ${A('i-logo','Galaxy map','Explore the brain visually','showMap()')}
       ${A('i-gauge','Progress Tree','46 modules in build-priority order — reorder & track',"window.open('/tree.html','crstree')")}
       ${A('i-refresh','Activity log','Every action, timestamped — search & roll back',"window.open('/activity.html','crsactivity')")}
+      ${A('i-sparkle','Memory','What the brain always remembers — say “remember this” in chat',"window.open('/memory.html','crsmemory')")}
       ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
       ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')')}
@@ -1432,6 +1434,7 @@ async function streamChat(text, opts={}){
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
         else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
+        else if(ev.type==='memory-saved'){ const n=(ev.entries||[]).length; if(n){ const first=ev.entries[0]; toast('🧠 Saved to memory — '+first.category+': '+first.title+(n>1?`  (+${n-1} more)`:'')); } }
         else if(ev.type==='delta'){ if(group) finalizeCard(); full+=ev.text; }
         else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; if(mine()) state.chatId=ev.id; }
