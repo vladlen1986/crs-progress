@@ -501,6 +501,7 @@ function lanIps() {
 // Which files the brain lists in the file browser.
 // True binaries with no in-app handling — hidden from the file tree (blacklist).
 const DENY_EXT = new Set(['.exe', '.dll', '.node', '.pyc', '.obj', '.lib', '.pdb', '.so', '.dylib']);
+const UPLOAD_MAX = 100 * 1024 * 1024;   // per-file cap for OS-interop uploads & zip members
 const ALLOWED_EXT = new Set([
   '.md', '.txt', '.json', '.html', '.css', '.py', '.js', '.csv', '.yml', '.yaml',
   '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp',
@@ -1622,6 +1623,88 @@ const server = http.createServer(async (req, res) => {
       } catch (e) { return send(res, 400, { error: e.message }); }
     }
 
+    // ---- OS interop: upload (raw body per file) + zip (zero-dep, store-only) ----
+    // Upload transport is one raw-body request per file (?dir=&rel=) rather than
+    // multipart: zero-dep, streams, per-file guards/progress/cancel for free.
+    if (p === '/api/upload' && req.method === 'POST') {
+      try {
+        const dirRel = (u.searchParams.get('dir') || '').replace(/\\/g, '/');
+        const rel = (u.searchParams.get('rel') || '').replace(/\\/g, '/');
+        const segs = rel.split('/');
+        if (!rel || segs.some((s) => !s || s === '.' || s === '..')) return send(res, 400, { error: 'invalid relative path' });
+        const badName = (n) => /[<>:"|?*\x00-\x1f]/.test(n) || n.length > 255;
+        if (segs.some(badName)) return send(res, 400, { error: `invalid name: ${rel}` });
+        if (segs.some((s) => IGNORE_DIRS.has(s)) || dirRel.split('/').some((s) => IGNORE_DIRS.has(s)))
+          return send(res, 403, { error: 'blocked directory' });
+        const declared = parseInt(req.headers['content-length'] || '0', 10);
+        if (declared > UPLOAD_MAX) return send(res, 413, { error: `"${rel}" exceeds the ${UPLOAD_MAX / 1048576} MB cap` });
+        let abs = safeRepoPath((dirRel ? dirRel + '/' : '') + rel);
+        // collision → auto-suffix, never overwrite (mirrors paste behavior)
+        if (fs.existsSync(abs)) { const ext = path.extname(abs), b = path.basename(abs, ext), d = path.dirname(abs);
+          let i = 2; do { abs = path.join(d, `${b} ${i++}${ext}`); } while (fs.existsSync(abs)); }
+        fs.mkdirSync(path.dirname(abs), { recursive: true });
+        const chunks = []; let total = 0, aborted = false;
+        req.on('data', (c) => { total += c.length; if (total > UPLOAD_MAX) { aborted = true; try { send(res, 413, { error: `"${rel}" exceeds the ${UPLOAD_MAX / 1048576} MB cap` }); } catch {} req.destroy(); } else chunks.push(c); });
+        req.on('end', () => { if (aborted) return;
+          try { fs.writeFileSync(abs, Buffer.concat(chunks));
+            send(res, 200, { ok: true, path: path.relative(REPO_ROOT, abs).split(path.sep).join('/') });
+          } catch (e) { try { send(res, 500, { error: e.message }); } catch {} } });
+        return;
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+
+    if (p === '/api/zip' && req.method === 'GET') {
+      try {
+        const zlib = require('zlib');
+        const one = u.searchParams.get('path');
+        const many = (u.searchParams.get('paths') || '').split(',').filter(Boolean);
+        const roots = one ? [one] : many;
+        if (!roots.length) return send(res, 400, { error: 'path or paths required' });
+        const entries = [];
+        const walkZ = (abs, zrel) => { const st = fs.statSync(abs);
+          if (st.isDirectory()) { for (const n of fs.readdirSync(abs)) { if (IGNORE_DIRS.has(n)) continue; walkZ(path.join(abs, n), zrel + '/' + n); } }
+          else if (st.size <= UPLOAD_MAX) entries.push({ abs, zrel }); };
+        for (const r of roots) {
+          if (r.split(/[\\/]/).some((s) => IGNORE_DIRS.has(s))) return send(res, 403, { error: 'blocked directory' });
+          const abs = safeRepoPath(r); const st = fs.statSync(abs); const base = path.basename(abs) || 'files';
+          st.isDirectory() ? walkZ(abs, base) : entries.push({ abs, zrel: base });
+        }
+        if (!entries.length) return send(res, 400, { error: 'nothing to zip' });
+        if (entries.length > 5000) return send(res, 400, { error: 'too many files for one zip (5000 max)' });
+        const zipName = one ? (path.basename(one) || 'files') + '.zip' : 'selection.zip';
+        // store-only ZIP: local headers + central directory + EOCD; CRC via zlib.crc32
+        const parts = [], central = []; let offset = 0;
+        for (const en of entries) {
+          const data = fs.readFileSync(en.abs);
+          const name = Buffer.from(en.zrel.replace(/^\/+/, ''), 'utf8');
+          const crc = zlib.crc32(data) >>> 0;
+          const mt = new Date(fs.statSync(en.abs).mtimeMs);
+          const t = ((mt.getHours() << 11) | (mt.getMinutes() << 5) | (mt.getSeconds() >> 1)) & 0xffff;
+          const dt = ((Math.max(0, mt.getFullYear() - 1980) << 9) | ((mt.getMonth() + 1) << 5) | mt.getDate()) & 0xffff;
+          const lh = Buffer.alloc(30);
+          lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(0x0800, 6); lh.writeUInt16LE(0, 8);
+          lh.writeUInt16LE(t, 10); lh.writeUInt16LE(dt, 12); lh.writeUInt32LE(crc, 14);
+          lh.writeUInt32LE(data.length, 18); lh.writeUInt32LE(data.length, 22);
+          lh.writeUInt16LE(name.length, 26); lh.writeUInt16LE(0, 28);
+          parts.push(lh, name, data);
+          const ch = Buffer.alloc(46);
+          ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0x0800, 8); ch.writeUInt16LE(0, 10);
+          ch.writeUInt16LE(t, 12); ch.writeUInt16LE(dt, 14); ch.writeUInt32LE(crc, 16);
+          ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(data.length, 24);
+          ch.writeUInt16LE(name.length, 28); ch.writeUInt32LE(offset, 42);
+          central.push(Buffer.concat([ch, name]));
+          offset += 30 + name.length + data.length;
+        }
+        const cd = Buffer.concat(central);
+        const eocd = Buffer.alloc(22);
+        eocd.writeUInt32LE(0x06054b50, 0); eocd.writeUInt16LE(entries.length, 8); eocd.writeUInt16LE(entries.length, 10);
+        eocd.writeUInt32LE(cd.length, 12); eocd.writeUInt32LE(offset, 16);
+        const body = Buffer.concat([...parts, cd, eocd]);
+        res.writeHead(200, { 'Content-Type': 'application/zip', 'Content-Disposition': `attachment; filename="${zipName}"`, 'Content-Length': body.length });
+        return res.end(body);
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+
     if (p === '/api/chats' && req.method === 'GET') {
       return send(res, 200, { chats: listChats() });
     }
@@ -2309,7 +2392,11 @@ const server = http.createServer(async (req, res) => {
         '.pdf':'application/pdf' };   // inline PDF render in the document popup
       return fs.readFile(abs, (err, data) => {
         if (err) return send(res, 404, { error: 'not found' });
-        res.writeHead(200, { 'Content-Type': M[ext] || 'application/octet-stream' });
+        const h = { 'Content-Type': M[ext] || 'application/octet-stream' };
+        // ?dl=1 → attachment (drag-out / Download). Default stays INLINE because
+        // /api/raw doubles as the preview/thumbnail/pdf-embed source.
+        if (u.searchParams.get('dl')) h['Content-Disposition'] = `attachment; filename="${path.basename(abs).replace(/"/g, '')}"`;
+        res.writeHead(200, h);
         res.end(data);
       });
     }
