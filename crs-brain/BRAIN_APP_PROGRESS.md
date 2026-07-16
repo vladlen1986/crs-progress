@@ -23,6 +23,12 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-07-16 (cont. 3) — OS file explorer: build + fix pass
+
+Built the OS-style file explorer (Finder/Explorer parity) into `public/index.html` + `/api/fs/*` mutation endpoints in `server.js` (all `safeRepoPath`-guarded, real repo writes), then ran a 14-item fix pass (`explorer-fix:` commits). P0 root causes — all reproduced in-browser before fixing: (1) click re-rendered the pane so dblclick never fired → in-place selection painting (`explPaintSel`); (2) same re-render destroyed the rename input → root-handler exclusions; (3) creates were invisible under the crsOnly filter → explorer now always browses the FULL tree + server-side name autosuffix + New file ▸ typed submenu; (4) recursive search walked the filtered tree (0/4 hits → 4/4); (5) selected rows collided with the app's generic `.sel` dropdown class → renamed `.xsel`, flat tint only. Shipped: draggable/resizable non-modal window (persisted), 32px toolbar, collapsible sidebar + Favorites (localStorage), whitelist→blacklist visibility (`DENY_EXT`; pdf/xlsx/extension-less now visible) + color-coded icon set, item-anchored hover previews + folder previews, in-app document popup (md rendered / code highlighted / csv table / img / pdf embed / xlsx download card / html fullscreen sandbox), 6s Undo toast (delete/move/rename; honest about unrecoverables), properties popup (+ `ctime` from the walker). NOT shipped: item 12 multi-window — singleton refactor exceeds safe scope for the same pass; plan + cost reported in chat. Full keyboard + theme + zero-console-error verify pass done.
+
+---
+
 ## Session 2026-07-16 (cont. 2) — cross-platform guardrails + wishlist build-out
 
 Mac ⇄ Windows portability hardening, then shipped the top wishlist items. Nothing committed yet (review the working tree, then commit — code changes are in `crs-brain/server.js`, `public/wishlist.html`, new `doctor.js` / `.gitattributes` / `brain/reference/`).
