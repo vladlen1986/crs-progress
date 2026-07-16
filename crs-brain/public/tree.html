@@ -170,8 +170,10 @@ function renderSummary(){
     `<div class="legend">${VOCAB.map(s=>`<span><i class="dot d-${s}"></i>${LABEL[s]} <b style="color:var(--primary)">${c[s]}</b></span>`).join('')}`+
     `<span style="margin-left:auto;color:var(--muted)">${c.done} of ${DATA.modules.length} done · updated ${DATA.updated||'—'}</span></div>`;
 }
-function move(idx,dir){ const j=idx+dir; if(j<0||j>=DATA.modules.length)return; const[m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m); render(); scheduleSave(); }
-function cycle(idx){ const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length]; render(); scheduleSave(); }
+// Record a user action to the activity log (fire-and-forget).
+function logAct(type,summary){ try{ fetch('/api/action-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,summary})}); }catch(e){} }
+function move(idx,dir){ const j=idx+dir; if(j<0||j>=DATA.modules.length)return; const[m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m); render(); scheduleSave(); logAct('module-update',`Reordered "${m.name}" ${dir<0?'up':'down'} to build position ${j+1}`); }
+function cycle(idx){ const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length]; render(); scheduleSave(); logAct('module-update',`Set "${m.name}" status → ${m.status}`); }
 function findMod(id){ return DATA.modules.find(m=>m.id===id); }
 function cycleChk(id,ci){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; const s=m.checklist[ci].state; m.checklist[ci].state=s==='todo'?'partial':s==='partial'?'done':'todo'; render(); scheduleSave(); }
 function setChkDetail(id,ci,v){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; m.checklist[ci].detail=v; scheduleSave(); } // no re-render: keeps input focus
@@ -204,7 +206,7 @@ async function genEdit(id){
     const r=await fetch('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,text})});
     const j=await r.json(); clearInterval(tick);
     const out=r.ok&&j.prompt ? j.prompt : ('⚠ '+(j.error||('HTTP '+r.status))); ta.value=out;
-    if(r.ok&&j.prompt){ promptCache[id+':edit']=out; sendToBp(out); } // open the Buildprint chat with it
+    if(r.ok&&j.prompt){ promptCache[id+':edit']=out; logAct('prompt-gen',`Generated Buildprint edit prompt for "${(findMod(id)||{}).name||id}": ${text.slice(0,120)}`); sendToBp(out); } // open the Buildprint chat with it
   }catch(e){ clearInterval(tick); ta.value='⚠ '+e.message; }
   finally{ if(btn){ btn.disabled=false; if(btn.dataset.html) btn.innerHTML=btn.dataset.html; } }
 }

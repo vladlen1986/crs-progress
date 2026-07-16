@@ -64,7 +64,9 @@ const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
 const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
+const BP_LOG_JS = path.join(BRAIN_DIR, 'bp-log.js');               // PostToolUse hook: records every buildprint/git command
 const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');         // agent-captured run-mode screenshots
+const ACTION_LOG_FILE = path.join(DATA_DIR, 'action-log.jsonl');   // append-only activity ledger (one JSON action per line)
 
 for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs.mkdirSync(d, { recursive: true });
 // Generate the hook settings file (absolute path to the guard) so every `claude -p`
@@ -72,9 +74,46 @@ for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs
 // sync --reset, data delete, …) regardless of what the model tries.
 try {
   fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify({
-    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }] },
+    hooks: {
+      // PreToolUse: hard-block dangerous commands. PostToolUse: append every
+      // buildprint/git command the agent runs to the action log (audit trail for rollback).
+      PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }],
+      PostToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_LOG_JS}" "${ACTION_LOG_FILE}"` }] }],
+    },
   }, null, 2));
 } catch (e) { console.error('bp-guard settings write failed:', e.message); }
+
+// ---- action log: append-only ledger of everything the user/agent does, so a
+// later "when did I do X / roll back to before it" question can be answered from
+// the record. UI-driven actions are logged here directly; buildprint/git commands
+// run inside a bp chat are logged automatically by the PostToolUse hook (bp-log.js).
+function logAction(entry) {
+  try {
+    const now = new Date();
+    const line = JSON.stringify({
+      ts: now.getTime(),
+      iso: now.toISOString(),
+      source: entry.source || 'app',      // 'app' (UI action) | 'agent' (CLI via hook)
+      type: entry.type || 'action',       // chat | bp-chat | module-update | ingest | prompt-gen | settings | plan | savepoint | apply | data | cli | rollback
+      summary: (entry.summary || '').toString().slice(0, 400),
+      chatId: entry.chatId || null,
+      branch: entry.branch || null,
+      savepoint: entry.savepoint || null, // reference to restore "before this action" when known
+      meta: entry.meta || null,
+    });
+    fs.appendFileSync(ACTION_LOG_FILE, line + '\n');
+  } catch (e) { /* logging must never break the request */ }
+}
+function readActionLog(limit = 500, filter = {}) {
+  let raw = '';
+  try { raw = fs.readFileSync(ACTION_LOG_FILE, 'utf8'); } catch { return []; }
+  const rows = raw.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  let out = rows;
+  if (filter.type) out = out.filter((r) => r.type === filter.type);
+  if (filter.since) out = out.filter((r) => r.ts >= filter.since);
+  if (filter.q) { const q = filter.q.toLowerCase(); out = out.filter((r) => (r.summary || '').toLowerCase().includes(q) || (r.type || '').toLowerCase().includes(q)); }
+  return out.slice(-limit).reverse();   // newest first
+}
 
 const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
@@ -328,6 +367,19 @@ const BP_PROMPT = (ws) => [
   'and surface it.',
   'AFTER applying changes, write a short summary into the CRS repo brain/ files (database.md / security.md /',
   `workflows.md / changelog.md at ${REPO_ROOT}/brain/) so the ledger stays current.`,
+  'ACTION LOG & ROLLBACK — every buildprint/git command you run is auto-recorded (timestamp, savepoint label,',
+  `branch) to the JSONL ledger at ${REPO_ROOT}/crs-brain/data/action-log.jsonl. Because you create a savepoint`,
+  'before every apply, that ledger is the index of restore points. TWO things Vlad will ask:',
+  '(a) "when did I do X / what happened around <time>?" → Read or Grep that action-log.jsonl file, find the',
+  'matching action(s), and report the timestamp, what ran, the branch, and the savepoint taken just before it.',
+  '(b) "roll back to before <that action>" → find that action in the log and the savepoint created just before',
+  'it (or the nearest earlier savepoint); confirm the exact target with Vlad; then `buildprint savepoint list`',
+  'to get the precise ref and `buildprint savepoint restore <ref>` on the TEST branch, then `buildprint sync`.',
+  'BE HONEST about scope: savepoint-restore reverts app STRUCTURE/workflows on the test branch. It does NOT',
+  'undo database record writes (Buildprint data tools cannot delete Things). If the action that broke things',
+  'was a DATA write (e.g. created records), say so plainly and offer to list the exact records so Vlad can',
+  'remove them in Bubble or restore a Bubble app-data backup — do not claim the data is rolled back when it is',
+  'not. Give savepoints descriptive names ("Before <module> <step>") since those names appear in the log.',
   'TOOLS YOU HAVE: the Buildprint CLI (via Bash), Node and Python (via Bash, for LOCAL computation), plus',
   'Read / Grep / Glob / WebFetch / WebSearch and the Buildprint MCP tools. SPEED — this matters: for any',
   'selection / dedup / filtering / aggregation over the synced JSON files, write ONE short Node or Python',
@@ -1259,6 +1311,17 @@ const server = http.createServer(async (req, res) => {
         chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
       }
 
+      // Anchor the action log with the intent behind this turn ("when did I tell it to…").
+      if (!body.regenerate) {
+        logAction({
+          source: 'app',
+          type: body.bp === true ? 'bp-chat' : (body.ingest === true ? 'ingest' : 'chat'),
+          summary: (message || '').slice(0, 300) || (attachments.length ? attachments.join(', ') : ''),
+          chatId: chat && chat.id,
+          meta: attachments.length ? { attachments } : null,
+        });
+      }
+
       // Give Claude the attachment paths so it can open them with its own tools.
       const ingest = body.ingest === true;
       let promptToClaude = message;
@@ -1493,6 +1556,23 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    // Action log — the activity ledger. GET reads/filters it (?q=&type=&since=&limit=),
+    // POST records a UI-level action (client knows exactly what the user did).
+    if (p === '/api/action-log' && req.method === 'GET') {
+      const limit = Math.min(parseInt(u.searchParams.get('limit') || '500', 10) || 500, 5000);
+      const filter = {
+        q: u.searchParams.get('q') || '',
+        type: u.searchParams.get('type') || '',
+        since: parseInt(u.searchParams.get('since') || '0', 10) || 0,
+      };
+      return send(res, 200, { entries: readActionLog(limit, filter) });
+    }
+    if (p === '/api/action-log' && req.method === 'POST') {
+      const body = await readJsonBody(req) || {};
+      logAction({ source: 'app', type: body.type || 'action', summary: body.summary || '', chatId: body.chatId || null, meta: body.meta || null });
+      return send(res, 200, { ok: true });
     }
 
     // Progress Tree — priority-ordered module list (reorderable in the app). Plain
