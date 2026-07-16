@@ -6,6 +6,21 @@ Last updated: **2026-07-16**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
+### Running the app on a new machine (e.g. the home Mac)
+
+The server is **zero-dependency Node** — every `require` is a built-in except `node-pty` (loaded lazily in a try/catch; only the live-usage panel needs it). So:
+
+```bash
+git clone https://github.com/vladlen1986/crs-progress.git   # or pull if already cloned
+cd crs-progress/crs-brain
+node server.js            # → http://localhost:4317  (app runs immediately, bare Node)
+npm install              # ONE-TIME, optional — builds node-pty for THIS OS so the live-usage panel works
+```
+
+- `crs-brain/node_modules` is **gitignored** (as of 2026-07-16) — native binaries are per-OS, so each machine builds its own with `npm install`. Do **not** commit node_modules. `npm install` needs Xcode Command Line Tools on Mac (for node-pty's native build); if it fails, the app still runs, just without live usage.
+- To operate Buildprint from the Mac you also need the **Buildprint CLI linked + the Test branch cloned** on that machine — see `brain/buildprint/CLI-MCP-PLAYBOOK.md §5` (`npm i -g buildprint` → `buildprint link <token>` → `buildprint project clone <appId> --branch test` into `~/projects/crs-bubble/`). The workspace path is per-machine; the app finds it automatically.
+- Optional: `npm install -g agent-browser` for screenshots/visual verification.
+
 ---
 
 ## Session 2026-07-16 (cont.) — Buildprint-style activity blocks, action log + rollback, wishlist

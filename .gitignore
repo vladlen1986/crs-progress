@@ -12,3 +12,4 @@ crs-brain/.pin
 crs-brain/data/bp-guard-settings.json
 crs-brain/data/screenshots/
 crs-brain/data/action-log.jsonl
+crs-brain/node_modules/
