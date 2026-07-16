@@ -6,3 +6,4 @@ data/notifications-read.json
 .env.local
 .env
 secrets.json
+data/smtp.json

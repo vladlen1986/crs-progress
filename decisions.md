@@ -29,6 +29,25 @@ one atomic commit per unit, verified in a headless browser. Artifacts under `crs
 **Alternatives considered:** keep a slimmed right rail (rejected — no single job); switch accent to #1D4ED8
 (rejected — violates rule #2).
 
+## 2026-07-16 — Kanban full-window + Settings area (structural)
+
+**Kanban:** rebuilt as a first-class content-area view (`#kanbanView` in index.html), decoupled from the
+galaxy map's bottom-drawer (the source of the cramped strip). Height model: the view is a flex column —
+toolbar is `flex:0 0 auto`, the board is `flex:1;min-height:0`; the board flex-row `overflow-x:auto` gives
+horizontal scroll, and each `.kb-col` is `max-height:100%` with a `flex:1;overflow-y:auto` card list for
+independent vertical scroll. Columns = top-level folders; cards = files (recursive). `setView('kanban'|'list')`
+now routes here, not to the map iframe (the map's board drawer is left in place but unused). Alternative
+(rejected): expand the map drawer to full-window — keeps kanban coupled to the galaxy + its orange/purple chrome.
+
+**Settings:** presented as a tabbed panel (left sub-nav: General/Appearance/Notifications/Connections/About)
+opened from a bottom-pinned sidebar "Settings & Preferences" entry (and the header gear). Assumption (rule #9):
+a tabbed panel with a left sub-nav satisfies "dedicated settings area, not a modal dump" while preserving the
+already-working settings code (rule #6). Deep-links `#settings=<tab>` and `#view=<view>` added.
+
+**Secrets:** SMTP creds stored in gitignored `crs-brain/data/smtp.json` (password never returned by the API);
+`.env.local`/`secrets.json`/`data/smtp.json` are gitignored. `test-connection` does a TCP reachability probe
+(zero-dep). Actual SMTP send is stubbed to local `sendmail` — raw-SMTP send is a logged follow-up.
+
 ## 2026-07-16 — User DT is a Pattern A exception: property-only isolation (no company field)
 
 **Decision:** The `User` data type is exempt from the "both `company` AND `property`

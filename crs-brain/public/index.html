@@ -111,6 +111,13 @@
   .pane{flex:1;overflow:auto;padding:4px 12px 12px}
   .pane.hide{display:none}
 
+  /* bottom-pinned settings entry (visually separated from primary nav) */
+  .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
+  .side-set{width:100%;display:flex;align-items:center;gap:10px;background:none;border:1px solid transparent;color:var(--secondary);border-radius:9px;padding:9px 11px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.12s;text-align:left}
+  .side-set:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .side-set.on{background:var(--accent-soft);color:var(--primary)}
+  .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
+  .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
   .newbtn{margin:0 12px 6px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:11px;font-size:12.5px;font-weight:500;width:calc(100% - 24px);text-align:left;display:flex;align-items:center;gap:8px;transition:.15s}
   .newbtn:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
 
@@ -848,6 +855,9 @@
     <div class="tabs" id="fileFilter" style="display:none;margin-top:0">
       <button id="ffCrs" class="on" onclick="setFileFilter(true)">Project</button>
       <button id="ffAll" onclick="setFileFilter(false)">All files</button>
+    </div>
+    <div class="side-foot">
+      <button class="side-set" onclick="openSettings('general')"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg> Settings &amp; Preferences</button>
     </div>
     <div class="lresizer" id="lresizer"></div>
   </div>
@@ -2387,13 +2397,19 @@ function closeSettings(){ $('settingsWrap').classList.remove('show'); }
 function setSettingsTab(t){ settingsTab=t; renderSettings(); }
 function setTheme(t){ applyTheme(t); if(SETTINGS)SETTINGS.theme=t; saveSettingsPatch({theme:t}); renderSettings(); }
 function setNotifPref(k,v){ SETTINGS.notify=Object.assign({},SETTINGS.notify,{[k]:v}); saveSettingsPatch({notify:{[k]:v}}); if(k==='soundName')playSound(v); renderSettings(); }
+function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
 async function renderSettings(){
   const s=SETTINGS||await loadSettingsCache(); const n=s.notify||{};
-  const nav=[['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['connections','i-plug','Connections'],['about','i-cog','About']];
+  const nav=[['general','i-cog','General'],['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['connections','i-plug','Connections'],['about','i-file','About']];
   const sw=(on,onclick)=>`<label class="switch"><input type="checkbox" ${on?'checked':''} onchange="${onclick}"><span class="sl"></span></label>`;
   let pane='';
-  if(settingsTab==='appearance'){
+  if(settingsTab==='general'){
+    pane=`<div class="msec-title">Behavior</div>
+      <div class="mrow"><div class="mlbl"><b>Smart model routing</b><span>Auto-pick the cheapest capable model per task — Haiku/Sonnet for mechanical work, Opus for reasoning. Off = always use your selected model.</span></div><div class="mctl">${sw(s.autoRoute===true,"setPref('autoRoute',this.checked)")}</div></div>
+      <div class="mrow"><div class="mlbl"><b>Auto-track Buildprint → brain</b><span>After Buildprint changes the Bubble app, refresh the brain ledger automatically (checked ~every 20 min; only spends a turn on real changes).</span></div><div class="mctl">${sw(s.bpAutoTrack!==false,"setPref('bpAutoTrack',this.checked)")}</div></div>
+      <div class="mrow"><div class="mlbl"><b>Bubble platform watcher</b><span>Once a day, scan Bubble release-notes + forum for CRS-relevant changes and append a dated digest to the brain. Off by default.</span></div><div class="mctl">${sw(s.bubbleWatch===true,"setPref('bubbleWatch',this.checked)")}</div></div>`;
+  } else if(settingsTab==='appearance'){
     pane=`<div class="msec-title">Theme</div>
       <div class="mrow"><div class="mlbl"><b>Appearance</b><span>Switch between dark and light. Applies instantly across the app.</span></div>
       <div class="mctl"><div class="seg"><button class="${s.theme!=='light'?'on':''}" onclick="setTheme('dark')">${svg('i-moon')} Dark</button><button class="${s.theme==='light'?'on':''}" onclick="setTheme('light')">${svg('i-sun')} Light</button></div></div></div>`;
@@ -2412,7 +2428,14 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Claude Code</b><span id="connClaudeSub">Checking…</span></div><div class="mctl"><span class="mstat" id="connClaude">…</span><button class="mbtn2" id="connClaudeBtn" onclick="connClaudeAction()">…</button></div></div>
       <div class="msec-title" style="margin-top:16px">Buildprint CLI</div>
       <div class="mrow"><div class="mlbl"><b>Buildprint link</b><span id="connBpSub">Paste your Buildprint token to link this machine. Runs <code>buildprint link</code> — the token is stored by Buildprint, not in the brain.</span></div><div class="mctl"><span class="mstat" id="connBp">…</span></div></div>
-      <div class="mrow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>`;
+      <div class="mrow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Email (SMTP)</div>
+      <div class="mrow"><div class="mlbl"><b>SMTP server</b><span id="connSmtpSub">For email notifications. Stored in a gitignored local file — never committed.</span></div><div class="mctl"><span class="mstat" id="connSmtp">…</span></div></div>
+      <div class="mrow"><div class="mlbl"><b>Host & port</b></div><div class="mctl"><input class="tinput" id="smtpHost" placeholder="smtp.example.com" autocomplete="off" style="min-width:150px"><input class="tinput" id="smtpPort" placeholder="587" autocomplete="off" style="min-width:70px"></div></div>
+      <div class="mrow"><div class="mlbl"><b>Username</b></div><div class="mctl"><input class="tinput" id="smtpUser" placeholder="user@example.com" autocomplete="off"></div></div>
+      <div class="mrow"><div class="mlbl"><b>Password</b></div><div class="mctl"><input class="tinput" id="smtpPass" type="password" placeholder="••••••••" autocomplete="new-password"></div></div>
+      <div class="mrow"><div class="mlbl"><b>From address</b></div><div class="mctl"><input class="tinput" id="smtpFrom" placeholder="CRS Brain <noreply@example.com>" autocomplete="off"></div></div>
+      <div class="mrow"><div class="mlbl"></div><div class="mctl"><button class="mbtn2" onclick="testSmtp()">Test connection</button><button class="mbtn2 primary" onclick="saveSmtp()">Save</button></div></div>`;
   } else {
     pane=`<div class="msec-title">About</div>
       <div class="mrow"><div class="mlbl"><b>CRS Brain</b><span>Local build console for the CRS Bubble project — one place to chat, operate Buildprint, browse the brain, and track progress. Runs on your Claude Max subscription.</span></div></div>
@@ -2426,14 +2449,19 @@ async function renderSettings(){
 async function refreshConnStatus(){
   try{ const a=await api('/api/auth/status'); const el=$('connClaude'),sub=$('connClaudeSub'),btn=$('connClaudeBtn'); if(el){ if(a.loggedIn){ el.textContent='Connected'; el.className='mstat ok'; if(sub)sub.textContent=`${a.email||'signed in'} · ${a.subscriptionType||a.authMethod||''}`; if(btn)btn.textContent='Sign out'; } else { el.textContent='Not connected'; el.className='mstat off'; if(sub)sub.textContent='Sign in to Claude to use the brain.'; if(btn)btn.textContent='Sign in'; } } }catch{}
   try{ const b=await api('/api/bp/status'); const el=$('connBp'); if(el){ const linked=b&&(b.linked||b.ok||b.workspace); el.textContent=linked?'Linked':'Not linked'; el.className='mstat '+(linked?'ok':'off'); } }catch{ const el=$('connBp'); if(el){ el.textContent='Unknown'; el.className='mstat warn'; } }
+  try{ const sm=await api('/api/connections/smtp'); const el=$('connSmtp'); if(el){ el.textContent=sm.configured?'Configured':'Not set'; el.className='mstat '+(sm.configured?'ok':'off'); }
+    if($('smtpHost')){ $('smtpHost').value=sm.host||''; $('smtpPort').value=sm.port||''; $('smtpUser').value=sm.user||''; $('smtpFrom').value=sm.from||''; if(sm.configured&&$('smtpPass')) $('smtpPass').placeholder='•••••••• (saved — leave blank to keep)'; } }catch{}
 }
 function connClaudeAction(){ const btn=$('connClaudeBtn'); if(btn&&/out/i.test(btn.textContent)){ api('/api/auth/logout',{method:'POST'}).then(()=>{ notify({type:'connection',level:'warning',title:'Signed out of Claude'}); refreshConnStatus(); }); } else { api('/api/auth/login',{method:'POST'}); toast('Opening Claude sign-in…'); } }
 async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.value||'').trim(); if(!tok)return toast('Paste your Buildprint token first'); toast('Linking Buildprint…');
   try{ const r=await api('/api/connections/buildprint-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})}); if(r&&r.ok){ notify({type:'connection',level:'success',title:'Buildprint linked'}); if(inp)inp.value=''; refreshConnStatus(); } else notify({type:'connection',level:'error',title:'Buildprint link failed',body:(r&&r.error)||''}); }
   catch(e){ notify({type:'connection',level:'error',title:'Buildprint link failed',body:e.message}); } }
+async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),port:($('smtpPort').value||'').trim(),user:($('smtpUser').value||'').trim(),pass:($('smtpPass').value||''),from:($('smtpFrom').value||'').trim()};
+  try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notify({type:'connection',level:'success',title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
+async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
 
-(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():showDashboard(); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

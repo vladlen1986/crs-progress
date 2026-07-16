@@ -25,6 +25,22 @@
   unified "Conversations" sidebar with bp badges; Buildprint sidebar tab retired. Verified (cards swap + seed,
   no console errors). Commit `3106c55`.
 
+## Done (focused Kanban + Settings pass)
+- **Task 1 — Kanban full-window** (commit): new `#kanbanView` owns the content area (not the map bottom-drawer);
+  columns fill viewport height + independent vertical scroll; board horizontal-scrolls; Board/List + Project/All +
+  search toolbar; tokenized neutral cards, blue accent only, muted type badges (no orange). Verified both themes.
+- **Task 2 — Settings & Preferences** (commit): bottom-pinned sidebar "⚙ Settings & Preferences" entry opens a
+  tabbed panel — General (behavior toggles: smart routing / bp auto-track / bubble watcher), Appearance (theme),
+  Notifications (sound picker), Connections (Claude status + Buildprint token + **SMTP** host/port/user/pass/from,
+  masked, save, test-connection = TCP reachability, status chips). SMTP creds → gitignored `data/smtp.json`.
+  Added `#view=` / `#settings=` deep-links. Verified both themes, no console errors.
+
+## Blocked / stubbed
+- **SMTP email SEND** is stubbed: creds are stored (gitignored) + reachability test works, but the actual send
+  still uses local `sendmail` best-effort. Raw-SMTP send (AUTH+STARTTLS, zero-dep) is a follow-up (hard-stop rule).
+  To enable email now: set up a local mail relay, or wait for the SMTP-send follow-up. Paste SMTP creds in
+  Settings → Connections when ready.
+
 ## In progress
 - (between workstreams)
 

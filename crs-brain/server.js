@@ -262,8 +262,10 @@ function loadWishlist() {
 const DEFAULT_SETTINGS = {
   model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
   theme: 'dark',                              // 'dark' | 'light'
+  bpAutoTrack: true,                          // auto-track Buildprint changes into the brain
   notify: { inApp: true, sound: true, soundName: 'ping', email: false, emailTo: '' },
 };
+const SMTP_FILE = path.join(DATA_DIR, 'smtp.json');   // gitignored secrets store (see .gitignore)
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
   catch { return { ...DEFAULT_SETTINGS }; }
@@ -1854,6 +1856,7 @@ const server = http.createServer(async (req, res) => {
         autoRoute: typeof body.autoRoute === 'boolean' ? body.autoRoute : cur.autoRoute,
         bubbleWatch: typeof body.bubbleWatch === 'boolean' ? body.bubbleWatch : cur.bubbleWatch,
         theme: (body.theme === 'light' || body.theme === 'dark') ? body.theme : cur.theme,
+        bpAutoTrack: typeof body.bpAutoTrack === 'boolean' ? body.bpAutoTrack : cur.bpAutoTrack,
         notify: body.notify && typeof body.notify === 'object'
           ? { ...(cur.notify || {}), ...body.notify, emailTo: String((body.notify.emailTo != null ? body.notify.emailTo : (cur.notify && cur.notify.emailTo) || '')).slice(0, 200) }
           : cur.notify,
@@ -1899,6 +1902,36 @@ const server = http.createServer(async (req, res) => {
         if (code === 0) { addNotification({ type: 'connection', level: 'success', title: 'Buildprint linked' }); send(res, 200, { ok: true }); }
         else send(res, 502, { error: (out.trim().slice(-300)) || ('exit ' + code) });
       });
+      return;
+    }
+    // ---- SMTP settings (email notifications) — stored in gitignored data/smtp.json ----
+    if (p === '/api/connections/smtp' && req.method === 'GET') {
+      let s = {}; try { s = JSON.parse(fs.readFileSync(SMTP_FILE, 'utf8')); } catch {}
+      // never return the password
+      return send(res, 200, { configured: !!(s.host && s.port), host: s.host || '', port: s.port || '', user: s.user || '', from: s.from || '' });
+    }
+    if (p === '/api/connections/smtp' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      let cur = {}; try { cur = JSON.parse(fs.readFileSync(SMTP_FILE, 'utf8')); } catch {}
+      const clip = (v, n) => String(v == null ? '' : v).slice(0, n);
+      const next = {
+        host: clip(body.host, 200), port: clip(body.port, 6), user: clip(body.user, 200),
+        from: clip(body.from, 200), pass: body.pass ? clip(body.pass, 300) : (cur.pass || ''),
+      };
+      try { fs.writeFileSync(SMTP_FILE, JSON.stringify(next, null, 2)); } catch (e) { return send(res, 500, { error: e.message }); }
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/connections/smtp-test' && req.method === 'POST') {
+      let s = {}; try { s = JSON.parse(fs.readFileSync(SMTP_FILE, 'utf8')); } catch {}
+      if (!s.host || !s.port) return send(res, 400, { ok: false, error: 'not configured' });
+      const net = require('net');
+      const sock = new net.Socket(); let done = false;
+      const fin = (ok, error) => { if (done) return; done = true; try { sock.destroy(); } catch {} send(res, 200, { ok, error }); };
+      sock.setTimeout(5000);
+      sock.once('connect', () => fin(true));
+      sock.once('timeout', () => fin(false, 'timeout'));
+      sock.once('error', (e) => fin(false, e.code || e.message));
+      try { sock.connect(Number(s.port), s.host); } catch (e) { fin(false, e.message); }
       return;
     }
 
