@@ -679,6 +679,17 @@
   .expl-marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-tint);pointer-events:none;z-index:3;border-radius:2px}
   body.no-select, body.no-select *{user-select:none!important}   /* active marquee/drag: nothing highlights, incl. behind the window */
   .expl-snapprev{position:fixed;z-index:69;background:var(--accent-tint);border:1px solid var(--accent);border-radius:10px;display:none;pointer-events:none}
+  /* window controls (explorer + document popup) */
+  .winctl{display:flex;gap:2px;flex:0 0 auto;align-items:center}
+  .winctl button{width:28px;height:28px;border-radius:7px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s ease-in-out,color .16s ease-in-out}
+  .winctl button:hover{background:var(--panel2);color:var(--primary)}
+  .winctl button.close:hover{background:rgba(239,68,68,.15);color:var(--danger)}
+  .winctl svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  #minBar{position:fixed;left:10px;bottom:10px;z-index:99;display:flex;gap:8px}
+  .minchip{display:flex;align-items:center;gap:8px;background:var(--elev);border:1px solid var(--line2);border-radius:9px;padding:7px 11px;font-size:12px;color:var(--secondary);cursor:pointer;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .minchip:hover{color:var(--primary);border-color:var(--line3)}
+  .minchip .cx{border:0;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px}
+  .minchip .cx:hover{color:var(--danger)}
   .expl-status{grid-area:status;border-top:1px solid var(--line);padding:6px 14px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:14px}
   .expl-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;pointer-events:none}
   .expl-skel{height:24px;margin:7px 14px;border-radius:6px;background:linear-gradient(90deg,var(--panel2),var(--elev),var(--panel2));background-size:200% 100%;animation:shimmer 1.2s infinite}
@@ -1181,7 +1192,12 @@
         <button id="explVList" title="List view" onclick="explSetView('list')"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
         <button id="explVGrid" title="Grid view" onclick="explSetView('grid')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
       </div>
-      <button class="expl-x" title="Close (Esc)" onclick="closeExpl()">✕</button>
+      <div class="winctl">
+        <button title="Minimize" onclick="explMinimize()"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
+        <button title="Maximize / Restore" id="explMaxBtn" onclick="explMaxToggle()"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></button>
+        <button title="Fullscreen (Esc exits)" onclick="explFsToggle()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button class="close" title="Close" onclick="closeExpl()"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
     </div>
     <div class="expl-side" id="explSide"></div>
     <div class="expl-main" id="explMain" tabindex="0"></div>
@@ -2073,6 +2089,53 @@ function explSnapPrevEl(){ let p=$('explSnapPrev'); if(!p){ p=document.createEle
 function explSnapTo(zone){ const pre=EX.snap?EX.snap.pre:{...EX.rect};
   EX.snap={zone, pre}; EX.rect=explZoneRect(zone); explApplyRect(); }
 function explUnsnapRestore(){ if(!EX.snap) return; EX.rect={...EX.snap.pre}; EX.snap=null; explApplyRect(); }
+// ----- window controls: minimize · maximize/restore · fullscreen (per window) -----
+function minBarEl(){ let b=$('minBar'); if(!b){ b=document.createElement('div'); b.id='minBar'; document.body.appendChild(b); } return b; }
+function addMinChip(id, iconHtml, label, onRestore, onClose){
+  minBarEl().querySelector(`[data-win="${id}"]`)?.remove();
+  const c=document.createElement('div'); c.className='minchip'; c.dataset.win=id;
+  c.innerHTML=iconHtml+`<span>${esc(label)}</span><button class="cx" title="Close">✕</button>`;
+  c.onclick=(e)=>{ c.remove(); e.target.closest('.cx') ? onClose() : onRestore(); };
+  minBarEl().appendChild(c);
+}
+function explMinimize(){ hidePeek(); explCloseMenu(); EX.min=true; $('explWin').style.display='none';
+  addMinChip('expl', `<span class="tico" style="color:#5B9CF6">${_EGL.folder}</span>`,
+    EX.path?EX.path.split('/').pop():(state.repoName||'crs-progress'),
+    ()=>{ EX.min=false; $('explWin').style.display='grid'; $('explMain').focus(); },
+    ()=>{ EX.min=false; $('explWin').style.display='grid'; closeExpl(); }); }
+function explMaxToggle(){ if(EX.fs) explFsToggle();
+  if(EX.snap&&EX.snap.zone==='top') explUnsnapRestore(); else explSnapTo('top');
+  explMaxBtnIcon(); }
+function explMaxBtnIcon(){ const b=$('explMaxBtn'); if(!b) return;
+  b.innerHTML=(EX.snap&&EX.snap.zone==='top')
+    ? '<svg viewBox="0 0 24 24"><path d="M8.5 8.5V6a2 2 0 0 1 2-2H18a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-2.5"/><rect x="4" y="8.5" width="11.5" height="11.5" rx="2"/></svg>'
+    : '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg>'; }
+function explFsToggle(){
+  if(!EX.fs){ EX.fs={rect:{...EX.rect}, snap:EX.snap}; EX.snap={zone:'fs', pre:EX.fs.rect};
+    EX.rect={x:0,y:0,w:innerWidth,h:innerHeight}; explApplyRect(); }
+  else { EX.snap=EX.fs.snap; EX.rect=EX.fs.snap?explZoneRect(EX.fs.snap.zone):{...EX.fs.rect}; EX.fs=null; explApplyRect(); }
+  explMaxBtnIcon(); }
+// document-popup window state
+const DP={pre:null,max:false,fs:false,min:false,path:null};
+function dpApply(rect){ const b=$('docPop')?.querySelector('.dp-box'); if(!b) return;
+  if(rect){ b.style.position='fixed'; b.style.left=rect.x+'px'; b.style.top=rect.y+'px'; b.style.width=rect.w+'px'; b.style.height=rect.h+'px'; b.style.maxWidth='none'; }
+  else { b.style.position=''; b.style.left=''; b.style.top=''; b.style.width=''; b.style.height=''; b.style.maxWidth=''; } }
+function dpMaxToggle(){ if(DP.fs) dpFsToggle(); DP.max=!DP.max; dpApply(DP.max?explWorkArea():null); dpMaxIcon(); }
+function dpMaxIcon(){ const b=$('dpMaxBtn'); if(!b) return;
+  b.innerHTML=DP.max
+    ? '<svg viewBox="0 0 24 24"><path d="M8.5 8.5V6a2 2 0 0 1 2-2H18a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-2.5"/><rect x="4" y="8.5" width="11.5" height="11.5" rx="2"/></svg>'
+    : '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg>'; }
+function dpFsToggle(){ DP.fs=!DP.fs; dpApply(DP.fs?{x:0,y:0,w:innerWidth,h:innerHeight}:(DP.max?explWorkArea():null)); }
+function dpMinimize(){ DP.min=true; $('docPop').classList.remove('show');
+  const nm=(DP.path||'document').split('/').pop();
+  addMinChip('doc', fic(nm,16), nm,
+    ()=>{ DP.min=false; $('docPop').classList.add('show'); $('docPop').querySelector('.dp-box')?.focus(); },
+    ()=>{ DP.min=false; closeDocPopup(); }); }
+// Esc order: fullscreen exits FIRST (capture phase), one level above normal Esc.
+document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
+  if(DP.fs && $('docPop')?.classList.contains('show')){ e.stopPropagation(); dpFsToggle(); return; }
+  if(EX.fs && $('explWrap')?.classList.contains('show') && !EX.min){ e.stopPropagation(); explFsToggle(); }
+}, true);
 function explInitWindow(){
   try{ EX.rect=JSON.parse(sessionStorage.getItem('exWinRect'))||explDefaultRect(); }catch{ EX.rect=explDefaultRect(); }
   explApplyRect();
@@ -2100,6 +2163,7 @@ function explInitWindow(){
       if(dragged && zone) explSnapTo(zone); else explSaveRect(); };
     document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
   });
+  win.querySelector('.expl-tb').addEventListener('dblclick',(e)=>{ if(e.target.closest('button,input,a,label,select')) return; explMaxToggle(); });
   // resize from all edges + corners
   for(const dir of ['n','s','e','w','ne','nw','se','sw']){
     const h=document.createElement('div'); h.className='expl-rs expl-rs-'+dir; win.appendChild(h);
@@ -2172,6 +2236,7 @@ function csvTable(txt){
 function ensureDocPop(){ let d=$('docPop'); if(d) return d;
   d=document.createElement('div'); d.className='docpop'; d.id='docPop'; document.body.appendChild(d);
   d.addEventListener('click',(e)=>{ if(e.target===d) closeDocPopup(); });
+  d.addEventListener('dblclick',(e)=>{ if(e.target.closest('.dp-head') && !e.target.closest('button,a')) dpMaxToggle(); });
   // focus-scoped select-all: Ctrl/Cmd+A selects the DOCUMENT's content, never the
   // page behind; inputs inside the popup keep native select-all behavior.
   d.addEventListener('keydown',(e)=>{
@@ -2184,14 +2249,21 @@ function ensureDocPop(){ let d=$('docPop'); if(d) return d;
     }
   });
   return d; }
-function closeDocPopup(){ const d=$('docPop'); if(d){ d.classList.remove('show'); d.innerHTML=''; } }
+function closeDocPopup(){ const d=$('docPop'); if(d){ d.classList.remove('show'); d.innerHTML=''; }
+  DP.max=false; DP.fs=false; DP.min=false; $('minBar')?.querySelector('[data-win="doc"]')?.remove(); }
 async function openDocPopup(p){
   hidePeek(); const d=ensureDocPop(); const name=p.split('/').pop(), ext=extOf(name);
   const node=explNodeByPath(p)||{type:'file',name,path:p};
   const raw='/api/raw?path='+encodeURIComponent(p);
+  DP.path=p; DP.max=false; DP.fs=false; DP.min=false;   // fresh window state per document
   const head=`<div class="dp-head">${fic(name,20)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
-    <a title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;color:var(--secondary)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
-    <button title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`;
+    <div class="winctl">
+      <a class="dl" title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;color:var(--muted)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
+      <button title="Minimize" onclick="dpMinimize()"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
+      <button title="Maximize / Restore" id="dpMaxBtn" onclick="dpMaxToggle()"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></button>
+      <button title="Fullscreen (Esc exits)" onclick="dpFsToggle()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="close" title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div></div>`;
   const show=(body)=>{ d.innerHTML=`<div class="dp-box" tabindex="-1">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); d.querySelector('.dp-box').focus(); };
   if(isImg(name)) return show(`<div class="dp-imgwrap"><img src="${raw}" alt=""></div>`);
   if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
