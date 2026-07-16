@@ -755,6 +755,26 @@
   .htmlfull .hf-bar button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer}
   .htmlfull .hf-bar button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .htmlfull iframe{flex:1;border:0;background:#fff}
+  /* undo toast (interactive, unlike .toast) */
+  .utoast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:9px 10px 9px 16px;border-radius:11px;font-size:13px;display:none;align-items:center;gap:12px;z-index:98;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .utoast.show{display:flex}
+  .utoast button{background:var(--accent);border:0;color:#fff;border-radius:7px;padding:6px 13px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .utoast button:hover{filter:brightness(1.1)}
+  /* properties popup */
+  .proppop{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+  .proppop.show{display:flex}
+  .proppop .pp-box{width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;box-shadow:0 24px 70px rgba(0,0,0,.55);overflow:hidden}
+  .proppop .pp-head{display:flex;align-items:center;gap:11px;padding:16px 16px 12px}
+  .proppop .pp-head .tico{width:34px;height:34px}.proppop .pp-head .tico svg{width:34px;height:34px}
+  .proppop .pp-name{color:var(--primary);font-weight:600;font-size:14px;word-break:break-all;flex:1}
+  .proppop .pp-x{width:26px;height:26px;border-radius:6px;background:none;border:0;color:var(--muted);cursor:pointer;flex:0 0 auto}
+  .proppop .pp-x:hover{background:var(--panel2);color:var(--primary)}
+  .proppop .pp-rows{padding:4px 16px 16px;display:flex;flex-direction:column;gap:7px}
+  .proppop .pp-row{display:flex;gap:10px;font-size:12.5px;align-items:baseline}
+  .proppop .pp-row .k{color:var(--muted);width:74px;flex:0 0 auto}
+  .proppop .pp-row .v{color:var(--secondary);word-break:break-all;flex:1}
+  .proppop .pp-row .cp{border:1px solid var(--line2);background:none;color:var(--muted);border-radius:5px;font-size:10.5px;padding:1px 7px;cursor:pointer;flex:0 0 auto}
+  .proppop .pp-row .cp:hover{color:var(--primary);border-color:var(--line3)}
   /* chat search */
   .chat-search{display:block;width:calc(100% - 24px);margin:0 12px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
   .chat-search:focus{border-color:var(--accent)}
@@ -1992,6 +2012,7 @@ const FS = {
   persistent: true,   // Branch A: mutations change the real repo
   tree(){ return api('/api/files').then(r=>r.tree||[]); },
   read(p){ return api('/api/file?path='+encodeURIComponent(p)).then(r=>r.content); },
+  write(p,content){ return api('/api/file',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:p,content})}); },
   _post(op,body){ return api('/api/fs/'+op,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); },
   create(dir,name,type,autosuffix){ return this._post('create',{dir,name,type,autosuffix:!!autosuffix}); },
   rename(p,newName){ return this._post('rename',{path:p,newName}); },
@@ -2185,7 +2206,8 @@ function openHtmlOverlay(p){
 }
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
   if($('htmlFull')?.classList.contains('show')){ closeHtmlOverlay(); return; }
-  if($('docPop')?.classList.contains('show')){ closeDocPopup(); return; } });
+  if($('docPop')?.classList.contains('show')){ closeDocPopup(); return; }
+  if($('propPop')?.classList.contains('show')){ $('propPop').classList.remove('show'); return; } });
 
 // ----- search -----
 let explSearchT=null;
@@ -2335,7 +2357,7 @@ function explDragOver(e){ const t=explDropTarget(e); explClearDrop();
 function explClearDrop(){ document.querySelectorAll('.expl-wrap .dragover').forEach(el=>el.classList.remove('dragover')); }
 async function explDrop(e){ const t=explDropTarget(e); explClearDrop(); clearTimeout(explSpringT);
   if(!explCanDrop(t)){ return; } e.preventDefault(); const paths=EX.dragPaths; EX.dragPaths=null;
-  try{ await FS.move(paths, t||''); await explReload(); toast('Moved to '+(t?t.split('/').pop():(state.repoName||'root'))); }catch(err){ toast(err.message); } }
+  try{ await FS.move(paths, t||''); await explReload(); toastUndo('Moved to '+(t?t.split('/').pop():(state.repoName||'root')), explUndoMove(paths, t||'')); }catch(err){ toast(err.message); } }
 function explDragEnd(){ EX.dragPaths=null; explClearDrop(); clearTimeout(explSpringT); explSpringP=null; const g=$('explDrag'); if(g) g.style.display='none'; }
 // marquee (rubber-band) selection on empty space
 function explMarqueeStart(e){
@@ -2413,22 +2435,62 @@ function explBeginRename(path){
   nameEl.replaceWith(inp); inp.focus(); const dot=cur.lastIndexOf('.'); inp.setSelectionRange(0, dot>0?dot:cur.length);
   let done=false;
   const commit=async(save)=>{ if(done) return; done=true; const nn=inp.value.trim();
-    if(save && nn && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path); return; }catch(e){ toast(e.message); } }
+    if(save && nn && nn!==cur){ try{ const r=await FS.rename(path,nn); await explReload(); explSelectPath(r.path);
+      toastUndo(`Renamed to “${nn}”`, ()=>FS.rename(r.path, cur)); return; }catch(e){ toast(e.message); } }
     await explReload(); explSelectPath(path); };
   inp.addEventListener('keydown',(e)=>{ e.stopPropagation(); if(e.key==='Enter'){ e.preventDefault(); commit(true); } else if(e.key==='Escape'){ e.preventDefault(); commit(false); } });
   inp.addEventListener('blur',()=>commit(true));
 }
+// ----- undo safety net: 6s toast with an inverse op (no trash system) -----
+let undoTimer=null;
+function ensureUToast(){ let u=$('uToast'); if(u) return u;
+  u=document.createElement('div'); u.className='utoast'; u.id='uToast';
+  u.innerHTML='<span class="ut-msg"></span><button type="button">Undo</button>'; document.body.appendChild(u); return u; }
+function toastUndo(msg, fn){ const u=ensureUToast(); u.querySelector('.ut-msg').textContent=msg;
+  clearTimeout(undoTimer); u.classList.add('show');
+  u.querySelector('button').onclick=async()=>{ u.classList.remove('show');
+    try{ await fn(); await explReload(); toast('Undone'); }catch(e){ toast('Undo failed: '+e.message); } };
+  undoTimer=setTimeout(()=>u.classList.remove('show'), 6000); }
+// inverse-move for a batch that landed in targetDir
+function explUndoMove(paths, targetDir){
+  const pairs=paths.map(p=>({ from:(targetDir?targetDir+'/':'')+p.split('/').pop(), back:p.split('/').slice(0,-1).join('/') }));
+  return async()=>{ for(const u of pairs) await FS.move([u.from], u.back); };
+}
 async function explPaste(){ if(!EX.clip) return; const {mode,paths}=EX.clip;
-  try{ if(mode==='cut'){ await FS.move(paths,EX.path); EX.clip=null; } else { await FS.copy(paths,EX.path); }
-    await explReload(); toast(mode==='cut'?'Moved here':'Pasted'); }catch(e){ toast(e.message); } }
+  try{ if(mode==='cut'){ await FS.move(paths,EX.path); EX.clip=null; await explReload(); toastUndo('Moved here', explUndoMove(paths,EX.path)); }
+    else { await FS.copy(paths,EX.path); await explReload(); toast('Pasted'); } }catch(e){ toast(e.message); } }
 async function explDelete(){ const paths=[...EX.sel]; if(!paths.length) return;
   const label=paths.length===1?`“${paths[0].split('/').pop()}”`:`${paths.length} items`;
-  if(!confirm(`Delete ${label}? This can’t be undone.`)) return;
-  try{ await FS.del(paths); EX.sel.clear(); EX.cur=null; await explReload(); toast('Deleted '+label); }catch(e){ toast(e.message); } }
-function explProps(target){ const n=explVisible().find(x=>x.path===target); if(!n) return;
-  const info=[`Name:  ${n.name}`,`Type:  ${n.type==='dir'?'Folder':(extOf(n.name).toUpperCase()||'File')}`,`Path:  ${n.path}`];
-  if(n.type==='file') info.push(`Size:  ${fmtSize(n.size)||'—'}`); if(n.mtime) info.push(`Modified:  ${new Date(n.mtime).toLocaleString()}`);
-  alert(info.join('\n')); }
+  if(!confirm(`Delete ${label}?`)) return;
+  // snapshot small text files (and empty folders) so Undo can restore them
+  const snap=[]; let unrecoverable=0;
+  for(const p of paths){ const n=explNodeByPath(p);
+    if(n&&n.type==='file' && (n.size||0)<=262144 && !/^(img|pdf|xls|doc|file)$/.test(fileKind(n.name))){
+      try{ snap.push({p, content:await FS.read(p)}); }catch{ unrecoverable++; } }
+    else if(n&&n.type==='dir' && !(n.children||[]).length) snap.push({p, folder:true});
+    else unrecoverable++; }
+  try{ await FS.del(paths); EX.sel.clear(); EX.cur=null; await explReload(); }catch(e){ toast(e.message); return; }
+  if(snap.length){
+    toastUndo('Deleted '+label+(unrecoverable?'  ·  Undo partial (rest via git)':''), async()=>{
+      for(const s of snap){ if(s.folder){ const dir=s.p.split('/').slice(0,-1).join('/'); await FS.create(dir, s.p.split('/').pop(), 'folder', false); } else await FS.write(s.p, s.content); } });
+  } else toast('Deleted '+label+' — Undo unavailable, recover via git');
+}
+// ----- properties popup -----
+function ensurePropPop(){ let d=$('propPop'); if(d) return d;
+  d=document.createElement('div'); d.className='proppop'; d.id='propPop'; document.body.appendChild(d);
+  d.addEventListener('click',(e)=>{ if(e.target===d) d.classList.remove('show'); }); return d; }
+function explProps(target){ const n=explNodeByPath(target); if(!n) return;
+  const d=ensurePropPop(); const rows=[];
+  const row=(k,v,copy)=>rows.push(`<div class="pp-row"><span class="k">${k}</span><span class="v">${esc(v)}</span>${copy?`<button class="cp" onclick="navigator.clipboard.writeText('${jsq(v)}').then(()=>toast('Path copied'))">Copy</button>`:''}</div>`);
+  row('Path', n.path||'/', true);
+  row('Type', n.type==='dir'?'Folder':(extOf(n.name).toUpperCase()||'File'));
+  if(n.type==='dir'){ let cnt=0,sz=0; (function w(ns){ for(const c of ns||[]){ cnt++; if(c.type==='file') sz+=(c.size||0); else w(c.children); } })(n.children);
+    row('Contains', cnt+' item'+(cnt===1?'':'s')); row('Total size', fmtSize(sz)||'0 B'); }
+  else row('Size', fmtSize(n.size)||'—');
+  if(n.ctime) row('Created', new Date(n.ctime).toLocaleString());
+  if(n.mtime) row('Modified', new Date(n.mtime).toLocaleString());
+  d.innerHTML=`<div class="pp-box"><div class="pp-head">${ticon(n,true)}<span class="pp-name">${esc(n.name||'/')}</span><button class="pp-x" onclick="$('propPop').classList.remove('show')">✕</button></div><div class="pp-rows">${rows.join('')}</div></div>`;
+  d.classList.add('show'); }
 function explKey(e){
   if(e.target.closest && e.target.closest('.expl-rename')) return;   // rename input owns its keys
   if(e.key==='Escape'){ EX.sel.clear(); EX.cur=null; explPaintSel(); return; }

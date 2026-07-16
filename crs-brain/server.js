@@ -897,9 +897,9 @@ function walk(dir, baseRel = '') {
       // (pdf/xlsx/docx/extension-less included). Only unhandleable binaries and
       // build junk are hidden. ALLOWED_EXT still filters the app's other views.
       if (DENY_EXT.has(ext)) continue;
-      let size = 0, mtime = 0;
-      try { const st = fs.statSync(path.join(dir, e.name)); size = st.size; mtime = st.mtimeMs; } catch {}
-      out.push({ type: 'file', name: e.name, path: rel, ext, size, mtime });
+      let size = 0, mtime = 0, ctime = 0;
+      try { const st = fs.statSync(path.join(dir, e.name)); size = st.size; mtime = st.mtimeMs; ctime = st.birthtimeMs || 0; } catch {}
+      out.push({ type: 'file', name: e.name, path: rel, ext, size, mtime, ctime });
     }
   }
   return out;
