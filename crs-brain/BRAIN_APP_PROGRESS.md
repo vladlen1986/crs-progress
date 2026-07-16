@@ -38,8 +38,16 @@ Follow-on to the session below. All committed to `main` (still NOT pushed — pu
    - **Agent awareness:** `BP_PROMPT` now has an ACTION LOG & ROLLBACK block — read `action-log.jsonl` to answer "when did I…", and for rollback: find the savepoint → `savepoint list` → `savepoint restore` on test → `sync`. **Honesty rule baked in:** savepoint-restore reverts structure/workflows only — it does NOT undo DB record writes (Buildprint can't delete Things); those need Bubble deletion or a data backup.
 3. **Second Brain Improvements wishlist** — `crs-brain/WISHLIST.md`, a hand-editable todo list for the app itself. Seeded with Vlad's asks: **daily Bubble-forum check** → update `brain/bubble/`; **track `bubble.io/release-notes`** → keep the brain current on new Bubble features. Two features flagged to research (mechanics NOT assumed): **style-swapping in conditions** (clean path for the dark/light theme feature) and **global expressions**.
 
+4. **Persistent memory (never-forget)** — the app now keeps a structured, categorized memory the agent ALWAYS honors.
+   - **Trigger:** say "remember this / don't forget / keep in mind…" in any chat (normal or bp). A regex (`MEMORY_TRIGGER`) detects it; a fast low-effort compile pass (`compileMemory` → `MEMORY_COMPILE_PROMPT`) **rewrites** the message into atomic `{category,title,fact}` entries (raw text is never stored) and saves them. A **toast** ("🧠 Saved to memory — …") fires via a new `memory-saved` SSE event. Runs concurrently with the reply, awaited before the stream closes.
+   - **Always considered:** `withMemory()` injects the whole memory into every system prompt (normal `SYSTEM_PROMPT` + `BP_PROMPT`), so the agent honors it before any answer/action and surfaces conflicts.
+   - **Store:** canonical `crs-brain/data/memory.json` (committed → syncs across machines, so it's genuinely "infinite"); generated `crs-brain/data/memory.md` for humans/git. Categories: Preferences/Product/Decisions/People/Technical/Workflow/Reminders/Other. Dedup by category+title; secrets/tokens are filtered out and never stored.
+   - **Endpoints:** `GET /api/memory`, `POST /api/memory` (manual `{category,title,fact}` OR compile-from-`{text}`), `DELETE /api/memory?id=`.
+   - **[Memory page](public/memory.html)** — Home card + side-rail (brain icon). Categorized list, hand add/fix, delete ("forget"). 
+5. **Wishlist grew** — added **task loops with limit-aware auto-resume** (use the full 5-hour Claude budget; on limit, read the reset time and auto-continue unfinished tasks) and **auto-check + fix Bubble.io-reported issues** via Buildprint (read-only first). See `WISHLIST.md`.
+
 ### Next up (carried + new)
-- Build the wishlist P1s: the **release-notes / forum watchers** (and then document style-swapping + global expressions in `brain/bubble/`).
+- Build the wishlist P1s: **task-loop / auto-resume** engine, then the **release-notes / forum watchers** (and document style-swapping + global expressions in `brain/bubble/`).
 - Everything from the prior session's "Next up" still stands (install `agent-browser`, Sync audits, User Management Pass-2, Pattern A rollout).
 
 ---

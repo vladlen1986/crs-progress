@@ -43,7 +43,18 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
 
 ## Automation / agent behavior
 
-*(add ideas here)*
+- [ ] **(P1) Task loops with limit-aware auto-resume** — let the agent use the full power of the
+  Claude subscription. Give it several tasks; if the **5-hour usage limit** is hit mid-run and it
+  stops, the Brain should detect the limit, **read when it resets** (from the usage/statusline data
+  it already captures), wait, and then **automatically continue** the unfinished tasks — no manual
+  restart. Needs: a durable task queue (what's done / in-progress / pending per task), reset-time
+  detection, and a resumable run loop that picks up where it left off. (Loops must still obey the
+  Buildprint safety gate + plan→savepoint→apply→check.)
+- [ ] **(P2) Auto-check + fix Bubble.io-reported issues** — periodically pull issues Bubble reports
+  (the Issue Checker / errors surfaced in the editor or logs) and, where safe, fix them using the
+  Buildprint CLI + the brain's knowledge — under the same guardrails (test branch, savepoint per
+  step, check before apply, surface anything risky instead of auto-applying). Start read-only
+  (report the issues + proposed fixes) before ever auto-applying.
 
 ---
 
