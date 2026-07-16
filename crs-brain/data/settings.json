@@ -6,12 +6,12 @@
   "bubbleWatch": false,
   "bubbleCheckedAt": 0,
   "theme": "dark",
+  "bpAutoTrack": false,
   "notify": {
     "inApp": true,
     "sound": true,
-    "soundName": "ping",
+    "soundName": "chime",
     "email": false,
     "emailTo": ""
-  },
-  "bpAutoTrack": false
+  }
 }
