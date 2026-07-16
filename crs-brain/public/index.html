@@ -2153,8 +2153,10 @@ function dpMinimize(){ DP.min=true; $('docPop').classList.remove('show');
   addMinChip('doc', fic(nm,16), nm,
     ()=>{ DP.min=false; $('docPop').classList.add('show'); $('docPop').querySelector('.dp-box')?.focus(); },
     ()=>{ DP.min=false; closeDocPopup(); }); }
-// Esc order: fullscreen exits FIRST (capture phase), one level above normal Esc.
+// Esc order: context menu closes first, then fullscreen (capture phase), then
+// each window's normal Esc behavior.
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
+  if($('explMenu')?.classList.contains('show')){ e.stopPropagation(); explCloseMenu(); return; }
   if(DP.fs && $('docPop')?.classList.contains('show')){ e.stopPropagation(); dpFsToggle(); return; }
   if(EX.fs && $('explWrap')?.classList.contains('show') && !EX.min){ e.stopPropagation(); explFsToggle(); }
 }, true);
@@ -2165,7 +2167,7 @@ function explInitWindow(){
   // drag by the toolbar (not its controls)
   win.querySelector('.expl-tb').addEventListener('mousedown',(e)=>{
     if(e.target.closest('button,input,a,label,select')) return;
-    e.preventDefault(); document.body.classList.add('no-select');
+    e.preventDefault(); explCloseMenu(); hidePeek(); document.body.classList.add('no-select');
     let sx=e.clientX-EX.rect.x, sy=e.clientY-EX.rect.y, dragged=false, zone=null;
     const prev=explSnapPrevEl();
     const unsnapIfNeeded=(ev)=>{   // dragging a snapped window restores pre-snap size under the cursor
@@ -2415,6 +2417,7 @@ function explSetupMain(){
   const m=$('explMain'); if(m._wired) return; m._wired=true;
   m.addEventListener('click',(e)=>{
     if(EX._marqueed){ EX._marqueed=false; return; }   // trailing click after a marquee drag must not clear it
+    if(EX._menuDismiss){ EX._menuDismiss=false; return; }   // click consumed by menu dismissal — selection unchanged
     if(e.target.closest('.expl-rename')) return;   // rename input owns its clicks
     const sh=e.target.closest('.expl-lh [data-sort]'); if(sh){ explDoSort(sh.dataset.sort); return; }
     const el=e.target.closest('[data-path]');
@@ -2439,7 +2442,11 @@ function explSetupMain(){
     else { EX.sel.clear(); EX.cur=null; explPaintSel(); EX.menuTarget=null; }
     explMenuAt(e.clientX,e.clientY,explBuildMenu(EX.menuTarget)); });
   $('explMenu').addEventListener('click',(e)=>{ const b=e.target.closest('button[data-act]'); if(!b||b.disabled) return; const act=b.dataset.act; explCloseMenu(); explAct(act, EX.menuTarget); });
-  document.addEventListener('mousedown',(e)=>{ if(!e.target.closest('#explMenu')) explCloseMenu(); });
+  // pointerdown, NOT mousedown: the marquee preventDefaults pointerdown on empty
+  // pane space, which cancels the derived mousedown — a mousedown-based closer
+  // never fired there (the pass-2 regression that kept the menu open).
+  document.addEventListener('pointerdown',(e)=>{ if(!e.target.closest('#explMenu')) explCloseMenu(); });
+  m.addEventListener('scroll',()=>explCloseMenu(),{passive:true});
   m.addEventListener('pointerdown', explMarqueeStart);
   // drag & drop (move) — sources in main pane; drop on folders (pane/sidebar/breadcrumb)
   m.addEventListener('dragstart', explDragStart);
@@ -2475,6 +2482,9 @@ function explDragEnd(){ EX.dragPaths=null; explClearDrop(); clearTimeout(explSpr
 // nothing behind the window highlights.
 function explMarqueeStart(e){
   if(e.button!==0 || e.target.closest('[data-path]') || e.target.closest('.expl-lh') || e.target.closest('.expl-rename')) return;
+  // A click that dismisses an open context menu is CONSUMED by the dismissal:
+  // no marquee starts and the selection stays untouched.
+  if($('explMenu')?.classList.contains('show')){ explCloseMenu(); EX._menuDismiss=true; return; }
   const main=$('explMain');
   e.preventDefault(); hidePeek(); document.body.classList.add('no-select');
   const additive=e.metaKey||e.ctrlKey; const base=additive?new Set(EX.sel):new Set();
