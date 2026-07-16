@@ -2,7 +2,49 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-07-15**.
+Last updated: **2026-07-16**.
+
+> **New session? Read this 2026-07-16 log first — it captures the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
+
+---
+
+## Session 2026-07-16 — CLI-first Buildprint cockpit, Progress Tree, safety gate, prompt standard
+
+Goal of the session: make the Brain app operate Buildprint via the **CLI (driven by your Claude) at $0 web agent runtime**, safely, and give it a real product-build cockpit. All committed to `main` (NOT pushed — ~50 commits ahead of origin; push via GitHub Desktop).
+
+### What was built
+1. **Infra:** fixed `git pull` (renamed a Windows-illegal `building-for...` brain folder). Linked the Buildprint CLI on Windows; Test branch cloned to `~/projects/crs-bubble/casinoreportingsystem/test`.
+2. **Product-state consolidation** (from the Desktop `Files` export): `brain/STATUS.md` (canonical product tracker), `brain/modules/` (2 module tech-refs + manuals), `brain/security-test-checklist.md`; renamed `PROGRESS.md → crs-brain/BRAIN_APP_PROGRESS.md` (this file); refreshed `crs-brain/data/progress.json`.
+3. **Progress Tree page** — `crs-brain/public/tree.html` + `crs-brain/data/modules.json`. Home dashboard card "Progress Tree". 46 modules in build-priority order (foundation-4 first). Per module: drag/↑↓ reorder, click-to-cycle status, an **8-item definition-of-done checklist** (editable), and an **expandable detail panel** aggregating brain knowledge (STATUS block, tech-ref data-model/option-sets/perms/workflows, cross-ledger mentions). Endpoints in `server.js`: `GET/PUT /api/modules`, `GET /api/modules/detail`, `POST /api/modules/prompt`, `POST /api/modules/edit-prompt`.
+4. **Per-module Buildprint prompt generation** (in the tree panel):
+   - **Edit prompt** — you type what you want in plain language → the Brain (LLM, `EDIT_TASKS_PROMPT` + deterministic `buildEditWrapper`) writes a proper Buildprint prompt → **auto-opens the Brain's Buildprint chat with it pasted** (`sendToBp` → `consumeBpCompose`).
+   - **Sync/audit prompt** — deterministic read-only audit (`buildSyncPrompt`).
+   - Both carry the module's checklist as **acceptance criteria**.
+5. **Prompt standard** — `brain/buildprint/PROMPT-STANDARD.md` (self-contained, no-anchoring, evidence-discipline, OWNER/NEG split, decision protection) + four templates in `brain/buildprint/templates/` (audit/edit/pilot/reply) + a "Prompt generation" section in `CLAUDE.md` + 4 worked samples in `brain/buildprint/generated/`.
+6. **Chat / UI polish:** Claude-style responses (no avatars, bright prose, subtle right-aligned user pill), **modern tables** (rounded, header, dividers, zebra), file **hover-download** chips, file viewer **Back (far left) + Download** buttons, inline images.
+7. **Ingest fix:** the chat handler now embeds text-attachment CONTENT inline in the prompt (was making the agent hunt the filesystem → Downloads → permission gate).
+8. **Buildprint operation & safety** (the core of the session):
+   - `bpAutoTrack: false` in `data/settings.json` — the 20-min auto-sync is OFF (was creating stale "concurrent agents").
+   - **Operating loop enforced** in `BP_PROMPT` + `brain/buildprint/crs-brain-operations.md`: `sync` → PLAN + approval → per step **savepoint → apply → check**.
+   - **`brain/buildprint/CLI-MCP-PLAYBOOK.md`** — how to build via CLI/MCP at $0 runtime (CLI = editor; MCP = read logs/data/WU + automations/monitors; runtime only meters web chat/tests/reviews).
+   - **HARD SAFETY GATE** — `crs-brain/bp-guard.js` is a PreToolUse deny-hook wired into every `claude -p` spawn via `--settings` (`data/bp-guard-settings.json`, gitignored). Blocks: apply-to-live, `--force-apply`, `--no-check`, `--allow-large-apply/-suspicious-shrink`, `sync --reset`, data delete, `rm -rf`, `git reset --hard`, `git clean -f`. Verified firing in a real claude run.
+   - **Speed:** `--allowedTools` now includes `Bash(node:*)/python/python3` for fast local selection/dedup (Bubble writes still CLI-only); `BP_PROMPT` tells it to script instead of dozens of queries.
+   - **Visual verification wired:** `--allowedTools` includes `Bash(agent-browser:*)`; `BP_PROMPT` VISUAL VERIFICATION block (screenshot anon or as a test user, flip `theme_is_dark` for dark/light, `--viewport`, Read the PNG, embed `![](crs-brain/data/screenshots/…)`). **BLOCKED on one thing:** `agent-browser` isn't installed — run `npm install -g agent-browser` (Apache-2.0, agent-browser.dev) then `buildprint screenshot "/"` to confirm.
+9. **Real data writes done via the bp chat** (test branch): 11 Users created (Hakan + 10 across departments) — logged in `brain/changelog.md`. Confirms the CLI `data create` path works.
+
+### Current state of the loop
+Progress Tree → type request → **Edit prompt** generated → **Buildprint chat opens with it** → you approve the plan → the copilot runs `sync` → per step `savepoint → apply → check`, hard-guarded. The bp chat has: buildprint CLI + node/python + agent-browser + web + MCP, with all dangerous Bubble/local ops blocked by `bp-guard.js`.
+
+### Next up (for the new session)
+- **Install `agent-browser`** (`npm install -g agent-browser`) to turn on screenshots / visual verification.
+- **Push** (~50 commits ahead of `origin/main`).
+- Run **Sync audits** on modules to populate the tree detail for the 44 undocumented ones.
+- Product work: **User Management Pass-2 (security)** is the active foundation item; **Pattern A rollout** (0/46 DTs isolate — pilot prompt for `06 Employee` is in `brain/buildprint/generated/`).
+- Possible app features: a **CLI cockpit panel** (buttons for sync/audit/savepoint/check/apply with streamed output); **MCP setup** for logs/WU inside chat.
+- Model tip: bp chat mechanical tasks are faster on **Sonnet 5 / Medium**; reserve Opus/High for architecture + security.
+
+### Key files this session
+`crs-brain/server.js` (endpoints, BP_PROMPT, guard wiring, allowedTools, ingest), `crs-brain/bp-guard.js`, `crs-brain/public/{tree.html,index.html}`, `crs-brain/data/{modules.json,progress.json,settings.json}`, `brain/{STATUS.md,security-test-checklist.md,modules/,buildprint/{PROMPT-STANDARD.md,CLI-MCP-PLAYBOOK.md,templates/,generated/,crs-brain-operations.md,INDEX.md}}`, `CLAUDE.md`, `README.md`.
 
 ---
 
