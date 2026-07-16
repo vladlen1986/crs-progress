@@ -611,7 +611,7 @@
   .filepeek.show{display:block;opacity:1;transform:scale(1)}
   .filepeek .pk-media{width:100%;height:210px;background:var(--panel2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
   .filepeek .pk-media img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-  .filepeek iframe.pk-frame{width:150%;height:315px;border:0;transform:scale(.666);transform-origin:top left;background:#fff;pointer-events:none}
+  .filepeek iframe.pk-frame{width:1000px;height:700px;border:0;transform:scale(.3);transform-origin:top left;background:var(--panel2);pointer-events:none}
   .filepeek pre.pk-text{margin:0;height:210px;overflow:hidden;padding:12px 13px;font-family:var(--mono);font-size:10.5px;line-height:1.55;color:var(--secondary);white-space:pre-wrap;word-break:break-word;-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
   .filepeek .pk-md{height:210px;overflow:hidden;padding:13px 14px;font-size:11.5px;line-height:1.55;color:var(--secondary);-webkit-mask-image:linear-gradient(#000 78%,transparent);mask-image:linear-gradient(#000 78%,transparent)}
   .filepeek .pk-md h1,.filepeek .pk-md h2,.filepeek .pk-md h3{font-size:13px;color:var(--primary);margin:.3em 0}
@@ -1900,7 +1900,7 @@ async function showPeek(itemEl, path){
   const foot=`<div class="pk-foot"><span class="nm">${esc(name)}</span><span class="pk-ext">${(ext||'file').toUpperCase()}</span></div>`;
   const paint=(media)=>{ el.innerHTML=media+foot; positionPeek(el,itemEl); el.classList.add('show'); };
   if(isImg(name)){ paint(`<div class="pk-media"><img src="/api/raw?path=${encodeURIComponent(path)}" alt=""></div>`); return; }
-  if(isHtml(name)){ paint(`<div class="pk-media"><iframe class="pk-frame" sandbox="" src="/api/raw?path=${encodeURIComponent(path)}"></iframe></div>`); return; }
+  if(isHtml(name)){ paint(`<div class="pk-media"><iframe class="pk-frame" sandbox="allow-same-origin" src="/api/raw?path=${encodeURIComponent(path)}"></iframe></div>`); return; }
   if(/\.(pdf|xlsx?|zip|docx?|node|dll|exe|bin|ico|woff2?|ttf)$/i.test(name)){
     paint(`<div class="pk-none"><span class="ftile lg" style="background:${EXT_COLOR[ext]||'#565656'}">${(ext.slice(0,4).toUpperCase())||'?'}</span>No inline preview</div>`); return;
   }
