@@ -19,7 +19,8 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
 
 ## App features / UX
 
-- [ ] **(P1)** **In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the cli**
+- [ ] **(P1)** **Claude Code Prompt Generator for Whishlist items**
+  In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the clipboard
 
 ## Automation / agent behavior
 
@@ -27,6 +28,8 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
   Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check.
 - [ ] **(P2)** **Auto-check + fix Bubble.io-reported issues**
   Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying.
+- [ ] **(P1)** **Smart model routing - save tokens, best model per task**
+  Stop running Opus on everything. Auto-pick the cheapest capable model per task: Haiku 4.5 / Sonnet 5 (lower effort) for mechanical/bulk work (data selection, dedup, bulk creates, simple edits, prompt formatting), and Opus 4.8 + high reasoning effort ONLY for architecture, security, privacy-rule, and hard-reasoning work. A tiny Opus classifier pass can judge task complexity and route it. Goal: minimize tokens/cost while keeping quality.
 
 ---
 
