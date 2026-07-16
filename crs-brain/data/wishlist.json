@@ -70,7 +70,7 @@
       "section": "App features / UX",
       "title": "Claude Code Prompt Generator for Whishlist items",
       "detail": "In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the clipboard",
-      "priority": "P3",
+      "priority": "",
       "status": "idea",
       "order": 6,
       "ts": "2026-07-16T01:56:41.997Z"
