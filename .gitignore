@@ -9,3 +9,4 @@ __pycache__/
 ~$*.docx
 .claude/
 crs-brain/.pin
+crs-brain/data/bp-guard-settings.json

@@ -62,8 +62,18 @@ const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
 const MODULES_FILE = path.join(DATA_DIR, 'modules.json');
 const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
+const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
 
 for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
+// Generate the hook settings file (absolute path to the guard) so every `claude -p`
+// spawn hard-blocks dangerous Buildprint CLI commands (apply-to-live, --force-apply,
+// sync --reset, data delete, …) regardless of what the model tries.
+try {
+  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify({
+    hooks: { PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }] },
+  }, null, 2));
+} catch (e) { console.error('bp-guard settings write failed:', e.message); }
 
 const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
@@ -317,6 +327,16 @@ const BP_PROMPT = (ws) => [
   'and surface it.',
   'AFTER applying changes, write a short summary into the CRS repo brain/ files (database.md / security.md /',
   `workflows.md / changelog.md at ${REPO_ROOT}/brain/) so the ledger stays current.`,
+  'TOOLS YOU HAVE: the Buildprint CLI (via Bash), plus Read / Grep / Glob / WebFetch / WebSearch and the',
+  'Buildprint MCP tools. Python, Node, jq and other interpreters are NOT available — never try to run them',
+  '(they will be blocked and you will waste turns). To inspect JSON, use `buildprint` queries (data/summary/',
+  'tree/context/find) and Grep/Read on the shredded files. A hard safety gate also blocks dangerous CLI calls',
+  '(apply-to-live, --force-apply, --no-check, sync --reset, data delete) — do not attempt them.',
+  'RESPONSE FORMAT (important — keep replies readable, not walls of text): put your step-by-step reasoning in',
+  'your THINKING, not the final message. Write each reply as clean, scannable Markdown: open with a ONE-LINE',
+  'outcome, then short `##` sections with bullet points and small tables. Bold the load-bearing facts (entity',
+  'names, ids, counts). Keep prose to 1–2 short sentences per point. Never dump a long run-on paragraph.',
+  'When you make changes, end with a compact "What changed / Result / Next" summary.',
   'Be concise and direct (CLAUDE.md style). When the user just asks about progress/status, answer from the',
   'workspace + brain/ without running mutating commands.',
 ].join(' ');
@@ -655,6 +675,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
       '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'mcp__buildprint',   // web lookups + Buildprint CLI + MCP tools
+      '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
