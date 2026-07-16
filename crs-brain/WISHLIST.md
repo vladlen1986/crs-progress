@@ -21,6 +21,7 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
 
 - [ ] **(P1)** **Claude Code Prompt Generator for Whishlist items**
   In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the clipboard
+- [ ] **(P1)** **Add AI TOOLS AND CAPABILITIES THAT CLAUDE CODE HAVE AND SKILLS**
 
 ## Automation / agent behavior
 

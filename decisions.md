@@ -8,6 +8,40 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-07-16 — User DT is a Pattern A exception: property-only isolation (no company field)
+
+**Decision:** The `User` data type is exempt from the "both `company` AND `property`
+fields + check both" rule of Pattern A (2026-04-27). User carries **`property` only**;
+its privacy rule is `Current User's property = This Thing's property` (+ super-admin
+override). No `company` field, no company check.
+
+**Why it's sufficient:** `property` is a direct, single-valued link to a `Property`,
+and every Property belongs to exactly one Company (single-parent). A user belongs to
+exactly one property. So `property =` transitively pins company — two Users cannot
+share a property yet differ in company. A company check would be pure redundancy.
+This satisfies the *spirit* of Pattern A (strict tenant isolation) via the
+Property→Company chain.
+
+**Preconditions this relies on (must stay true):**
+- `User.property` is **required / never empty** (an empty property matches nothing;
+  an unassigned user is invisible, which is acceptable, but the field must be single-
+  valued, never a list).
+- Property→Company stays single-parent (one Property, one Company).
+- The locked "a user belongs to exactly ONE property; no cross-property visibility"
+  rule (2026-04-27) holds — there is no company-level-multi-property role that would
+  need a direct company scope on User.
+
+**Scope:** This exception is **User-specific.** It does NOT generalize to other
+business DTs — they still carry both fields and check both per Pattern A, because
+they need company-level scoping and denormalized company for search/WU, and their
+`property` may be null on legacy rows. Adds User to the existing exception list
+(Company, Property, Subscription, system configs).
+
+**Artifacts:** `brain/security.md` privacy tracker updated (User = intended exception,
+not a gap). No schema change required — User is already property-only as-built.
+
+---
+
 ## 2026-05-02 — Day 2: Schema layer complete (OS - Timezone, OS - Currency, currency architecture)
 
 **Completed on dev branch:**
