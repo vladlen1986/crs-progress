@@ -162,22 +162,34 @@
   .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
   .body.err{color:#e8938b}
 
-  /* work blocks — Buildprint-style thinking/tool activity with live timers */
-  .wblocks{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  /* work blocks — Buildprint-style grouped activity: one "Worked for Xs" header
+     folds a run of steps; each step is a clean icon+label row, expandable for detail */
+  .wblocks{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}
   .wblocks:empty{display:none}
-  .wblock{border:1px solid var(--line);background:var(--panel2);border-radius:9px;overflow:hidden}
-  .wblock .whead{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;padding:8px 11px;color:var(--secondary);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
-  .wblock .whead:hover{background:rgba(255,255,255,.03)}
-  .wblock .wchev{width:12px;height:12px;flex:0 0 auto;color:var(--muted);transition:transform .15s}
-  .wblock.open .wchev{transform:rotate(90deg)}
-  .wblock .wlabel{color:var(--primary);font-weight:600}
-  .wblock .wtime{margin-left:auto;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
-  .wblock.run .wlabel,.wblock.run .wtime{color:var(--accent2,#60A5FA)}
-  .wblock.run .wlabel{animation:wpulse 1.4s ease-in-out infinite}
-  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.55}}
-  .wblock .wbody{display:none;padding:2px 12px 11px 32px;color:var(--muted);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--line)}
-  .wblock.open .wbody{display:block}
-  .wblock .wbody:empty::after{content:'(no details)';opacity:.6}
+  .wgroup{border:none;background:none}
+  .wghead{display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:2px 0;color:var(--secondary);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+  .wghead:hover .wglabel{color:var(--primary)}
+  .wgchev{width:13px;height:13px;flex:0 0 auto;color:var(--muted);transition:transform .18s}
+  .wgroup.open .wgchev{transform:rotate(90deg)}
+  .wglabel{font-weight:500;letter-spacing:.1px;font-variant-numeric:tabular-nums}
+  .wgroup.run .wglabel{color:var(--accent2,#60A5FA);animation:wpulse 1.5s ease-in-out infinite}
+  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
+  .wgroup.open .wsteps{display:flex}
+  .wstep{display:flex;flex-direction:column}
+  .wstep-head{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:7px;color:var(--secondary);font-size:12.5px;line-height:1.45;cursor:default}
+  .wstep.has-body .wstep-head{cursor:pointer}
+  .wstep.has-body .wstep-head:hover{background:rgba(255,255,255,.035)}
+  .wstep-ico{width:15px;height:15px;flex:0 0 auto;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+  .wstep-ico svg{width:15px;height:15px}
+  .wstep-lbl{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wstep.run .wstep-lbl,.wstep.run .wstep-ico{color:var(--accent2,#60A5FA)}
+  .wstep.run .wstep-lbl{animation:wpulse 1.5s ease-in-out infinite}
+  .wstep-exp{width:11px;height:11px;flex:0 0 auto;color:var(--muted);opacity:0;transition:transform .15s}
+  .wstep.has-body .wstep-exp{opacity:.55}
+  .wstep.open .wstep-exp{transform:rotate(90deg)}
+  .wstep-body{display:none;white-space:pre-wrap;word-break:break-word;color:var(--muted);font-size:12px;line-height:1.62;padding:3px 8px 9px 33px}
+  .wstep.open .wstep-body{display:block}
 
   /* prompt queue strip */
   .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
@@ -1278,6 +1290,27 @@ function fmtDur(ms){
   const m=Math.floor(s/60); if(m<60) return m+'m '+(s%60)+'s';
   const h=Math.floor(m/60); return h+'h '+(m%60)+'m';
 }
+// Small inline icon per work-step, picked from the kind + the tool/label text.
+function stepIco(kind,hint){
+  const t=((hint||'')+'').toLowerCase();
+  let p='dot';
+  if(kind==='thinking') p='sparkle';
+  else if(/\bbash|buildprint|terminal|shell|\bnpm|\bgit\b|python|node|\$/.test(t)) p='term';
+  else if(/grep|glob|search|\bfind\b|explor|tree|context|summary|audit/.test(t)) p='search';
+  else if(/\bread|\bcat\b|view|guideline|\.md|\.json|\.js|\.css|\.html|file/.test(t)) p='doc';
+  else if(/web|fetch|http|url|search the/.test(t)) p='globe';
+  else if(/edit|write|apply|create|update|savepoint|merge/.test(t)) p='pencil';
+  const P={
+    sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+    term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13.5 15H17"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>',
+    doc:'<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
+    pencil:'<path d="M4 20l4.5-1L18 9.5 15.5 7 6 16.5z"/><path d="M14 8.5l2.5 2.5"/>',
+    dot:'<circle cx="12" cy="12" r="3"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(P[p]||P.dot)+'</svg>';
+}
 async function streamChat(text, opts={}){
   if(state.sending) return;
   showChat();
@@ -1303,24 +1336,44 @@ async function streamChat(text, opts={}){
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
-  // ---- work blocks: thinking / tool activity, each with a live timer ----
-  let activeCard=null, dotsShown=true;
-  const timerIv=setInterval(()=>{ if(activeCard) activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); }, 500);
+  // ---- grouped work blocks: a run of tool/thinking steps folds under one
+  //      "Worked for Xs" header; each step is a clean icon+label row, expandable ----
+  let group=null, activeStep=null, dotsShown=true;
+  const timerIv=setInterval(()=>{ if(group&&group.run) group.labelEl.textContent='Working '+fmtDur(performance.now()-group.start); }, 500);
   function clearDots(){ if(dotsShown){ answerEl.innerHTML=''; dotsShown=false; } }
-  function finalizeCard(){ if(activeCard){ activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); activeCard.el.classList.remove('run'); activeCard=null; } }
-  function startCard(kind,tool){
-    finalizeCard(); clearDots();
-    const el=document.createElement('div'); el.className='wblock run';
-    el.innerHTML='<button class="whead" type="button"><svg class="wchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wlabel">'+esc(wLabel(kind,tool))+'</span><span class="wtime">0s</span></button><div class="wbody"></div>';
-    el.querySelector('.whead').onclick=()=>el.classList.toggle('open');
+  function endStep(){ if(activeStep){ activeStep.el.classList.remove('run'); activeStep=null; } }
+  function finalizeCard(){   // finalize the whole active group (name kept for call sites)
+    endStep();
+    if(group){ if(group.run){ group.run=false; group.el.classList.remove('run'); group.labelEl.textContent='Worked for '+fmtDur(performance.now()-group.start); } group=null; }
+  }
+  function ensureGroup(){
+    if(group) return;
+    clearDots();
+    const el=document.createElement('div'); el.className='wgroup run open';
+    el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wglabel">Working</span></button><div class="wsteps"></div>';
+    el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
     blocksEl.appendChild(el);
-    activeCard={el,timeEl:el.querySelector('.wtime'),bodyEl:el.querySelector('.wbody'),labelEl:el.querySelector('.wlabel'),start:performance.now(),kind,text:''};
+    group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),start:performance.now(),run:true};
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
+  function startCard(kind,tool){   // start a NEW step within the current group (name kept for call sites)
+    endStep(); ensureGroup();
+    const el=document.createElement('div'); el.className='wstep run';
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(kind,tool)+'</span><span class="wstep-lbl">'+esc(wLabel(kind,tool))+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
+    activeStep={el,icoEl:el.querySelector('.wstep-ico'),labelEl:el.querySelector('.wstep-lbl'),bodyEl:el.querySelector('.wstep-body'),kind,text:''};
+    if(nearBottom()) log.scrollTop=log.scrollHeight;
+  }
+  function setStepBody(t){
+    if(!activeStep) return;
+    activeStep.text=t; activeStep.bodyEl.textContent=t;
+    activeStep.el.classList.toggle('has-body', !!t.trim());
+    if(activeStep.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight;
+  }
   function appendThink(t){
-    if(!activeCard||activeCard.kind!=='thinking') startCard('thinking');
-    activeCard.text+=t; activeCard.bodyEl.textContent=activeCard.text;
-    if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight;
+    if(!activeStep||activeStep.kind!=='thinking') startCard('thinking');
+    setStepBody(activeStep.text+t);
   }
 
   // ---- answer typewriter reveal (into answerEl); setTimeout survives hidden tabs ----
@@ -1374,10 +1427,10 @@ async function streamChat(text, opts={}){
           if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
         else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
-        else if(ev.type==='label'){ if(activeCard&&ev.text){ activeCard.labelEl.textContent=ev.text; } }
-        else if(ev.type==='detail'){ if(activeCard){ activeCard.text += (activeCard.text?'\n':'')+(ev.text||''); activeCard.bodyEl.textContent=activeCard.text; if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight; } }
+        else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
+        else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
-        else if(ev.type==='delta'){ if(activeCard) finalizeCard(); full+=ev.text; }
+        else if(ev.type==='delta'){ if(group) finalizeCard(); full+=ev.text; }
         else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; if(mine()) state.chatId=ev.id; }
         else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
