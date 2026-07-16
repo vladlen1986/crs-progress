@@ -2212,9 +2212,10 @@ addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('explWrap').classList.con
 addEventListener('hashchange',openFromHash);
 // ===================== settings · theme · notifications =====================
 let SETTINGS=null;
-try{ document.documentElement.setAttribute('data-theme', localStorage.getItem('crs-theme')||'dark'); }catch{}
+function themeParam(){ try{ return new URLSearchParams(location.search).get('theme'); }catch{ return null; } }
+try{ document.documentElement.setAttribute('data-theme', themeParam()||localStorage.getItem('crs-theme')||'dark'); }catch{}
 function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{} }
-async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,soundName:'ping',email:false,emailTo:''}}; } applyTheme(SETTINGS.theme); return SETTINGS; }
+async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,soundName:'ping',email:false,emailTo:''}}; } applyTheme(themeParam()||SETTINGS.theme); return SETTINGS; }
 async function saveSettingsPatch(patch){ try{ SETTINGS=await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)}); }catch(e){ toast('Save failed: '+e.message); } return SETTINGS; }
 
 // ---- notification sound (Web Audio — no asset files) ----
