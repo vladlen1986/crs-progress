@@ -1,0 +1,20 @@
+{
+  "id": "12a4b73c-3ef4-42ca-843f-6c94933cb5f6",
+  "title": "Buildprint sync (auto) — 2026-07-15 22:31",
+  "bp": true,
+  "sessionId": null,
+  "created": "2026-07-15T22:31:26.849Z",
+  "updated": "2026-07-15T22:31:26.849Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Auto-sync 1 change(s) from Buildprint.",
+      "ts": "2026-07-15T22:31:26.849Z"
+    },
+    {
+      "role": "assistant",
+      "content": "This sync touched exactly one file — `settings/client-safe.json` — and I've updated the brain to reflect it, with one important caveat: the sandbox blocks every route to the previous file version (`git`, `node`, anything referencing `.buildprint/remote.git`, and the Buildprint CLI has no commit-to-commit diff), so the exact key that changed inside the file is unrecoverable in this session. Rather than guess, I re-verified the full current file (snapshot `be1670b3`) against every fact the brain tracks from it — **all security-relevant flags are unchanged**: `exposes_wf_api`/`exposes_get_api` still true, `allow_iframe: \"allow\"`, `twofa_auth: false`, `have_pw_policy: false`, `sendgrid_verified: false`, the restricted Google Maps key, and the statuspage.io header script are all still as documented.\n\nNo data types, option sets, styles, pages, or workflows changed, so Pattern A status is untouched (still 0 of 46 live DTs compliant) and nothing moves between Pending and Current state.\n\n**Brain updated:**\n- **security.md** — re-verification note on the app-level settings line: all tracked flags confirmed unchanged in `be1670b3`; additionally pinned `app_rights: \"private\"`, `pw_protection: false`, `remove_bubble_console: true`.\n- **design.md** — new as-built pointer: app-level UI CSS/JS lives in `client-safe.json` → `custom_header_meta_tag_content` (dark preloader mask, auto-hiding scrollbars, dark pickadate date/time-picker skin, ellipsis fixes for the country-dropdown trigger and multiselect chips), with the accent wired to `var(--color_bpbstx_default)` — noted as pointers only; tokens.css remains source of truth.\n- **changelog.md** — one dated 2026-07-16 entry recording the sync, what was verified, and explicitly that no specific key should be treated as \"changed in this sync\".\n- **memory** — extended the sandbox note: node is blocked too, commit-level diffs are unreachable, and the correct fallback is diffing against brain-documented facts.\n\n**Needs your decision:** settings-only diffs usually come from editor comment bookkeeping, a plugin version bump, or a header-CSS tweak — I couldn't confirm which. If key-level history of `client-safe.json` matters to you, either approve a `git diff` interactively in a future session, or tell me to keep a plain-text baseline copy of the file in crs-progress so future syncs can diff without git.",
+      "ts": "2026-07-16T02:28:06.770Z"
+    }
+  ]
+}

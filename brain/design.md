@@ -24,6 +24,7 @@
 - `design_system` page (`pages/bpeelt`): live component-gallery sandbox, 209 demo workflows (toggle/set-state/theme switch). Non-production tooling — keep as the in-app UI-kit reference.
 - Supporting option sets: `OS - Design System Nav Item` (36 entries), `OS - UI Kit Menu` (15), `OS - Control Size` (5: 28–48px), `OS - Avatar Size`, `OS - Color` (12 + color_code attr).
 - Bubble styles live in the workspace `styles/` folder (not yet inventoried in detail).
+- App-level UI CSS/JS lives in `settings/client-safe.json` → `custom_header_meta_tag_content` (verified in snapshot `be1670b3`, 2026-07-16): dark preloader mask (#181818 anti-white-flash), auto-hiding scrollbar system (scroll/near-track reveal), full dark pickadate date+time-picker skin, ellipsis fixes for custom-dropdown trigger (`#crs-country-dd-trigger-label`) and multiselect chips (`[id$="-chip-label"]`). Accent everywhere via `var(--color_bpbstx_default)` — also used for `spinner_color` and `status_bar_color`. Deltas vs design/tokens.css not audited; tokens.css stays source of truth.
 
 ## Pending
 

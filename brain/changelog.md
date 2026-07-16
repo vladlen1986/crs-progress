@@ -4,7 +4,17 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
-## 2026-07-15 — Dev-tracking files refreshed against the inventory
+## 2026-07-16 — Bubble sync `a297cb2b → be1670b3`: settings/client-safe.json only
+
+One-file sync. `git name-status` shows exactly one change: `M settings/client-safe.json`. No data types, option sets, styles, pages, or workflows touched — Pattern A status unchanged (still 0/46 live DTs compliant), nothing moves between Pending/Current anywhere.
+
+- **Key-level delta not recoverable in this session:** the sandbox blocks `git`/`node`/`python3` and any command touching `.buildprint/remote.git`, and the Buildprint CLI has no commit-to-commit diff (`changelog` compares branch workspaces only). Do NOT treat any specific key as "changed in this sync".
+- **What was verified instead (current file, snapshot `be1670b3`):** all app-level security facts tracked in security.md are unchanged — `exposes_wf_api`/`exposes_get_api` true, `allow_iframe: "allow"`, `twofa_auth: false`, `have_pw_policy: false`, `sendgrid_verified: false`, restricted Google Maps key, crs.statuspage.io header script.
+- **security.md** — re-verification note added; also pinned `app_rights: "private"`, `pw_protection: false`, `remove_bubble_console: true`.
+- **design.md** — new as-built pointer: app-level header CSS/JS in client-safe.json (`custom_header_meta_tag_content`): preloader mask, auto-hide scrollbars, dark pickadate skin, dropdown trigger/chip ellipsis fixes, accent via `--color_bpbstx_default`.
+- Settings-only diffs commonly come from editor bookkeeping (`comments_viewers`), plugin version bumps, or header-CSS edits — plausible here but **unconfirmed**, recorded as possibilities only.
+
+Needs Vlad: if key-level history of client-safe.json matters, either approve `git diff` interactively next session or say the word and I'll keep a plain-text baseline copy of the file in crs-progress for future diffing.
 
 Follow-up pass routing the inventory into the remaining development files:
 
