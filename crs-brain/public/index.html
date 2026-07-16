@@ -714,6 +714,47 @@
   .filepeek .pk-foot{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
   .filepeek .pk-foot .nm{color:var(--primary);font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
   .filepeek .pk-foot .pk-ext{font-size:10px;color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:1px 6px;letter-spacing:.5px}
+  /* document popup — modern in-app viewer */
+  .docpop{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.55);display:none;align-items:center;justify-content:center}
+  .docpop.show{display:flex}
+  .docpop .dp-box{width:80vw;height:84vh;max-width:1100px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;box-shadow:0 30px 90px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
+  .docpop .dp-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .docpop .dp-head .tico{width:20px;height:20px}.docpop .dp-head .tico svg{width:20px;height:20px}
+  .docpop .dp-t{flex:1;min-width:0}
+  .docpop .dp-name{color:var(--primary);font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docpop .dp-path{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docpop .dp-head button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
+  .docpop .dp-head button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .docpop .dp-head button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .docpop .dp-body{flex:1;overflow:auto;padding:0}
+  .docpop .dp-md{padding:22px 28px;max-width:840px;margin:0 auto;font-size:14px;line-height:1.7;color:var(--secondary)}
+  .docpop .dp-md h1,.docpop .dp-md h2,.docpop .dp-md h3{color:var(--primary);line-height:1.3}
+  .docpop .dp-md code{font-family:var(--mono);font-size:.9em;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .docpop .dp-md pre{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto}
+  .docpop .dp-md pre code{background:none;border:0;padding:0}
+  .docpop pre.dp-code{margin:0;padding:20px 24px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#D8D8D8;white-space:pre;overflow:auto;min-height:100%}
+  .h-c{color:var(--muted);font-style:italic}.h-s{color:#7EC699}.h-n{color:#E5C07B}.h-k{color:#61AFEF}
+  .docpop .dp-tblwrap{padding:18px 22px;overflow:auto}
+  .docpop .dp-tblwrap table{border-collapse:collapse;font-size:12.5px;min-width:60%}
+  .docpop .dp-tblwrap th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.6px;text-align:left;padding:7px 11px;border:1px solid var(--line2)}
+  .docpop .dp-tblwrap td{padding:6px 11px;border:1px solid var(--line);color:var(--secondary)}
+  .docpop .dp-imgwrap{height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
+  .docpop .dp-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+  .docpop .dp-embed{width:100%;height:100%;border:0}
+  .docpop .dp-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--secondary)}
+  .docpop .dp-card .tico{width:64px;height:64px}.docpop .dp-card .tico svg{width:64px;height:64px}
+  .docpop .dp-card .meta{color:var(--muted);font-size:12.5px}
+  .docpop .dp-card .acts{display:flex;gap:10px}
+  .docpop .dp-card .acts a,.docpop .dp-card .acts button{background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+  .docpop .dp-card .acts a:hover,.docpop .dp-card .acts button:hover{border-color:var(--line3)}
+  /* fullscreen HTML overlay (sandboxed) */
+  .htmlfull{position:fixed;inset:0;z-index:97;background:var(--bg);display:none;flex-direction:column}
+  .htmlfull.show{display:flex}
+  .htmlfull .hf-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .htmlfull .hf-name{color:var(--primary);font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .htmlfull .hf-bar button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer}
+  .htmlfull .hf-bar button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .htmlfull iframe{flex:1;border:0;background:#fff}
   /* chat search */
   .chat-search{display:block;width:calc(100% - 24px);margin:0 12px 8px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
   .chat-search:focus{border-color:var(--accent)}
@@ -2087,7 +2128,64 @@ function explFwd(){ if(EX.hi<EX.hist.length-1){ EX.hi++; explGoto(EX.hist[EX.hi]
 function explUp(){ if(EX.path) explGoto(EX.path.split('/').slice(0,-1).join('/')); }
 function explSetView(v){ EX.view=v; localStorage.setItem('exView',v); renderExpl(); $('explMain').focus(); }
 function explDoSort(k){ if(EX.sortKey===k) EX.sortDir=-EX.sortDir; else { EX.sortKey=k; EX.sortDir=1; } localStorage.setItem('exSortK',EX.sortKey); localStorage.setItem('exSortD',EX.sortDir); renderExpl(); }
-function explOpenFile(p){ if(isHtml(p)){ apiOpen(p); return; } state.explReturn=EX.path; closeExpl(); openFile(p); }
+// ----- document popup (opens over the explorer; one at a time) -----
+function explOpenFile(p){ if(isHtml(p)){ openHtmlOverlay(p); return; } openDocPopup(p); }
+// tiny hand-rolled highlighter: comments / strings / numbers / keywords
+function hlCode(src){
+  const out=[]; let i=0; const push=(cls,txt)=>out.push(cls?`<span class="h-${cls}">${esc(txt)}</span>`:esc(txt));
+  const re=/(\/\/[^\n]*|#[^\n]*|\/\*[\s\S]*?\*\/|<!--[\s\S]*?-->)|("(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`)|\b(\d+\.?\d*)\b|\b(function|const|let|var|return|if|else|for|while|class|new|await|async|import|from|export|def|elif|try|catch|except|finally|throw|raise|true|false|null|undefined|None|True|False|this|self)\b/g;
+  let m; while((m=re.exec(src))){ if(m.index>i) push(null,src.slice(i,m.index));
+    if(m[1]!=null) push('c',m[1]); else if(m[2]!=null) push('s',m[2]); else if(m[3]!=null) push('n',m[3]); else push('k',m[4]);
+    i=re.lastIndex; }
+  push(null,src.slice(i)); return out.join('');
+}
+function csvTable(txt){
+  const rows=txt.split(/\r?\n/).filter(l=>l.trim().length).slice(0,500).map(l=>l.split(','));
+  if(!rows.length) return '<div class="dp-card">Empty file</div>';
+  return '<div class="dp-tblwrap"><table><thead><tr>'+rows[0].map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'
+    + rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+}
+function ensureDocPop(){ let d=$('docPop'); if(d) return d;
+  d=document.createElement('div'); d.className='docpop'; d.id='docPop'; document.body.appendChild(d);
+  d.addEventListener('click',(e)=>{ if(e.target===d) closeDocPopup(); });
+  return d; }
+function closeDocPopup(){ const d=$('docPop'); if(d){ d.classList.remove('show'); d.innerHTML=''; } }
+async function openDocPopup(p){
+  hidePeek(); const d=ensureDocPop(); const name=p.split('/').pop(), ext=extOf(name);
+  const node=explNodeByPath(p)||{type:'file',name,path:p};
+  const raw='/api/raw?path='+encodeURIComponent(p);
+  const head=`<div class="dp-head">${ticon(node)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
+    <a title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;color:var(--secondary)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
+    <button title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`;
+  const show=(body)=>{ d.innerHTML=`<div class="dp-box">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); };
+  if(isImg(name)) return show(`<div class="dp-imgwrap"><img src="${raw}" alt=""></div>`);
+  if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
+  if(/^(xlsx?|xlsm|docx?|zip|7z|rar|woff2?|ttf|bin|dat)$/.test(ext) ){
+    const meta=[node.size!=null?fmtSize(node.size):null, node.mtime?new Date(node.mtime).toLocaleString():null].filter(Boolean).join('  ·  ');
+    return show(`<div class="dp-card">${ticon(node,true)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}No inline preview for this type.</div>
+      <div class="acts"><a href="${raw}" download="${esc(name)}">⤓ Download</a><button onclick="apiOpen('${jsq(p)}')">↗ Open externally</button></div></div>`);
+  }
+  show('<div class="dp-card"><span class="pk-load">Loading…</span></div>');
+  let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
+  if(/^(md|markdown)$/.test(ext)) show(`<div class="dp-md">${renderMd(content)}</div>`);
+  else if(ext==='csv'||ext==='tsv') show(csvTable(content));
+  else show(`<pre class="dp-code">${hlCode(content.slice(0,300000))}</pre>`);
+}
+// fullscreen sandboxed HTML overlay — scripts run isolated (no same-origin access)
+function ensureHtmlFull(){ let h=$('htmlFull'); if(h) return h;
+  h=document.createElement('div'); h.className='htmlfull'; h.id='htmlFull'; document.body.appendChild(h); return h; }
+function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } }
+function openHtmlOverlay(p){
+  hidePeek(); closeDocPopup(); const h=ensureHtmlFull(); const name=p.split('/').pop();
+  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>
+    <button title="Open externally" onclick="apiOpen('${jsq(p)}')">↗</button>
+    <button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
+    <iframe sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
+  h.classList.add('show');
+}
+document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
+  if($('htmlFull')?.classList.contains('show')){ closeHtmlOverlay(); return; }
+  if($('docPop')?.classList.contains('show')){ closeDocPopup(); return; } });
 
 // ----- search -----
 let explSearchT=null;

@@ -2305,7 +2305,8 @@ const server = http.createServer(async (req, res) => {
       const ext = path.extname(abs).toLowerCase();
       const M = { '.png':'image/png', '.jpg':'image/jpeg', '.jpeg':'image/jpeg', '.gif':'image/gif',
         '.svg':'image/svg+xml', '.webp':'image/webp', '.html':'text/html; charset=utf-8',
-        '.css':'text/css', '.js':'text/javascript', '.json':'application/json' };
+        '.css':'text/css', '.js':'text/javascript', '.json':'application/json',
+        '.pdf':'application/pdf' };   // inline PDF render in the document popup
       return fs.readFile(abs, (err, data) => {
         if (err) return send(res, 404, { error: 'not found' });
         res.writeHead(200, { 'Content-Type': M[ext] || 'application/octet-stream' });
