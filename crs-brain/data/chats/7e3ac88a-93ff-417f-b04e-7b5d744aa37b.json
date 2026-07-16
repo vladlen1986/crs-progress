@@ -1,0 +1,21 @@
+{
+  "id": "7e3ac88a-93ff-417f-b04e-7b5d744aa37b",
+  "title": "What changed in the CRS project recently?",
+  "sessionId": "5ca9c848-d1b6-4e4d-aa53-9e5843f39f3b",
+  "bp": false,
+  "created": "2026-07-16T15:23:45.689Z",
+  "updated": "2026-07-16T15:24:12.829Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What changed in the CRS project recently?",
+      "ts": "2026-07-16T15:23:45.689Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Everything landed on **2026-07-16** — two threads:\n\n**CRS Brain app (UI/UX overhaul, the big push):**\n- New chat surface with a **Chat / Buildprint mode switch** and mode-aware quick-action cards (8 grounded Chat + 6 Buildprint); unified \"Conversations\" sidebar with bp badges (old Buildprint tab retired).\n- **Full-window Kanban view** (Task 1) decoupled from the map drawer.\n- **Settings & Preferences** page (Task 2) — General / Appearance / Notifications / Connections tabs + SMTP.\n- Shell restructure: right rail removed, usage moved to header, dashboard redesign, light/dark theme, notifications bell + inbox, live token meter.\n- **Wishlist → Claude Code prompt generator** (per-item button + preview modal).\n- Server: settings/theme store, notifications + email hook, live token streaming, Buildprint connection link (with a Windows-safe `cmd.exe /c` fix), Bubble watcher, smart model routing.\n- Infra guardrails: `doctor.js` health check, `.gitattributes` line-ending lock, hardened `.gitignore` for secrets.\n\n**Bubble test-branch / brain:**\n- **11 users added** to the test DB (1 Hakan Dagtas + 10 across 10 departments) — no passwords, login needs invite/reset.\n- Bubble sync `a297cb2b → be1670b3`: **settings/client-safe.json only** — no DTs/OS/workflows touched. **Pattern A status unchanged (still 0/46 live DTs compliant).** Re-verified security facts in `brain/security.md` (WF/GET API exposed, iframe allowed, 2FA off, no password policy, SendGrid unverified).\n\nOpen item flagged: key-level diff of `client-safe.json` wasn't recoverable in-sandbox — Vlad can approve an interactive `git diff` or a baseline copy next session.\n\nSources: `git log`, `brain/changelog.md:7-40`.",
+      "ts": "2026-07-16T15:24:12.829Z"
+    }
+  ]
+}
