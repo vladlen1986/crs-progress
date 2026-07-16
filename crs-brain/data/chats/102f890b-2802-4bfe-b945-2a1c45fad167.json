@@ -1,0 +1,21 @@
+{
+  "id": "102f890b-2802-4bfe-b945-2a1c45fad167",
+  "title": "give me everything from whishlist as md file",
+  "sessionId": "ad3c79f5-2c8b-41bc-917a-d1dbef21df90",
+  "bp": false,
+  "created": "2026-07-16T23:48:08.578Z",
+  "updated": "2026-07-16T23:48:38.959Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "give me everything from whishlist as md file",
+      "ts": "2026-07-16T23:48:08.578Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. All 10 wishlist items (across the 3 sections) exported to:\n\n**`crs-brain/data/docs/wishlist-export.md`**\n\nGrouped by section, each with priority + status badges and full detail. Quick tally: 4 in Bubble platform awareness, 3 in App features / UX, 3 in Automation / agent behavior — 3 done, 2 in-progress, 5 ideas.",
+      "ts": "2026-07-16T23:48:38.959Z"
+    }
+  ]
+}
