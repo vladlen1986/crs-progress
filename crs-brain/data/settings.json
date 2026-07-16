@@ -1,5 +1,6 @@
 {
-  "model": "claude-fable-5",
-  "effort": "xhigh",
-  "manualsCheckedAt": 1784018753224
+  "model": "claude-opus-4-8",
+  "effort": "high",
+  "manualsCheckedAt": 1784018753224,
+  "bpAutoTrack": false
 }

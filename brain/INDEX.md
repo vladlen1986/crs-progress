@@ -5,6 +5,9 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 
 | Domain | File | What's inside |
 |---|---|---|
+| **Product build status** | [STATUS.md](STATUS.md) | **What's done / in-progress / next**, per module (Core-7 + full-18 for active). Read first for "where are we". |
+| Module references | [modules/](modules/) | Per-module technical reference + user manual (built modules: Casino Settings, Roles & Permissions). R&P tech ref = template for the other 45. |
+| Security test gate | [security-test-checklist.md](security-test-checklist.md) | Standing STRUCT/POS/NEG checklist every module passes before "done". Attach when security-testing. |
 | Database schema | [database.md](database.md) | Every Data Type: as-built vs spec-only, field notes, tenancy compliance |
 | Option Sets | [option-sets.md](option-sets.md) | Every OS: as-built (Bubble) vs spec-only, entry counts, quirks |
 | Security & privacy | [security.md](security.md) | Pattern A privacy rules per DT: built / pending / gaps |
@@ -23,6 +26,8 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 | Architecture & product decisions | ../decisions.md (append-only) |
 | Project facts, rules, conventions | ../CLAUDE.md |
 | Module list (46) & sections (7) | ../data/CRS_Module_OptionSets.xlsx |
+| Build-priority tree (reorderable) | ../crs-brain/data/modules.json (Progress Tree page) |
+| CRS Brain *tool* build log | ../crs-brain/BRAIN_APP_PROGRESS.md (the tool, not the product) |
 | Full module specs | ../specs/CRS_Blueprint.html (source: ../scripts/) |
 | Design tokens / CSS | ../design/tokens.css, ../design/design.md |
 | Pricing | ../pricing/tiers.md |

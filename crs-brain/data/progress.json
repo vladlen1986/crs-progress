@@ -1,19 +1,28 @@
 {
-  "updated": "2026-05-02",
-  "note": "Maintained by you and CRS Brain. Ask the Brain to 'update progress' and it edits this file.",
+  "updated": "2026-07-15",
+  "note": "Now/Next/Later/Done board for the CRS PRODUCT (foundation refactor). Maintained by you + CRS Brain — ask the Brain to 'update progress'. Full per-module detail: brain/STATUS.md. Priority tree (reorderable): the Progress Tree page (data/modules.json).",
   "columns": {
     "now": [
-      { "id": "casino-settings-re", "title": "Casino Settings RE", "note": "Reusable element — in progress" }
+      { "id": "user-management", "title": "User Management — security Pass-2", "note": "UI + data done; owed: privacy rules, server-guarded CRUD, NEG proof, purge 22 demo records, fix mobile Filters button" }
     ],
-    "next": [],
+    "next": [
+      { "id": "pattern-a-rollout", "title": "Pattern A rollout packet", "note": "0/46 DTs isolate; start with no-auth endpoint -> 06 Employee PII -> 24 no-rules DTs -> 15 public-everyone (brain/security.md)" },
+      { "id": "fiscal-week", "title": "Fiscal Week Management (3rd of 4)", "note": "Fiscal Week DT + Close/Edit perms exist; begin refactor" }
+    ],
     "later": [
-      { "id": "report-dt-wu", "title": "Report DT Workflow optimization", "note": "Deferred (Day 2)" }
+      { "id": "reporting-harden", "title": "Reporting — tenant isolation", "note": "13K records, cross-tenant readable in legacy app" },
+      { "id": "perm-migration-tail", "title": "Permission-model migration tail", "note": "8 user-based gates -> role-based; retire legacy editor; delete user permissions_list" },
+      { "id": "audit-log", "title": "App-wide ActivityLog", "note": "currently Roles-only" }
     ],
     "done": [
-      { "id": "os-timezone", "title": "OS – Timezone", "note": "385 IANA entries" },
-      { "id": "os-currency", "title": "OS – Currency", "note": "156 ISO 4217" },
-      { "id": "currency-arch", "title": "Currency architecture", "note": "Property = reporting, Company = default" }
+      { "id": "roles-permissions", "title": "Roles & Permissions", "note": "COMPLETE & NEG-proven 2026-06-07 (three-tier security)" },
+      { "id": "casino-settings", "title": "Casino Settings", "note": "DONE & NEG-proven 2026-06-08; theme/mobile Pass-3 left" },
+      { "id": "design-system", "title": "Design System page", "note": "built 2026-07-13 (crs-design-system.html, bUfVN0)" }
     ]
   },
-  "missing": []
+  "missing": [
+    { "id": "sec-pattern-a", "title": "0 of 46 live DTs meet Pattern A", "note": "no privacy rule checks company AND property (brain/security.md)" },
+    { "id": "sec-employee-pii", "title": "06 Employee PII public-everyone", "note": "passport / national ID / DOB / phone readable by anyone + autobind" },
+    { "id": "sec-noauth-endpoint", "title": "Candidate no-auth endpoint", "note": "add_user_to_read_by_all_reports_copy — verify/disable in editor" }
+  ]
 }

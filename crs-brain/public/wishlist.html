@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wishlist · CRS Brain</title>
+<style>
+  :root{
+    --bg:#181818; --panel:#1E1E1E; --panel2:#242424; --elev:#2A2A2A;
+    --line:#242424; --line2:#333333; --line3:#3D3D3D;
+    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
+    --accent:#3B82F6; --accent2:#60A5FA; --accent-tint:rgba(59,130,246,.08);
+    --good:#22C55E; --warn:#F59E0B; --danger:#EF4444; --purple:#8B5CF6;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+  .wrap{max-width:920px;margin:0 auto;padding:26px 22px 90px}
+  header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+  header.top .t{flex:1;min-width:0}
+  h1{font-size:20px;color:var(--primary);margin:0 0 3px;font-weight:600;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;line-height:1.55}
+  .hbtns{display:flex;gap:8px;flex:0 0 auto;align-items:center}
+  .saved{font-size:11.5px;color:var(--muted);min-width:56px;text-align:right}
+  .saved.ok{color:var(--good)} .saved.saving{color:var(--warn)} .saved.err{color:var(--danger)}
+  .hbtn{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:7px 12px;font:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .hbtn:hover{color:var(--primary);border-color:var(--line3)}
+  .hbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  .add{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px;align-items:stretch}
+  .add select,.add input{background:var(--panel);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;outline:none}
+  .add select:focus,.add input:focus{border-color:var(--line3)}
+  .add .title{flex:1;min-width:200px}
+  .add .prio{flex:0 0 auto}
+  .add button{background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
+  .add button:hover{filter:brightness(1.08)}
+
+  .sec{margin-top:24px}
+  .sechead{display:flex;align-items:center;gap:9px;font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .sechead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;font-size:11px;letter-spacing:0}
+  .sechead .bar{flex:1;height:1px;background:var(--line)}
+  .sec.empty .sechead{opacity:.6}
+  .secempty{color:var(--muted);font-size:12.5px;padding:2px 2px 6px 34px;font-style:italic}
+
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:8px;transition:border-color .12s}
+  .item:hover{border-color:var(--line2)}
+  .item.done{opacity:.72}
+  .irow{display:flex;align-items:flex-start;gap:11px;padding:11px 13px}
+  .chk{width:20px;height:20px;flex:0 0 auto;border-radius:6px;border:1.6px solid var(--line3);background:none;cursor:pointer;margin-top:1px;display:flex;align-items:center;justify-content:center;transition:.15s;color:transparent}
+  .chk:hover{border-color:var(--secondary)}
+  .chk svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  .item.st-in-progress .chk{border-color:var(--warn);color:var(--warn)}
+  .item.st-in-progress .chk svg{opacity:.9}
+  .item.st-done .chk{border-color:var(--good);background:var(--good);color:#0b1a0f}
+  .ibody{flex:1;min-width:0}
+  .ihead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .prio-badge{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 7px;border-radius:5px;cursor:pointer;border:1px solid transparent;white-space:nowrap;user-select:none}
+  .prio-P1{background:rgba(239,68,68,.15);color:#F87171;border-color:rgba(239,68,68,.3)}
+  .prio-P2{background:rgba(245,158,11,.15);color:var(--warn);border-color:rgba(245,158,11,.3)}
+  .prio-P3{background:var(--panel2);color:var(--secondary);border-color:var(--line2)}
+  .prio-none{background:none;color:var(--muted);border:1px dashed var(--line2)}
+  .ititle{color:var(--primary);font-weight:600;font-size:14px;outline:none;border-radius:4px;padding:1px 3px;flex:1;min-width:120px}
+  .ititle:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--line3)}
+  .item.done .ititle{color:var(--secondary)}   /* dim, but NEVER strikethrough (project rule) */
+  .idetail{color:var(--secondary);font-size:12.8px;line-height:1.6;white-space:pre-wrap;margin-top:5px;outline:none;border-radius:6px;padding:3px 5px;cursor:text;word-break:break-word}
+  .idetail:empty::before{content:'Add detail…';color:var(--muted)}
+  .idetail:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--line3);white-space:pre-wrap}
+  .iacts{display:flex;flex-direction:column;gap:3px;flex:0 0 auto;opacity:0;transition:opacity .12s}
+  .item:hover .iacts{opacity:1}
+  .iacts button{width:26px;height:22px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:5px;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .iacts button:hover{background:var(--panel2);color:var(--primary)}
+  .iacts button.del:hover{color:var(--danger)}
+  .iacts svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+  .donesec{margin-top:26px}
+  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:13px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:11px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="t">
+      <h1>Improvements wishlist</h1>
+      <div class="sub">Todos for the Brain app itself. Add ideas, set priority, check them off. Click a title or detail to edit; the checkbox cycles idea → in&nbsp;progress → done. Saved to <code>wishlist.json</code> (and mirrored to WISHLIST.md).</div>
+    </div>
+    <div class="hbtns">
+      <span class="saved" id="saved"></span>
+      <button class="hbtn" onclick="location.href='/'" title="Back to app"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>App</button>
+    </div>
+  </header>
+
+  <div class="add">
+    <select id="addSec"></select>
+    <input class="title" id="addTitle" type="text" placeholder="New idea…  (Enter to add)" onkeydown="if(event.key==='Enter')addItem()">
+    <select class="prio" id="addPrio"><option value="P1">P1</option><option value="P2">P2</option><option value="P3">P3</option><option value="">—</option></select>
+    <button onclick="addItem()">Add</button>
+  </div>
+
+  <div id="list"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=(id)=>document.getElementById(id);
+let DATA={sections:[],items:[]}, saveTimer=null, STATUS=['idea','in-progress','done'];
+function esc(s){return (s==null?'':''+s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),1900); }
+function setSaved(s){ const el=$('saved'); el.className='saved '+(s||''); el.textContent=s==='saving'?'Saving…':s==='ok'?'Saved ✓':s==='err'?'Save failed':''; }
+
+async function load(){
+  try{ DATA=await (await fetch('/api/wishlist')).json(); }catch(e){ DATA={sections:[],items:[]}; }
+  const sel=$('addSec'); sel.innerHTML=(DATA.sections||[]).map(s=>`<option>${esc(s)}</option>`).join('');
+  render();
+}
+function scheduleSave(){ setSaved('saving'); clearTimeout(saveTimer); saveTimer=setTimeout(save,500); }
+async function save(){
+  (DATA.items||[]).forEach((it,i)=>it.order=i);
+  try{
+    const r=await fetch('/api/wishlist',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(DATA)});
+    if(!r.ok) throw new Error(await r.text());
+    setSaved('ok'); setTimeout(()=>{ if($('saved').classList.contains('ok')) setSaved(''); },1500);
+  }catch(e){ setSaved('err'); }
+}
+function findItem(id){ return (DATA.items||[]).find(i=>i.id===id); }
+
+function render(){
+  const list=$('list');
+  const open=(DATA.items||[]).filter(i=>i.status!=='done');
+  const done=(DATA.items||[]).filter(i=>i.status==='done');
+  if(!DATA.items || !DATA.items.length){ list.innerHTML='<div class="empty">No ideas yet — add one above.</div>'; return; }
+  let html=(DATA.sections||[]).map(sec=>{
+    const items=open.filter(i=>i.section===sec);
+    return `<div class="sec ${items.length?'':'empty'}">
+      <div class="sechead">${esc(sec)} <span class="cnt">${items.length}</span><span class="bar"></span></div>
+      ${items.length?items.map(itemHtml).join(''):'<div class="secempty">No open items</div>'}
+    </div>`;
+  }).join('');
+  if(done.length){
+    html+=`<div class="donesec"><div class="sechead" style="color:var(--good)">Done <span class="cnt">${done.length}</span><span class="bar"></span></div>${done.map(itemHtml).join('')}</div>`;
+  }
+  list.innerHTML=html;
+}
+function itemHtml(it){
+  const pr=it.priority||'none';
+  return `<div class="item st-${it.status} ${it.status==='done'?'done':''}" data-id="${it.id}">
+    <div class="irow">
+      <button class="chk" title="Cycle status" onclick="cycleStatus('${it.id}')"><svg viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></svg></button>
+      <div class="ibody">
+        <div class="ihead">
+          <span class="prio-badge prio-${it.priority||'none'}" title="Cycle priority" onclick="cyclePrio('${it.id}')">${it.priority||'—'}</span>
+          <span class="ititle" contenteditable="true" spellcheck="false" data-id="${it.id}" onblur="editTitle('${it.id}',this)" onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur();}">${esc(it.title)}</span>
+        </div>
+        <div class="idetail" contenteditable="true" spellcheck="false" data-id="${it.id}" onblur="editDetail('${it.id}',this)">${esc(it.detail||'')}</div>
+      </div>
+      <div class="iacts">
+        <button title="Move up" onclick="move('${it.id}',-1)"><svg viewBox="0 0 24 24"><path d="M18 15l-6-6-6 6"/></svg></button>
+        <button title="Move down" onclick="move('${it.id}',1)"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="del" title="Delete" onclick="delItem('${it.id}')"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+      </div>
+    </div>
+  </div>`;
+}
+function cycleStatus(id){ const it=findItem(id); if(!it)return; it.status=STATUS[(STATUS.indexOf(it.status)+1)%STATUS.length]; if(it.status==='done'&&!it.ts_done)it.ts=new Date().toISOString(); render(); scheduleSave(); }
+function cyclePrio(id){ const it=findItem(id); if(!it)return; const P=['P1','P2','P3','']; it.priority=P[(P.indexOf(it.priority)+1)%P.length]; render(); scheduleSave(); }
+function editTitle(id,el){ const it=findItem(id); if(!it)return; const v=el.textContent.trim(); if(!v){ el.textContent=it.title; return; } if(v!==it.title){ it.title=v; scheduleSave(); } }
+function editDetail(id,el){ const it=findItem(id); if(!it)return; const v=el.textContent.trim(); if(v!==(it.detail||'')){ it.detail=v; scheduleSave(); } }
+function move(id,dir){ const items=DATA.items; const idx=items.findIndex(i=>i.id===id); const it=items[idx];
+  // move within the same section among visible siblings
+  const sib=items.map((x,i)=>({x,i})).filter(o=>o.x.section===it.section && (it.status==='done'? o.x.status==='done' : o.x.status!=='done'));
+  const pos=sib.findIndex(o=>o.x.id===id); const tgt=sib[pos+dir]; if(!tgt) return;
+  const a=idx, b=tgt.i; items.splice(a,1); items.splice(b,0,it); render(); scheduleSave();
+}
+function addItem(){
+  const section=$('addSec').value, title=$('addTitle').value.trim(), priority=$('addPrio').value;
+  if(!title){ $('addTitle').focus(); return; }
+  const it={ id:'w-'+Math.random().toString(36).slice(2,8), section, title, detail:'', priority, status:'idea', ts:new Date().toISOString() };
+  // insert at the end of that section's open items
+  const items=DATA.items; let insertAt=items.length;
+  for(let i=items.length-1;i>=0;i--){ if(items[i].section===section && items[i].status!=='done'){ insertAt=i+1; break; } }
+  items.splice(insertAt,0,it);
+  $('addTitle').value=''; render(); scheduleSave(); toast('Added');
+}
+function delItem(id){ DATA.items=DATA.items.filter(i=>i.id!==id); render(); scheduleSave(); toast('Deleted'); }
+load();
+</script>
+</body>
+</html>

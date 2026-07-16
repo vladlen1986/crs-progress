@@ -10,11 +10,13 @@ Multi-tenant SaaS for casino surveillance, operations, HR, and compliance. Built
 crs/
 ├── README.md                          ← you are here
 ├── CLAUDE.md                          AI assistant context — rules & locked facts
-├── PROGRESS.md                        CRS Brain app build checkpoint
 ├── decisions.md                       Append-only architecture/commercial rulings
 │
 ├── brain/                             LIVING INFRASTRUCTURE LEDGER (read INDEX.md first)
+│   ├── STATUS.md                      CRS PRODUCT build status (per-module tracker)
 │   ├── database.md · option-sets.md · security.md · workflows.md · migrations.md
+│   ├── modules/                       Per-module technical references + user manuals
+│   ├── security-test-checklist.md     Standing per-module security gate (STRUCT/POS/NEG)
 │   └── bubble/ · buildprint/ · bubble-forum/   (verbatim manuals + curated forum)
 │
 ├── specs/                             AUTHORITATIVE SPECS
@@ -37,7 +39,9 @@ crs/
 │
 ├── pricing/                           tiers.md — locked pricing
 ├── audits/                            Audit reports
-├── crs-brain/                         CRS Brain app (local second-brain tool; see PROGRESS.md)
+├── crs-brain/                         CRS Brain app (local second-brain tool; see crs-brain/BRAIN_APP_PROGRESS.md)
+│   ├── public/tree.html               Progress Tree — modules in build-priority order (reorderable)
+│   └── data/modules.json              Progress Tree data (46 modules, priority + status)
 │
 └── scripts/                           BUILD PIPELINE
     ├── build_blueprint.py             Regenerates CRS_Blueprint.html

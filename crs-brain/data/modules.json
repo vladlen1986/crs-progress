@@ -1,0 +1,2806 @@
+{
+  "updated": "2026-07-15",
+  "note": "CRS product build-priority tree. Reorder in the brain app (Progress Tree). Statuses: done / in-progress / not-started / roadmap. Seed: data/CRS_Module_OptionSets.xlsx (46) + brain/STATUS.md. Per-module detail in brain/STATUS.md §3 + brain/modules/. Each module carries a definition-of-done checklist (states: todo/partial/done) that also feeds the Buildprint prompt as acceptance criteria.",
+  "statusVocab": [
+    "done",
+    "in-progress",
+    "not-started",
+    "roadmap"
+  ],
+  "modules": [
+    {
+      "id": "casino_settings",
+      "name": "Casino Settings",
+      "section": "Admin / Core",
+      "route": "settings",
+      "icon": "gear",
+      "status": "done",
+      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": "Company + Property DTs"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": "Timezone 385 · Currency 156"
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "done",
+          "detail": "company/property-scoped, NEG-proven"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "done",
+          "detail": "3 writes via guarded backend WFs"
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "partial",
+          "detail": "Pass-3 polish outstanding"
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "done",
+          "detail": "NEG-proven 2026-06-08"
+        }
+      ],
+      "order": 1
+    },
+    {
+      "id": "roles_permissions",
+      "name": "Roles & Permissions",
+      "section": "Admin / Core",
+      "route": "roles",
+      "icon": "shield-check",
+      "status": "done",
+      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "done",
+          "detail": ""
+        }
+      ],
+      "order": 2
+    },
+    {
+      "id": "user_management",
+      "name": "User Management",
+      "section": "Admin / Core",
+      "route": "users",
+      "icon": "person-gear",
+      "status": "in-progress",
+      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": "list/card/detail/table (Jun 11)"
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": "quick-view drawer + profile"
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": "real User DT wired"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": "n/a"
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": "Pass-2"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": "Pass-2 — server-guarded CRUD"
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "done",
+          "detail": "dark+light, ~280 conditionals"
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": "security NEG not started"
+        }
+      ],
+      "order": 3
+    },
+    {
+      "id": "fiscal_week_mgmt",
+      "name": "Fiscal Week Management",
+      "section": "Admin / Core",
+      "route": "fiscal-week",
+      "icon": "calendar",
+      "status": "not-started",
+      "note": "3rd of 4 foundation. Fiscal Week DT + Close/Edit perms exist.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "partial",
+          "detail": "Fiscal Week DT + Close/Edit perms exist"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 4
+    },
+    {
+      "id": "subscription",
+      "name": "Subscription & Tier",
+      "section": "Admin / Core",
+      "route": "subscription",
+      "icon": "credit-card",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 5
+    },
+    {
+      "id": "notifications",
+      "name": "Notifications",
+      "section": "Admin / Core",
+      "route": "notifications",
+      "icon": "bell",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 6
+    },
+    {
+      "id": "activity_log",
+      "name": "System Activity Log",
+      "section": "Admin / Core",
+      "route": "activity",
+      "icon": "journal-text",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 7
+    },
+    {
+      "id": "import_export",
+      "name": "Import & Export",
+      "section": "Admin / Core",
+      "route": "import-export",
+      "icon": "arrow-down-up",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 8
+    },
+    {
+      "id": "integrations",
+      "name": "API & Integrations",
+      "section": "Admin / Core",
+      "route": "integrations",
+      "icon": "plug",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 9
+    },
+    {
+      "id": "contacts",
+      "name": "Contacts",
+      "section": "Admin / Core",
+      "route": "contacts",
+      "icon": "person-rolodex",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 10
+    },
+    {
+      "id": "support_center",
+      "name": "Support Center",
+      "section": "Admin / Core",
+      "route": "support",
+      "icon": "question-circle",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 11
+    },
+    {
+      "id": "dashboard",
+      "name": "Dashboard",
+      "section": "Operations",
+      "route": "dashboard",
+      "icon": "speedometer2",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 12
+    },
+    {
+      "id": "reporting",
+      "name": "Reporting",
+      "section": "Operations",
+      "route": "reports",
+      "icon": "file-earmark-text",
+      "status": "in-progress",
+      "note": "Live in legacy app (13K records). Cross-tenant readable — needs Pattern A.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "partial",
+          "detail": "live in legacy app"
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "partial",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": "live legacy (13K records)"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": "cross-tenant readable — needs Pattern A"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "partial",
+          "detail": "47 perms"
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 13
+    },
+    {
+      "id": "task_management",
+      "name": "Task Manager",
+      "section": "Operations",
+      "route": "tasks",
+      "icon": "check2-square",
+      "status": "not-started",
+      "note": "Task/Subtask DTs live but public + API-exposed.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "partial",
+          "detail": "Task/Subtask DTs live"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": "public + API-exposed"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 14
+    },
+    {
+      "id": "rfi",
+      "name": "Request for Investigation",
+      "section": "Operations",
+      "route": "rfi",
+      "icon": "envelope-open",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 15
+    },
+    {
+      "id": "malfunction_log",
+      "name": "Malfunction Log",
+      "section": "Operations",
+      "route": "malfunction",
+      "icon": "exclamation-triangle",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 16
+    },
+    {
+      "id": "lost_found",
+      "name": "Lost & Found",
+      "section": "Operations",
+      "route": "lost-and-found",
+      "icon": "box-seam",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 17
+    },
+    {
+      "id": "break_list",
+      "name": "Break List",
+      "section": "Operations",
+      "route": "break-list",
+      "icon": "arrow-left-right",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 18
+    },
+    {
+      "id": "meetings",
+      "name": "Meetings",
+      "section": "Operations",
+      "route": "meetings",
+      "icon": "calendar-event",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 19
+    },
+    {
+      "id": "chain_of_command",
+      "name": "Chain of Command",
+      "section": "Operations",
+      "route": "chain-of-command",
+      "icon": "diagram-3",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 20
+    },
+    {
+      "id": "daily_activity_log",
+      "name": "Daily Activity Log",
+      "section": "Surveillance",
+      "route": "dal",
+      "icon": "clipboard2-pulse",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 21
+    },
+    {
+      "id": "gaming_day_report",
+      "name": "Gaming Day Report",
+      "section": "Surveillance",
+      "route": "gdr",
+      "icon": "journal-bookmark",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 22
+    },
+    {
+      "id": "cctv_audits",
+      "name": "CCTV Audits",
+      "section": "Surveillance",
+      "route": "cctv-audits",
+      "icon": "camera-video",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 23
+    },
+    {
+      "id": "investigation_cases",
+      "name": "Investigation Cases",
+      "section": "Surveillance",
+      "route": "investigations",
+      "icon": "folder2-open",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 24
+    },
+    {
+      "id": "advantage_play_analyzer",
+      "name": "Advantage Play Analyzer",
+      "section": "Surveillance",
+      "route": "advantage-play-analyzer",
+      "icon": "graph-up-arrow",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 25
+    },
+    {
+      "id": "alert_center",
+      "name": "Alert Center",
+      "section": "Surveillance",
+      "route": "alerts",
+      "icon": "broadcast",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 26
+    },
+    {
+      "id": "guest_management",
+      "name": "Guest Management",
+      "section": "Guests",
+      "route": "guests",
+      "icon": "person-circle",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 27
+    },
+    {
+      "id": "visitor_management",
+      "name": "Visitor Management",
+      "section": "Guests",
+      "route": "visitor-management",
+      "icon": "person-badge",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 28
+    },
+    {
+      "id": "guest_watchlist",
+      "name": "Guest Watchlist",
+      "section": "Guests",
+      "route": "guest-watchlist",
+      "icon": "binoculars",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 29
+    },
+    {
+      "id": "guest_barring",
+      "name": "Guest Barring",
+      "section": "Guests",
+      "route": "guest-barring",
+      "icon": "journal-x",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 30
+    },
+    {
+      "id": "guest_opportunist",
+      "name": "Guest Opportunist List",
+      "section": "Guests",
+      "route": "guest-opportunist",
+      "icon": "incognito",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 31
+    },
+    {
+      "id": "blackbook_network",
+      "name": "Blackbook Network",
+      "section": "Guests",
+      "route": "blackbook",
+      "icon": "globe-americas",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 32
+    },
+    {
+      "id": "employee_management",
+      "name": "Employee Management",
+      "section": "HR / Employees",
+      "route": "employees",
+      "icon": "people",
+      "status": "not-started",
+      "note": "Employee DT live but PII public-everyone (brain/security.md).",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "partial",
+          "detail": "Employee DT live"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": "PII public-everyone — see security.md"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 33
+    },
+    {
+      "id": "job_board",
+      "name": "Job Board",
+      "section": "HR / Employees",
+      "route": "job-board",
+      "icon": "briefcase",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 34
+    },
+    {
+      "id": "onboarding",
+      "name": "Onboarding",
+      "section": "HR / Employees",
+      "route": "onboarding",
+      "icon": "person-check",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 35
+    },
+    {
+      "id": "attendance",
+      "name": "Attendance",
+      "section": "HR / Employees",
+      "route": "attendance",
+      "icon": "clock",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 36
+    },
+    {
+      "id": "scheduling",
+      "name": "Scheduling",
+      "section": "HR / Employees",
+      "route": "scheduling",
+      "icon": "calendar-week",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 37
+    },
+    {
+      "id": "leave_management",
+      "name": "Leave Management",
+      "section": "HR / Employees",
+      "route": "leave",
+      "icon": "airplane",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 38
+    },
+    {
+      "id": "disciplinary_actions",
+      "name": "Disciplinary Actions",
+      "section": "HR / Employees",
+      "route": "disciplinary-actions",
+      "icon": "exclamation-octagon",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 39
+    },
+    {
+      "id": "appraisals",
+      "name": "Appraisals",
+      "section": "HR / Employees",
+      "route": "appraisals",
+      "icon": "hand-thumbs-up",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 40
+    },
+    {
+      "id": "payroll",
+      "name": "Payroll",
+      "section": "HR / Employees",
+      "route": "payroll",
+      "icon": "cash-stack",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 41
+    },
+    {
+      "id": "policy_library",
+      "name": "Policy Library",
+      "section": "Compliance",
+      "route": "policies",
+      "icon": "book",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 42
+    },
+    {
+      "id": "house_rules",
+      "name": "House Rules",
+      "section": "Compliance",
+      "route": "house-rules",
+      "icon": "bank",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 43
+    },
+    {
+      "id": "sensitive_equipment",
+      "name": "Sensitive Equipment",
+      "section": "Compliance",
+      "route": "sensitive-equipment",
+      "icon": "safe",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 44
+    },
+    {
+      "id": "info_board",
+      "name": "Info Board",
+      "section": "Communication",
+      "route": "info-board",
+      "icon": "megaphone",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 45
+    },
+    {
+      "id": "intercom",
+      "name": "Intercom",
+      "section": "Communication",
+      "route": "intercom",
+      "icon": "chat-quote",
+      "status": "roadmap",
+      "note": "",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "todo",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": ""
+        }
+      ],
+      "order": 46
+    }
+  ],
+  "checklistTemplate": [
+    {
+      "key": "ui",
+      "label": "UI elements built"
+    },
+    {
+      "key": "ux",
+      "label": "UX / workflows working"
+    },
+    {
+      "key": "db",
+      "label": "Data types as planned (company + property)"
+    },
+    {
+      "key": "os",
+      "label": "Option sets in place"
+    },
+    {
+      "key": "privacy",
+      "label": "Privacy rules (Pattern A) in place"
+    },
+    {
+      "key": "perms",
+      "label": "Backend protection (permission-based)"
+    },
+    {
+      "key": "theme",
+      "label": "Theme (dark + light)"
+    },
+    {
+      "key": "tested",
+      "label": "Security [NEG] tested"
+    }
+  ]
+}

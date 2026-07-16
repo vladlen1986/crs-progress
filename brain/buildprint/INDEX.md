@@ -1,5 +1,10 @@
 # Buildprint Manual (scraped docs.buildprint.ai)
 
+> **Operating CRS via CLI + MCP without the paid web app → [CLI-MCP-PLAYBOOK.md](CLI-MCP-PLAYBOOK.md)** —
+> the money thesis (CLI/MCP = $0 agent runtime), CLI-vs-MCP capability split, permissions, safety, the
+> per-feature workflow, command reference, and do-not-do. Read this first for "how do I build features
+> without paying for the web app". Operational guardrails live in [crs-brain-operations.md](crs-brain-operations.md).
+
 Question about HOW to use Buildprint (modes, agents, prompts, limits, troubleshooting) → read the relevant page below. Project-specific Buildprint RULES (dev-branch-only, Plan-mode-first, etc.) live in ../../decisions.md 2026-05-01 — those override generic docs advice.
 
 Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day: first pass 23 high-priority pages, second pass the remaining ~48 (full manual — all doc sections, all 10 CLI reference pages, and the complete REST API reference consolidated from the official OpenAPI schema). Coverage is now the entire docs site.

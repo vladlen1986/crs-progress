@@ -59,10 +59,205 @@ const CHATS_DIR = path.join(DATA_DIR, 'chats');
 const ATTACH_DIR = path.join(DATA_DIR, 'attachments');
 const DOCS_DIR = path.join(DATA_DIR, 'docs');
 const PROGRESS_FILE = path.join(DATA_DIR, 'progress.json');
+const MODULES_FILE = path.join(DATA_DIR, 'modules.json');
 const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
+const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
+const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
+const BP_LOG_JS = path.join(BRAIN_DIR, 'bp-log.js');               // PostToolUse hook: records every buildprint/git command
+const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');         // agent-captured run-mode screenshots
+const ACTION_LOG_FILE = path.join(DATA_DIR, 'action-log.jsonl');   // append-only activity ledger (one JSON action per line)
 
-for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
+for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs.mkdirSync(d, { recursive: true });
+// Generate the hook settings file (absolute path to the guard) so every `claude -p`
+// spawn hard-blocks dangerous Buildprint CLI commands (apply-to-live, --force-apply,
+// sync --reset, data delete, …) regardless of what the model tries.
+try {
+  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify({
+    hooks: {
+      // PreToolUse: hard-block dangerous commands. PostToolUse: append every
+      // buildprint/git command the agent runs to the action log (audit trail for rollback).
+      PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }],
+      PostToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_LOG_JS}" "${ACTION_LOG_FILE}"` }] }],
+    },
+  }, null, 2));
+} catch (e) { console.error('bp-guard settings write failed:', e.message); }
+
+// ---- action log: append-only ledger of everything the user/agent does, so a
+// later "when did I do X / roll back to before it" question can be answered from
+// the record. UI-driven actions are logged here directly; buildprint/git commands
+// run inside a bp chat are logged automatically by the PostToolUse hook (bp-log.js).
+function logAction(entry) {
+  try {
+    const now = new Date();
+    const line = JSON.stringify({
+      ts: now.getTime(),
+      iso: now.toISOString(),
+      source: entry.source || 'app',      // 'app' (UI action) | 'agent' (CLI via hook)
+      type: entry.type || 'action',       // chat | bp-chat | module-update | ingest | prompt-gen | settings | plan | savepoint | apply | data | cli | rollback
+      summary: (entry.summary || '').toString().slice(0, 400),
+      chatId: entry.chatId || null,
+      branch: entry.branch || null,
+      savepoint: entry.savepoint || null, // reference to restore "before this action" when known
+      meta: entry.meta || null,
+    });
+    fs.appendFileSync(ACTION_LOG_FILE, line + '\n');
+  } catch (e) { /* logging must never break the request */ }
+}
+function readActionLog(limit = 500, filter = {}) {
+  let raw = '';
+  try { raw = fs.readFileSync(ACTION_LOG_FILE, 'utf8'); } catch { return []; }
+  const rows = raw.split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean);
+  let out = rows;
+  if (filter.type) out = out.filter((r) => r.type === filter.type);
+  if (filter.since) out = out.filter((r) => r.ts >= filter.since);
+  if (filter.q) { const q = filter.q.toLowerCase(); out = out.filter((r) => (r.summary || '').toLowerCase().includes(q) || (r.type || '').toLowerCase().includes(q)); }
+  return out.slice(-limit).reverse();   // newest first
+}
+
+// ---- persistent memory (never-forget) --------------------------------------
+// A structured, categorized store the agent ALWAYS sees (injected into every
+// system prompt) and appends to when the user says "remember this". Raw text is
+// never stored verbatim — a compile pass rewrites it into atomic, categorized
+// facts. Canonical = memory.json; memory.md is generated for humans + git.
+const MEMORY_JSON = path.join(DATA_DIR, 'memory.json');
+const MEMORY_MD = path.join(DATA_DIR, 'memory.md');
+const MEMORY_CATEGORIES = ['Preferences', 'Product', 'Decisions', 'People', 'Technical', 'Workflow', 'Reminders', 'Other'];
+const MEMORY_TRIGGER = /\b(remember (this|that|the following)|please remember|save (this|it|that)? ?(to|in|into) memory|add (this|it|that)? ?to memory|note (this )?to (memory|self)|keep (this )?in mind|don'?t forget|make a (mental )?note|memori[sz]e)\b/i;
+function loadMemory() { try { return JSON.parse(fs.readFileSync(MEMORY_JSON, 'utf8')); } catch { return []; } }
+function renderMemoryMd(arr) {
+  const byCat = {};
+  for (const m of arr) (byCat[m.category] || (byCat[m.category] = [])).push(m);
+  let out = '# CRS Brain — Memory\n\n> Persistent, structured memory the Brain always honors. Auto-written when you say "remember this"; safe to edit by hand. Canonical copy is `memory.json`.\n\n';
+  for (const cat of MEMORY_CATEGORIES) {
+    const items = byCat[cat]; if (!items || !items.length) continue;
+    out += `## ${cat}\n`;
+    for (const m of items) out += `- **${m.title}** — ${m.fact}${m.ts ? `  _(${m.ts.slice(0, 10)})_` : ''}\n`;
+    out += '\n';
+  }
+  return out;
+}
+function saveMemoryArr(arr) {
+  fs.writeFileSync(MEMORY_JSON, JSON.stringify(arr, null, 2));
+  try { fs.writeFileSync(MEMORY_MD, renderMemoryMd(arr)); } catch {}
+}
+// Compact rendering injected into every system prompt so the agent always honors it.
+function memoryForPrompt() {
+  const arr = loadMemory();
+  if (!arr.length) return '';
+  const lines = arr.map((m) => `- [${m.category}] ${m.title}: ${m.fact}`);
+  return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
+}
+function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+function looksLikeSecret(s) { return /\b(bp_[A-Za-z0-9]{6,}|sk-[A-Za-z0-9]{10,})\b|\b(password|passwd|secret|api[_-]?key|token)\b\s*[:=]\s*\S+/i.test(s || ''); }
+// Add compiled entries; dedup by (category + normalized title) → update in place.
+function addMemories(entries) {
+  const arr = loadMemory();
+  const added = [];
+  const norm = (s) => (s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  for (const e of (entries || [])) {
+    const category = MEMORY_CATEGORIES.includes(e.category) ? e.category : 'Other';
+    const title = (e.title || '').toString().trim().slice(0, 120);
+    const fact = (e.fact || '').toString().trim().slice(0, 600);
+    if (!fact || !title) continue;
+    if (looksLikeSecret(fact) || looksLikeSecret(title)) continue;   // never store secrets
+    const hit = arr.find((m) => m.category === category && norm(m.title) === norm(title));
+    if (hit) { hit.fact = fact; hit.ts = new Date().toISOString(); added.push(hit); }
+    else { const m = { id: crypto.randomUUID().slice(0, 8), category, title, fact, ts: new Date().toISOString() }; arr.push(m); added.push(m); }
+  }
+  if (added.length) saveMemoryArr(arr);
+  return added;
+}
+// Reinforcement system prompt. The real control is the user-message directive
+// below — and running from a NEUTRAL cwd so the repo's CLAUDE.md isn't auto-loaded
+// (that context made the model editorialize "already documented" instead of extract).
+const MEMORY_COMPILE_PROMPT = 'You are a strict information-extraction function. You do not chat, use tools, or judge whether facts are already known — you only transform the input note into a JSON array of memory entries and output nothing else.';
+// Run a fast, focused compile pass and persist the result. Returns the saved entries.
+async function compileMemory(userText) {
+  try {
+    const cfg = loadSettings();
+    const instruction =
+      'Extract the durable fact(s) the user wants remembered from the NOTE below. ' +
+      'Output ONLY a JSON array — no prose, no explanation, no markdown, no code fences. ' +
+      'Do NOT judge whether a fact is already documented elsewhere; just extract what the note asks to remember. ' +
+      'Split unrelated facts into separate items; rewrite each in your own words (never copy verbatim); resolve relative dates to absolute; skip any password/token/secret. ' +
+      'Each item: {"category": one of ' + MEMORY_CATEGORIES.join('|') + ', "title": "a <=8-word label", "fact": "one or two self-contained specific sentences"}. ' +
+      'Category guide: Preferences = how the user wants things done; Product = CRS facts/scope; Decisions = choices made; Technical = implementation details; Workflow = process/tooling; People = person facts; Reminders = time-bound notes. ' +
+      'If the note truly contains nothing durable to remember, output [].\n\nNOTE:\n<<<\n' + (userText || '') + '\n>>>';
+    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir() });
+    const txt = (res.text || '').trim();
+    const match = txt.match(/\[[\s\S]*\]/);
+    if (!match) return [];
+    const arr = JSON.parse(match[0]);
+    return Array.isArray(arr) ? addMemories(arr) : [];
+  } catch { return []; }
+}
+
+// ---- wishlist (Brain-app improvement todos, managed in the UI) --------------
+// Canonical JSON the Wishlist page edits; WISHLIST.md is regenerated for humans/git.
+const WISHLIST_JSON = path.join(DATA_DIR, 'wishlist.json');
+const WISHLIST_MD = path.join(BRAIN_DIR, 'WISHLIST.md');
+const WISHLIST_SECTIONS = ['Bubble platform awareness', 'App features / UX', 'Automation / agent behavior'];
+const WL_STATUS = ['idea', 'in-progress', 'done'];
+const WL_PRIO = ['P1', 'P2', 'P3', ''];
+function seedWishlist() {
+  return {
+    sections: WISHLIST_SECTIONS,
+    items: [
+      { id: 'w-forum', section: 'Bubble platform awareness', title: 'Daily Bubble forum check', priority: 'P1', status: 'idea',
+        detail: "Once a day, scan the Bubble forum and update the brain's Bubble-forum documents (brain/bubble/) with anything new/relevant (plugins, gotchas, patterns, breaking changes). Append to a dated digest, not overwrite." },
+      { id: 'w-relnotes', section: 'Bubble platform awareness', title: 'Track bubble.io/release-notes', priority: 'P1', status: 'idea',
+        detail: "Watch the release-notes page; when something lands that affects how CRS is built, record it in a brain reference (e.g. brain/bubble/release-notes.md) and flag it if it changes a locked decision or unblocks a feature.\n\nResearch + document (mechanics NOT yet verified):\n- Style swapping in conditions: swap an element's whole style inside a conditional instead of overriding each property. If true, the clean way to build the dark/light theme feature.\n- Global expressions: lots of community talk; confirm how they work and whether they help CRS." },
+      { id: 'w-loops', section: 'Automation / agent behavior', title: 'Task loops with limit-aware auto-resume', priority: 'P1', status: 'idea',
+        detail: "Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check." },
+      { id: 'w-bugfix', section: 'Automation / agent behavior', title: 'Auto-check + fix Bubble.io-reported issues', priority: 'P2', status: 'idea',
+        detail: "Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying." },
+    ],
+  };
+}
+function renderWishlistMd(doc) {
+  const mark = (s) => (s === 'done' ? '[x]' : s === 'in-progress' ? '[~]' : '[ ]');
+  let out = '# CRS Brain — Improvements Wishlist\n\n> Managed in the app (**Wishlist** page). This file is generated from `data/wishlist.json` — edits here are overwritten on the next save in the app.\n\n';
+  out += 'Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priority.\n\n---\n\n';
+  for (const sec of doc.sections) {
+    out += `## ${sec}\n\n`;
+    const items = doc.items.filter((i) => i.section === sec && i.status !== 'done');
+    if (!items.length) { out += '_(no open items)_\n\n'; continue; }
+    for (const it of items) {
+      out += `- ${mark(it.status)} ${it.priority ? `**(${it.priority})** ` : ''}**${it.title}**`;
+      if (it.detail) out += '\n  ' + String(it.detail).split('\n').join('\n  ');
+      out += '\n';
+    }
+    out += '\n';
+  }
+  const done = doc.items.filter((i) => i.status === 'done');
+  out += '---\n\n## Done\n\n';
+  if (!done.length) out += '_(nothing shipped yet)_\n';
+  else for (const it of done) out += `- [x] **${it.title}**${it.ts ? `  _(${it.ts.slice(0, 10)})_` : ''}\n`;
+  return out + '\n';
+}
+function saveWishlist(doc) {
+  const sections = Array.isArray(doc.sections) && doc.sections.length ? doc.sections.map(String) : WISHLIST_SECTIONS.slice();
+  const clean = {
+    sections,
+    items: (Array.isArray(doc.items) ? doc.items : []).map((it, i) => ({
+      id: String(it.id || ('w-' + crypto.randomUUID().slice(0, 6))),
+      section: sections.includes(it.section) ? it.section : sections[0],
+      title: String(it.title || '').slice(0, 200),
+      detail: String(it.detail || '').slice(0, 4000),
+      priority: WL_PRIO.includes(it.priority) ? it.priority : '',
+      status: WL_STATUS.includes(it.status) ? it.status : 'idea',
+      order: i, ts: it.ts || new Date().toISOString(),
+    })),
+  };
+  fs.writeFileSync(WISHLIST_JSON, JSON.stringify(clean, null, 2));
+  try { fs.writeFileSync(WISHLIST_MD, renderWishlistMd(clean)); } catch {}
+  return clean;
+}
+function loadWishlist() {
+  try { const d = JSON.parse(fs.readFileSync(WISHLIST_JSON, 'utf8')); if (!Array.isArray(d.sections) || !d.sections.length) d.sections = WISHLIST_SECTIONS.slice(); return d; }
+  catch { return saveWishlist(seedWishlist()); }
+}
 
 const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
 function loadSettings() {
@@ -300,11 +495,15 @@ const BP_PROMPT = (ws) => [
   `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
   `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
   'pages/, option_sets/, styles/, api/, settings/…).',
-  'THE LOOP: `buildprint sync` FIRST (pull latest Bubble snapshot) → edit the files → `buildprint check`',
-  '(must pass) → `buildprint apply` (push to Bubble). Useful: `buildprint audit` (security scan),',
-  '`buildprint sync status`, `buildprint changelog <a> <b>`.',
+  'THE LOOP (follow it exactly): (0) `buildprint sync` FIRST (pull the latest Bubble snapshot). (1) PLAN the',
+  'change as numbered steps and get Vlad\'s go-ahead before any apply. (2) Then execute ONE step at a time —',
+  'for EACH step: create a savepoint (`buildprint savepoint`, named for the step) → `buildprint apply` →',
+  '`buildprint check`. A savepoint before every apply so each step is independently rollback-able; if check',
+  'reports a problem, STOP and fix it or restore that savepoint before continuing. NEVER bundle multiple steps',
+  'into one apply. Useful: `buildprint audit` (security scan), `buildprint sync status`,',
+  '`buildprint savepoint list` / `restore`, `buildprint changelog <a> <b>`.',
   'HARD GUARDRAILS (from brain/buildprint/crs-brain-operations.md and decisions.md 2026-05-01):',
-  '(1) TEST branch only — NEVER live. (2) Always sync before working. (3) check must pass before apply.',
+  '(1) TEST branch only — NEVER live. (2) Always sync before working. (3) Savepoint before every apply; run check after every apply.',
   '(4) NEVER use --force-apply / --no-check / sync --reset without Vlad approving in THIS chat.',
   '(5) Before the FIRST apply of a request, state the exact plan (files/entities + expected Bubble effect)',
   'and get Vlad\'s go-ahead. (6) Pattern A: every business Data Type needs company + property fields and a',
@@ -312,6 +511,38 @@ const BP_PROMPT = (ws) => [
   'and surface it.',
   'AFTER applying changes, write a short summary into the CRS repo brain/ files (database.md / security.md /',
   `workflows.md / changelog.md at ${REPO_ROOT}/brain/) so the ledger stays current.`,
+  'ACTION LOG & ROLLBACK — every buildprint/git command you run is auto-recorded (timestamp, savepoint label,',
+  `branch) to the JSONL ledger at ${REPO_ROOT}/crs-brain/data/action-log.jsonl. Because you create a savepoint`,
+  'before every apply, that ledger is the index of restore points. TWO things Vlad will ask:',
+  '(a) "when did I do X / what happened around <time>?" → Read or Grep that action-log.jsonl file, find the',
+  'matching action(s), and report the timestamp, what ran, the branch, and the savepoint taken just before it.',
+  '(b) "roll back to before <that action>" → find that action in the log and the savepoint created just before',
+  'it (or the nearest earlier savepoint); confirm the exact target with Vlad; then `buildprint savepoint list`',
+  'to get the precise ref and `buildprint savepoint restore <ref>` on the TEST branch, then `buildprint sync`.',
+  'BE HONEST about scope: savepoint-restore reverts app STRUCTURE/workflows on the test branch. It does NOT',
+  'undo database record writes (Buildprint data tools cannot delete Things). If the action that broke things',
+  'was a DATA write (e.g. created records), say so plainly and offer to list the exact records so Vlad can',
+  'remove them in Bubble or restore a Bubble app-data backup — do not claim the data is rolled back when it is',
+  'not. Give savepoints descriptive names ("Before <module> <step>") since those names appear in the log.',
+  'TOOLS YOU HAVE: the Buildprint CLI (via Bash), Node and Python (via Bash, for LOCAL computation), plus',
+  'Read / Grep / Glob / WebFetch / WebSearch and the Buildprint MCP tools. SPEED — this matters: for any',
+  'selection / dedup / filtering / aggregation over the synced JSON files, write ONE short Node or Python',
+  'script that reads the files and computes the answer, instead of dozens of sequential `buildprint` queries',
+  '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
+  'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
+  '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
+  'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
+  `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
+  `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
+  '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
+  '- `--viewport mobile` / `tablet` to check responsive.',
+  `Then READ the PNG (you see images) to inspect it, and when it helps the user, EMBED it in your reply as \`![what it shows](crs-brain/data/screenshots/<name>.png)\` — the chat renders it inline. Report what you SAW (pass/fail per item), not just that you captured it.`,
+  'INTERACTIVE checks (click a flow, verify behavior, read console/errors): use `agent-browser` — `agent-browser open <run-mode-url>`, `agent-browser snapshot -i` (clickable refs), click/fill via refs, `agent-browser console` / `errors`. If either `buildprint screenshot` or `agent-browser` reports "agent-browser not found", tell Vlad it needs a one-time install (`npm install -g agent-browser`) — do not try to work around it.',
+  'RESPONSE FORMAT (important — keep replies readable, not walls of text): put your step-by-step reasoning in',
+  'your THINKING, not the final message. Write each reply as clean, scannable Markdown: open with a ONE-LINE',
+  'outcome, then short `##` sections with bullet points and small tables. Bold the load-bearing facts (entity',
+  'names, ids, counts). Keep prose to 1–2 short sentences per point. Never dump a long run-on paragraph.',
+  'When you make changes, end with a compact "What changed / Result / Next" summary.',
   'Be concise and direct (CLAUDE.md style). When the user just asks about progress/status, answer from the',
   'workspace + brain/ without running mutating commands.',
 ].join(' ');
@@ -649,7 +880,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'mcp__buildprint',   // web lookups + Buildprint CLI + MCP tools
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks) + local scripting + MCP + web
+      '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
@@ -869,6 +1101,219 @@ function loadProgress() {
   catch { fs.writeFileSync(PROGRESS_FILE, JSON.stringify(DEFAULT_PROGRESS, null, 2)); return DEFAULT_PROGRESS; }
 }
 
+// ---- Progress Tree: per-module detail (aggregate what the brain knows) ------
+function loadModulesDoc() {
+  try { return JSON.parse(fs.readFileSync(MODULES_FILE, 'utf8')); }
+  catch { return { modules: [] }; }
+}
+// Per-module definition-of-done checklist. Editable in the tree; also injected into
+// every generated Buildprint prompt as acceptance criteria.
+const CHECKLIST_TEMPLATE = [
+  ['ui', 'UI elements built'], ['ux', 'UX / workflows working'],
+  ['db', 'Data types as planned (company + property)'], ['os', 'Option sets in place'],
+  ['privacy', 'Privacy rules (Pattern A) in place'], ['perms', 'Backend protection (permission-based)'],
+  ['theme', 'Theme (dark + light)'], ['tested', 'Security [NEG] tested'],
+];
+const CHECK_STATES = new Set(['todo', 'partial', 'done']);
+function defaultChecklist() { return CHECKLIST_TEMPLATE.map(([key, label]) => ({ key, label, state: 'todo', detail: '' })); }
+function sanitizeChecklist(cl) {
+  if (!Array.isArray(cl) || !cl.length) return defaultChecklist();
+  return cl.map((c) => ({
+    key: String(c.key || '').slice(0, 24), label: String(c.label || '').slice(0, 120),
+    state: CHECK_STATES.has(c.state) ? c.state : 'todo', detail: String(c.detail || '').slice(0, 200),
+  }));
+}
+// Render a module's checklist as markdown acceptance criteria.
+function checklistMd(mod) {
+  const cl = (Array.isArray(mod.checklist) && mod.checklist.length) ? mod.checklist : defaultChecklist();
+  const mark = (s) => (s === 'done' ? '[x]' : s === 'partial' ? '[~]' : '[ ]');
+  return cl.map((c) => `- ${mark(c.state)} ${c.label}${c.detail ? ` — ${c.detail}` : ''}`).join('\n');
+}
+function _readRepo(rel) { try { return fs.readFileSync(path.join(REPO_ROOT, rel), 'utf8'); } catch { return ''; } }
+function _escapeRe(s) { return String(s).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+// Extract a markdown section: from the heading matching startRe until the next
+// heading of the same or higher level.
+function _mdSection(text, startRe) {
+  const lines = text.split('\n');
+  const i = lines.findIndex((l) => startRe.test(l));
+  if (i < 0) return '';
+  const lvl = (lines[i].match(/^#+/) || ['#'])[0].length;
+  const out = [lines[i]];
+  for (let j = i + 1; j < lines.length; j++) {
+    const m = lines[j].match(/^(#+)\s/);
+    if (m && m[1].length <= lvl) break;
+    out.push(lines[j]);
+  }
+  return out.join('\n').trim();
+}
+// Every ledger line that mentions the module (by name or route), grouped by file.
+function _scanMentions(needles) {
+  const targets = [
+    ['brain/database.md', 'Data types'], ['brain/option-sets.md', 'Option sets'],
+    ['brain/security.md', 'Security & privacy'], ['brain/workflows.md', 'Workflows'],
+    ['decisions.md', 'Decisions'],
+  ];
+  const nlow = needles.filter(Boolean).map((n) => String(n).toLowerCase());
+  const res = [];
+  for (const [rel, label] of targets) {
+    const t = _readRepo(rel); if (!t) continue;
+    const hits = [];
+    t.split('\n').forEach((l, n) => {
+      const ll = l.toLowerCase();
+      if (l.trim() && nlow.some((x) => x && ll.includes(x))) hits.push({ line: n + 1, text: l.trim().slice(0, 220) });
+    });
+    if (hits.length) res.push({ file: rel, label, count: hits.length, lines: hits.slice(0, 18) });
+  }
+  return res;
+}
+function moduleDetail(mod) {
+  const hy = String(mod.id || '').replace(/_/g, '-');
+  let files = [];
+  try { files = fs.readdirSync(path.join(REPO_ROOT, 'brain', 'modules')); } catch {}
+  const techRef = files.find((f) => f.includes(hy) && /tech/i.test(f));
+  const userManual = files.find((f) => f.includes(hy) && /manual/i.test(f));
+  let dataModel = '', optionSets = '', perms = '', workflows = '';
+  if (techRef) {
+    const t = _readRepo('brain/modules/' + techRef);
+    dataModel = _mdSection(t, /^##\s*2\.\s*Data model/im);
+    optionSets = _mdSection(t, /Option Sets used/i);
+    perms = _mdSection(t, /^##\s*4\.\s*Permissions/im);
+    workflows = _mdSection(t, /^##\s*5\.\s*Workflows/im);
+  }
+  const statusBlock = _mdSection(_readRepo('brain/STATUS.md'), new RegExp('^###\\s+' + _escapeRe(mod.name), 'im'));
+  const mentions = _scanMentions([mod.name, mod.route].filter(Boolean));
+  return {
+    module: mod, documented: !!techRef,
+    techRef: techRef ? 'brain/modules/' + techRef : null,
+    userManual: userManual ? 'brain/modules/' + userManual : null,
+    statusBlock, dataModel, optionSets, perms, workflows, mentions,
+  };
+}
+// Two prompt flavours per module, both markdown, both pre-filled with live brain context:
+//  - EDIT  → paste into the Buildprint APP to actually build/change (applies directly).
+//  - SYNC  → read-only audit that reports + emits JSON to ingest back into the brain.
+
+function buildEditPrompt(mod, d) {
+  const today = new Date().toISOString().slice(0, 10);
+  const attach = [
+    'design.md (source of truth — §2 tokens, §13 naming, §23 type scale, §25 theme)',
+    'CRS-style-system.md (approval = showcased on the `design_system` page)',
+    'brain/security-test-checklist.md (the standing security gate)',
+  ];
+  if (d.techRef) attach.push(`${d.techRef} (current as-built technical reference for this module)`);
+  const L = [];
+  L.push(`# Buildprint Prompt — Build / advance ${mod.name}`);
+  L.push('');
+  L.push(`**On TEST/DEV branch only, never live. Run \`buildprint sync\` first, then PLAN the steps. Work ONE task at a time — for EACH task: create a savepoint (\`buildprint savepoint "${mod.name} — Task N"\`) → \`buildprint apply\` → \`buildprint check\`. If check fails, stop and fix or restore that savepoint before continuing.**`);
+  L.push('');
+  L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML — that is the visual spec.`);
+  L.push('');
+  L.push(`**Context (CRS brain, ${today}):** ${mod.name} · section ${mod.section} · route \`${mod.route || '(unset)'}\` · tracked status **${mod.status}**${mod.note ? ` — ${mod.note}` : ''}`);
+  L.push('');
+  L.push('## Task 0 — Locate + report');
+  L.push(`Find the ${mod.name} page/reusable (\`# ${mod.name}\`${mod.route ? `, route \`${mod.route}\`` : ''}). List its current element tree, the data types it reads/writes, and their existing privacy rules + permissions. Report reusable + element names before changing anything.`);
+  L.push('');
+  L.push('## Task 1 — Data model (Pattern A)');
+  if (d.dataModel) { L.push('Current as-built data model (from the technical reference — verify against the workspace, do not trust blindly):'); L.push(''); L.push(d.dataModel); L.push(''); }
+  L.push("Every BUSINESS data type this module uses must carry both `company` and `property` fields and a privacy rule whose isolation check is `Current User's company = This Thing's company AND Current User's property = This Thing's property` (super-admin override allowed; everyone-else grants nothing). Add any missing fields/rules. Known exceptions: Company, Property, Subscription, system configs.");
+  L.push('');
+  L.push('## Task 2 — Permissions + server-guarded workflows');
+  if (d.perms) { L.push('Permissions per the reference:'); L.push(''); L.push(d.perms); L.push(''); }
+  L.push("Access is permission-based (`Current User's role's permissions contains <perm>`). EVERY create/edit/delete/state-change runs through a PRIVATE backend workflow (`expose:false`, `auth_unecessary:false`) with a permission trigger condition, reading Current User server-side. No UI-only writes; no auto-bind on access/status/money/ownership fields. A write that takes a passed Thing also needs an explicit tenant check on that Thing.");
+  L.push('');
+  L.push('## Task 3 — UI + theming (tokens + approved styles — find first, create last)');
+  L.push('Build the UI on named **Dark + (Light) paired styles** from design.md tokens — zero inline/literal colors. For every value, map: spec value → design.md token → existing approved style on the `design_system` page. Reuse existing styles; only where nothing fits, create the pair per §13 naming and **showcase it on the `design_system` page** (list every creation + why nothing fit). Theming = full style swap only (the one allowed conditional is `dark_theme is "no"` swapping the entire applied style); zero property-level color conditionals; interaction states live inside each style of the pair.');
+  L.push('');
+  L.push('## Task 4 — Verify, then report');
+  L.push('Run the [STRUCT]/[POS] items from brain/security-test-checklist.md. Confirm with evidence: Pattern A privacy rule quoted on every DT touched; server-side guard quoted on every write; Data API not exposed for those DTs; dark + light both via swapped styles (getComputedStyle proof); zero new searches on render where avoidable. Report: element mapping, styles reused vs created (+ showcased), privacy rules + guards quoted, measured key dimensions, and the **[NEG] tests I must run** (second-tenant / property-admin / low-perm). Flag any spec point Bubble genuinely cannot hit and give your closest compliant alternative — never silently substitute.');
+  L.push('');
+  L.push('## Acceptance criteria — module definition of done');
+  L.push('This change must not regress any item below. Report each item\'s final state (`[x]` done / `[~]` partial / `[ ]` not started):');
+  L.push('');
+  L.push(checklistMd(mod));
+  L.push('');
+  L.push('**TEST/DEV only, never live. Loop per task: savepoint → apply → `buildprint check`. If check fails, restore the savepoint. Plan first; one step per apply.**');
+  return L.join('\n');
+}
+
+function buildSyncPrompt(mod, d) {
+  const today = new Date().toISOString().slice(0, 10);
+  const L = [];
+  L.push(`# Buildprint Prompt — Audit ${mod.name} + sync to brain (READ-ONLY)`);
+  L.push('');
+  L.push('**On TEST branch only, never Live. Run `buildprint sync` FIRST. READ-ONLY — make zero changes: no apply, no --force-apply, no --no-check, no sync --reset.**');
+  L.push('');
+  L.push(`**Context (CRS brain, ${today}):** ${mod.name} · section ${mod.section} · route \`${mod.route || '(unset)'}\` · tracked status **${mod.status}**${mod.note ? ` — ${mod.note}` : ''}`);
+  if (d.statusBlock) { L.push(''); L.push('Known status detail (brain/STATUS.md):'); L.push(''); L.push(d.statusBlock); }
+  L.push('');
+  L.push('## Audit tasks (read-only)');
+  L.push(`Reuse brain/security-test-checklist.md — [STRUCT]/[POS] you can prove, [NEG] needs a human. For **${mod.name}**:`);
+  L.push('1. **Identity** — its page/reusable + route; the data types it reads/writes (display + slug).');
+  L.push('2. **Core-7 rating** — ✅ done / 🟡 partial / 🔴 missing / ➖ n/a with one-line evidence each: UI · UX · DB (company+property?) · Perms · Privacy (tenant isolation built?) · WF-CRUD (guarded?) · Theme. Then one overall status: done / in-progress / not-started / roadmap.');
+  L.push('3. **Security (STRUCT+POS)** — per business DT: quote the privacy rule (company AND property?), state Data API exposure, quote each write\'s server-side guard. Flag public-everyone / no-rules / logged-in-only DTs, UI-only writes, auto-bind on sensitive fields, public uploaders.');
+  L.push('4. **Findings** — ranked SECURITY > FUNCTIONAL > POLISH (severity, exact entity/expression, fix). Then the **[NEG] tests a human must run**.');
+  L.push('5. **Delta vs the ledger** — where brain/STATUS.md is wrong for this module.');
+  L.push('6. **Definition of done** — verify each item below against the live app and report its true state (`[x]` done / `[~]` partial / `[ ]` not started) with evidence:');
+  L.push('');
+  L.push(checklistMd(mod));
+  L.push('');
+  L.push('## Output');
+  L.push('(a) A human-readable report, and (b) a fenced `json` block so the CRS Brain can ingest it back into STATUS.md + the Progress Tree:');
+  L.push('```json');
+  L.push(`{ "id": "${mod.id}", "name": "${mod.name}", "section": "${mod.section}", "status": "done|in-progress|not-started|roadmap",`);
+  L.push('  "core7": {"ui":"","ux":"","db":"","perms":"","privacy":"","wf_crud":"","theme":""},');
+  L.push('  "dataTypes": [], "optionSets": [], "reusables": [],');
+  L.push('  "security_findings": [{"severity":"","where":"","issue":"","fix":""}], "neg_tests_todo": [] }');
+  L.push('```');
+  L.push('Never invent modules, fields, or rules — if something is not in the workspace, say "not found".');
+  return L.join('\n');
+}
+
+// System prompt: write ONLY the numbered task breakdown for a Buildprint edit prompt.
+// The header, Attached line, acceptance-criteria and footer are assembled deterministically
+// around this output (buildEditWrapper) so the house style is guaranteed regardless of the model.
+const EDIT_TASKS_PROMPT = [
+  "You write the TASK BREAKDOWN for a CRS Buildprint prompt. Given a module's context and Vlad's plain-language",
+  'request, output ONLY numbered markdown task sections that accomplish it. Do NOT write a title, a header, an',
+  'Attached line, acceptance criteria, or a footer — those are added around your output. Do NOT wrap in a code',
+  'fence. Be concise and concrete; do not explore or explain — just the tasks.',
+  '',
+  'Rules:',
+  '- Start with `## Task 0 — Locate + report`: find the relevant page/reusable + elements + data types and report BEFORE changing anything.',
+  '- Then `## Task 1 — …`, `## Task 2 — …` for the actual change Vlad asked for. Use exact-dimension tables when Vlad gives specs. Make each Task a self-contained step that can be applied and checked on its own (Buildprint does savepoint → apply → check per task).',
+  '- End with a final `## Task N — Verify + report`: prove it works (measure / getComputedStyle), list styles reused vs created, quote privacy rules + guards, and the [NEG] tests Vlad must run.',
+  '- Bake in CRS locked rules where the task touches them: Pattern A (every business DT has company + property + a privacy rule checking BOTH; exceptions Company/Property/Subscription/system); permission-based access; every write via a PRIVATE server-guarded backend workflow (Current User server-side, no UI-only writes, no auto-bind on sensitive fields, tenant check on passed Things); UI on named Dark + (Light) paired styles from design.md tokens (zero inline colors; find styles first, create + showcase only if nothing fits; theming = full style swap).',
+  '- Scope strictly to what Vlad asked — no unrelated work. Reference real elements / data types from the context where known; otherwise tell Task 0 to inventory them. Keep it tight.',
+].join('\n');
+
+// Deterministic wrapper around the model-written tasks — guarantees the house style.
+function buildEditWrapper(mod, d, requestText, tasks) {
+  const attach = [
+    'design.md (tokens, naming, theme)', 'CRS-style-system.md (approval = showcased on the design_system page)',
+    'brain/security-test-checklist.md',
+  ];
+  if (d.techRef) attach.push(`${d.techRef} (as-built technical reference)`);
+  const label = `${mod.name}: ${requestText}`.replace(/["\n]/g, ' ').slice(0, 60);
+  const L = [];
+  L.push(`# Buildprint edit — ${mod.name}`);
+  L.push('');
+  L.push(`**On TEST/DEV branch only, never live. Run \`buildprint sync\` first, then PLAN the steps. Work ONE task at a time — for EACH task: create a savepoint (\`buildprint savepoint "${label} — Task N"\`) → \`buildprint apply\` → \`buildprint check\`. If check fails, stop and fix or restore that savepoint before continuing.**`);
+  L.push('');
+  L.push(`**Attached:** ${attach.join('; ')}. For pixel-level UI work, also attach the module's design HTML.`);
+  L.push('');
+  L.push(`**Module:** ${mod.name} · ${mod.section} · route \`${mod.route || '(unset)'}\` · status ${mod.status}. **Request:** ${requestText}`);
+  L.push('');
+  L.push(tasks.trim());
+  L.push('');
+  L.push('## Acceptance criteria — module definition of done');
+  L.push('This change must not regress any item below. Report each item\'s final state (`[x]` done / `[~]` partial / `[ ]` not started):');
+  L.push('');
+  L.push(checklistMd(mod));
+  L.push('');
+  L.push('**TEST/DEV only, never live. Loop per task: savepoint → apply → `buildprint check`. If check fails, restore the savepoint. Plan first; one step per apply.**');
+  return L.join('\n');
+}
+
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
 function serveStatic(res, urlPath) {
@@ -1010,14 +1455,46 @@ const server = http.createServer(async (req, res) => {
         chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
       }
 
+      // Anchor the action log with the intent behind this turn ("when did I tell it to…").
+      if (!body.regenerate) {
+        logAction({
+          source: 'app',
+          type: body.bp === true ? 'bp-chat' : (body.ingest === true ? 'ingest' : 'chat'),
+          summary: (message || '').slice(0, 300) || (attachments.length ? attachments.join(', ') : ''),
+          chatId: chat && chat.id,
+          meta: attachments.length ? { attachments } : null,
+        });
+      }
+
       // Give Claude the attachment paths so it can open them with its own tools.
       const ingest = body.ingest === true;
       let promptToClaude = message;
+      // Embed text attachments' CONTENT inline so the assistant works from it directly and
+      // never hunts the filesystem. (Bug it fixes: the assistant doubted the saved copy,
+      // searched for the original name, found it in Downloads, and hit a permission gate
+      // instead of reading the copy already in crs-brain/data/attachments/.)
+      const TEXT_RE = /\.(md|markdown|txt|json|csv|ya?ml|log|html?)$/i;
+      const embedAttachment = (a) => {
+        try {
+          if (TEXT_RE.test(a)) {
+            const abs = safeRepoPath(a);
+            if (fs.statSync(abs).size <= 300 * 1024) {
+              return `----- FILE: ${a} -----\n${fs.readFileSync(abs, 'utf8')}\n----- END FILE -----`;
+            }
+            return `- ${a}  (large file at this EXACT repo path — Read it directly; do NOT search elsewhere)`;
+          }
+        } catch {}
+        return `- ${a}  (saved at this EXACT repo path — Read it directly; do NOT search the filesystem or Downloads)`;
+      };
       if (attachments.length) {
-        const list = attachments.map((a) => `- ${a}`).join('\n');
+        const blocks = attachments.map(embedAttachment).join('\n\n');
+        const anyText = attachments.some((a) => TEXT_RE.test(a));
+        const noHunt = anyText
+          ? 'The file content is included inline below — work from it directly. Do NOT read files, glob, search the filesystem, or look in Downloads; you already have everything. Read any non-text file listed only at its exact repo path.'
+          : 'Read the file(s) at the EXACT repo path shown with the Read tool. Do NOT search the filesystem or Downloads.';
         promptToClaude = ingest
-          ? `${INGEST_PROMPT}\n\nAttached report file(s):\n${list}\n\n${message || 'Ingest this report into the brain.'}`
-          : `The user attached the following file(s) in the repo — read them as needed to answer:\n${list}\n\n${message}`;
+          ? `${INGEST_PROMPT}\n\n${noHunt}\n\n${blocks}\n\n${message || 'Ingest this report into the brain.'}`
+          : `The user attached the following in the repo. ${noHunt}\n\n${blocks}\n\n${message}`;
       } else if (ingest) {
         // Ingest of pasted text (no file): treat the message itself as the report.
         promptToClaude = `${INGEST_PROMPT}\n\nThe report is the user message below.\n\n${message}`;
@@ -1050,9 +1527,21 @@ const server = http.createServer(async (req, res) => {
           const ws = findBpWorkspace();
           if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
           runOpts.cwd = ws.dir;
-          runOpts.systemPrompt = BP_PROMPT(ws);
+          runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
           runOpts.addDirs = [REPO_ROOT];
+        } else {
+          runOpts.systemPrompt = withMemory(SYSTEM_PROMPT);   // same for the general assistant
         }
+        // "Remember this" → compile the message into structured memory in the
+        // background; emit a toast when saved. Runs concurrently with the reply,
+        // and is awaited before the stream ends so the save is guaranteed.
+        const wantMemory = !ingest && !body.regenerate && MEMORY_TRIGGER.test(message || '');
+        const memPromise = wantMemory
+          ? compileMemory(message).then((saved) => {
+              if (saved && saved.length) sse({ type: 'memory-saved', entries: saved.map((m) => ({ category: m.category, title: m.title, fact: m.fact })) });
+              return saved;
+            }).catch(() => [])
+          : Promise.resolve([]);
         const result = await runClaudeStream(promptToClaude, chat.sessionId, {
           onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
           onThink: (t) => sse({ type: 'think', text: t }),
@@ -1069,6 +1558,7 @@ const server = http.createServer(async (req, res) => {
         chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         saveChat(chat);
         autoCommit(chat.title);
+        await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
       } catch (e) {
         // Persist the chat anyway — otherwise the user's message (and a brand-new
@@ -1223,6 +1713,125 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/progress' && req.method === 'GET') {
       return send(res, 200, loadProgress());
+    }
+
+    // Action log — the activity ledger. GET reads/filters it (?q=&type=&since=&limit=),
+    // POST records a UI-level action (client knows exactly what the user did).
+    if (p === '/api/action-log' && req.method === 'GET') {
+      const limit = Math.min(parseInt(u.searchParams.get('limit') || '500', 10) || 500, 5000);
+      const filter = {
+        q: u.searchParams.get('q') || '',
+        type: u.searchParams.get('type') || '',
+        since: parseInt(u.searchParams.get('since') || '0', 10) || 0,
+      };
+      return send(res, 200, { entries: readActionLog(limit, filter) });
+    }
+    if (p === '/api/action-log' && req.method === 'POST') {
+      const body = await readJsonBody(req) || {};
+      logAction({ source: 'app', type: body.type || 'action', summary: body.summary || '', chatId: body.chatId || null, meta: body.meta || null });
+      return send(res, 200, { ok: true });
+    }
+
+    // Persistent memory — structured, categorized facts the agent always honors.
+    if (p === '/api/memory' && req.method === 'GET') {
+      return send(res, 200, { categories: MEMORY_CATEGORIES, entries: loadMemory() });
+    }
+    if (p === '/api/memory' && req.method === 'POST') {   // manual add / compile-from-text
+      const body = await readJsonBody(req) || {};
+      let saved = [];
+      if (body.text && !body.fact) saved = await compileMemory(body.text);   // compile free text
+      else saved = addMemories([{ category: body.category, title: body.title, fact: body.fact }]);
+      return send(res, 200, { ok: true, entries: saved });
+    }
+    if (p === '/api/memory' && req.method === 'DELETE') {
+      const id = u.searchParams.get('id');
+      const arr = loadMemory().filter((m) => m.id !== id);
+      saveMemoryArr(arr);
+      return send(res, 200, { ok: true, count: arr.length });
+    }
+
+    // Wishlist — Brain-app improvement todos, managed in the Wishlist page.
+    if (p === '/api/wishlist' && req.method === 'GET') {
+      return send(res, 200, { ...loadWishlist(), statuses: WL_STATUS, priorities: WL_PRIO });
+    }
+    if (p === '/api/wishlist' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      if (!body || !Array.isArray(body.items)) return send(res, 400, { error: 'items array required' });
+      const saved = saveWishlist(body);
+      autoCommit('wishlist');
+      return send(res, 200, { ok: true, count: saved.items.length });
+    }
+
+    // Progress Tree — priority-ordered module list (reorderable in the app). Plain
+    // JSON, git-versioned. Seeded from data/CRS_Module_OptionSets.xlsx + brain/STATUS.md.
+    if (p === '/api/modules' && req.method === 'GET') {
+      const doc = loadModulesDoc();
+      (doc.modules || []).forEach((m) => { if (!Array.isArray(m.checklist) || !m.checklist.length) m.checklist = defaultChecklist(); });
+      if (!doc.statusVocab) doc.statusVocab = ['done', 'in-progress', 'not-started', 'roadmap'];
+      return send(res, 200, doc);
+    }
+    if (p === '/api/modules' && req.method === 'PUT') {
+      const body = await readJsonBody(req);
+      if (!body || !Array.isArray(body.modules)) return send(res, 400, { error: 'modules array required' });
+      const VOCAB = new Set(['done', 'in-progress', 'not-started', 'roadmap']);
+      // Renumber order by array position; keep only known fields; guard status.
+      body.modules = body.modules.map((m, i) => ({
+        id: String(m.id || ''), name: String(m.name || ''), section: String(m.section || ''),
+        route: String(m.route || ''), icon: String(m.icon || ''),
+        status: VOCAB.has(m.status) ? m.status : 'roadmap',
+        note: String(m.note || ''), checklist: sanitizeChecklist(m.checklist), order: i + 1,
+      }));
+      if (!body.statusVocab) body.statusVocab = ['done', 'in-progress', 'not-started', 'roadmap'];
+      fs.writeFileSync(MODULES_FILE, JSON.stringify(body, null, 2));
+      autoCommit('progress tree');
+      return send(res, 200, { ok: true, count: body.modules.length });
+    }
+    // Per-module detail: everything the brain knows about the module, aggregated live.
+    if (p === '/api/modules/detail' && req.method === 'GET') {
+      const id = u.searchParams.get('id');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === id);
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      return send(res, 200, moduleDetail(mod));
+    }
+    // Per-module Buildprint prompt, pre-filled with the module's up-to-date context.
+    // kind: 'edit' → paste into Buildprint app (applies); 'sync' → read-only audit → brain.
+    if (p === '/api/modules/prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      const d = moduleDetail(mod);
+      const kind = body && body.kind === 'edit' ? 'edit' : 'sync';
+      const prompt = kind === 'edit' ? buildEditPrompt(mod, d) : buildSyncPrompt(mod, d);
+      return send(res, 200, { kind, prompt });
+    }
+    // Text-driven EDIT prompt: Vlad types what he wants; the brain writes a proper
+    // Buildprint prompt from it, grounded in the module's brain context + live workspace.
+    if (p === '/api/modules/edit-prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
+      if (!mod) return send(res, 404, { error: 'module not found' });
+      const text = (body && body.text || '').toString().trim();
+      if (!text) return send(res, 400, { error: 'Describe what you want done first.' });
+      const d = moduleDetail(mod);
+      const ctx = [
+        `MODULE: ${mod.name} · section ${mod.section} · route ${mod.route || '(unset)'} · tracked status ${mod.status}${mod.note ? ' — ' + mod.note : ''}`,
+        d.statusBlock ? 'STATUS.md detail:\n' + d.statusBlock : '',
+        d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
+        d.perms ? 'Permissions:\n' + d.perms : '',
+        d.workflows ? 'Workflows:\n' + d.workflows : '',
+      ].filter(Boolean).join('\n\n');
+      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — write the task breakdown to accomplish this on this module:\n${text}`;
+      const cfg = loadSettings();
+      let tasks = '';
+      try {
+        // Writing a task breakdown is a mechanical transform — low effort, and no workspace
+        // --add-dir (Task 0 tells Buildprint to inventory real elements when it runs). The
+        // ~25-30s floor is claude CLI startup, not inference, so model choice doesn't change it.
+        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: 'low', systemPrompt: EDIT_TASKS_PROMPT });
+        tasks = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+      } catch (e) { return send(res, 502, { error: e.message }); }
+      if (!tasks) return send(res, 502, { error: 'the brain returned nothing — try again' });
+      return send(res, 200, { prompt: buildEditWrapper(mod, d, text, tasks) });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.

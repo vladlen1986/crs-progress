@@ -1,0 +1,32 @@
+{
+  "id": "0689f129-ec49-493c-8f07-10bdeb5c1149",
+  "title": "where do i have design system files ? all in one file or sep",
+  "sessionId": "0caf64da-494b-43c8-857a-555688d9b11c",
+  "bp": false,
+  "created": "2026-07-15T20:29:43.048Z",
+  "updated": "2026-07-15T20:31:05.937Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "where do i have design system files ? all in one file or separate ?",
+      "ts": "2026-07-15T20:29:43.048Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Your design system is **split across 4 separate files** in `design/`, not one file. Each has a distinct job:\n\n| File | Role |\n|---|---|\n| `design/tokens.css` | **Source of truth** — CSS variables (colors, spacing, etc.). Never hard-code; reference this. |\n| `design/Styles.txt` | Plain-text reference of the same values (for quick lookup / pasting into Bubble). |\n| `design/design.md` | The **rules and reasoning** — why tokens are what they are, section structure, conventions. |\n| `design/CRS_UI_Kit.html` | Rendered UI kit / visual component reference. |\n\nThere's also a brain pointer at `brain/design.md`, but it's just a redirect — it says the real source lives in `design/tokens.css` + `design/design.md`, so it never duplicates them.\n\n**Rule of thumb:** change a value → edit `design/tokens.css` (and mirror in `Styles.txt`); change a rule/rationale → edit `design/design.md`.",
+      "ts": "2026-07-15T20:29:56.734Z"
+    },
+    {
+      "role": "user",
+      "content": "write me prompt for buildprnt to provide latest data about design system",
+      "ts": "2026-07-15T20:30:39.028Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's a copy-paste prompt for the Buildprint chat. It's **read-only** (sync + report, no `apply`) — its job is to pull the current Bubble styles so you can reconcile them against `design/tokens.css`.\n\n```\nRead-only task — do NOT apply, check, or edit anything. TEST branch only.\n\n1. Run `buildprint sync` first to pull the latest snapshot.\n2. Read the styles/ folder in the shredded worktree and report the app's\n   design system as it currently exists in Bubble. I want the ACTUAL values,\n   not a summary. Cover:\n   - Color variables / app colors (name → hex, incl. any opacity variants)\n   - Font/text styles (name, font family, size, weight, line-height, color)\n   - Element styles (buttons, inputs, groups, etc.) and their key properties\n   - App fonts loaded (uploaded/Google) and default font\n   - Any spacing / border-radius / shadow tokens defined as styles\n3. Present it as a plain table grouped by category, exact values.\n4. Flag anything that looks inconsistent or duplicated (e.g. two greys, an\n   unnamed style, hardcoded colors not tied to a variable).\n\nDo not change files. Do not run apply. Just report.\n```\n\nTwo things to know before you run it:\n\n- **What \"design system\" maps to in Bubble** = the `styles/` folder in the shredded tree (color variables, font styles, element styles) — not `design/tokens.css`. Bubble is the as-built source; your repo files are the intended spec. This prompt tells you what Bubble *actually* has so you can spot drift.\n- **After it reports**, if you want I can diff its output against `design/tokens.css` + `design/Styles.txt` and list the mismatches, then we decide which side is authoritative before any edit.\n\nWant me to also draft the follow-up *apply* prompt (to push repo tokens into Bubble), or keep it read-only for now?",
+      "ts": "2026-07-15T20:31:05.937Z"
+    }
+  ]
+}

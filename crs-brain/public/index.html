@@ -139,14 +139,17 @@
   .sel option{background:var(--panel2);color:var(--primary)}
 
   /* chat */
-  .chat{flex:1;overflow:auto;padding:26px 18px 10px}
-  .msg{display:flex;gap:14px;max-width:830px;margin:0 auto 22px;animation:msgIn .45s cubic-bezier(.2,.7,.2,1) both}
-  .avatar{width:30px;height:30px;border-radius:9px;flex:0 0 30px;display:flex;align-items:center;justify-content:center;font-weight:600;margin-top:1px}
-  .avatar.bot{background:var(--grad);color:#fff;font-size:14px}
-  .avatar.you{background:var(--panel2);border:1px solid var(--line2);color:var(--muted);font-size:9.5px;text-transform:uppercase;letter-spacing:.3px}
-  .content{min-width:0;flex:1}
-  .msg.user .bubble{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:10px 14px;color:var(--primary);display:inline-block;max-width:100%}
+  .chat{flex:1;overflow:auto;padding:28px 18px 12px}
+  /* Claude-style: no avatars, a tighter reading column, airy spacing */
+  .msg{display:block;max-width:744px;margin:0 auto 26px;animation:msgIn .4s cubic-bezier(.2,.7,.2,1) both}
+  .avatar{display:none}
+  .content{min-width:0}
+  /* user turn = subtle rounded bubble, right-aligned, content-width */
+  .msg.user .content{display:flex;justify-content:flex-end}
+  .msg.user .bubble{background:var(--panel2);border:none;border-radius:16px;padding:10px 15px;color:var(--primary);display:inline-block;max-width:88%;font-size:15px;line-height:1.6;text-align:left}
+  /* assistant turn = clean bright prose, no bubble */
   .body{color:var(--secondary)}
+  .msg.assistant .body{color:#E6E6E6;font-size:15px;line-height:1.72}
   .dim{color:var(--muted)}
 
   /* streaming reveal */
@@ -159,22 +162,34 @@
   .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
   .body.err{color:#e8938b}
 
-  /* work blocks — Buildprint-style thinking/tool activity with live timers */
-  .wblocks{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+  /* work blocks — Buildprint-style grouped activity: one "Worked for Xs" header
+     folds a run of steps; each step is a clean icon+label row, expandable for detail */
+  .wblocks{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}
   .wblocks:empty{display:none}
-  .wblock{border:1px solid var(--line);background:var(--panel2);border-radius:9px;overflow:hidden}
-  .wblock .whead{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;padding:8px 11px;color:var(--secondary);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
-  .wblock .whead:hover{background:rgba(255,255,255,.03)}
-  .wblock .wchev{width:12px;height:12px;flex:0 0 auto;color:var(--muted);transition:transform .15s}
-  .wblock.open .wchev{transform:rotate(90deg)}
-  .wblock .wlabel{color:var(--primary);font-weight:600}
-  .wblock .wtime{margin-left:auto;color:var(--muted);font-size:11.5px;font-variant-numeric:tabular-nums}
-  .wblock.run .wlabel,.wblock.run .wtime{color:var(--accent2,#60A5FA)}
-  .wblock.run .wlabel{animation:wpulse 1.4s ease-in-out infinite}
-  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.55}}
-  .wblock .wbody{display:none;padding:2px 12px 11px 32px;color:var(--muted);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word;border-top:1px solid var(--line)}
-  .wblock.open .wbody{display:block}
-  .wblock .wbody:empty::after{content:'(no details)';opacity:.6}
+  .wgroup{border:none;background:none}
+  .wghead{display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:2px 0;color:var(--secondary);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+  .wghead:hover .wglabel{color:var(--primary)}
+  .wgchev{width:13px;height:13px;flex:0 0 auto;color:var(--muted);transition:transform .18s}
+  .wgroup.open .wgchev{transform:rotate(90deg)}
+  .wglabel{font-weight:500;letter-spacing:.1px;font-variant-numeric:tabular-nums}
+  .wgroup.run .wglabel{color:var(--accent2,#60A5FA);animation:wpulse 1.5s ease-in-out infinite}
+  @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
+  .wgroup.open .wsteps{display:flex}
+  .wstep{display:flex;flex-direction:column}
+  .wstep-head{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:7px;color:var(--secondary);font-size:12.5px;line-height:1.45;cursor:default}
+  .wstep.has-body .wstep-head{cursor:pointer}
+  .wstep.has-body .wstep-head:hover{background:rgba(255,255,255,.035)}
+  .wstep-ico{width:15px;height:15px;flex:0 0 auto;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+  .wstep-ico svg{width:15px;height:15px}
+  .wstep-lbl{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .wstep.run .wstep-lbl,.wstep.run .wstep-ico{color:var(--accent2,#60A5FA)}
+  .wstep.run .wstep-lbl{animation:wpulse 1.5s ease-in-out infinite}
+  .wstep-exp{width:11px;height:11px;flex:0 0 auto;color:var(--muted);opacity:0;transition:transform .15s}
+  .wstep.has-body .wstep-exp{opacity:.55}
+  .wstep.open .wstep-exp{transform:rotate(90deg)}
+  .wstep-body{display:none;white-space:pre-wrap;word-break:break-word;color:var(--muted);font-size:12px;line-height:1.62;padding:3px 8px 9px 33px}
+  .wstep.open .wstep-body{display:block}
 
   /* prompt queue strip */
   .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
@@ -255,15 +270,45 @@
   .md pre code{background:none;padding:0;color:#d5d5da}
   .md a{color:var(--accent2);text-decoration:none}
   .md a:hover{text-decoration:underline}
-  .md table{border-collapse:collapse;margin:1em 0;font-size:13px;width:100%}
-  .md th,.md td{border:1px solid var(--line);padding:7px 11px;text-align:left}
-  .md th{color:var(--primary);background:var(--panel2)}
+  .md-tbl{overflow-x:auto;border:1px solid var(--line2);border-radius:10px;margin:1.1em 0}
+  .md-tbl table{border-collapse:collapse;width:100%;font-size:13.5px;margin:0}
+  .md th,.md td{padding:9px 14px;text-align:left;vertical-align:top}
+  .md thead th{background:var(--panel2);color:var(--muted);font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--line2);white-space:nowrap}
+  .md tbody td{border-top:1px solid var(--line);color:var(--secondary)}
+  .md tbody tr:first-child td{border-top:none}
+  .md tbody tr:nth-child(even) td{background:rgba(255,255,255,.015)}
+  .md tbody tr:hover td{background:rgba(255,255,255,.035)}
   .md blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:2px 0 2px 14px;color:var(--muted)}
   .md ul,.md ol{padding-left:22px}
   .md li{margin:.25em 0}
   .md .md-img,.doc .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
   .md a[data-path]{color:var(--accent2);border-bottom:1px dashed rgba(96,165,250,.4)}
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
+
+  /* Claude-style chat prose — brighter, airier than the file viewer; scoped to chat */
+  .hbackleft{margin-right:8px}
+  .msg.assistant .body p,.msg.assistant .body li{color:#E6E6E6}
+  .msg.assistant .body p{margin:0 0 1em}
+  .msg.assistant .body>*:last-child{margin-bottom:0}
+  .msg.assistant .body h1,.msg.assistant .body h2,.msg.assistant .body h3{margin:1.15em 0 .5em;border:none;padding:0}
+  .msg.assistant .body h1{font-size:19px}
+  .msg.assistant .body h2{font-size:16.5px}
+  .msg.assistant .body h3{font-size:14.5px}
+  .msg.assistant .body ul,.msg.assistant .body ol{margin:.55em 0;padding-left:24px}
+  .msg.assistant .body li{margin:.32em 0}
+  .msg.assistant .body pre{border-radius:10px;background:#0d0d10;margin:1em 0}
+  .msg.assistant .body code{font-size:13px}
+  .msg.assistant .body>hr{border:none;border-top:1px solid var(--line);margin:1.4em 0}
+  .msg.assistant .body tbody td{color:#DADADA}
+  .msg.assistant .body .md-tbl{border-color:var(--line3)}
+
+  /* file chips in chat: show a download button on hover */
+  .matt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;color:var(--primary);text-decoration:none}
+  .matt .matt-name{color:var(--primary)}
+  .matt-dl{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:5px;color:var(--muted);opacity:0;transition:.15s;flex:0 0 auto}
+  .matt:hover .matt-dl{opacity:1}
+  .matt-dl:hover{background:var(--elev);color:var(--primary)}
+  .matt-dl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
   /* quick-open palette (Cmd/Ctrl+K) */
   .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
@@ -569,6 +614,7 @@
   <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><polyline points="21 3 21 9 15 9"/></symbol>
   <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
   <symbol id="i-x" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
   <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20a7 7 0 0 1 14 0"/></symbol>
   <symbol id="i-folder" viewBox="0 0 24 24"><path d="M21 19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h4l2 3h8a2 2 0 0 1 2 2z"/></symbol>
   <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="5.5" rx="8" ry="3"/><path d="M4 5.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/><path d="M4 11.5v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></symbol>
@@ -593,6 +639,10 @@
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
+      <button title="Progress Tree — modules in build-priority order" onclick="window.open('/tree.html','crstree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
+      <button title="Activity log — every action, timestamped" onclick="window.open('/activity.html','crsactivity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
+      <button title="Memory — what the brain always remembers" onclick="window.open('/memory.html','crsmemory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
+      <button title="Wishlist — Brain app improvement todos" onclick="window.open('/wishlist.html','crswishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -627,6 +677,7 @@
     <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <button class="expand-handle right" title="Show usage & progress" onclick="toggleCol('right')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
+      <button class="ghost hbackleft" id="backBtn" style="display:none" onclick="goBack()" title="Back to where you were">← Back</button>
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
@@ -638,6 +689,7 @@
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
       <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
+      <button class="ghost" id="downloadBtn" style="display:none" onclick="downloadFile()" title="Download this file">↓ Download</button>
       <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
       <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
@@ -794,7 +846,7 @@ function renderMd(src){
       const row=(x)=>x.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
       const head=row(l); i+=2; let body='';
       while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ body+='<tr>'+row(lines[i]).map(c=>'<td>'+mdInline(c)+'</td>').join('')+'</tr>'; i++; }
-      html+='<table><thead><tr>'+head.map(c=>'<th>'+mdInline(c)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table>'; continue;
+      html+='<div class="md-tbl"><table><thead><tr>'+head.map(c=>'<th>'+mdInline(c)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>'; continue;
     }
     if(l.trim()===''){ i++; continue; }
     let para=l; i++;
@@ -954,7 +1006,14 @@ async function delChat(id){
   if(!confirm('Delete "'+t+'"? This cannot be undone.')) return;
   await api('/api/chat?id='+id,{method:'DELETE'}); if(state.chatId===id) newChat(); else loadChats(); }
 
-function attsHtml(atts){ return atts&&atts.length?`<div class="msg-atts">${atts.map(x=>`<span class="matt">${svg('i-clip','sm')} ${esc((''+x).split('/').pop())}</span>`).join('')}</div>`:''; }
+function attsHtml(atts){
+  if(!atts||!atts.length) return '';
+  return `<div class="msg-atts">${atts.map(x=>{
+    const p=(''+x), name=p.split('/').pop();
+    return `<span class="matt" title="${esc(name)}">${svg('i-clip','sm')}<span class="matt-name">${esc(name)}</span>`
+      +`<a class="matt-dl" href="/api/raw?path=${encodeURIComponent(p)}" download="${esc(name)}" title="Download ${esc(name)}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a></span>`;
+  }).join('')}</div>`;
+}
 function userMsgEl(content, atts){
   const el=document.createElement('div'); el.className='msg user';
   const body=content?esc(content).replace(/\n/g,'<br>'):'<span class="dim">(files attached)</span>';
@@ -1025,7 +1084,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1048,7 +1107,7 @@ let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
   if(board) mapBoardOpen=true;
@@ -1080,7 +1139,7 @@ function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
@@ -1129,6 +1188,10 @@ async function renderDashboard(){
       ${A('i-ingest','Buildprint task','Operate your Bubble app','newBpChat()')}
       ${A('i-db','Bubble data','Data types, option sets, pages — live from Buildprint','showBubble()')}
       ${A('i-logo','Galaxy map','Explore the brain visually','showMap()')}
+      ${A('i-gauge','Progress Tree','46 modules in build-priority order — reorder & track',"window.open('/tree.html','crstree')")}
+      ${A('i-refresh','Activity log','Every action, timestamped — search & roll back',"window.open('/activity.html','crsactivity')")}
+      ${A('i-sparkle','Memory','What the brain always remembers — say “remember this” in chat',"window.open('/memory.html','crsmemory')")}
+      ${A('i-check','Wishlist','Brain app improvement todos — add & track',"window.open('/wishlist.html','crswishlist')")}
       ${A('i-sparkle','Weekly digest','What changed and what is next','runDigest()')}
       ${A('i-ingest','Ingest a report','Route a Buildprint update','startIngest()')}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')')}
@@ -1234,6 +1297,27 @@ function fmtDur(ms){
   const m=Math.floor(s/60); if(m<60) return m+'m '+(s%60)+'s';
   const h=Math.floor(m/60); return h+'h '+(m%60)+'m';
 }
+// Small inline icon per work-step, picked from the kind + the tool/label text.
+function stepIco(kind,hint){
+  const t=((hint||'')+'').toLowerCase();
+  let p='dot';
+  if(kind==='thinking') p='sparkle';
+  else if(/\bbash|buildprint|terminal|shell|\bnpm|\bgit\b|python|node|\$/.test(t)) p='term';
+  else if(/grep|glob|search|\bfind\b|explor|tree|context|summary|audit/.test(t)) p='search';
+  else if(/\bread|\bcat\b|view|guideline|\.md|\.json|\.js|\.css|\.html|file/.test(t)) p='doc';
+  else if(/web|fetch|http|url|search the/.test(t)) p='globe';
+  else if(/edit|write|apply|create|update|savepoint|merge/.test(t)) p='pencil';
+  const P={
+    sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
+    term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13.5 15H17"/>',
+    search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>',
+    doc:'<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
+    pencil:'<path d="M4 20l4.5-1L18 9.5 15.5 7 6 16.5z"/><path d="M14 8.5l2.5 2.5"/>',
+    dot:'<circle cx="12" cy="12" r="3"/>'
+  };
+  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(P[p]||P.dot)+'</svg>';
+}
 async function streamChat(text, opts={}){
   if(state.sending) return;
   showChat();
@@ -1259,24 +1343,44 @@ async function streamChat(text, opts={}){
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
-  // ---- work blocks: thinking / tool activity, each with a live timer ----
-  let activeCard=null, dotsShown=true;
-  const timerIv=setInterval(()=>{ if(activeCard) activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); }, 500);
+  // ---- grouped work blocks: a run of tool/thinking steps folds under one
+  //      "Worked for Xs" header; each step is a clean icon+label row, expandable ----
+  let group=null, activeStep=null, dotsShown=true;
+  const timerIv=setInterval(()=>{ if(group&&group.run) group.labelEl.textContent='Working '+fmtDur(performance.now()-group.start); }, 500);
   function clearDots(){ if(dotsShown){ answerEl.innerHTML=''; dotsShown=false; } }
-  function finalizeCard(){ if(activeCard){ activeCard.timeEl.textContent=fmtDur(performance.now()-activeCard.start); activeCard.el.classList.remove('run'); activeCard=null; } }
-  function startCard(kind,tool){
-    finalizeCard(); clearDots();
-    const el=document.createElement('div'); el.className='wblock run';
-    el.innerHTML='<button class="whead" type="button"><svg class="wchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wlabel">'+esc(wLabel(kind,tool))+'</span><span class="wtime">0s</span></button><div class="wbody"></div>';
-    el.querySelector('.whead').onclick=()=>el.classList.toggle('open');
+  function endStep(){ if(activeStep){ activeStep.el.classList.remove('run'); activeStep=null; } }
+  function finalizeCard(){   // finalize the whole active group (name kept for call sites)
+    endStep();
+    if(group){ if(group.run){ group.run=false; group.el.classList.remove('run'); group.labelEl.textContent='Worked for '+fmtDur(performance.now()-group.start); } group=null; }
+  }
+  function ensureGroup(){
+    if(group) return;
+    clearDots();
+    const el=document.createElement('div'); el.className='wgroup run open';
+    el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wglabel">Working</span></button><div class="wsteps"></div>';
+    el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
     blocksEl.appendChild(el);
-    activeCard={el,timeEl:el.querySelector('.wtime'),bodyEl:el.querySelector('.wbody'),labelEl:el.querySelector('.wlabel'),start:performance.now(),kind,text:''};
+    group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),start:performance.now(),run:true};
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
+  function startCard(kind,tool){   // start a NEW step within the current group (name kept for call sites)
+    endStep(); ensureGroup();
+    const el=document.createElement('div'); el.className='wstep run';
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(kind,tool)+'</span><span class="wstep-lbl">'+esc(wLabel(kind,tool))+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
+    activeStep={el,icoEl:el.querySelector('.wstep-ico'),labelEl:el.querySelector('.wstep-lbl'),bodyEl:el.querySelector('.wstep-body'),kind,text:''};
+    if(nearBottom()) log.scrollTop=log.scrollHeight;
+  }
+  function setStepBody(t){
+    if(!activeStep) return;
+    activeStep.text=t; activeStep.bodyEl.textContent=t;
+    activeStep.el.classList.toggle('has-body', !!t.trim());
+    if(activeStep.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight;
+  }
   function appendThink(t){
-    if(!activeCard||activeCard.kind!=='thinking') startCard('thinking');
-    activeCard.text+=t; activeCard.bodyEl.textContent=activeCard.text;
-    if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight;
+    if(!activeStep||activeStep.kind!=='thinking') startCard('thinking');
+    setStepBody(activeStep.text+t);
   }
 
   // ---- answer typewriter reveal (into answerEl); setTimeout survives hidden tabs ----
@@ -1330,10 +1434,11 @@ async function streamChat(text, opts={}){
           if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
         else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
-        else if(ev.type==='label'){ if(activeCard&&ev.text){ activeCard.labelEl.textContent=ev.text; } }
-        else if(ev.type==='detail'){ if(activeCard){ activeCard.text += (activeCard.text?'\n':'')+(ev.text||''); activeCard.bodyEl.textContent=activeCard.text; if(activeCard.el.classList.contains('open')&&nearBottom()) log.scrollTop=log.scrollHeight; } }
+        else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
+        else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
-        else if(ev.type==='delta'){ if(activeCard) finalizeCard(); full+=ev.text; }
+        else if(ev.type==='memory-saved'){ const n=(ev.entries||[]).length; if(n){ const first=ev.entries[0]; toast('🧠 Saved to memory — '+first.category+': '+first.title+(n>1?`  (+${n-1} more)`:'')); } }
+        else if(ev.type==='delta'){ if(group) finalizeCard(); full+=ev.text; }
         else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; if(mine()) state.chatId=ev.id; }
         else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
@@ -1470,9 +1575,11 @@ function renderExpl(){
 }
 
 async function openFile(p){
+  if(currentView()!=='file') state.beforeFile=currentView();
   bumpView();
   pushRecentOpened(p); loadRecentOpened();
   state.filePath=p; state.editing=false;
+  $('backBtn').style.display=''; $('downloadBtn').style.display='';
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); markView('');
   $('centerTitle').textContent=p;
@@ -1504,6 +1611,27 @@ function toggleEdit(){
 async function saveFile(){
   await api('/api/file',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:state.filePath,content:$('fileEdit').value})});
   toast('Saved  ·  '+state.filePath); state.editing=false; $('saveBtn').style.display='none'; $('editToggle').classList.remove('on'); openFile(state.filePath);
+}
+// Download the currently-open file (any type — served raw with a forced filename).
+function downloadFile(){
+  if(!state.filePath) return;
+  const a=document.createElement('a');
+  a.href='/api/raw?path='+encodeURIComponent(state.filePath);
+  a.download=state.filePath.split('/').pop();
+  document.body.appendChild(a); a.click(); a.remove();
+}
+// Which center view is showing right now (used to return there via Back).
+function currentView(){
+  if($('fileView').style.display!=='none') return 'file';
+  if($('mapView').style.display!=='none') return 'map';
+  if($('bubbleView').style.display!=='none') return 'bubble';
+  if($('dashView').style.display!=='none') return 'dash';
+  return 'chat';
+}
+// Back out of the file preview to wherever the user was.
+function goBack(){
+  const v=state.beforeFile;
+  if(v==='chat') showChat(); else if(v==='map') showMap(); else if(v==='bubble') showBubble(); else showDashboard();
 }
 
 // ---------- progress ----------
@@ -1621,7 +1749,7 @@ async function showBubble(){
   bumpView();
   $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
   $('centerCol').classList.remove('map-mode');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none';
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('bubbleView').style.display='flex';
   $('centerTitle').textContent='Bubble data'; markView('');
   if(innerWidth<=900) mob(null);
@@ -1911,11 +2039,25 @@ function openFromHash(){
     setTab('files'); openFile(p);
   } else if(location.hash.startsWith('#explore=')){
     openExpl(decodeURIComponent(location.hash.slice(9)));
+  } else if(location.hash==='#bp-compose'){
+    consumeBpCompose();
   }
 }
+// A prompt handed off from the Progress Tree: open a NEW Buildprint chat with it
+// pre-filled in the composer, ready for the user to review + send.
+function consumeBpCompose(){
+  let p=''; try{ p=localStorage.getItem('crs_bp_compose')||''; }catch(e){}
+  if(!p) return;
+  try{ localStorage.removeItem('crs_bp_compose'); }catch(e){}
+  if(history.replaceState) history.replaceState(null,'',location.pathname+location.search); // drop #bp-compose
+  newBpChat();
+  const inp=$('input'); if(inp){ inp.value=p; inp.dispatchEvent(new Event('input')); inp.focus(); inp.setSelectionRange(0,0); inp.scrollTop=0; }
+}
+// Cross-window handoff: the Tree (a separate window) posts this to its opener (this app).
+addEventListener('message',e=>{ if(e.origin===location.origin && e.data && e.data.type==='bp-compose') consumeBpCompose(); });
 addEventListener('keydown',e=>{ if(e.key==='Escape'&&$('explWrap').classList.contains('show')) closeExpl(); });
 addEventListener('hashchange',openFromHash);
-(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
+(async function(){ loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

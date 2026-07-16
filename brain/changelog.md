@@ -16,6 +16,49 @@ One-file sync. `git name-status` shows exactly one change: `M settings/client-sa
 
 Needs Vlad: if key-level history of client-safe.json matters, either approve `git diff` interactively next session or say the word and I'll keep a plain-text baseline copy of the file in crs-progress for future diffing.
 
+## 2026-07-16 — Added 10 users across 10 departments (test DB data write)
+
+Batch data write on the test branch: 10 User records via `buildprint data create user`, each linked to an existing Employee from a distinct department, with a randomly assigned role (Super Admin excluded from the random pool). Same field pattern as the Hakan record; property defaulted to standard `1777600688821x296736103093115700` (employees carry no property field). No passwords set — login needs reset/invite.
+
+| Username | Email | Dept | Role |
+|---|---|---|---|
+| Teona Beridze | teona.beridze@crs.casino | Cage | CCTV Operator |
+| Irakli Loria | irakli.loria@crs.casino | F&B | Casino Shift Manager |
+| Maia Turmanidze | maia.turmanidze@crs.casino | Housekeeping | CCTV Supervisor |
+| Amiran Iremadze | amiran.iremadze@crs.casino | Technical Maintenance | CCTV Asst. Manager |
+| Tamta Tsetskhladze | tamta.tsetskhladze@crs.casino | Live Game | CCTV Manager |
+| Omar Goliuki | omar.goliuki@crs.casino | Security | Casino Pit Boss |
+| Tamar Mrevlishvili | tamar.mrevlishvili@crs.casino | Human Resources | Casino Manager |
+| Tengiz Davitadze | tengiz.davitadze@crs.casino | IT | Property Admin |
+| Davit Kublashvili | davit.kublashvili@crs.casino | Finance | CCTV Operator |
+| Ana Torchinava | ana.torchinava@crs.casino | Corporate & Legal Affairs | Casino Shift Manager |
+
+- All 10 employees confirmed to have no prior user link before creation. Verified post-write via Created-Date-desc fetch.
+- Env note: Python/Node are not permission-allowlisted in this workspace, so selection/dedup was done with buildprint queries + Grep rather than a script.
+
+## 2026-07-16 — Added user Hakan Dagtas (test DB data write)
+
+Created one User record on the test branch via `buildprint data create user` (data write, not a structure/apply change — no savepoint coverage).
+
+- New User `1784160880823x840719729024083600`: username "Hakan Dagtas", email `hakan.dagtas@crs.casino`, role **Casino Manager** (`1781297183409x538108718105358800`), property `1777600688821x296736103093115700`, linked to Employee "Hakan Dagtas" (`1745859145980x114721783901847550`, dept **Senior Management** `1711124559469x986187671739301900`). Flags: is_active, must_change_password, dark_theme all true; Bubble auto-set user_signed_up.
+- Vlad picked "any employee under Senior Management / any role, change later"; Hakan Dagtas was the match. Role Casino Manager per original ask.
+- No existing user was linked to that employee beforehand (checked). No password set — login requires a reset/invite through the app.
+- Note: DB holds ~21 user records while the UM page shows 19 (page filters some out). CLI quirk: search by `username`/`employee` field aliases intermittently errored ("missing field on type User"); verified via Created-Date-desc fetch instead.
+
+## 2026-07-15 — Product status consolidated into the brain + Progress Tree page
+
+Pulled the scattered progress/design/module docs off the Desktop `Files` export (215 files across V0–V7) into the brain as the canonical, dated set. Ended the three-way "progress" name collision.
+
+- **brain/STATUS.md** — NEW canonical CRS *product* build tracker. Reconciled from the June-8 `progress.md` board + June-11 UM session handoff + the 2026-07-15 live-Bubble inventory. Keeps the V6 skeleton (status vocab, NOW/NEXT/BLOCKED, all-46 Core-7 table, full-18 for active modules) and adds §0.5 "as-built reality check" (0/46 Pattern A, 39 public DTs, 06 Employee PII). Flags UM items to verify in the live app.
+- **brain/modules/** — NEW. Preserved 4 orphaned canonical docs that existed only on the Desktop: Casino Settings + Roles & Permissions technical references and user manuals. (R&P tech ref = the per-module template.)
+- **brain/security-test-checklist.md** — NEW. The standing STRUCT/POS/NEG per-module security gate (was Desktop-only).
+- **PROGRESS.md → crs-brain/BRAIN_APP_PROGRESS.md** — renamed to kill the product-vs-tool collision (it tracks the Brain *tool*, not the product). README + this INDEX updated.
+- **crs-brain/data/progress.json** — refreshed from 2026-05-02 (stale) to current foundation-refactor state (Now: UM security pass; Done: R&P, Casino Settings, Design System).
+- **crs-brain/data/modules.json + public/tree.html** — NEW "Progress Tree" page: all 46 modules in build-priority order (foundation-4 first), reorder via drag or ↑↓, click-to-cycle status, auto-saves. Seeded from data/CRS_Module_OptionSets.xlsx + STATUS.md.
+- **Not touched: decisions.md** (append-only, Vlad's). Design.md and the Blueprint were already newest in the repo — Desktop copies were older; nothing pulled.
+
+## 2026-07-15 — Dev-tracking files refreshed against the inventory
+
 Follow-up pass routing the inventory into the remaining development files:
 
 - **migrations.md** — new "As-built facts" section (schema gaps precede backfill; country-migration machinery exists; guest first_letter backfill done 2026-07-11); Report-cleanup scope updated to confirmed numbers; "Completed / to retire" table; rules retargeted from dev→test branch; pending updated (record counts still unknown — structure-only tool; no RE_CasinoSettings page found).

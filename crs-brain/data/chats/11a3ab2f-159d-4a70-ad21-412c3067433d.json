@@ -1,0 +1,21 @@
+{
+  "id": "11a3ab2f-159d-4a70-ad21-412c3067433d",
+  "title": "can you tell me what has changed in brain app today in terms",
+  "sessionId": "2cdef9d1-dafe-4216-b743-1ed9863ad47b",
+  "bp": false,
+  "created": "2026-07-16T01:43:07.570Z",
+  "updated": "2026-07-16T01:43:28.953Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "can you tell me what has changed in brain app today in terms of features functionality bla bla bla, give me shortlist if you can",
+      "ts": "2026-07-16T01:43:07.570Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's what actually shipped to the CRS Brain app today (2026-07-16) — grouped, ignoring the auto-named chat-prompt commits:\n\n**Buildprint chat — safety & capability**\n- Hard safety gate on the Buildprint chat + readable bp responses (`a0e7ec7`)\n- Enforce plan → (savepoint → apply → check) per-step loop (`f9c1613`)\n- Gave the agent \"eyes\" — screenshots, browser checks, theme testing (`375e3af`)\n- Sped it up — allow local Node/Python scripting (`10d0550`)\n- Disabled Buildprint auto-sync (`bpAutoTrack: false`) (`8f62b22`)\n\n**Safety / recovery**\n- Action log + savepoint-based rollback (`063cd6c`)\n- Persistent memory (\"never-forget\", always honored) (`1c11459`)\n\n**Wishlist feature**\n- Added Improvements Wishlist + session log (`234b2fa`)\n- Task-loop auto-resume + auto-fix Bubble issues (`b693d34`)\n- New standalone `wishlist.html` page (uncommitted, plus edits in flight)\n\n**Chat/UI polish**\n- Claude-style responses, Back button far left, file hover-download (`427e08b`)\n- Modern readable chat tables (`3e77893`)\n- Agent activity grouped into Buildprint-style \"Worked for Xs\" blocks (`161cf4e`)\n- File viewer — Download + Back buttons (`1378414`)\n\n**Prompt-generation system (new)**\n- PROMPT-STANDARD.md + 4 templates (audit/edit/pilot/reply), wired into CLAUDE.md (`7f6e2ef`, `9dd7758`, `c7bc311`)\n\n**Ingest**\n- Fixed ingest to embed report content inline (stop the file-hunt) (`65287f1`)\n\n**Still uncommitted right now:** `server.js`, `public/index.html`, `WISHLIST.md`, `decisions.md`, and a new `public/wishlist.html`.\n\nWant me to look inside the uncommitted changes to tell you what's mid-flight?",
+      "ts": "2026-07-16T01:43:28.953Z"
+    }
+  ]
+}
