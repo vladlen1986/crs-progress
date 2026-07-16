@@ -11,7 +11,7 @@
       "title": "Daily Bubble forum check",
       "detail": "Once a day, scan the Bubble forum and update the brain's Bubble-forum documents (brain/bubble/) with anything new/relevant (plugins, gotchas, patterns, breaking changes). Append to a dated digest, not overwrite.",
       "priority": "P1",
-      "status": "idea",
+      "status": "in-progress",
       "order": 0,
       "ts": "2026-07-16T01:44:16.489Z"
     },
