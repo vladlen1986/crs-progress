@@ -66,14 +66,14 @@
       "ts": "2026-07-16T01:44:16.489Z"
     },
     {
-      "id": "w-modelrouting",
-      "section": "Automation / agent behavior",
-      "title": "Smart model routing - save tokens, best model per task",
-      "detail": "Stop running Opus on everything. Automatically pick the most cost-effective capable model per task: cheap/fast (Haiku 4.5 / Sonnet 5, lower effort) for mechanical/bulk work (data selection, dedup, bulk creates, simple edits, prompt formatting), and Opus 4.8 with higher reasoning effort ONLY for architecture, security, privacy-rule, and hard-reasoning work. A quick classifier pass (a tiny Opus reasoning step) can judge the task complexity and route it. Goal: minimize tokens/cost while keeping quality. The app already exposes per-chat model + effort selectors - this makes the choice automatic. (Note: bp-chat mechanical tasks already run faster on Sonnet 5 / Medium per BRAIN_APP_PROGRESS.md.)",
+      "id": "w-fsbf5e",
+      "section": "App features / UX",
+      "title": "In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the cli",
+      "detail": "",
       "priority": "P1",
       "status": "idea",
       "order": 6,
-      "ts": "2026-07-16T01:56:13.979Z"
+      "ts": "2026-07-16T01:56:41.997Z"
     }
   ]
 }
