@@ -23,6 +23,31 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-07-16 (cont. 2) — cross-platform guardrails + wishlist build-out
+
+Mac ⇄ Windows portability hardening, then shipped the top wishlist items. Nothing committed yet (review the working tree, then commit — code changes are in `crs-brain/server.js`, `public/wishlist.html`, new `doctor.js` / `.gitattributes` / `brain/reference/`).
+
+### What was built
+1. **Cross-platform "runs on both at all times" guardrails.** Audited every `process.platform` branch (claude spawn, auth login, `/api/open`, browser open) — all correct. Confirmed `node-pty` ships prebuilds for darwin-arm64/x64 + win32-x64/arm64 and `node_modules/` is gitignored, so each machine installs fresh (no compiler needed).
+   - **`.gitattributes`** (new) — locks line endings: `*.command`/`*.sh`/`*.js` = LF, `*.bat` = CRLF, `*.node`/`*.dll`/`*.exe` = binary. Prevents a Windows commit from rewriting `start.command` to CRLF and breaking the Mac launcher (`bad interpreter: /bin/bash^M`).
+   - **`doctor.js`** (new) — zero-dep health check. `node doctor.js` verifies Node ≥ 18, the node-pty prebuild for the current platform, `claude` on PATH, the correct launcher with LF endings, and port state. Exits non-zero on any critical fail. Passes green on the Mac.
+2. **Wishlist → Claude Code prompt generator** (`w-fsbf5e`, DONE). Each wishlist card has a terminal-icon button that turns the idea into a complete, paste-ready Claude Code prompt (objective → tasks → assumptions → locked rules baked in → file list → acceptance criteria), grounded in an inlined `CRS_BRAIN_ARCH` context so the prompt is self-contained. Copies to clipboard + shows a preview modal (Esc/Copy/Close). Endpoint `POST /api/wishlist/prompt {id}` → `WL_CC_PROMPT` system prompt via `runClaudeStream`. Verified end-to-end (21s, real prompt output).
+3. **Smart model routing** (`w-modelrouting`, DONE). `settings.autoRoute` (default OFF). `classifyTask()` is a fast, free keyword heuristic → `routeModel()`: mechanical/bulk work (rename, dedup, format, **prompt generation**, summarize) → Haiku 4.5 / Sonnet 5 + low effort; architecture / security / privacy / migration / debug / reasoning → Opus 4.8 + high. **Conservative:** ambiguous tasks keep the user's configured default — quality is never traded for tokens. Wired into the wishlist prompt generator (routed → Haiku, verified). Toggle persists via `PUT /api/settings {autoRoute}`.
+4. **Bubble platform awareness watcher** (`w-forum` + `w-relnotes`, IN PROGRESS — mechanism shipped, opt-in). `settings.bubbleWatch` (default OFF) + daily gate (`bubbleCheckedAt`, checked hourly like `maybeSyncManuals`). `runBubbleDigest()` spawns claude with WebSearch/WebFetch (`BUBBLE_DIGEST_PROMPT`, Sonnet/low) to scan `bubble.io/release-notes` + the forum for **CRS-relevant** changes and **APPENDS** a dated section to `brain/bubble/watch/digest.md` (never overwrites); prefixes `⚠️ FLAG:` when a change touches a locked decision. Manual trigger: `POST /api/bubble/digest`. The prompt explicitly hunts for **style-swapping in conditions** + **global expressions** (`w-styleswap`, `w-globalexpr`) on each run — those get documented on the first live run.
+5. **AI tools & capabilities reference** (`w-anr0tw`, DONE). New `brain/reference/claude-code-capabilities.md` — documents the Brain agent's actual spawn sandbox (allow-listed tools + `bp-guard`), the broader Claude Code tool surface, the skill library, models + routing, and what the spawned agent can/can't do. Makes the brain aware of its own capability envelope.
+
+### Still open (not rushed — flagged honestly)
+- **`w-loops` — task loops with limit-aware auto-resume (P1).** Not built. It's a durable task queue + reset-time detection (usage.json already captures the reset) + a resumable autonomous run loop that MUST stay inside the Buildprint safety gate (plan → savepoint → apply → check). High-value but the riskiest item; deserves its own focused session rather than a rushed half-build.
+- **`w-bugfix` — auto-check + fix Bubble.io-reported issues (P2).** Not built. Needs programmatic access to Bubble's Issue Checker / editor logs, which the app doesn't have yet; start read-only (report proposed fixes) before ever auto-applying.
+- **`w-styleswap` / `w-globalexpr`** — will be populated by the Bubble watcher's first live run (enable `bubbleWatch` or hit `POST /api/bubble/digest`); can also be researched directly on request.
+
+### Next up
+- Build `w-loops` (auto-resume engine) as its own session.
+- Enable `bubbleWatch` and do a first digest run to populate `brain/bubble/watch/digest.md` + document style-swap / global-expressions.
+- Optionally add a small Settings UI toggle for `autoRoute` + `bubbleWatch` + a "Check Bubble now" button (endpoints already exist).
+
+---
+
 ## Session 2026-07-16 (cont.) — Buildprint-style activity blocks, action log + rollback, wishlist
 
 Follow-on to the session below. All committed to `main` (still NOT pushed — push via GitHub Desktop).
