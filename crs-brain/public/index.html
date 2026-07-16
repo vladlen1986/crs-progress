@@ -626,7 +626,16 @@
   .expl-x{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);font-size:15px;cursor:pointer;flex:0 0 auto}
   .expl-x:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .expl-side{grid-area:side;border-right:1px solid var(--line);overflow:auto;padding:8px 6px;font-size:12.5px}
-  .expl-side .qa{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 8px 4px}
+  .expl-side .shead{display:flex;align-items:center;gap:4px;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 6px 4px;cursor:pointer;user-select:none;border-radius:6px}
+  .expl-side .shead:hover{color:var(--secondary)}
+  .expl-side .shead .sch{width:10px;height:10px;display:inline-flex;transition:transform .12s}
+  .expl-side .shead.closed .sch{transform:rotate(-90deg)}
+  .expl-side .shead .sch svg{width:10px;height:10px;fill:none;stroke:currentColor;stroke-width:2.6}
+  .expl-side .sbody.closed{display:none}
+  .expl-tree .en.broken{opacity:.45}
+  .expl-tree .en .fx{margin-left:auto;flex:0 0 auto;width:16px;height:16px;border:0;background:none;color:var(--muted);cursor:pointer;border-radius:4px;display:none;align-items:center;justify-content:center;font-size:11px;padding:0}
+  .expl-tree .en:hover .fx{display:inline-flex}
+  .expl-tree .en .fx:hover{color:var(--danger)}
   .expl-tree .en{display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;color:var(--secondary);cursor:default;white-space:nowrap;user-select:none}
   .expl-tree .en:hover{background:var(--panel2)}
   .expl-tree .en.on{background:var(--accent-tint);color:var(--primary)}
@@ -2070,17 +2079,31 @@ function renderExpl(){ if(!$('explWin')) return;
   $('explVList').classList.toggle('on',EX.view==='list'); $('explVGrid').classList.toggle('on',EX.view==='grid');
   $('explRecur').classList.toggle('on',EX.recursive); $('explSearchBox').classList.toggle('has',!!EX.q);
 }
+// favorites — persist like sort/view prefs (localStorage)
+function explFavs(){ try{ return JSON.parse(localStorage.getItem('exFavs'))||[]; }catch{ return []; } }
+function explSaveFavs(a){ localStorage.setItem('exFavs', JSON.stringify(a)); }
+function explIsFav(p){ return explFavs().includes(p); }
+function explFavToggle(p){ const a=explFavs(); const i=a.indexOf(p); i>=0?a.splice(i,1):a.push(p); explSaveFavs(a); renderExpl(); toast(i>=0?'Removed from Favorites':'Added to Favorites'); }
+function explNodeByPath(p){ if(!p) return {type:'dir',path:'',name:'/'}; let nodes=EX.tree,node=null;
+  for(const part of p.split('/')){ node=(nodes||[]).find(n=>n.name===part); if(!node) return null; nodes=node.children; } return node; }
+function explSideCol(){ try{ return JSON.parse(localStorage.getItem('exSideCol'))||{}; }catch{ return {}; } }
+function explToggleSection(key){ const c=explSideCol(); c[key]=!c[key]; localStorage.setItem('exSideCol',JSON.stringify(c)); renderExpl(); }
 function renderSideHtml(){
+  const col=explSideCol();
+  const sec=(key,label,inner)=>`<div class="shead${col[key]?' closed':''}" data-sec="${key}"><span class="sch"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></span>${esc(label)}</div><div class="sbody${col[key]?' closed':''}">${inner}</div>`;
   const walk=(nodes,depth)=>{ let h=''; for(const n of (nodes||[]).filter(x=>x.type==='dir').sort((a,b)=>a.name.localeCompare(b.name))){
     const open=EX.open.has(n.path), hasKids=(n.children||[]).some(c=>c.type==='dir');
     h+=`<div class="en${open?' open':''}${EX.path===n.path?' on':''}" data-path="${esc(n.path)}" data-dir="1" style="padding-left:${5+depth*11}px"><span class="tw" data-tw="1">${hasKids?'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>':''}</span><span class="ti">${_EGL.folder}</span><span class="tn">${esc(n.name)}</span></div>`;
     h+=`<div class="kids${open?' open':''}">${open?walk(n.children,depth+1):''}</div>`; } return h; };
   const qa=['brain','audits','generated','specs','modules'].filter(p=>nodeExistsIn(explRoot(),p));
   let h='';
-  if(qa.length){ h+='<div class="qa">Quick access</div>'; for(const p of qa) h+=`<div class="en${EX.path===p?' on':''}" data-path="${esc(p)}" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">${esc(p.split('/').pop())}</span></div>`; }
-  h+='<div class="qa">'+esc(state.repoName||'Project')+'</div>';
-  h+=`<div class="en${EX.path===''?' on':''}" data-path="" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">/</span></div>`;
-  return h+walk(explRoot(),0);
+  if(qa.length) h+=sec('qa','Quick access', qa.map(p=>`<div class="en${EX.path===p?' on':''}" data-path="${esc(p)}" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">${esc(p.split('/').pop())}</span></div>`).join(''));
+  const favs=explFavs();
+  if(favs.length) h+=sec('fav','Favorites', favs.map(p=>{ const n=explNodeByPath(p);
+    if(!n) return `<div class="en broken" data-brokenfav="${esc(p)}"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn" title="${esc(p)} (missing)">${esc(p.split('/').pop()||p)}</span><button class="fx" title="Remove from Favorites">✕</button></div>`;
+    return `<div class="en${EX.path===p?' on':''}" data-fav="${esc(p)}" data-dir="${n.type==='dir'?1:0}"><span class="tw"></span><span class="ti">${n.type==='dir'?_EGL.folder:ticon(n)}</span><span class="tn">${esc(n.name)}</span><button class="fx" title="Remove from Favorites">✕</button></div>`; }).join(''));
+  const tree=`<div class="en${EX.path===''?' on':''}" data-path="" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">/</span></div>`+walk(explRoot(),0);
+  return h+sec('tree', state.repoName||'Project', tree);
 }
 function renderMainPane(){
   const m=$('explMain'); m.className='expl-main'+(EX.view==='grid'?' grid':'');
@@ -2140,7 +2163,12 @@ function explSetupMain(){
     explPaintSel();
   });
   m.addEventListener('dblclick',(e)=>{ if(e.target.closest('.expl-rename')) return; const el=e.target.closest('[data-path]'); if(!el) return; el.dataset.dir==='1'?explGoto(el.dataset.path):explOpenFile(el.dataset.path); });
-  $('explSide').addEventListener('click',(e)=>{ const tw=e.target.closest('.tw[data-tw]'); const en=e.target.closest('.en[data-path]'); if(!en) return;
+  $('explSide').addEventListener('click',(e)=>{
+    const sh=e.target.closest('.shead[data-sec]'); if(sh){ explToggleSection(sh.dataset.sec); return; }
+    const fx=e.target.closest('.fx'); if(fx){ const host=fx.closest('[data-fav],[data-brokenfav]'); const p=host.dataset.fav||host.dataset.brokenfav; explFavToggle(p); return; }
+    const fav=e.target.closest('.en[data-fav]'); if(fav){ fav.dataset.dir==='1'?explGoto(fav.dataset.fav):explOpenFile(fav.dataset.fav); return; }
+    if(e.target.closest('.en[data-brokenfav]')) return;   // broken favorite: only the ✕ acts
+    const tw=e.target.closest('.tw[data-tw]'); const en=e.target.closest('.en[data-path]'); if(!en) return;
     if(tw){ const p=en.dataset.path; EX.open.has(p)?EX.open.delete(p):EX.open.add(p); renderExpl(); return; } explGoto(en.dataset.path); });
   m.addEventListener('keydown', explKey);
   m.addEventListener('contextmenu',(e)=>{ e.preventDefault(); hidePeek(); const el=e.target.closest('[data-path]');
@@ -2209,8 +2237,9 @@ function explBuildMenu(target){
   }
   const node=explVisible().find(n=>n.path===target)||{type:'file'};
   const multi=EX.sel.size>1;
-  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
-  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
+  const favItem=mi(explIsFav(target)?'Remove from Favorites':'Add to Favorites','fav');
+  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+favItem+mi('Copy path','copypath')+mi('Properties','props');
+  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+favItem+mi('Copy path','copypath')+mi('Properties','props');
 }
 async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
 function explSelectPath(p){ EX.sel=new Set([p]); EX.cur=p; renderExpl(); }
@@ -2227,6 +2256,7 @@ async function explAct(act,target){
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }
     else if(act==='paste'){ await explPaste(); }
     else if(act==='delete'){ await explDelete(); }
+    else if(act==='fav'){ if(target!=null) explFavToggle(target); }
     else if(act==='copypath'){ try{ await navigator.clipboard.writeText(target); }catch{} toast('Path copied'); }
     else if(act==='props'){ explProps(target); }
     else if(act==='selall'){ EX.sel=new Set(explVisible().map(n=>n.path)); renderExpl(); }
