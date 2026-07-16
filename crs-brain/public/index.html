@@ -705,6 +705,11 @@
   .filepeek .pk-md h1,.filepeek .pk-md h2,.filepeek .pk-md h3{font-size:13px;color:var(--primary);margin:.3em 0}
   .filepeek .pk-md *{max-width:100%}
   .filepeek .pk-none{height:210px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);font-size:12px}
+  .filepeek .pk-kids{height:210px;overflow:hidden;padding:12px 13px;display:flex;flex-direction:column;gap:7px}
+  .filepeek .pk-krow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--secondary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .filepeek .pk-krow .tico{width:15px;height:15px}
+  .filepeek .pk-krow .tico svg{width:15px;height:15px}
+  .filepeek .pk-kempty{color:var(--muted);font-size:12px;padding:8px 2px}
   .filepeek .pk-load{color:var(--muted);font-size:12px}
   .filepeek .pk-foot{display:flex;align-items:center;gap:8px;padding:8px 12px;border-top:1px solid var(--line)}
   .filepeek .pk-foot .nm{color:var(--primary);font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
@@ -2361,23 +2366,37 @@ function hidePeek(){ clearTimeout(peekTimer); peekPath=null; if(peekEl) peekEl.c
 // Delegated hover on the explorer grid — files (data-path) only, short delay to avoid flicker.
 function setupExplPeek(){
   const grid=$('explMain'); if(!grid || grid._peekWired) return; grid._peekWired=true;
-  const FILE='.expl-row[data-dir="0"],.expl-item[data-dir="0"]';   // preview files only, not folders
-  grid.addEventListener('mouseover',(e)=>{ const it=e.target.closest(FILE); if(!it) return; if(it.dataset.path===peekPath) return; clearTimeout(peekTimer); const p=it.dataset.path; peekTimer=setTimeout(()=>showPeek(it,p), 320); });
-  grid.addEventListener('mouseout',(e)=>{ const it=e.target.closest(FILE); if(it && !it.contains(e.relatedTarget)) hidePeek(); });
+  const SEL='.expl-row[data-path],.expl-item[data-path]';   // files AND folders preview
+  grid.addEventListener('mouseover',(e)=>{ const it=e.target.closest(SEL); if(!it) return; if(it.dataset.path===peekPath) return; clearTimeout(peekTimer); const p=it.dataset.path, mx=e.clientX; peekTimer=setTimeout(()=>showPeek(it,p,mx), 350); });
+  grid.addEventListener('mouseout',(e)=>{ const it=e.target.closest(SEL); if(it && !it.contains(e.relatedTarget)) hidePeek(); });
   grid.addEventListener('scroll',hidePeek,{passive:true});
+  grid.addEventListener('keydown',hidePeek,{capture:true});   // hides immediately on any key
 }
-function positionPeek(el, itemEl){
-  const r=itemEl.getBoundingClientRect(), pw=el.offsetWidth||300, ph=el.offsetHeight||270, gap=12;
-  let left=r.right+gap; if(left+pw>innerWidth-8) left=r.left-pw-gap; if(left<8) left=Math.max(8, Math.min(r.left, innerWidth-pw-8));
-  let top=Math.max(8, Math.min(r.top+r.height/2-ph/2, innerHeight-ph-8));
-  el.style.left=left+'px'; el.style.top=top+'px';
+// Anchor the card to the hovered item: above it when space allows, below when
+// not — centered near the cursor X, never covering the item, never off-viewport.
+function positionPeek(el, itemEl, mx){
+  const r=itemEl.getBoundingClientRect(), pw=el.offsetWidth||300, ph=el.offsetHeight||270, gap=10;
+  let left=(mx!=null? mx-pw/2 : r.left+r.width/2-pw/2);
+  left=Math.max(8, Math.min(left, innerWidth-pw-8));
+  let top=r.top-ph-gap;                                  // prefer above the item
+  if(top<8) top=r.bottom+gap;                            // otherwise below
+  if(top+ph>innerHeight-8) top=Math.max(8, r.top-ph-gap); // last resort: back above, clamped
+  el.style.left=left+'px'; el.style.top=Math.max(8,top)+'px';
 }
-async function showPeek(itemEl, path){
+async function showPeek(itemEl, path, mx){
   const el=ensurePeek(); peekPath=path;
   document.querySelectorAll('.peeking').forEach(x=>x.classList.remove('peeking')); itemEl.classList.add('peeking');
   const name=path.split('/').pop(), ext=extOf(name);
-  const foot=`<div class="pk-foot"><span class="nm">${esc(name)}</span><span class="pk-ext">${(ext||'file').toUpperCase()}</span></div>`;
-  const paint=(media)=>{ el.innerHTML=media+foot; positionPeek(el,itemEl); el.classList.add('show'); };
+  const mkFoot=(badge)=>`<div class="pk-foot"><span class="nm">${esc(name)}</span><span class="pk-ext">${esc(badge)}</span></div>`;
+  let foot=mkFoot((ext||'file').toUpperCase());
+  const paint=(media)=>{ el.innerHTML=media+foot; positionPeek(el,itemEl,mx); el.classList.add('show'); };
+  // folders: list the first 8 children + "N items"
+  if(itemEl.dataset.dir==='1'){
+    const node=explNodeByPath(path), kids=(node&&node.children)||[];
+    foot=mkFoot(kids.length+' item'+(kids.length===1?'':'s'));
+    const rows=kids.slice(0,8).map(k=>`<div class="pk-krow">${ticon(k)}<span>${esc(k.name)}</span></div>`).join('');
+    paint(`<div class="pk-kids">${rows||'<div class="pk-kempty">Empty folder</div>'}</div>`); return;
+  }
   if(isImg(name)){ paint(`<div class="pk-media"><img src="/api/raw?path=${encodeURIComponent(path)}" alt=""></div>`); return; }
   if(isHtml(name)){ paint(`<div class="pk-media"><iframe class="pk-frame" sandbox="allow-same-origin" src="/api/raw?path=${encodeURIComponent(path)}"></iframe></div>`); return; }
   if(/\.(pdf|xlsx?|zip|docx?|node|dll|exe|bin|ico|woff2?|ttf)$/i.test(name)){
