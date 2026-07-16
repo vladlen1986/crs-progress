@@ -8,6 +8,27 @@ explaining the reversal and link to the original.
 
 ---
 
+## 2026-07-16 — CRS Brain UI/UX overhaul (branch `ui-ux-overhaul`)
+
+**Decision:** Rework the CRS Brain app to executive, professional-grade SaaS on a dedicated branch,
+one atomic commit per unit, verified in a headless browser. Artifacts under `crs-brain/audits/ui/`.
+
+**Key choices / deviations (design.md is authoritative — operating rule #2):**
+- Accent stays **`#3B82F6`** (design.md `--accent`); the brief's `#1D4ED8` is design.md's `--accent-active`.
+- UI font stays **Inter**; the brief's IBM Plex Sans is overridden by `tokens.css`.
+- **Right rail removed** entirely (was Usage + Build Plan + Recently Opened + Recently Edited). Usage → header
+  chip+popover; build plan → dashboard "next step" card. Rationale: the rail had no single defensible job and
+  duplicated content — a dumping ground. No replacement rail; the header + dashboard cover its useful parts.
+- **Composer is chat-only** (removed from dashboard/map/files) — the app was "chat bolted onto everything".
+- **Theme = whole-palette swap** via `:root[data-theme=…]` (mirrors Bubble conditional Style-swapping), not
+  per-property overrides.
+- **Secrets** (Claude/Buildprint/SMTP) live in gitignored `.env.local`, never committed.
+- Pre-existing mixed working-tree work was consolidated into initial branch commits grouped by file/concern;
+  subsequent work is atomic per unit.
+
+**Alternatives considered:** keep a slimmed right rail (rejected — no single job); switch accent to #1D4ED8
+(rejected — violates rule #2).
+
 ## 2026-07-16 — User DT is a Pattern A exception: property-only isolation (no company field)
 
 **Decision:** The `User` data type is exempt from the "both `company` AND `property`
