@@ -259,12 +259,101 @@ function loadWishlist() {
   catch { return saveWishlist(seedWishlist()); }
 }
 
-const DEFAULT_SETTINGS = { model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0 };
+const DEFAULT_SETTINGS = {
+  model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
+  theme: 'dark',                              // 'dark' | 'light'
+  notify: { inApp: true, sound: true, soundName: 'ping', email: false, emailTo: '' },
+};
 function loadSettings() {
   try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
   catch { return { ...DEFAULT_SETTINGS }; }
 }
 function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2)); }
+
+// ---- in-app notifications (bell + inbox) + optional email --------------------
+// One source of truth: an append-only JSONL store. Server events (digests,
+// watchers, errors) and client UI events both post here; the header bell reads
+// it. `notify.email` + `emailTo` triggers a best-effort email per notification.
+const NOTIF_FILE = path.join(DATA_DIR, 'notifications.jsonl');
+const NOTIF_READ_FILE = path.join(DATA_DIR, 'notifications-read.json');
+const NOTIF_LEVELS = ['info', 'success', 'warning', 'error'];
+function readNotifications(limit = 100) {
+  let lines = [];
+  try { lines = fs.readFileSync(NOTIF_FILE, 'utf8').trim().split('\n').filter(Boolean); } catch { return []; }
+  const out = [];
+  for (const l of lines.slice(-limit)) { try { out.push(JSON.parse(l)); } catch {} }
+  return out.reverse();   // newest first
+}
+function notifReadAt() { try { return JSON.parse(fs.readFileSync(NOTIF_READ_FILE, 'utf8')).at || 0; } catch { return 0; } }
+function addNotification(n) {
+  const rec = {
+    id: crypto.randomUUID().slice(0, 8), ts: nowIso(),
+    type: String((n && n.type) || 'general').slice(0, 40),
+    level: NOTIF_LEVELS.includes(n && n.level) ? n.level : 'info',
+    title: String((n && n.title) || '').slice(0, 200),
+    body: String((n && n.body) || '').slice(0, 1000),
+  };
+  try { fs.appendFileSync(NOTIF_FILE, JSON.stringify(rec) + '\n'); } catch {}
+  maybeEmailNotification(rec);
+  return rec;
+}
+// Best-effort email: pipes through the local `sendmail` if present. No external
+// deps; silently no-ops when email is off, unconfigured, or sendmail is missing.
+function maybeEmailNotification(rec) {
+  const s = loadSettings();
+  if (!s.notify || !s.notify.email || !s.notify.emailTo) return;
+  const to = String(s.notify.emailTo).trim();
+  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(to)) return;
+  const bin = resolveBin('sendmail') || '/usr/sbin/sendmail';
+  try { if (!fs.existsSync(bin)) return; } catch { return; }
+  try {
+    const child = spawn(bin, ['-t'], { stdio: ['pipe', 'ignore', 'ignore'] });
+    child.on('error', () => {});
+    const subject = `[CRS Brain] ${rec.title || rec.type}`;
+    child.stdin.write(`To: ${to}\nSubject: ${subject}\nContent-Type: text/plain; charset=utf-8\n\n${rec.title}\n\n${rec.body}\n\n— CRS Brain (${rec.level})\n`);
+    child.stdin.end();
+  } catch {}
+}
+
+// ---- smart model routing (wishlist item w-modelrouting) --------------------
+// Stop paying Opus prices for mechanical work. A fast, FREE keyword heuristic
+// picks the cheapest capable model + effort per task; only genuine reasoning
+// (architecture / security / privacy rules / debugging) escalates to Opus-high.
+// Conservative by design: the DEFAULT is escalate — a task only downgrades when
+// it clearly reads as mechanical, so quality is never traded for a few tokens.
+const MODEL_HAIKU = 'claude-haiku-4-5-20251001';
+const MODEL_SONNET = 'claude-sonnet-5';
+const MODEL_OPUS = 'claude-opus-4-8';
+// Reasoning work — MUST stay on Opus + high effort regardless of other signals.
+const HEAVY_RE = /\b(architect\w*|design\s+(?:a|the|this)|security|privacy|permission|tenant|isolation|gdpr|threat|vulnerab|migrat\w*|refactor|debug\w*|root[-\s]?cause|why\s+(?:is|does|isn'?t)|trade[-\s]?off|decide|decision|strategy|reason|prove|audit|analy[sz]e|schema\s+change)\b/i;
+// Bulk / mechanical work — safe to run cheap.
+const LIGHT_RE = /\b(rename|reformat|format\w*|dedup\w*|list|bulk|copy|paste|typo|lint|sort|extract|summar\w*|rewrite|prettify|convert|boilerplate|scaffold|stub|fill\s+in|prompt\s+for|generate\s+(?:a\s+)?prompt|clipboard)\b/i;
+
+// Classify a task string → { model, effort, reason }. hint biases the result:
+//   'mechanical' forces the light path, 'reasoning' forces the heavy path.
+function classifyTask(text, hint) {
+  const t = String(text || '');
+  if (hint === 'reasoning' || HEAVY_RE.test(t)) {
+    return { model: MODEL_OPUS, effort: 'high', reason: hint === 'reasoning' ? 'reasoning task' : 'reasoning keywords' };
+  }
+  if (hint === 'mechanical' || (LIGHT_RE.test(t) && t.length < 600)) {
+    // Very short + clearly mechanical → Haiku; longer mechanical → Sonnet for headroom.
+    if (t.length < 240) return { model: MODEL_HAIKU, effort: 'low', reason: 'short mechanical task' };
+    return { model: MODEL_SONNET, effort: 'low', reason: 'mechanical task' };
+  }
+  // Unknown / ambiguous → don't gamble on quality; use the user's configured default.
+  return null;
+}
+// Resolve the model+effort for a task. When autoRoute is off, always the user's
+// settings. When on, the classifier may downgrade; ambiguous tasks fall back to
+// settings. Returns { model, effort, routed, reason }.
+function routeModel(cfg, text, hint) {
+  const base = { model: cfg.model || MODEL_OPUS, effort: cfg.effort || 'high' };
+  if (!cfg.autoRoute) return { ...base, routed: false, reason: 'auto-route off' };
+  const c = classifyTask(text, hint);
+  if (!c) return { ...base, routed: false, reason: 'ambiguous — kept default' };
+  return { model: c.model, effort: c.effort, routed: true, reason: c.reason };
+}
 
 // ---- live usage / rate limits (via statusline capture) --------------------
 const USAGE_FILE = path.join(DATA_DIR, 'usage.json');
@@ -873,6 +962,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onBlock = hooks.onBlock || (() => {});    // work-block boundary: {kind:'thinking'|'tool', tool?}
   const onDetail = hooks.onDetail || (() => {});  // tool parameters for the current work block
   const onLabel = hooks.onLabel || (() => {});    // concise action label once tool inputs are known
+  const onUsage = hooks.onUsage || (() => {});    // running token counts { in, out }
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -917,6 +1007,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     };
     bumpIdle();
 
+    let usageIn = 0, usageOut = 0;   // running token counts for the live meter
     let toolAcc = null;   // { name, json } — accumulates streamed tool-input JSON
     function flushTool() {
       if (!toolAcc) return;
@@ -929,6 +1020,15 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       if (!ev || !ev.type) return;
       if (ev.type === 'stream_event' && ev.event) {
         const e = ev.event;
+        // running token counts for the live generation meter
+        if (e.type === 'message_start' && e.message && e.message.usage) {
+          const u = e.message.usage;
+          usageIn = (u.input_tokens || 0) + (u.cache_read_input_tokens || 0) + (u.cache_creation_input_tokens || 0) || usageIn;
+          onUsage({ in: usageIn, out: usageOut });
+        } else if (e.type === 'message_delta' && e.usage) {
+          usageOut = e.usage.output_tokens || usageOut;
+          onUsage({ in: usageIn, out: usageOut });
+        }
         if (e.type === 'content_block_start' && e.content_block) {
           flushTool();   // safety: emit prior tool detail if its stop was missed
           const cb = e.content_block;
@@ -1314,6 +1414,50 @@ function buildEditWrapper(mod, d, requestText, tasks) {
   return L.join('\n');
 }
 
+// ---- wishlist → Claude Code prompt generator (item w-fsbf5e) ----------------
+// Each wishlist card gets a button that turns the idea into a complete,
+// paste-ready Claude Code prompt for improving the Brain app itself. Grounded in
+// the app's own architecture so the generated prompt is self-contained.
+const CRS_BRAIN_ARCH = [
+  'CRS Brain is a LOCAL, single-user second-brain app for the CRS (Casino Reporting Suite) project. Stack:',
+  '- Zero-framework Node `crs-brain/server.js` (~2000 lines, port 4317, binds 127.0.0.1) + single-file pages in `crs-brain/public/` (index.html, map.html, wishlist.html, tree.html, activity.html, memory.html). One dependency: node-pty (usage panel only).',
+  '- All Claude work runs through the headless `claude` CLI on the Max subscription via `runClaudeStream(msg, sessionId, hooks, {model, effort, systemPrompt, cwd, addDirs, signal})` — NEVER API keys.',
+  '- Data is plain JSON/JSONL under `crs-brain/data/` (wishlist.json, modules.json, plans.json, settings.json, usage.json, chats/, action-log.jsonl). The knowledge ledger is markdown under repo `brain/` (INDEX.md is the retrieval map).',
+  '- Runs on BOTH macOS and Windows — every OS-specific spawn is guarded by process.platform; `.gitattributes` locks line endings; `node doctor.js` verifies a machine.',
+  'LOCKED RULES (violating these breaks the app):',
+  "- Spawn `claude` WITHOUT shell:true — use the spawnClaude() helper (cmd.exe /c wrapper on Windows). A shell concatenates args unescaped and any '(' breaks /bin/sh.",
+  '- Do NOT commit crs-brain/node_modules (breaks the other OS). Keep everything cross-platform.',
+  '- UI follows CRS design tokens: flat accent #3B82F6, border-only, active state = bg + text only (never bg+border+text). Dark theme (--bg:#181818). Never strikethrough done items.',
+  '- Buildprint edits are TEST-branch-only, plan-before-apply, savepoint→apply→check.',
+].join('\n');
+
+const WL_CC_PROMPT = [
+  'You write a single, complete, paste-ready prompt for Claude Code (the CLI coding agent) that implements ONE improvement to the CRS Brain app. Output ONLY the prompt as one markdown code block — no preamble, no explanation before or after.',
+  '',
+  'The prompt you write MUST:',
+  '- Open with a one-line objective, then the concrete task derived from the wishlist item (title + detail). If the detail is thin, infer a sensible, minimal scope and state your assumptions in a short "Assumptions" line.',
+  '- Be SELF-CONTAINED: name the exact files to touch (server.js routes/helpers, the relevant public/*.html page, data/*.json) using the architecture context given. Never reference a file the agent cannot open without saying where it is.',
+  '- Bake in the locked rules that the task touches (spawnClaude/no shell:true; cross-platform / no node_modules commits; CRS design tokens; TEST-branch-only for any Buildprint work). Only include the rules that are actually relevant.',
+  '- Prescribe the shape: backend endpoint(s) + data changes + frontend wiring, MVP-first, no over-engineering.',
+  '- End with an "Acceptance criteria" checklist (verifiable `[ ]` items) and a reminder to keep it working on BOTH macOS and Windows and to boot-test (node server.js) before finishing.',
+  '- Be concrete and tight. No motivational filler.',
+].join('\n');
+
+function buildWishlistPromptMsg(item) {
+  const detail = (item.detail || '').trim();
+  return [
+    'CRS BRAIN ARCHITECTURE (ground the prompt in this — do not restate it verbatim):',
+    CRS_BRAIN_ARCH,
+    '',
+    '---',
+    'WISHLIST ITEM to turn into a Claude Code prompt:',
+    `- Section: ${item.section}`,
+    `- Priority: ${item.priority || '—'}`,
+    `- Title: ${item.title}`,
+    detail ? `- Detail:\n${detail}` : '- Detail: (none given — infer a minimal, sensible scope and note assumptions)',
+  ].join('\n');
+}
+
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
 function serveStatic(res, urlPath) {
@@ -1549,6 +1693,7 @@ const server = http.createServer(async (req, res) => {
           onDetail: (t) => sse({ type: 'detail', text: t }),
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
+          onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
         }, runOpts);
         const finalText = result.text || streamed;
         chat.sessionId = result.sessionId || chat.sessionId;
@@ -1706,9 +1851,55 @@ const server = http.createServer(async (req, res) => {
         ...cur,
         model: (body.model || cur.model).toString(),
         effort: (body.effort || cur.effort).toString(),
+        autoRoute: typeof body.autoRoute === 'boolean' ? body.autoRoute : cur.autoRoute,
+        bubbleWatch: typeof body.bubbleWatch === 'boolean' ? body.bubbleWatch : cur.bubbleWatch,
+        theme: (body.theme === 'light' || body.theme === 'dark') ? body.theme : cur.theme,
+        notify: body.notify && typeof body.notify === 'object'
+          ? { ...(cur.notify || {}), ...body.notify, emailTo: String((body.notify.emailTo != null ? body.notify.emailTo : (cur.notify && cur.notify.emailTo) || '')).slice(0, 200) }
+          : cur.notify,
       };
       saveSettings(next);
       return send(res, 200, next);
+    }
+
+    // ---- notifications (bell + inbox) ----
+    if (p === '/api/notifications' && req.method === 'GET') {
+      const items = readNotifications(100);
+      const readAt = notifReadAt();
+      const unread = items.filter((n) => new Date(n.ts).getTime() > readAt).length;
+      return send(res, 200, { items, unread, readAt });
+    }
+    if (p === '/api/notifications' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      return send(res, 200, addNotification(body || {}));
+    }
+    if (p === '/api/notifications/read' && req.method === 'POST') {
+      try { fs.writeFileSync(NOTIF_READ_FILE, JSON.stringify({ at: Date.now() })); } catch {}
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/notifications/clear' && req.method === 'POST') {
+      try { fs.writeFileSync(NOTIF_FILE, ''); } catch {}
+      return send(res, 200, { ok: true });
+    }
+
+    // ---- connections: link Buildprint CLI with the user's token ----
+    if (p === '/api/connections/buildprint-link' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      const token = String((body && body.token) || '').trim();
+      if (!token) return send(res, 400, { error: 'token required' });
+      const bin = resolveBin('buildprint') || 'buildprint';
+      let done = false;
+      const child = spawn(bin, ['link', token], { cwd: REPO_ROOT, windowsHide: true });
+      let out = '';
+      child.stdout.on('data', (d) => (out += d));
+      child.stderr.on('data', (d) => (out += d));
+      child.on('error', (e) => { if (done) return; done = true; send(res, 502, { error: 'buildprint not found on PATH: ' + e.message }); });
+      child.on('close', (code) => {
+        if (done) return; done = true;
+        if (code === 0) { addNotification({ type: 'connection', level: 'success', title: 'Buildprint linked' }); send(res, 200, { ok: true }); }
+        else send(res, 502, { error: (out.trim().slice(-300)) || ('exit ' + code) });
+      });
+      return;
     }
 
     if (p === '/api/progress' && req.method === 'GET') {
@@ -1760,6 +1951,25 @@ const server = http.createServer(async (req, res) => {
       const saved = saveWishlist(body);
       autoCommit('wishlist');
       return send(res, 200, { ok: true, count: saved.items.length });
+    }
+    // Turn a wishlist idea into a complete, paste-ready Claude Code prompt (item w-fsbf5e).
+    if (p === '/api/wishlist/prompt' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const item = (loadWishlist().items || []).find((i) => i.id === (body && body.id));
+      if (!item) return send(res, 404, { error: 'wishlist item not found' });
+      const cfg = loadSettings();
+      // Writing a prompt is a mechanical transform → route to the cheap path when auto-route is on.
+      const r = routeModel(cfg, 'generate prompt: ' + item.title, 'mechanical');
+      let prompt = '';
+      try {
+        const result = await runClaudeStream(buildWishlistPromptMsg(item), null, {}, { model: r.model, effort: r.effort, systemPrompt: WL_CC_PROMPT, cwd: os.tmpdir() });
+        prompt = (result.text || '').trim();
+        // Unwrap a single outer code fence if the model added one — the client copies raw prompt text.
+        const fence = prompt.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i);
+        if (fence) prompt = fence[1].trim();
+      } catch (e) { return send(res, 502, { error: e.message }); }
+      if (!prompt) return send(res, 502, { error: 'the brain returned nothing — try again' });
+      return send(res, 200, { prompt, model: r.model, routed: r.routed });
     }
 
     // Progress Tree — priority-ordered module list (reorderable in the app). Plain
@@ -1928,6 +2138,16 @@ const server = http.createServer(async (req, res) => {
       if (r.error) return send(res, 502, { error: r.error });
       return send(res, 200, { state: bubbleState(), first: !!r.first, changed: r.changed || [], base: r.base || null, head: r.head || null });
     }
+    // Bubble platform watcher — run the release-notes/forum scan on demand (item w-forum/w-relnotes).
+    if (p === '/api/bubble/digest' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      try {
+        const r = await runBubbleDigest(body && body.since);
+        saveSettings({ ...loadSettings(), bubbleCheckedAt: Date.now() });
+        autoCommit('bubble watch → brain digest (manual)');
+        return send(res, 200, { ok: true, flagged: r.flagged, section: r.section });
+      } catch (e) { return send(res, 502, { error: e.message }); }
+    }
 
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
     if (p === '/api/attach' && req.method === 'POST') {
@@ -2078,6 +2298,57 @@ async function maybeTrackBuildprint() {
 }
 setTimeout(maybeTrackBuildprint, 150 * 1000);      // ~2.5 min after boot
 setInterval(maybeTrackBuildprint, 20 * 60 * 1000); // every 20 min; only ingests on real change
+
+// ---- Bubble platform awareness watcher (items w-forum, w-relnotes) ----------
+// Once a day (opt-in via settings.bubbleWatch, default OFF), scan Bubble's
+// release-notes + forum for anything NEW and CRS-relevant, and APPEND a dated
+// digest to brain/bubble/watch/digest.md — never overwrite. Also flags anything
+// that touches a locked CRS decision. Runs the claude CLI with web tools; the
+// same job powers the manual "Check now" endpoint below.
+const BUBBLE_WATCH_DIR = path.join(REPO_ROOT, 'brain', 'bubble', 'watch');
+const BUBBLE_WATCH_FILE = path.join(BUBBLE_WATCH_DIR, 'digest.md');
+const BUBBLE_DAY = 24 * 3600 * 1000;
+const BUBBLE_DIGEST_PROMPT = [
+  'You are the CRS Brain\'s Bubble-platform watcher. Using WebSearch and WebFetch, find what is NEW on the Bubble.io platform since the given date — check bubble.io/release-notes and the Bubble forum (forum.bubble.io) for: new/changed features, new plugins, breaking changes, gotchas, and notable patterns.',
+  '',
+  'Filter HARD to what actually matters for building CRS (a multi-tenant casino SaaS on Bubble): features that change how data, privacy rules, workflows, styling/theming, search, or performance are built. Ignore marketing, pricing, and unrelated announcements.',
+  '',
+  'Output ONLY a markdown digest section (no preamble) in this exact shape:',
+  '## <today\'s date, from the context> — Bubble digest',
+  '- **[category]** <one-line what changed> — <why it matters for CRS, or "FYI">. Source: <url>',
+  '- If something changes or unblocks a LOCKED CRS decision, prefix the line with `⚠️ FLAG:` and say which decision.',
+  '',
+  'If two specific items appear, always report their current mechanics if found: (1) swapping an element\'s whole STYLE inside a conditional (theming), (2) "global expressions". If nothing genuinely new/relevant is found, output exactly: `## <date> — Bubble digest\\n- No new CRS-relevant changes found.`',
+  'Keep it tight: at most ~12 bullets. Every claim needs a source URL you actually fetched.',
+].join('\n');
+
+let bubbleWatching = false;
+async function runBubbleDigest(sinceIso) {
+  const since = sinceIso || new Date(Date.now() - 7 * BUBBLE_DAY).toISOString().slice(0, 10);
+  const msg = `Today is ${nowIso().slice(0, 10)}. Find Bubble platform changes NEW since ${since} that matter for building CRS, and write the dated digest section.`;
+  const result = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: BUBBLE_DIGEST_PROMPT, cwd: os.tmpdir() });
+  let section = (result.text || '').trim();
+  if (!section) throw new Error('watcher returned nothing');
+  fs.mkdirSync(BUBBLE_WATCH_DIR, { recursive: true });
+  const header = fs.existsSync(BUBBLE_WATCH_FILE) ? '' : '# Bubble platform digest\n\n> Auto-appended by the CRS Brain Bubble watcher (items w-forum, w-relnotes). Newest at bottom. Never overwritten.\n\n';
+  fs.appendFileSync(BUBBLE_WATCH_FILE, header + section + '\n\n');
+  return { section, flagged: /⚠️\s*FLAG:/.test(section) };
+}
+function maybeBubbleWatch() {
+  if (bubbleWatching) return;
+  const s = loadSettings();
+  if (s.bubbleWatch !== true) return;                        // opt-in only
+  if (Date.now() - (s.bubbleCheckedAt || 0) < BUBBLE_DAY) return;  // at most daily
+  bubbleWatching = true;
+  const since = s.bubbleCheckedAt ? new Date(s.bubbleCheckedAt).toISOString().slice(0, 10) : undefined;
+  console.log('  ⟳ Bubble watcher: scanning release-notes + forum for CRS-relevant changes…');
+  runBubbleDigest(since)
+    .then((r) => { saveSettings({ ...loadSettings(), bubbleCheckedAt: Date.now() }); autoCommit('bubble watch → brain digest'); console.log(`  ⟳ Bubble digest appended${r.flagged ? ' (⚠️ contains a locked-decision FLAG)' : ''}.`); })
+    .catch((e) => console.log('  ⟳ Bubble watch failed:', e.message))
+    .finally(() => { bubbleWatching = false; });
+}
+setTimeout(maybeBubbleWatch, 200 * 1000);          // ~3.3 min after boot
+setInterval(maybeBubbleWatch, 3600 * 1000);        // hourly gate, daily action
 
 // Open the app in the default browser (Windows / macOS / Linux).
 function openBrowser(url) {
