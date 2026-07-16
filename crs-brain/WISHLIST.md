@@ -19,7 +19,8 @@ Status key: `[ ]` idea · `[~]` in progress · `[x]` done · `(P1/P2/P3)` priori
 
 ## App features / UX
 
-_(no open items)_
+- [ ] **(P2)** **Galaxy map: real reference edges from CLAUDE.md / INDEX.md**
+  Today the map links every top-level folder to the CLAUDE.MD center decoratively (folder structure only). Make the edges REAL: parse CLAUDE.md and brain/INDEX.md (and optionally decisions.md) for file/folder references and draw routing edges (visually distinct from folder edges) to exactly what they cite. Then a missing line genuinely means the brain cannot route to that knowledge - which is how Vlad already reads the map. Origin: the data-node question on 2026-07-16 (the missing line was an id-collision bug, but the expectation it violated is the right design).
 
 ## Automation / agent behavior
 
