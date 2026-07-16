@@ -11,7 +11,7 @@
       "title": "Daily Bubble forum check",
       "detail": "Once a day, scan the Bubble forum and update the brain's Bubble-forum documents (brain/bubble/) with anything new/relevant (plugins, gotchas, patterns, breaking changes). Append to a dated digest, not overwrite.",
       "priority": "P1",
-      "status": "idea",
+      "status": "in-progress",
       "order": 0,
       "ts": "2026-07-16T01:54:38.977Z"
     },
@@ -21,7 +21,7 @@
       "title": "Track bubble.io/release-notes",
       "detail": "Watch bubble.io/release-notes; Bubble ships new features constantly and the brain must stay aware. When something lands that affects how CRS is built, record it in brain/bubble/release-notes.md and flag it if it changes a locked decision or unblocks a feature. Specific features Vlad flagged have their own items below.",
       "priority": "P1",
-      "status": "idea",
+      "status": "in-progress",
       "order": 1,
       "ts": "2026-07-16T01:44:16.489Z"
     },
@@ -71,9 +71,9 @@
       "title": "Claude Code Prompt Generator for Whishlist items",
       "detail": "In improvement whishlist i wan to add button on each task that will write me full prompt for claude code that i can copy on click of a button it will generate proper prompt and will copy it to the clipboard",
       "priority": "P1",
-      "status": "idea",
+      "status": "done",
       "order": 6,
-      "ts": "2026-07-16T01:56:41.997Z"
+      "ts": "2026-07-16T07:30:00.000Z"
     },
     {
       "id": "w-anr0tw",
@@ -81,9 +81,9 @@
       "title": "Add AI TOOLS AND CAPABILITIES THAT CLAUDE CODE HAVE AND SKILLS",
       "detail": "",
       "priority": "P1",
-      "status": "idea",
+      "status": "done",
       "order": 7,
-      "ts": "2026-07-16T01:59:24.028Z"
+      "ts": "2026-07-16T07:30:00.000Z"
     },
     {
       "id": "w-modelrouting",
@@ -91,9 +91,9 @@
       "title": "Smart model routing - save tokens, best model per task",
       "detail": "Stop running Opus on everything. Auto-pick the cheapest capable model per task: Haiku 4.5 / Sonnet 5 (lower effort) for mechanical/bulk work (data selection, dedup, bulk creates, simple edits, prompt formatting), and Opus 4.8 + high reasoning effort ONLY for architecture, security, privacy-rule, and hard-reasoning work. A tiny Opus classifier pass can judge task complexity and route it. Goal: minimize tokens/cost while keeping quality.",
       "priority": "P1",
-      "status": "idea",
+      "status": "done",
       "order": 8,
-      "ts": "2026-07-16T01:57:47.518Z"
+      "ts": "2026-07-16T07:30:00.000Z"
     }
   ]
 }

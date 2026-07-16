@@ -2,5 +2,16 @@
   "model": "claude-opus-4-8",
   "effort": "high",
   "manualsCheckedAt": 1784018753224,
+  "autoRoute": false,
+  "bubbleWatch": false,
+  "bubbleCheckedAt": 0,
+  "theme": "dark",
+  "notify": {
+    "inApp": true,
+    "sound": true,
+    "soundName": "ping",
+    "email": false,
+    "emailTo": ""
+  },
   "bpAutoTrack": false
 }
