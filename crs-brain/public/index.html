@@ -314,13 +314,14 @@
   .seg2 button.on{background:var(--accent);color:#fff}
   .seg2 button:not(.on):hover{color:var(--secondary)}
   /* chat starter template cards (mode-aware) */
-  .tcards{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:580px;margin:24px auto 0}
+  .tcards{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;max-width:600px;margin:24px auto 0}
   .tcard{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;transition:.15s;font-family:inherit}
-  .tcard:hover{border-color:var(--line3);background:var(--elev)}
+  .tcard:hover{border-color:var(--accent);background:var(--elev)}
   .tcard .tct{color:var(--primary);font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:9px}
   .tcard .tct svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--accent2);flex:0 0 16px}
   .tcard .tcd{color:var(--muted);font-size:11.5px;margin-top:5px;line-height:1.45}
-  @media (max-width:560px){.tcards{grid-template-columns:1fr}}
+  @media (min-width:720px){.tcards{grid-template-columns:repeat(3,1fr);max-width:770px}}
+  @media (max-width:520px){.tcards{grid-template-columns:1fr}}
 
   /* live generation meter — elapsed + running input/output tokens */
   .genmeter{display:none;align-items:center;gap:10px;max-width:830px;margin:0 auto 8px;padding:6px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;font-size:11.5px;color:var(--secondary);width:max-content}
@@ -402,7 +403,8 @@
   .msg-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
 
   /* hero / empty */
-  .hero{max-width:460px;margin:12vh auto 0;text-align:center;animation:msgIn .5s ease both}
+  .hero{max-width:800px;margin:7vh auto 0;text-align:center;animation:msgIn .5s ease both;padding:0 16px}
+  .hero-s{max-width:520px;margin-left:auto;margin-right:auto}
   .hero-mark{width:54px;height:54px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;color:#fff;margin:0 auto 18px}
   .hero-t{color:var(--primary);font-size:20px;font-weight:650;margin-bottom:8px}
   .hero-s{color:var(--muted);font-size:13.5px;line-height:1.6}
@@ -814,6 +816,12 @@
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
   <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="4 9 8 9 13 5 13 19 8 15 4 15"/><path d="M17 8a5 5 0 0 1 0 8"/></symbol>
+  <symbol id="i-arrow-right-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l7 3v5.5c0 4.4-3 7.5-7 8.5-4-1-7-4.1-7-8.5V6z"/></symbol>
+  <symbol id="i-file-plus" viewBox="0 0 24 24"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><polyline points="14 3 14 8 19 8"/><line x1="12" y1="12" x2="12" y2="17"/><line x1="9.5" y1="14.5" x2="14.5" y2="14.5"/></symbol>
+  <symbol id="i-tool" viewBox="0 0 24 24"><path d="M14.6 6.3a3.6 3.6 0 0 0-4.9 4.9L3 18l3 3 6.8-6.7a3.6 3.6 0 0 0 4.9-4.9l-2.4 2.4-2.5-.6-.6-2.5z"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="11" width="15" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-check-circle" viewBox="0 0 24 24"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1"/><polyline points="22 4.5 12 14.5 9 11.5"/></symbol>
 </defs></svg>
 <div class="app">
   <!-- LEFT -->
@@ -1184,12 +1192,18 @@ const TEMPLATES={
     {i:'i-alert',t:'What’s blocking?',d:'Open decisions & blockers',s:'What is blocking the next module, and which decisions are still open?'},
     {i:'i-file',t:'Explain a decision',d:'Locked architecture rationale',s:'Explain the Pattern A multi-tenant decision and its trade-offs.'},
     {i:'i-check',t:'What’s missing?',d:'Gaps vs the spec',s:'What is missing for Pattern A privacy rules across the business data types?'},
+    {i:'i-arrow-right-circle',t:'What’s next?',d:'Highest-leverage task',s:'Based on the current sprint state in STATUS.md, what is the single highest-leverage task I should do next, and why?'},
+    {i:'i-grid',t:'Module status',d:'Built vs planned',s:'Give me a status snapshot of the CRS modules by section from modules.json: what is built, in progress, and still planned.'},
+    {i:'i-shield',t:'Security posture',d:'Rules & gaps',s:'Summarize the current security posture from security.md: privacy rules, permission gates, tenant scoping, and any known gaps.'},
+    {i:'i-search',t:'Last audit',d:'Findings & open items',s:'Summarize the most recent audit in audits/: key findings, functional holes, and what is still open.'},
   ],
   bp:[
-    {i:'i-search',t:'Audit a module (read-only)',d:'Report state, change nothing',s:'Run a READ-ONLY audit of a module: report its data types, privacy rules, and workflows. Do not change anything.'},
-    {i:'i-terminal',t:'Write a build prompt for…',d:'Draft a guardrailed prompt',s:'Write a Buildprint prompt to add company + property fields and a Pattern A privacy rule to a module — plan first, test branch only.'},
-    {i:'i-alert',t:'List DTs with no privacy rule',d:'Security gap scan',s:'List all data types that have no privacy rule, or whose rule does not check both company AND property.'},
-    {i:'i-check',t:'Fix pass (plan-first)',d:'Savepoint → apply → check',s:'Do a fix pass on the current module: state the plan, take a savepoint, apply ONE change, run check. Stop if check fails.'},
+    {i:'i-file-plus',t:'Write a build prompt',d:'Draft a Buildprint prompt',s:'Write a Buildprint prompt to [describe the change]. Include a compressed context header of the relevant locked decisions (Pattern A tenant isolation, permission-based access, single App page, ActivityLog), TEST/DEV branch only, the hard-stop rule (max 2 fix attempts then halt and report), and explicit verification requirements.'},
+    {i:'i-search',t:'Audit a module',d:'Read-only as-built',s:'Write a read-only, section-by-section as-built audit prompt for the [module] page — no writes, just report what is built vs specified.'},
+    {i:'i-tool',t:'Fix pass',d:'Bounded fix with hard-stop',s:'Write a Buildprint fix-pass prompt for [issue], TEST/DEV branch only, with the hard-stop rule (max 2 fix attempts then halt and report) and explicit before/after verification steps.'},
+    {i:'i-db',t:'Wire real data',d:'Replace demo data',s:'Write a Buildprint prompt to replace demo data with the real [data type], listing the expression sites and search nodes to update, TEST/DEV branch only, with verification that no demo references remain.'},
+    {i:'i-lock',t:'Add privacy rules',d:'Property-scoped + super-admin',s:'Write a Buildprint prompt to add property-scoped privacy rules plus super-admin override for [data type] (company = Current User\'s company AND property = Current User\'s property), TEST/DEV branch only, with NEG-proof verification steps.'},
+    {i:'i-check-circle',t:'Security test checklist',d:'STRUCT / POS / NEG',s:'Write a security test checklist for [module], grouped into Data Isolation / Write Authorization / Integrity & State / Identity & Audit, each item tagged STRUCT / POS / NEG.'},
   ],
 };
 function seedInput(text){ const inp=$('input'); if(!inp)return; inp.value=text; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus(); }
@@ -2461,7 +2475,7 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
 
-(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

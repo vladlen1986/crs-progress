@@ -41,6 +41,21 @@
   To enable email now: set up a local mail relay, or wait for the SMTP-send follow-up. Paste SMTP creds in
   Settings → Connections when ready.
 
+## Done (quick-action cards pass)
+- **Chat mode: 8 grounded cards** (kept the 4; added What's next / Module status / Security posture / Last audit —
+  the strongest, most grounded of the six suggested). Each seeds an editable prompt tied to real brain/ files
+  (STATUS.md, modules.json, security.md, audits/). Distinct Feather icons: gauge, alert, file, check-square,
+  arrow-right-circle, grid, shield, search.
+  - **Assumption (rule #9):** skipped "Stress-test a decision" (zap) + "Sprint snapshot" (clock) to hold at 8 and
+    avoid redundancy with existing "What's blocking?" / "What changed recently?". Easy to add later.
+- **Buildprint mode: 6 cards** — Write a build prompt / Audit a module / Fix pass / Wire real data / Add privacy
+  rules / Security test checklist. Seeds carry the compressed locked-decision context header (Pattern A,
+  permission-based, single App page, ActivityLog), TEST/DEV-only, hard-stop rule (max 2 fix attempts → halt+report),
+  and verification. Icons: file-plus, search, tool, database, lock, check-circle.
+- Reused the existing `.tcard` component + tokens; hover border → accent; grid now 2-col narrow / 3-col wide;
+  widened `.hero` (max-width 800) so 8 cards read calmly (3+3+2). Both themes + both modes verified, no console errors.
+  Screenshots: `audits/ui/quick-actions/`. Added `#view=chat` / `#view=bp` deep-links for capture.
+
 ## In progress
 - (between workstreams)
 
