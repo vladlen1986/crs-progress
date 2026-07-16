@@ -585,27 +585,90 @@
   .ftile.lg.folder svg{stroke-width:1.3}
   .ftile img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
 
-  /* Finder/Explorer-style modal */
+  /* OS-style file explorer (Finder/Windows Explorer) */
   .expl-wrap{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:70;display:none;align-items:center;justify-content:center}
   .expl-wrap.show{display:flex}
-  .expl{width:min(860px,94vw);height:min(600px,88vh);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
-  .expl-head{display:flex;align-items:center;gap:10px;padding:11px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
-  .expl-crumb{display:flex;align-items:center;gap:4px;font-size:12.5px;color:var(--secondary);overflow:hidden;flex:1;flex-wrap:wrap}
-  .expl-crumb b{color:var(--primary)}
-  .expl-crumb a{color:var(--accent2);cursor:pointer}
-  .expl-crumb .sep{color:var(--muted)}
-  .expl-head .sel{font-size:11.5px}
-  .expl-x{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);width:30px;height:30px;border-radius:7px;font-size:14px;cursor:pointer;flex:0 0 auto}
-  .expl-x:hover{color:var(--primary);border-color:var(--line2)}
-  .expl-grid{flex:1;overflow:auto;padding:16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px;align-content:start}
-  .expl-group{grid-column:1/-1;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
-  .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
-  .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 6px 10px;border-radius:9px;cursor:pointer;text-align:center;transition:.12s}
-  .expl-item:hover{background:var(--panel2)}
+  .expl{width:min(1040px,95vw);height:min(680px,90vh);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 30px 80px rgba(0,0,0,.6);display:grid;grid-template-columns:var(--sidew,204px) 1fr;grid-template-rows:auto 1fr auto;grid-template-areas:"tb tb" "side main" "side status";overflow:hidden;font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+  .expl-tb{grid-area:tb;display:flex;align-items:center;gap:7px;padding:9px 12px;border-bottom:1px solid var(--line)}
+  .expl-nav{display:flex;gap:1px}
+  .expl-nav button,.expl-tb .tbtn{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.12s}
+  .expl-nav button:hover:not(:disabled),.expl-tb .tbtn:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .expl-nav button:disabled{opacity:.3;cursor:default}
+  .expl-nav svg,.expl-tb .tbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .expl-crumb{display:flex;align-items:center;gap:1px;font-size:12.5px;color:var(--secondary);overflow:hidden;flex:1;white-space:nowrap;min-width:40px}
+  .expl-crumb b{color:var(--primary);padding:2px 5px;overflow:hidden;text-overflow:ellipsis}
+  .expl-crumb a{color:var(--secondary);cursor:pointer;padding:2px 5px;border-radius:5px;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
+  .expl-crumb a:hover{background:var(--panel2);color:var(--primary)}
+  .expl-crumb .sep{color:var(--muted);opacity:.6;flex:0 0 auto}
+  .expl-crumb a.dragover,.expl-tree .en.dragover,.expl-row.dir.dragover,.expl-item.dir.dragover{background:var(--accent-tint);box-shadow:inset 0 0 0 1px var(--accent)}
+  .expl-search{display:flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;padding:5px 9px;width:190px;flex:0 0 auto}
+  .expl-search:focus-within{border-color:var(--line3)}
+  .expl-search svg{width:14px;height:14px;stroke:var(--muted);fill:none;stroke-width:2;flex:0 0 auto}
+  .expl-search input{flex:1;min-width:0;background:none;border:0;outline:none;color:var(--primary);font:inherit;font-size:12.5px}
+  .expl-search .clr{cursor:pointer;color:var(--muted);border:0;background:none;font-size:14px;display:none;padding:0 2px}
+  .expl-search.has .clr{display:block}
+  .expl-search .rc{border:0;background:none;color:var(--muted);cursor:pointer;font-size:10px;font-weight:700;padding:1px 4px;border-radius:4px;letter-spacing:.5px}
+  .expl-search .rc.on{background:var(--accent-tint);color:var(--accent2)}
+  .expl-viewtog{display:flex;border:1px solid var(--line2);border-radius:7px;overflow:hidden;flex:0 0 auto}
+  .expl-viewtog button{width:28px;height:28px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .expl-viewtog button.on{background:var(--panel2);color:var(--accent2)}
+  .expl-viewtog svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
+  .expl-x{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);font-size:15px;cursor:pointer;flex:0 0 auto}
+  .expl-x:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .expl-side{grid-area:side;border-right:1px solid var(--line);overflow:auto;padding:8px 6px;font-size:12.5px}
+  .expl-side .qa{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 8px 4px}
+  .expl-tree .en{display:flex;align-items:center;gap:4px;padding:4px 6px;border-radius:6px;color:var(--secondary);cursor:default;white-space:nowrap;user-select:none}
+  .expl-tree .en:hover{background:var(--panel2)}
+  .expl-tree .en.on{background:var(--accent-tint);color:var(--primary)}
+  .expl-tree .en .tw{width:14px;height:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:transform .12s}
+  .expl-tree .en.open>.tw{transform:rotate(90deg)}
+  .expl-tree .en .tw svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4}
+  .expl-tree .en .ti{width:15px;height:15px;flex:0 0 auto;color:#5B9CF6;display:inline-flex}
+  .expl-tree .en .ti svg{width:15px;height:15px;display:block}
+  .expl-tree .en .tn{overflow:hidden;text-overflow:ellipsis}
+  .expl-tree .kids{display:none}
+  .expl-tree .kids.open{display:block}
+  .expl-main{grid-area:main;overflow:auto;position:relative;outline:none}
+  .expl-main.grid{padding:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:5px;align-content:start}
+  .expl-lh{display:grid;grid-template-columns:1fr 128px 78px 74px;gap:10px;position:sticky;top:0;background:var(--panel);border-bottom:1px solid var(--line);padding:7px 14px;font-size:10px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);font-weight:700;z-index:2}
+  .expl-lh span{cursor:pointer;display:flex;align-items:center;gap:3px;user-select:none}
+  .expl-lh span:hover{color:var(--secondary)}
+  .expl-lh .ar{font-size:8px}
+  .expl-list{padding-bottom:20px}
+  .expl-row{display:grid;grid-template-columns:1fr 128px 78px 74px;gap:10px;align-items:center;padding:5px 14px;font-size:13px;color:var(--secondary);cursor:default}
+  .expl-row .c1{display:flex;align-items:center;gap:9px;min-width:0}
+  .expl-row .rn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .expl-row .cmeta{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .expl-row:hover,.expl-item:hover{background:var(--panel2)}
+  .expl-row.sel,.expl-item.sel{background:var(--accent-tint)}
+  .expl-row.sel .rn,.expl-item.sel .nm{color:var(--primary)}
+  .expl-main:focus-visible .expl-row.cur,.expl-main:focus-visible .expl-item.cur{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px 9px;border-radius:9px;cursor:default;text-align:center}
   .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .expl-item:hover .nm{color:var(--primary)}
-  .expl-item.peeking{background:var(--panel2);box-shadow:0 0 0 1px var(--line3)}
-  .expl-empty{grid-column:1/-1;color:var(--muted);font-size:12.5px;padding:30px;text-align:center}
+  .expl-item.peeking{box-shadow:0 0 0 1px var(--line3)}
+  .expl-group{grid-column:1/-1;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
+  .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
+  .tico{width:16px;height:16px;display:inline-flex;flex:0 0 auto}
+  .tico svg{width:16px;height:16px;display:block}
+  .tico.lg{width:42px;height:42px} .tico.lg svg{width:42px;height:42px}
+  .tico img{width:100%;height:100%;object-fit:cover;border-radius:4px}
+  .expl-rename{background:var(--bg);border:1px solid var(--accent);border-radius:4px;color:var(--primary);font:inherit;font-size:inherit;padding:1px 4px;outline:none;width:100%;max-width:100%;box-sizing:border-box}
+  .expl-item .expl-rename{text-align:center;font-size:11px}
+  .expl-marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-tint);pointer-events:none;z-index:3;border-radius:2px}
+  .expl-status{grid-area:status;border-top:1px solid var(--line);padding:6px 14px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:14px}
+  .expl-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;pointer-events:none}
+  .expl-skel{height:24px;margin:7px 14px;border-radius:6px;background:linear-gradient(90deg,var(--panel2),var(--elev),var(--panel2));background-size:200% 100%;animation:shimmer 1.2s infinite}
+  @keyframes shimmer{to{background-position:-200% 0}}
+  @media (prefers-reduced-motion:reduce){.expl-skel{animation:none}.expl-tree .en .tw,.expl-item,.expl-row{transition:none!important}}
+  .expl-menu{position:fixed;z-index:90;min-width:194px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:0 16px 44px rgba(0,0,0,.5);padding:5px;font-size:12.5px;display:none}
+  .expl-menu.show{display:block}
+  .expl-menu button{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;color:var(--secondary);padding:6px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;text-align:left}
+  .expl-menu button:hover:not(:disabled){background:var(--accent);color:#fff}
+  .expl-menu button:disabled{opacity:.4;cursor:default}
+  .expl-menu .sh{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono)}
+  .expl-menu button:hover:not(:disabled) .sh{color:rgba(255,255,255,.7)}
+  .expl-menu .div{height:1px;background:var(--line);margin:4px 6px}
+  .expl-drag{position:fixed;z-index:95;pointer-events:none;background:var(--elev);border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--primary);box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;align-items:center;gap:7px}
   /* hover file preview ("quick look") — square card that pops beside the tile */
   .filepeek{position:fixed;z-index:80;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden;opacity:0;transform:scale(.97);transition:opacity .12s ease,transform .12s ease;pointer-events:none;display:none}
   .filepeek.show{display:block;opacity:1;transform:scale(1)}
@@ -1006,17 +1069,33 @@
 </div>
 <div class="mscrim" id="mscrim" onclick="mob(null)"></div>
 <div class="expl-wrap" id="explWrap" onclick="if(event.target===this)closeExpl()">
-  <div class="expl">
-    <div class="expl-head">
+  <div class="expl" id="explWin">
+    <div class="expl-tb">
+      <div class="expl-nav">
+        <button id="explBack" title="Back" onclick="explBack()"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+        <button id="explFwd" title="Forward" onclick="explFwd()"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></button>
+        <button id="explUp" title="Up" onclick="explUp()"><svg viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </div>
       <div class="expl-crumb" id="explCrumb"></div>
-      <select class="sel" id="explSort" title="Sort" onchange="renderExpl()">
-        <option value="name">Name</option><option value="date">Date</option><option value="type">Type</option>
-      </select>
-      <button class="expl-x" title="Close" onclick="closeExpl()">✕</button>
+      <label class="expl-search" id="explSearchBox">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="explSearch" type="text" placeholder="Search" oninput="explOnSearch()" spellcheck="false">
+        <button class="rc" id="explRecur" title="Search all subfolders" onclick="explToggleRecursive()">ALL</button>
+        <button class="clr" title="Clear" onclick="explClearSearch()">✕</button>
+      </label>
+      <div class="expl-viewtog">
+        <button id="explVList" title="List view" onclick="explSetView('list')"><svg viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg></button>
+        <button id="explVGrid" title="Grid view" onclick="explSetView('grid')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></button>
+      </div>
+      <button class="expl-x" title="Close (Esc)" onclick="closeExpl()">✕</button>
     </div>
-    <div class="expl-grid" id="explGrid"></div>
+    <div class="expl-side" id="explSide"></div>
+    <div class="expl-main" id="explMain" tabindex="0"></div>
+    <div class="expl-status" id="explStatus"></div>
   </div>
 </div>
+<div class="expl-menu" id="explMenu"></div>
+<div class="expl-drag" id="explDrag"></div>
 <div class="toast" id="toast"></div>
 <div class="ninbox" id="ninbox"></div>
 <div class="modal-wrap" id="settingsWrap" onclick="if(event.target===this)closeSettings()"><div class="modal-box" id="settingsBox"></div></div>
@@ -1849,44 +1928,169 @@ const FS = {
   duplicate(p){ return this._post('duplicate',{path:p}); },
   del(paths){ return this._post('delete',{paths}); },
 };
-let explTree=[], explPath='', explAll=false;
-async function openExpl(dir){ try{ explTree=(await api('/api/files')).tree; }catch{ explTree=[]; }
-  explPath=dir||'';
-  // Dashboard tiles link into reference dirs (brain/bubble, crs-brain/data/docs…)
-  // that the project filter hides — auto-show everything for those, else the
-  // explorer opens dead empty. Project dirs keep the normal filtered view.
-  explAll = !!explPath && !nodeExistsIn(filterTree(explTree), explPath) && nodeExistsIn(explTree, explPath);
-  $('explWrap').classList.add('show'); setupExplPeek(); renderExpl(); }
-function nodeExistsIn(root, pathStr){ let nodes=root;
-  for(const part of pathStr.split('/')){ const n=(nodes||[]).find(x=>x.type==='dir'&&x.name===part); if(!n) return false; nodes=n.children; }
-  return true; }
-function closeExpl(){ hidePeek(); $('explWrap').classList.remove('show'); }
-function explGoto(p){ explPath=p; renderExpl(); }
-function explNodeAt(pathStr){ const root=explAll?explTree:filterTree(explTree);
-  if(!pathStr) return {children:root};
-  let nodes=root, node=null;
-  for(const part of pathStr.split('/')){ node=(nodes||[]).find(n=>n.type==='dir'&&n.name===part); if(!node) return {children:[]}; nodes=node.children; }
-  return node; }
-function dateGroup(ms){ if(!ms) return 'Older'; const d=Date.now()-ms, day=864e5; if(d<day)return 'Today'; if(d<2*day)return 'Yesterday'; if(d<7*day)return 'This week'; if(d<30*day)return 'This month'; return 'Older'; }
-function explOpen(p){ if(isHtml(p)){ closeExpl(); apiOpen(p); return; } state.explReturn=explPath; closeExpl(); openFile(p); }
-function renderExpl(){
-  const node=explNodeAt(explPath), grid=$('explGrid'); grid.innerHTML='';
-  const crumb=$('explCrumb'); const parts=explPath?explPath.split('/'):[];
-  crumb.innerHTML=`<a onclick="explGoto('')">${esc(state.repoName||'Project')}</a>`; let acc='';
-  parts.forEach((p,i)=>{ acc=acc?acc+'/'+p:p; crumb.innerHTML+=`<span class="sep">›</span>`+(i===parts.length-1?`<b>${esc(p)}</b>`:`<a onclick="explGoto('${acc.replace(/'/g,"")}')">${esc(p)}</a>`); });
-  const kids=(node&&node.children)||[];
-  const dirs=kids.filter(c=>c.type==='dir').sort((a,b)=>a.name.localeCompare(b.name));
-  let files=kids.filter(c=>c.type==='file'); const sort=$('explSort').value;
-  if(sort==='date') files.sort((a,b)=>(b.mtime||0)-(a.mtime||0));
-  else if(sort==='type') files.sort((a,b)=>extOf(a.name).localeCompare(extOf(b.name))||a.name.localeCompare(b.name));
-  else files.sort((a,b)=>a.name.localeCompare(b.name));
-  if(!dirs.length&&!files.length){ grid.innerHTML='<div class="expl-empty">This folder is empty.</div>'; return; }
-  const add=(html)=>{ const t=document.createElement('template'); t.innerHTML=html.trim(); grid.appendChild(t.content.firstChild); };
-  for(const d of dirs) add(`<div class="expl-item" onclick="explGoto('${d.path.replace(/'/g,"")}')" title="${esc(d.path)}">${folderTile(true)}<span class="nm">${esc(d.name)}</span></div>`);
-  const gk = sort==='type'? (f=>extOf(f.name).toUpperCase()||'FILE') : sort==='date'? (f=>dateGroup(f.mtime)) : null;
-  let lastG=null;
-  for(const f of files){ if(gk){ const g=gk(f); if(g!==lastG){ const gd=document.createElement('div'); gd.className='expl-group'; gd.textContent=g; grid.appendChild(gd); lastG=g; } }
-    add(`<div class="expl-item" data-path="${esc(f.path)}" onclick="explOpen('${f.path.replace(/'/g,"\\'")}')" title="${esc(f.path)}">${fileTileFor(f.path,true)}<span class="nm">${esc(f.name)}</span></div>`); }
+const EX={ path:'', view:localStorage.getItem('exView')||'list', sortKey:'name', sortDir:1, sel:new Set(), cur:null,
+  hist:[], hi:-1, clip:null, q:'', recursive:false, tree:[], open:new Set(), all:false, loading:false, ta:'', taT:null };
+const jsq=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+function fmtSize(n){ if(n==null) return ''; if(n<1024) return n+' B'; if(n<1048576) return (n/1024).toFixed(n<10240?1:0)+' KB'; return (n/1048576).toFixed(1)+' MB'; }
+function fmtDate(ms){ if(!ms) return ''; const d=new Date(ms),now=new Date(); return d.toLocaleString([], d.toDateString()===now.toDateString()?{hour:'2-digit',minute:'2-digit'}:{year:'2-digit',month:'short',day:'numeric'}); }
+const _EGL={folder:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M3 7a2 2 0 0 1 2-2h3.6l1.8 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'};
+function ticon(node,big){ const cls='tico'+(big?' lg':''), name=node.name, ext=extOf(name);
+  if(node.type==='dir') return `<span class="${cls}" style="color:#5B9CF6">${_EGL.folder}</span>`;
+  if(big&&isImg(name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(node.path)}"></span>`;
+  const color=EXT_COLOR[ext]||'#8a8a8a'; let g='<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/>';
+  if(/^(json|csv|ya?ml)$/.test(ext)) g='<path d="M4 6c0-1.6 3.6-3 8-3s8 1.4 8 3-3.6 3-8 3-8-1.4-8-3z"/><path d="M4 6v12c0 1.6 3.6 3 8 3s8-1.4 8-3V6M4 12c0 1.6 3.6 3 8 3s8-1.4 8-3"/>';
+  else if(isImg(name)) g='<rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M21 15l-5-5L5 21"/>';
+  else if(/^(js|ts|css|html?|py|sh)$/.test(ext)) g='<path d="M8.5 7L4 12l4.5 5M15.5 7L20 12l-4.5 5"/>';
+  return `<span class="${cls}" style="color:${color}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${g}</svg></span>`; }
+
+async function openExpl(dir){
+  EX.q=''; EX.recursive=false; EX.loading=true;
+  $('explWrap').classList.add('show'); explSetupMain(); renderExpl();
+  try{ EX.tree=await FS.tree(); }catch{ EX.tree=[]; }
+  EX.loading=false; EX.path=dir||'';
+  EX.all = !!EX.path && !nodeExistsIn(filterTree(EX.tree), EX.path) && nodeExistsIn(EX.tree, EX.path);
+  EX.open.clear(); let acc=''; for(const part of EX.path.split('/').filter(Boolean)){ acc=acc?acc+'/'+part:part; EX.open.add(acc); }
+  EX.hist=[EX.path]; EX.hi=0; EX.sel.clear(); EX.cur=null;
+  if($('explSearch')) $('explSearch').value='';
+  setupExplPeek(); renderExpl(); $('explMain').focus();
+}
+function explRoot(){ return EX.all?EX.tree:filterTree(EX.tree); }
+function nodeExistsIn(root, pathStr){ let nodes=root; for(const part of pathStr.split('/')){ const n=(nodes||[]).find(x=>x.type==='dir'&&x.name===part); if(!n) return false; nodes=n.children; } return true; }
+function explNodeAt(pathStr){ if(!pathStr) return {children:explRoot(),type:'dir',path:''}; let nodes=explRoot(),node=null;
+  for(const part of pathStr.split('/')){ node=(nodes||[]).find(n=>n.type==='dir'&&n.name===part); if(!node) return {children:[]}; nodes=node.children; } return node; }
+function closeExpl(){ hidePeek(); explCloseMenu&&explCloseMenu(); $('explWrap').classList.remove('show'); }
+
+// ----- sorted children (folders grouped above files, OS convention) -----
+function explSortCmp(a,b){ const k=EX.sortKey,d=EX.sortDir; let r;
+  if(k==='date') r=(a.mtime||0)-(b.mtime||0); else if(k==='size') r=(a.size||0)-(b.size||0);
+  else if(k==='type') r=extOf(a.name).localeCompare(extOf(b.name)); else r=a.name.localeCompare(b.name,undefined,{numeric:true});
+  return (r||a.name.localeCompare(b.name))*d; }
+function explKids(pathStr){ const kids=(explNodeAt(pathStr).children)||[];
+  return kids.filter(c=>c.type==='dir').sort(explSortCmp).concat(kids.filter(c=>c.type==='file').sort(explSortCmp)); }
+function explVisible(){
+  if(!EX.q) return explKids(EX.path);
+  const q=EX.q.toLowerCase();
+  if(!EX.recursive) return explKids(EX.path).filter(n=>n.name.toLowerCase().includes(q));
+  const out=[]; (function walk(ns){ for(const n of (ns||[])){ if(n.name.toLowerCase().includes(q)) out.push(n); if(n.type==='dir') walk(n.children); } })(explRoot());
+  return out.filter(n=>n.type==='dir').sort(explSortCmp).concat(out.filter(n=>n.type==='file').sort(explSortCmp));
+}
+
+// ----- navigation with back/forward history -----
+function explGoto(p, push=true){ if(push && p!==EX.path){ EX.hist=EX.hist.slice(0,EX.hi+1); EX.hist.push(p); EX.hi++; }
+  EX.path=p; EX.sel.clear(); EX.cur=null; EX.q=''; if($('explSearch'))$('explSearch').value='';
+  let acc=''; for(const part of p.split('/').filter(Boolean)){ acc=acc?acc+'/'+part:part; EX.open.add(acc); }
+  renderExpl(); $('explMain').focus(); }
+function explBack(){ if(EX.hi>0){ EX.hi--; explGoto(EX.hist[EX.hi], false); } }
+function explFwd(){ if(EX.hi<EX.hist.length-1){ EX.hi++; explGoto(EX.hist[EX.hi], false); } }
+function explUp(){ if(EX.path) explGoto(EX.path.split('/').slice(0,-1).join('/')); }
+function explSetView(v){ EX.view=v; localStorage.setItem('exView',v); renderExpl(); $('explMain').focus(); }
+function explDoSort(k){ if(EX.sortKey===k) EX.sortDir=-EX.sortDir; else { EX.sortKey=k; EX.sortDir=1; } renderExpl(); }
+function explOpenFile(p){ if(isHtml(p)){ apiOpen(p); return; } state.explReturn=EX.path; closeExpl(); openFile(p); }
+
+// ----- search -----
+let explSearchT=null;
+function explOnSearch(){ clearTimeout(explSearchT); explSearchT=setTimeout(()=>{ EX.q=$('explSearch').value.trim(); $('explSearchBox').classList.toggle('has',!!EX.q); EX.sel.clear(); EX.cur=null; renderExpl(); }, 160); }
+function explToggleRecursive(){ EX.recursive=!EX.recursive; renderExpl(); }
+function explClearSearch(){ $('explSearch').value=''; EX.q=''; $('explSearchBox').classList.remove('has'); renderExpl(); $('explSearch').focus(); }
+
+// ----- render -----
+function renderExpl(){ if(!$('explWin')) return;
+  // breadcrumb
+  const parts=EX.path?EX.path.split('/'):[]; let acc='', ch=`<a data-drop="" onclick="explGoto('')">${esc(state.repoName||'Project')}</a>`;
+  parts.forEach((p,i)=>{ acc=acc?acc+'/'+p:p; ch+=`<span class="sep">›</span>`+(i===parts.length-1?`<b>${esc(p)}</b>`:`<a data-drop="${esc(acc)}" onclick="explGoto('${jsq(acc)}')">${esc(p)}</a>`); });
+  $('explCrumb').innerHTML=ch;
+  // sidebar
+  $('explSide').innerHTML='<div class="expl-tree">'+renderSideHtml()+'</div>';
+  // main
+  renderMainPane();
+  // status
+  renderStatus();
+  // toolbar states
+  $('explBack').disabled=EX.hi<=0; $('explFwd').disabled=EX.hi>=EX.hist.length-1; $('explUp').disabled=!EX.path;
+  $('explVList').classList.toggle('on',EX.view==='list'); $('explVGrid').classList.toggle('on',EX.view==='grid');
+  $('explRecur').classList.toggle('on',EX.recursive); $('explSearchBox').classList.toggle('has',!!EX.q);
+}
+function renderSideHtml(){
+  const walk=(nodes,depth)=>{ let h=''; for(const n of (nodes||[]).filter(x=>x.type==='dir').sort((a,b)=>a.name.localeCompare(b.name))){
+    const open=EX.open.has(n.path), hasKids=(n.children||[]).some(c=>c.type==='dir');
+    h+=`<div class="en${open?' open':''}${EX.path===n.path?' on':''}" data-path="${esc(n.path)}" data-dir="1" style="padding-left:${5+depth*11}px"><span class="tw" data-tw="1">${hasKids?'<svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>':''}</span><span class="ti">${_EGL.folder}</span><span class="tn">${esc(n.name)}</span></div>`;
+    h+=`<div class="kids${open?' open':''}">${open?walk(n.children,depth+1):''}</div>`; } return h; };
+  const qa=['brain','audits','generated','specs','modules'].filter(p=>nodeExistsIn(explRoot(),p));
+  let h='';
+  if(qa.length){ h+='<div class="qa">Quick access</div>'; for(const p of qa) h+=`<div class="en${EX.path===p?' on':''}" data-path="${esc(p)}" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">${esc(p.split('/').pop())}</span></div>`; }
+  h+='<div class="qa">'+esc(state.repoName||'Project')+'</div>';
+  h+=`<div class="en${EX.path===''?' on':''}" data-path="" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">/</span></div>`;
+  return h+walk(explRoot(),0);
+}
+function renderMainPane(){
+  const m=$('explMain'); m.className='expl-main'+(EX.view==='grid'?' grid':'');
+  if(EX.loading){ m.innerHTML=Array.from({length:10},()=>'<div class="expl-skel"></div>').join(''); return; }
+  const items=explVisible();
+  const emptyMsg=EX.q?`No items match “${esc(EX.q)}”`:'This folder is empty';
+  if(EX.view==='list'){
+    const ar=k=>EX.sortKey===k?`<span class="ar">${EX.sortDir>0?'▲':'▼'}</span>`:'';
+    let h=`<div class="expl-lh"><span data-sort="name">Name ${ar('name')}</span><span data-sort="date">Date modified ${ar('date')}</span><span data-sort="type">Type ${ar('type')}</span><span data-sort="size">Size ${ar('size')}</span></div>`;
+    if(!items.length){ m.innerHTML=h+`<div class="expl-empty">${emptyMsg}</div>`; return; }
+    h+='<div class="expl-list">';
+    for(const n of items){ const dir=n.type==='dir'; const meta=(EX.q&&EX.recursive)?esc((n.path.split('/').slice(0,-1).join('/'))||'/'):fmtDate(n.mtime);
+      h+=`<div class="expl-row${dir?' dir':''}${EX.sel.has(n.path)?' sel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}"><div class="c1">${ticon(n)}<span class="rn">${esc(n.name)}</span></div><div class="cmeta">${meta}</div><div class="cmeta">${dir?'Folder':(extOf(n.name).toUpperCase()||'File')}</div><div class="cmeta">${dir?'':fmtSize(n.size)}</div></div>`; }
+    m.innerHTML=h+'</div>';
+  } else {
+    if(!items.length){ m.innerHTML=`<div class="expl-empty">${emptyMsg}</div>`; return; }
+    let h=''; for(const n of items){ const dir=n.type==='dir';
+      h+=`<div class="expl-item${dir?' dir':''}${EX.sel.has(n.path)?' sel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}">${ticon(n,true)}<span class="nm">${esc(n.name)}</span></div>`; }
+    m.innerHTML=h;
+  }
+}
+function renderStatus(){
+  const items=explVisible(), sel=[...EX.sel]; const st=$('explStatus');
+  const selSize=items.filter(n=>EX.sel.has(n.path)&&n.type==='file').reduce((s,n)=>s+(n.size||0),0);
+  const totSize=items.filter(n=>n.type==='file').reduce((s,n)=>s+(n.size||0),0);
+  let t=`${items.length} item${items.length===1?'':'s'}`;
+  if(sel.length) t+=`  ·  ${sel.length} selected`+(selSize?` (${fmtSize(selSize)})`:'');
+  else if(totSize) t+=`  ·  ${fmtSize(totSize)}`;
+  if(FS.persistent===false) t+='  ·  ⚠ non-persistent';
+  st.textContent=t;
+}
+
+// ----- selection + interaction (event delegation) -----
+function explSelectRange(a,b){ const paths=explVisible().map(n=>n.path); const ia=paths.indexOf(a), ib=paths.indexOf(b);
+  if(ia<0||ib<0){ EX.sel.add(b); return; } EX.sel.clear(); for(let i=Math.min(ia,ib);i<=Math.max(ia,ib);i++) EX.sel.add(paths[i]); }
+function explSetupMain(){
+  const m=$('explMain'); if(m._wired) return; m._wired=true;
+  m.addEventListener('click',(e)=>{
+    const sh=e.target.closest('.expl-lh [data-sort]'); if(sh){ explDoSort(sh.dataset.sort); return; }
+    const el=e.target.closest('[data-path]');
+    if(!el){ if(!e.shiftKey&&!(e.metaKey||e.ctrlKey)){ EX.sel.clear(); EX.cur=null; renderExpl(); } return; }
+    const p=el.dataset.path;
+    if(e.metaKey||e.ctrlKey){ EX.sel.has(p)?EX.sel.delete(p):EX.sel.add(p); EX.cur=p; }
+    else if(e.shiftKey&&EX.cur!=null){ explSelectRange(EX.cur,p); EX.cur=p; }
+    else { EX.sel.clear(); EX.sel.add(p); EX.cur=p; }
+    renderExpl();
+  });
+  m.addEventListener('dblclick',(e)=>{ const el=e.target.closest('[data-path]'); if(!el) return; el.dataset.dir==='1'?explGoto(el.dataset.path):explOpenFile(el.dataset.path); });
+  $('explSide').addEventListener('click',(e)=>{ const tw=e.target.closest('.tw[data-tw]'); const en=e.target.closest('.en[data-path]'); if(!en) return;
+    if(tw){ const p=en.dataset.path; EX.open.has(p)?EX.open.delete(p):EX.open.add(p); renderExpl(); return; } explGoto(en.dataset.path); });
+  m.addEventListener('keydown', explKey);
+}
+function explKey(e){
+  if(e.key==='Escape'){ EX.sel.clear(); EX.cur=null; renderExpl(); return; }
+  if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='a'){ e.preventDefault(); EX.sel=new Set(explVisible().map(n=>n.path)); EX.cur=EX.cur||[...EX.sel][0]; renderExpl(); return; }
+  if(e.key==='Backspace'){ e.preventDefault(); explUp(); return; }
+  const items=explVisible(); if(!items.length) return; const paths=items.map(n=>n.path);
+  let idx=EX.cur!=null?paths.indexOf(EX.cur):-1;
+  const cols=EX.view==='grid'?Math.max(1,Math.floor($('explMain').clientWidth/106)):1;
+  const move=(ni)=>{ ni=Math.max(0,Math.min(paths.length-1,ni)); const p=paths[ni]; if(e.shiftKey&&EX.cur!=null) explSelectRange(EX.cur,p); else { EX.sel.clear(); EX.sel.add(p); } EX.cur=p; renderExpl(); const el=$('explMain').querySelector(`[data-path="${CSS.escape(p)}"]`); el&&el.scrollIntoView({block:'nearest'}); };
+  if(e.key==='ArrowDown'){ e.preventDefault(); move(idx<0?0:idx+cols); return; }
+  if(e.key==='ArrowUp'){ e.preventDefault(); move(idx<0?0:idx-cols); return; }
+  if(e.key==='ArrowRight'&&EX.view==='grid'){ e.preventDefault(); move(idx<0?0:idx+1); return; }
+  if(e.key==='ArrowLeft'&&EX.view==='grid'){ e.preventDefault(); move(idx<0?0:idx-1); return; }
+  if(e.key==='Home'){ e.preventDefault(); move(0); return; }
+  if(e.key==='End'){ e.preventDefault(); move(paths.length-1); return; }
+  if(e.key==='Enter'){ e.preventDefault(); if(EX.cur!=null){ const n=items[paths.indexOf(EX.cur)]; n&&(n.type==='dir'?explGoto(n.path):explOpenFile(n.path)); } return; }
+  // type-ahead
+  if(e.key.length===1 && !e.metaKey && !e.ctrlKey && !e.altKey){ EX.ta+=e.key.toLowerCase(); clearTimeout(EX.taT); EX.taT=setTimeout(()=>EX.ta='',700);
+    const hit=items.find(n=>n.name.toLowerCase().startsWith(EX.ta)); if(hit){ EX.sel.clear(); EX.sel.add(hit.path); EX.cur=hit.path; renderExpl(); $('explMain').querySelector(`[data-path="${CSS.escape(hit.path)}"]`)?.scrollIntoView({block:'nearest'}); } }
 }
 
 // ---------- hover file preview ("quick look") ----------
@@ -1895,9 +2099,10 @@ function ensurePeek(){ if(!peekEl){ peekEl=document.createElement('div'); peekEl
 function hidePeek(){ clearTimeout(peekTimer); peekPath=null; if(peekEl) peekEl.classList.remove('show'); document.querySelectorAll('.expl-item.peeking').forEach(el=>el.classList.remove('peeking')); }
 // Delegated hover on the explorer grid — files (data-path) only, short delay to avoid flicker.
 function setupExplPeek(){
-  const grid=$('explGrid'); if(!grid || grid._peekWired) return; grid._peekWired=true;
-  grid.addEventListener('mouseover',(e)=>{ const it=e.target.closest('.expl-item[data-path]'); if(!it) return; if(it.dataset.path===peekPath) return; clearTimeout(peekTimer); const p=it.dataset.path; peekTimer=setTimeout(()=>showPeek(it,p), 300); });
-  grid.addEventListener('mouseout',(e)=>{ const it=e.target.closest('.expl-item[data-path]'); if(it && !it.contains(e.relatedTarget)) hidePeek(); });
+  const grid=$('explMain'); if(!grid || grid._peekWired) return; grid._peekWired=true;
+  const FILE='.expl-row[data-dir="0"],.expl-item[data-dir="0"]';   // preview files only, not folders
+  grid.addEventListener('mouseover',(e)=>{ const it=e.target.closest(FILE); if(!it) return; if(it.dataset.path===peekPath) return; clearTimeout(peekTimer); const p=it.dataset.path; peekTimer=setTimeout(()=>showPeek(it,p), 320); });
+  grid.addEventListener('mouseout',(e)=>{ const it=e.target.closest(FILE); if(it && !it.contains(e.relatedTarget)) hidePeek(); });
   grid.addEventListener('scroll',hidePeek,{passive:true});
 }
 function positionPeek(el, itemEl){
