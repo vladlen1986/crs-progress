@@ -324,6 +324,31 @@
   .genmeter .gm-tok{font-family:var(--mono);color:var(--muted)}
   .genmeter .gm-tok b{color:var(--secondary);font-weight:600}
 
+  /* ───── full-window kanban / list board ───── */
+  .kb-toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
+  .kb-search{flex:1;min-width:120px;max-width:340px;background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:7px 11px;font:inherit;font-size:12.5px;outline:none}
+  .kb-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-tint)}
+  .kb-count{margin-left:auto;color:var(--muted);font-size:11.5px;font-family:var(--mono);flex:0 0 auto}
+  .kb-toolbar .seg2 button svg{width:14px;height:14px}
+  .kb-board{flex:1;min-height:0;display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;padding:16px 20px 20px;align-items:stretch}
+  .kb-board.list{display:block;overflow-y:auto;overflow-x:hidden;max-width:920px;margin:0 auto;width:100%;padding:16px 20px 28px}
+  .kb-col{flex:0 0 300px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:0;max-height:100%;overflow:hidden}
+  .kb-col-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .kb-col-head .kn{color:var(--primary);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kb-col-head .kc{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono);background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;flex:0 0 auto}
+  .kb-cards{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
+  .kb-card{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:10px 12px;cursor:pointer;transition:.12s;text-align:left;font-family:inherit;width:100%}
+  .kb-card:hover{border-color:var(--accent);background:var(--elev)}
+  .kb-card .kf{width:15px;height:15px;flex:0 0 15px;color:var(--muted)}
+  .kb-card .knm{flex:1;min-width:0;color:var(--secondary);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .kb-card:hover .knm{color:var(--primary)}
+  .kb-card .kbadge{flex:0 0 auto;color:var(--muted);font-size:9.5px;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;background:var(--panel);border:1px solid var(--line2);border-radius:4px;padding:1px 5px}
+  .kb-empty{color:var(--muted);font-size:12px;text-align:center;padding:18px 12px;font-style:italic}
+  .kb-loading{color:var(--muted);font-size:13px;padding:34px;text-align:center}
+  .kb-sec-head{display:flex;align-items:center;gap:8px;padding:16px 4px 9px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
+  .kb-sec-head .kc{color:var(--muted);font-family:var(--mono);font-size:10.5px}
+  .kb-board.list .kb-card{margin-bottom:7px}
+
   /* composer */
   .composer-wrap{padding:12px 18px 30px}
   /* Map view: let the galaxy iframe fill the whole center (incl. behind the composer) and float the
@@ -888,6 +913,22 @@
         <div class="bub-banner" id="bubBanner" style="display:none"></div>
         <div class="bub-body" id="bubBody"></div>
       </div>
+      <!-- full-window kanban / list board — files as columns; owns the whole content area -->
+      <div id="kanbanView" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
+        <div class="kb-toolbar">
+          <div class="seg2">
+            <button data-k="board" class="on" onclick="showKanban('board')"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg> Board</button>
+            <button data-k="list" onclick="showKanban('list')"><svg viewBox="0 0 24 24"><use href="#i-list"/></svg> List</button>
+          </div>
+          <input class="kb-search" id="kbSearch" placeholder="Filter files…" autocomplete="off" oninput="renderKanban()">
+          <div class="seg2">
+            <button data-s="crs" class="on" onclick="kbScope(true)">Project</button>
+            <button data-s="all" onclick="kbScope(false)">All files</button>
+          </div>
+          <span class="kb-count" id="kbCount"></span>
+        </div>
+        <div class="kb-board" id="kbBoard"></div>
+      </div>
     </div>
     <!-- persistent composer — always visible on every view -->
     <div class="composer-wrap">
@@ -1252,7 +1293,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1265,8 +1306,54 @@ function ensureChatView(){
 function setView(v){
   if(v==='chat') ensureChatView();
   else if(v==='map') showMap();
-  else if(v==='kanban') showMap('kanban');
-  else if(v==='list') showMap('list');
+  else if(v==='kanban') showKanban('board');
+  else if(v==='list') showKanban('list');
+}
+// ---------- full-window kanban / list board (files as columns) ----------
+let kbMode='board', kbTree=null;
+state.kbCrs = localStorage.getItem('kbCrs')!=='0';   // default: project scope
+function showKanban(mode){
+  bumpView();
+  kbMode = mode==='list' ? 'list' : 'board';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none';
+  $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
+  $('kanbanView').style.display='flex';
+  $('centerTitle').textContent = kbMode==='list' ? 'List' : 'Kanban';
+  markView(kbMode==='list' ? 'list' : 'kanban');
+  document.querySelectorAll('#kanbanView .seg2 button[data-k]').forEach(b=>b.classList.toggle('on', b.dataset.k===kbMode));
+  document.querySelectorAll('#kanbanView .seg2 button[data-s]').forEach(b=>b.classList.toggle('on', (b.dataset.s==='crs')===state.kbCrs));
+  if(innerWidth<=900) mob(null);
+  if(!kbTree){ $('kbBoard').innerHTML='<div class="kb-loading">Loading files…</div>'; api('/api/files').then(r=>{ kbTree=r.tree||[]; renderKanban(); }).catch(()=>{ $('kbBoard').innerHTML='<div class="kb-loading">Could not load files.</div>'; }); }
+  else renderKanban();
+}
+function kbScope(crs){ state.kbCrs=crs; localStorage.setItem('kbCrs', crs?'1':'0'); document.querySelectorAll('#kanbanView .seg2 button[data-s]').forEach(b=>b.classList.toggle('on',(b.dataset.s==='crs')===crs)); renderKanban(); }
+function kbColumns(){
+  const tree = state.kbCrs ? filterTree(kbTree||[]) : (kbTree||[]);
+  const q=($('kbSearch').value||'').toLowerCase().trim();
+  const cols=[]; const rootFiles=[];
+  for(const n of tree){
+    if(n.type==='dir'){ const files=[]; (function w(ns){ for(const c of ns||[]){ if(c.type==='dir') w(c.children); else files.push({path:c.path,name:c.name,ext:extOf(c.name)}); } })(n.children); cols.push({name:n.name,files}); }
+    else rootFiles.push({path:n.path,name:n.name,ext:extOf(n.name)});
+  }
+  if(rootFiles.length) cols.unshift({name:'root',files:rootFiles});
+  if(q) for(const c of cols) c.files=c.files.filter(f=>f.path.toLowerCase().includes(q));
+  return q ? cols.filter(c=>c.files.length) : cols;
+}
+function kbCardHtml(f){ return `<button class="kb-card" onclick="kbOpen('${f.path.replace(/'/g,"\\'")}')" title="${esc(f.path)}"><svg class="kf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-doc-sm"/></svg><span class="knm">${esc(f.name)}</span><span class="kbadge">${esc(f.ext||'')}</span></button>`; }
+function kbOpen(p){ if(isHtml(p)) apiOpen(p); else openFile(p); }
+function renderKanban(){
+  const board=$('kbBoard'); if(!kbTree) return;
+  const cols=kbColumns();
+  const total=cols.reduce((a,c)=>a+c.files.length,0);
+  $('kbCount').textContent = total+' file'+(total===1?'':'s');
+  board.classList.toggle('list', kbMode==='list');
+  if(!cols.length){ board.innerHTML='<div class="kb-empty">No files match.</div>'; return; }
+  if(kbMode==='list'){
+    board.innerHTML = cols.map(c=>`<div class="kb-sec"><div class="kb-sec-head">${esc(c.name)} <span class="kc">${c.files.length}</span></div>${c.files.map(kbCardHtml).join('')||'<div class="kb-empty">Empty</div>'}</div>`).join('');
+  } else {
+    board.innerHTML = cols.map(c=>`<div class="kb-col"><div class="kb-col-head"><span class="kn">${esc(c.name)}</span><span class="kc">${c.files.length}</span></div><div class="kb-cards">${c.files.map(kbCardHtml).join('')||'<div class="kb-empty">Empty</div>'}</div></div>`).join('');
+  }
 }
 function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.v===v)); }
 
@@ -1274,7 +1361,7 @@ function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none'; $('kanbanView').style.display='none';
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('centerCol').classList.add('no-composer');
   $('mapView').style.display='flex';
@@ -1307,7 +1394,7 @@ function setMapBoardOpen(open){
 function showDashboard(){
   bumpView();
   state.chatId=null; state.filePath=null;
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
@@ -1759,7 +1846,7 @@ async function openFile(p){
   state.filePath=p; state.editing=false;
   $('backBtn').style.display=''; $('downloadBtn').style.display='';
   document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer'); markView('');
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer'); markView('');
   $('centerTitle').textContent=p;
   $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
   const doc=$('fileDoc');
@@ -1801,6 +1888,7 @@ function downloadFile(){
 // Which center view is showing right now (used to return there via Back).
 function currentView(){
   if($('fileView').style.display!=='none') return 'file';
+  if($('kanbanView').style.display!=='none') return 'kanban';
   if($('mapView').style.display!=='none') return 'map';
   if($('bubbleView').style.display!=='none') return 'bubble';
   if($('dashView').style.display!=='none') return 'dash';
@@ -1810,7 +1898,7 @@ function currentView(){
 function goBack(){
   const v=state.beforeFile;
   if(v==='expl'){ showDashboard(); openExpl(state.beforeExplPath||''); return; }
-  if(v==='chat') showChat(); else if(v==='map') showMap(); else if(v==='bubble') showBubble(); else showDashboard();
+  if(v==='chat') showChat(); else if(v==='map') showMap(); else if(v==='kanban') showKanban(kbMode); else if(v==='bubble') showBubble(); else showDashboard();
 }
 
 // ---------- progress ----------
@@ -1926,7 +2014,7 @@ async function applyModelSettings(){
 let bubState=null, bubTabName='dataTypes', bubChanged=null;
 async function showBubble(){
   bumpView();
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
+  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none';
   $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('bubbleView').style.display='flex';
@@ -2345,7 +2433,7 @@ async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.val
   catch(e){ notify({type:'connection',level:'error',title:'Buildprint link failed',body:e.message}); } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
 
-(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else showDashboard(); })();
+(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():showDashboard(); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>
