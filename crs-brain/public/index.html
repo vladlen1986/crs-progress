@@ -639,13 +639,15 @@
   .expl-row .c1{display:flex;align-items:center;gap:9px;min-width:0}
   .expl-row .rn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .expl-row .cmeta{font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* flat OS selection: background tint ONLY — no transform, no border, no transition */
+  .expl-row,.expl-item{transition:none;transform:none}
   .expl-row:hover,.expl-item:hover{background:var(--panel2)}
-  .expl-row.sel,.expl-item.sel{background:var(--accent-tint)}
-  .expl-row.sel .rn,.expl-item.sel .nm{color:var(--primary)}
-  .expl-main:focus-visible .expl-row.cur,.expl-main:focus-visible .expl-item.cur{box-shadow:inset 0 0 0 1.5px var(--accent)}
+  .expl-row.xsel,.expl-item.xsel{background:var(--accent-tint)}
+  .expl-row.xsel .rn,.expl-item.xsel .nm{color:var(--primary)}
+  .expl-main:focus-visible .expl-row.cur,.expl-main:focus-visible .expl-item.cur{outline:1px solid var(--accent);outline-offset:-1px}
   .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px 9px;border-radius:9px;cursor:default;text-align:center}
   .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .expl-item.peeking{box-shadow:0 0 0 1px var(--line3)}
+  .expl-item.peeking,.expl-row.peeking{background:var(--panel2)}   /* hover-preview marks the item with bg only — no ring */
   .expl-group{grid-column:1/-1;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
   .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
   .tico{width:16px;height:16px;display:inline-flex;flex:0 0 auto}
@@ -674,8 +676,8 @@
   .expl-menu .mi-sub>button .sh{font-family:inherit}
   .expl-drag{position:fixed;z-index:95;pointer-events:none;background:var(--elev);border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--primary);box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;align-items:center;gap:7px}
   /* hover file preview ("quick look") — square card that pops beside the tile */
-  .filepeek{position:fixed;z-index:80;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden;opacity:0;transform:scale(.97);transition:opacity .12s ease,transform .12s ease;pointer-events:none;display:none}
-  .filepeek.show{display:block;opacity:1;transform:scale(1)}
+  .filepeek{position:fixed;z-index:80;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden;opacity:0;transition:opacity .1s ease;pointer-events:none;display:none}
+  .filepeek.show{display:block;opacity:1}
   .filepeek .pk-media{width:100%;height:210px;background:var(--panel2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
   .filepeek .pk-media img{max-width:100%;max-height:100%;object-fit:contain;display:block}
   .filepeek iframe.pk-frame{position:absolute;top:0;left:0;width:1000px;height:700px;border:0;transform:scale(.3);transform-origin:top left;background:var(--panel2);pointer-events:none}
@@ -2042,12 +2044,12 @@ function renderMainPane(){
     if(!items.length){ m.innerHTML=h+`<div class="expl-empty">${emptyMsg}</div>`; return; }
     h+='<div class="expl-list">';
     for(const n of items){ const dir=n.type==='dir'; const meta=(EX.q&&EX.recursive)?esc((n.path.split('/').slice(0,-1).join('/'))||'/'):fmtDate(n.mtime);
-      h+=`<div class="expl-row${dir?' dir':''}${EX.sel.has(n.path)?' sel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}"><div class="c1">${ticon(n)}<span class="rn">${esc(n.name)}</span></div><div class="cmeta">${meta}</div><div class="cmeta">${dir?'Folder':(extOf(n.name).toUpperCase()||'File')}</div><div class="cmeta">${dir?'':fmtSize(n.size)}</div></div>`; }
+      h+=`<div class="expl-row${dir?' dir':''}${EX.sel.has(n.path)?' xsel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}"><div class="c1">${ticon(n)}<span class="rn">${esc(n.name)}</span></div><div class="cmeta">${meta}</div><div class="cmeta">${dir?'Folder':(extOf(n.name).toUpperCase()||'File')}</div><div class="cmeta">${dir?'':fmtSize(n.size)}</div></div>`; }
     m.innerHTML=h+'</div>';
   } else {
     if(!items.length){ m.innerHTML=`<div class="expl-empty">${emptyMsg}</div>`; return; }
     let h=''; for(const n of items){ const dir=n.type==='dir';
-      h+=`<div class="expl-item${dir?' dir':''}${EX.sel.has(n.path)?' sel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}">${ticon(n,true)}<span class="nm">${esc(n.name)}</span></div>`; }
+      h+=`<div class="expl-item${dir?' dir':''}${EX.sel.has(n.path)?' xsel':''}${EX.cur===n.path?' cur':''}" data-path="${esc(n.path)}" data-dir="${dir?1:0}" draggable="true" title="${esc(n.path)}">${ticon(n,true)}<span class="nm">${esc(n.name)}</span></div>`; }
     m.innerHTML=h;
   }
 }
@@ -2070,7 +2072,7 @@ function explSelectRange(a,b){ const paths=explVisible().map(n=>n.path); const i
 // browser's per-node click counter reset and dblclick never fired — P0 bug.)
 function explPaintSel(){
   $('explMain').querySelectorAll('[data-path]').forEach(el=>{
-    el.classList.toggle('sel', EX.sel.has(el.dataset.path));
+    el.classList.toggle('xsel', EX.sel.has(el.dataset.path));
     el.classList.toggle('cur', EX.cur===el.dataset.path);
   });
   renderStatus();
@@ -2135,7 +2137,7 @@ function explMarqueeStart(e){
   const move=(ev)=>{ moved=true; const x1=Math.min(sx,ev.clientX),y1=Math.min(sy,ev.clientY),x2=Math.max(sx,ev.clientX),y2=Math.max(sy,ev.clientY);
     box.style.left=(x1-rect.left+main.scrollLeft)+'px'; box.style.top=(y1-rect.top+main.scrollTop)+'px'; box.style.width=(x2-x1)+'px'; box.style.height=(y2-y1)+'px';
     const sel=new Set(base);
-    main.querySelectorAll('[data-path]').forEach(el=>{ const r=el.getBoundingClientRect(); if(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2) sel.add(el.dataset.path); el.classList.toggle('sel',sel.has(el.dataset.path)); });
+    main.querySelectorAll('[data-path]').forEach(el=>{ const r=el.getBoundingClientRect(); if(r.right>x1&&r.left<x2&&r.bottom>y1&&r.top<y2) sel.add(el.dataset.path); el.classList.toggle('xsel',sel.has(el.dataset.path)); });
     EX.sel=sel; renderStatus(); };
   const up=()=>{ box.remove(); document.removeEventListener('mousemove',move); document.removeEventListener('mouseup',up);
     if(!moved && !additive){ EX.sel.clear(); } EX.cur=[...EX.sel].pop()||null; explPaintSel(); };
@@ -2247,7 +2249,7 @@ function explKey(e){
 // ---------- hover file preview ("quick look") ----------
 let peekTimer=null, peekPath=null, peekEl=null; const peekCache={};
 function ensurePeek(){ if(!peekEl){ peekEl=document.createElement('div'); peekEl.className='filepeek'; document.body.appendChild(peekEl); } return peekEl; }
-function hidePeek(){ clearTimeout(peekTimer); peekPath=null; if(peekEl) peekEl.classList.remove('show'); document.querySelectorAll('.expl-item.peeking').forEach(el=>el.classList.remove('peeking')); }
+function hidePeek(){ clearTimeout(peekTimer); peekPath=null; if(peekEl) peekEl.classList.remove('show'); document.querySelectorAll('.peeking').forEach(el=>el.classList.remove('peeking')); }
 // Delegated hover on the explorer grid — files (data-path) only, short delay to avoid flicker.
 function setupExplPeek(){
   const grid=$('explMain'); if(!grid || grid._peekWired) return; grid._peekWired=true;
@@ -2264,7 +2266,7 @@ function positionPeek(el, itemEl){
 }
 async function showPeek(itemEl, path){
   const el=ensurePeek(); peekPath=path;
-  document.querySelectorAll('.expl-item.peeking').forEach(x=>x.classList.remove('peeking')); itemEl.classList.add('peeking');
+  document.querySelectorAll('.peeking').forEach(x=>x.classList.remove('peeking')); itemEl.classList.add('peeking');
   const name=path.split('/').pop(), ext=extOf(name);
   const foot=`<div class="pk-foot"><span class="nm">${esc(name)}</span><span class="pk-ext">${(ext||'file').toUpperCase()}</span></div>`;
   const paint=(media)=>{ el.innerHTML=media+foot; positionPeek(el,itemEl); el.classList.add('show'); };
