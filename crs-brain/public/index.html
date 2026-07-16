@@ -678,6 +678,7 @@
   .expl-item .expl-rename{text-align:center;font-size:11px}
   .expl-marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-tint);pointer-events:none;z-index:3;border-radius:2px}
   body.no-select, body.no-select *{user-select:none!important}   /* active marquee/drag: nothing highlights, incl. behind the window */
+  .expl-snapprev{position:fixed;z-index:69;background:var(--accent-tint);border:1px solid var(--accent);border-radius:10px;display:none;pointer-events:none}
   .expl-status{grid-area:status;border-top:1px solid var(--line);padding:6px 14px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:14px}
   .expl-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;pointer-events:none}
   .expl-skel{height:24px;margin:7px 14px;border-radius:6px;background:linear-gradient(90deg,var(--panel2),var(--elev),var(--panel2));background-size:200% 100%;animation:shimmer 1.2s infinite}
@@ -2052,12 +2053,26 @@ async function openExpl(dir){
 function explDefaultRect(){ const w=Math.min(1040,innerWidth*.95), h=Math.min(680,innerHeight*.9);
   return { x:Math.round((innerWidth-w)/2), y:Math.round((innerHeight-h)/2), w:Math.round(w), h:Math.round(h) }; }
 function explApplyRect(){ const r=EX.rect, el=$('explWin');
-  r.w=Math.max(Math.min(720,innerWidth-16), Math.min(r.w, innerWidth-16));
-  r.h=Math.max(Math.min(480,innerHeight-16), Math.min(r.h, innerHeight-16));
-  r.x=Math.min(Math.max(r.x, 8-r.w+120), innerWidth-120);   // keep a grabbable strip on-screen
-  r.y=Math.min(Math.max(r.y, 0), innerHeight-48);
+  if(!EX.snap){   // snapped/maximized rects are authoritative — no free-window clamps
+    r.w=Math.max(Math.min(720,innerWidth-16), Math.min(r.w, innerWidth-16));
+    r.h=Math.max(Math.min(480,innerHeight-16), Math.min(r.h, innerHeight-16));
+    r.x=Math.min(Math.max(r.x, 8-r.w+120), innerWidth-120);   // keep a grabbable strip on-screen
+    r.y=Math.min(Math.max(r.y, 0), innerHeight-48);
+  }
   el.style.left=r.x+'px'; el.style.top=r.y+'px'; el.style.width=r.w+'px'; el.style.height=r.h+'px'; }
 function explSaveRect(){ try{ sessionStorage.setItem('exWinRect', JSON.stringify(EX.rect)); }catch{} }
+// ----- edge snap (Windows-style). Work area = the app's content column, so the
+// brain's own sidebar/header stay visible and usable when maximized/snapped.
+function explWorkArea(){ const c=document.getElementById('centerCol');
+  if(c){ const r=c.getBoundingClientRect(); return {x:Math.round(r.left)+4, y:Math.round(r.top)+4, w:Math.round(r.width)-8, h:Math.round(r.height)-8}; }
+  return {x:8,y:8,w:innerWidth-16,h:innerHeight-16}; }
+function explZoneRect(zone){ const wa=explWorkArea();
+  return zone==='top'?{...wa} : zone==='left'?{x:wa.x,y:wa.y,w:Math.round(wa.w/2),h:wa.h}
+    : {x:wa.x+Math.round(wa.w/2),y:wa.y,w:wa.w-Math.round(wa.w/2),h:wa.h}; }
+function explSnapPrevEl(){ let p=$('explSnapPrev'); if(!p){ p=document.createElement('div'); p.className='expl-snapprev'; p.id='explSnapPrev'; document.body.appendChild(p); } return p; }
+function explSnapTo(zone){ const pre=EX.snap?EX.snap.pre:{...EX.rect};
+  EX.snap={zone, pre}; EX.rect=explZoneRect(zone); explApplyRect(); }
+function explUnsnapRestore(){ if(!EX.snap) return; EX.rect={...EX.snap.pre}; EX.snap=null; explApplyRect(); }
 function explInitWindow(){
   try{ EX.rect=JSON.parse(sessionStorage.getItem('exWinRect'))||explDefaultRect(); }catch{ EX.rect=explDefaultRect(); }
   explApplyRect();
@@ -2065,9 +2080,24 @@ function explInitWindow(){
   // drag by the toolbar (not its controls)
   win.querySelector('.expl-tb').addEventListener('mousedown',(e)=>{
     if(e.target.closest('button,input,a,label,select')) return;
-    e.preventDefault(); const sx=e.clientX-EX.rect.x, sy=e.clientY-EX.rect.y;
-    const mv=(ev)=>{ EX.rect.x=ev.clientX-sx; EX.rect.y=ev.clientY-sy; explApplyRect(); };
-    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); explSaveRect(); };
+    e.preventDefault(); document.body.classList.add('no-select');
+    let sx=e.clientX-EX.rect.x, sy=e.clientY-EX.rect.y, dragged=false, zone=null;
+    const prev=explSnapPrevEl();
+    const unsnapIfNeeded=(ev)=>{   // dragging a snapped window restores pre-snap size under the cursor
+      if(!EX.snap) return;
+      const pre=EX.snap.pre, fx=(ev.clientX-EX.rect.x)/EX.rect.w;
+      EX.snap=null;
+      EX.rect={x:Math.round(ev.clientX-pre.w*Math.min(Math.max(fx,.05),.95)), y:ev.clientY-14, w:pre.w, h:pre.h};
+      sx=ev.clientX-EX.rect.x; sy=ev.clientY-EX.rect.y; explApplyRect(); };
+    const mv=(ev)=>{ dragged=true; unsnapIfNeeded(ev);
+      EX.rect.x=ev.clientX-sx; EX.rect.y=ev.clientY-sy; explApplyRect();
+      const wa=explWorkArea(), t=8;
+      zone = ev.clientY<=wa.y+t?'top' : ev.clientX<=wa.x+t?'left' : ev.clientX>=wa.x+wa.w-t?'right' : null;
+      if(zone){ const z=explZoneRect(zone); prev.style.cssText=`display:block;left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px`; }
+      else prev.style.display='none'; };
+    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+      document.body.classList.remove('no-select'); prev.style.display='none';
+      if(dragged && zone) explSnapTo(zone); else explSaveRect(); };
     document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
   });
   // resize from all edges + corners
