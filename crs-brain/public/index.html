@@ -683,6 +683,10 @@
   .expl-marquee{position:absolute;border:1px solid var(--accent);background:var(--accent-tint);pointer-events:none;z-index:3;border-radius:2px}
   body.no-select, body.no-select *{user-select:none!important}   /* active marquee/drag: nothing highlights, incl. behind the window */
   .expl-snapprev{position:fixed;z-index:69;background:var(--accent-tint);border:1px solid var(--accent);border-radius:10px;display:none;pointer-events:none}
+  #extDropHint{position:fixed;z-index:75;background:var(--accent-tint);border:2px dashed var(--accent);border-radius:10px;display:none;align-items:center;justify-content:center;color:var(--accent2);font-size:14px;font-weight:600;pointer-events:none}
+  .expl-row.flash,.expl-item.flash{animation:upflash .95s ease 1}
+  @keyframes upflash{0%,100%{background:var(--accent-tint)}45%{background:rgba(59,130,246,.28)}}
+  @media (prefers-reduced-motion:reduce){.expl-row.flash,.expl-item.flash{animation:none}}
   /* window controls (explorer + document popup) */
   .winctl{display:flex;gap:2px;flex:0 0 auto;align-items:center}
   .winctl button{width:28px;height:28px;border-radius:7px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background .16s ease-in-out,color .16s ease-in-out}
@@ -2071,6 +2075,8 @@ const FS = {
   copy(paths,targetDir){ return this._post('copy',{paths,targetDir}); },
   duplicate(p){ return this._post('duplicate',{path:p}); },
   del(paths){ return this._post('delete',{paths}); },
+  upload(dir, rel, blob, signal){ return fetch('/api/upload?dir='+encodeURIComponent(dir)+'&rel='+encodeURIComponent(rel),{method:'POST',body:blob,signal})
+    .then(async r=>{ const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }); },
 };
 const EX={ path:'', view:localStorage.getItem('exView')||'list', sortKey:localStorage.getItem('exSortK')||'name', sortDir:+(localStorage.getItem('exSortD')||1)||1, sel:new Set(), cur:null,
   hist:[], hi:-1, clip:null, q:'', recursive:false, tree:[], open:new Set(), all:false, loading:false, ta:'', taT:null };
@@ -2480,8 +2486,10 @@ function explSetupMain(){
   m.addEventListener('pointerdown', explMarqueeStart);
   // drag & drop (move) — sources in main pane; drop on folders (pane/sidebar/breadcrumb)
   m.addEventListener('dragstart', explDragStart);
-  [m, $('explSide'), $('explCrumb')].forEach(c=>{ c.addEventListener('dragover', explDragOver); c.addEventListener('drop', explDrop); c.addEventListener('dragleave',(e)=>{ if(!c.contains(e.relatedTarget)) explClearDrop(); }); });
+  [m, $('explSide'), $('explCrumb')].forEach(c=>{ c.addEventListener('dragover', explDragOver); c.addEventListener('drop', explDrop); c.addEventListener('dragleave',(e)=>{ if(!c.contains(e.relatedTarget)){ explClearDrop(); if(c===m) explExtHint(false); } }); });
   document.addEventListener('dragend', explDragEnd);
+  document.addEventListener('drop',()=>explExtHint(false));
+  document.addEventListener('dragleave',(e)=>{ if(!e.relatedTarget) explExtHint(false); });   // drag left the window
 }
 function explDragStart(e){ if(e.target.closest('.expl-rename')){ e.preventDefault(); return; }   // let text-selection drags work inside the rename input
   const el=e.target.closest('[data-path]'); if(!el){ e.preventDefault(); return; } const p=el.dataset.path;
@@ -2494,16 +2502,75 @@ function explDropTarget(e){ const row=e.target.closest('.expl-row.dir[data-path]
   const cr=e.target.closest('.expl-crumb a[data-drop]'); if(cr) return cr.dataset.drop; return undefined; }
 function explCanDrop(t){ return EX.dragPaths && t!==undefined && EX.dragPaths.every(p=> t!==p && !(t+'/').startsWith(p+'/') && p.split('/').slice(0,-1).join('/')!==t ); }
 let explSpringT=null, explSpringP=null;
-function explDragOver(e){ const t=explDropTarget(e); explClearDrop();
+// external = a drag carrying OS files; internal DnD (EX.dragPaths) is untouched
+function explIsExternalDrag(e){ return !EX.dragPaths && e.dataTransfer && Array.from(e.dataTransfer.types||[]).includes('Files'); }
+function explDragOver(e){
+  if(explIsExternalDrag(e)){ e.preventDefault(); e.dataTransfer.dropEffect='copy';
+    if(e.currentTarget===$('explMain')) explExtHint(true);
+    explClearDrop();
+    const el=e.target.closest('.expl-row.dir[data-path],.expl-item.dir[data-path],.expl-side .en[data-path],.expl-crumb a[data-drop]');
+    if(el) el.classList.add('dragover');
+    return; }
+  const t=explDropTarget(e); explClearDrop();
   if(explCanDrop(t)){ e.preventDefault(); e.dataTransfer.dropEffect='move';
     const el=e.target.closest('.expl-row.dir[data-path],.expl-item.dir[data-path],.expl-side .en[data-path],.expl-crumb a[data-drop]'); if(el) el.classList.add('dragover');
     // spring-loaded sidebar folders
     const en=e.target.closest('.expl-side .en[data-path]'); const sp=en?en.dataset.path:null;
     if(sp!==explSpringP){ explSpringP=sp; clearTimeout(explSpringT); if(sp && !EX.open.has(sp)) explSpringT=setTimeout(()=>{ EX.open.add(sp); renderExpl(); },650); } } }
 function explClearDrop(){ document.querySelectorAll('.expl-wrap .dragover').forEach(el=>el.classList.remove('dragover')); }
-async function explDrop(e){ const t=explDropTarget(e); explClearDrop(); clearTimeout(explSpringT);
+async function explDrop(e){
+  if(explIsExternalDrag(e)){ e.preventDefault(); explExtHint(false); explClearDrop();
+    const t=explDropTarget(e); const dir=(t===undefined||t===null)?EX.path:t;
+    const {out,aborted}=await explCollectEntries(e.dataTransfer);
+    if(aborted){ toast(aborted); return; }
+    return explUploadBatch(out, dir); }
+  const t=explDropTarget(e); explClearDrop(); clearTimeout(explSpringT);
   if(!explCanDrop(t)){ return; } e.preventDefault(); const paths=EX.dragPaths; EX.dragPaths=null;
   try{ await FS.move(paths, t||''); await explReload(); toastUndo('Moved to '+(t?t.split('/').pop():(state.repoName||'root')), explUndoMove(paths, t||'')); }catch(err){ toast(err.message); } }
+// "Drop to upload" overlay over the main pane during an external drag
+function explExtHint(on){ let h=$('extDropHint');
+  if(on){ if(!h){ h=document.createElement('div'); h.id='extDropHint'; h.textContent='Drop to upload'; document.body.appendChild(h); }
+    const mr=$('explMain').getBoundingClientRect();
+    h.style.cssText=`display:flex;left:${mr.left+4}px;top:${mr.top+4}px;width:${mr.width-8}px;height:${mr.height-8}px`; }
+  else if(h) h.style.display='none'; }
+// OS folder drops: traverse webkitGetAsEntry() recursively, preserving relative
+// paths; 1000-file / depth-32 sanity caps with a clear abort.
+async function explCollectEntries(dt){
+  const out=[]; let aborted=null; const MAXF=1000, MAXD=32;
+  const entries=Array.from(dt.items||[]).map(i=>i.webkitGetAsEntry&&i.webkitGetAsEntry()).filter(Boolean);
+  if(!entries.length){ for(const f of Array.from(dt.files||[])) out.push({file:f, rel:f.name}); return {out,aborted}; }
+  const readAll=(rd)=>new Promise((res,rej)=>{ const all=[]; const step=()=>rd.readEntries(es=>{ es.length?(all.push(...es),step()):res(all); },rej); step(); });
+  const walk=async(en,prefix,depth)=>{ if(aborted) return;
+    if(out.length>=MAXF){ aborted=`More than ${MAXF} files — upload aborted.`; return; }
+    if(depth>MAXD){ aborted=`Folders nested deeper than ${MAXD} levels — upload aborted.`; return; }
+    if(en.isFile){ const f=await new Promise((res,rej)=>en.file(res,rej)); out.push({file:f, rel:prefix+en.name}); }
+    else if(en.isDirectory){ const kids=await readAll(en.createReader()); for(const c of kids) await walk(c, prefix+en.name+'/', depth+1); } };
+  for(const en of entries) await walk(en,'',0);
+  return {out,aborted};
+}
+function upToastEl(){ let t=$('upToast'); if(!t){ t=document.createElement('div'); t.className='utoast'; t.id='upToast';
+  t.innerHTML='<span class="ut-msg"></span><button type="button">Cancel</button>'; document.body.appendChild(t); } return t; }
+async function explUploadBatch(list, dir){
+  if(!list||!list.length) return;
+  const ac=new AbortController(); let done=0; const fails=[], added=[];
+  const t=upToastEl(); const msg=t.querySelector('.ut-msg');
+  t.querySelector('button').onclick=()=>{ ac.abort(); t.classList.remove('show'); };
+  const label=()=>{ msg.textContent=`Uploading ${list.length} file${list.length>1?'s':''}… ${done}/${list.length}`; };
+  label(); t.classList.add('show');
+  for(const it of list){ if(ac.signal.aborted) break;
+    try{ const r=await FS.upload(dir, it.rel, it.file, ac.signal); added.push(r.path); }
+    catch(e){ if(e.name==='AbortError') break; fails.push(it.rel+' — '+e.message); }
+    done++; label(); }
+  t.classList.remove('show');
+  await explReload();
+  // flash-select the new top-level items visible in the current folder
+  const tops=new Set(added.map(p=>{ const rest=dir? p.slice(dir.length+1):p; return (dir?dir+'/':'')+rest.split('/')[0]; }));
+  EX.sel=new Set([...tops].filter(p=>explVisible().some(n=>n.path===p))); EX.cur=[...EX.sel][0]||null; explPaintSel();
+  document.querySelectorAll('.expl-row.xsel,.expl-item.xsel').forEach(el=>{ el.classList.add('flash'); setTimeout(()=>el.classList.remove('flash'),950); });
+  if(fails.length) toast(`Uploaded ${added.length}, failed ${fails.length}: ${fails[0]}${fails.length>1?`  (+${fails.length-1} more)`:''}`);
+  else if(added.length&&ac.signal.aborted) toast(`Cancelled — ${added.length} uploaded before stopping`);
+  else if(added.length) toast(`Uploaded ${added.length} file${added.length>1?'s':''}`);
+}
 function explDragEnd(){ EX.dragPaths=null; explClearDrop(); clearTimeout(explSpringT); explSpringP=null; const g=$('explDrag'); if(g) g.style.display='none'; }
 // marquee (rubber-band) selection on empty space — pointer events + capture.
 // Anchor lives in CONTENT coordinates (scroll-independent); the rect is clamped
