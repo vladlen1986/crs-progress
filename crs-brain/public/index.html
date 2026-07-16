@@ -642,8 +642,8 @@
   .expl-tree .en .tw{width:14px;height:14px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;color:var(--muted);cursor:pointer;transition:transform .12s}
   .expl-tree .en.open>.tw{transform:rotate(90deg)}
   .expl-tree .en .tw svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2.4}
-  .expl-tree .en .ti{width:15px;height:15px;flex:0 0 auto;color:#5B9CF6;display:inline-flex}
-  .expl-tree .en .ti svg{width:15px;height:15px;display:block}
+  .expl-tree .en .ti{width:16px;height:16px;flex:0 0 auto;color:#5B9CF6;display:inline-flex}
+  .expl-tree .en .ti svg{width:16px;height:16px;display:block}
   .expl-tree .en .tn{overflow:hidden;text-overflow:ellipsis}
   .expl-tree .kids{display:none}
   .expl-tree .kids.open{display:block}
@@ -669,9 +669,10 @@
   .expl-item.peeking,.expl-row.peeking{background:var(--panel2)}   /* hover-preview marks the item with bg only — no ring */
   .expl-group{grid-column:1/-1;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
   .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
+  .fic{display:inline-flex;flex:0 0 auto;line-height:0}
   .tico{width:16px;height:16px;display:inline-flex;flex:0 0 auto}
   .tico svg{width:16px;height:16px;display:block}
-  .tico.lg{width:42px;height:42px} .tico.lg svg{width:42px;height:42px}
+  .tico.lg{width:56px;height:56px} .tico.lg svg{width:56px;height:56px}   /* grid tier is 56 — folders/thumbs align with 56px file icons */
   .tico img{width:100%;height:100%;object-fit:cover;border-radius:4px}
   .expl-rename{background:var(--bg);border:1px solid var(--accent);border-radius:4px;color:var(--primary);font:inherit;font-size:inherit;padding:1px 4px;outline:none;width:100%;max-width:100%;box-sizing:border-box}
   .expl-item .expl-rename{text-align:center;font-size:11px}
@@ -1999,11 +2000,10 @@ async function loadRecentEdited(){ const box=$('recentEdited'); if(!box) return;
   }catch{ box.innerHTML='<div class="rempty">—</div>'; } }
 
 // ---------- file-type icons ----------
-const EXT_COLOR={md:'#8B5CF6',html:'#F97316',htm:'#F97316',css:'#3B82F6',js:'#EAB308',ts:'#3178C6',py:'#22C55E',json:'#9CA3AF',csv:'#16A34A',xlsx:'#16A34A',xls:'#16A34A',pdf:'#EF4444',png:'#EC4899',jpg:'#EC4899',jpeg:'#EC4899',gif:'#EC4899',svg:'#EC4899',webp:'#EC4899',txt:'#6B7280',yml:'#06B6D4',yaml:'#06B6D4'};
 function extOf(name){ return (name.split('.').pop()||'').toLowerCase(); }
 function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftile'+(big?' lg':'');
   if(isImg(name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(pth)}"></span>`;
-  const ext=extOf(name); return `<span class="${cls}" style="background:${EXT_COLOR[ext]||'#565656'}">${(ext.slice(0,4).toUpperCase())||'?'}</span>`; }
+  return `<span class="fic">${fileIcon(name,20)}</span>`; }
 function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
 
 // ---------- Finder/Explorer-style file browser ----------
@@ -2028,43 +2028,14 @@ const jsq=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
 function fmtSize(n){ if(n==null) return ''; if(n<1024) return n+' B'; if(n<1048576) return (n/1024).toFixed(n<10240?1:0)+' KB'; return (n/1048576).toFixed(1)+' MB'; }
 function fmtDate(ms){ if(!ms) return ''; const d=new Date(ms),now=new Date(); return d.toLocaleString([], d.toDateString()===now.toDateString()?{hour:'2-digit',minute:'2-digit'}:{year:'2-digit',month:'short',day:'numeric'}); }
 const _EGL={folder:'<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M3 7a2 2 0 0 1 2-2h3.6l1.8 2H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>'};
-// Modern flat type icons: tinted document silhouette + type mark, color-coded
-// per kind (spreadsheet green, pdf red, word blue, …) — CRS-dark friendly.
-const _KIND_COLOR={md:'#8B5CF6',txt:'#9CA3AF',json:'#EAB308',yml:'#06B6D4',csv:'#16A34A',xls:'#1D9E54',doc:'#4A83C6',pdf:'#E5484D',img:'#EC4899',html:'#F97316',css:'#3B82F6',js:'#E7C13A',py:'#22C55E',code:'#9CA3AF',file:'#8a8a8a'};
-function fileKind(name){ const e=extOf(name);
-  if(/^(png|jpe?g|gif|svg|webp|ico|bmp)$/.test(e)) return 'img';
-  if(e==='pdf') return 'pdf';
-  if(/^xlsx?$|^xlsm$/.test(e)) return 'xls';
-  if(/^docx?$/.test(e)) return 'doc';
-  if(/^(md|markdown)$/.test(e)) return 'md';
-  if(e==='txt'||e==='log') return 'txt';
-  if(e==='json') return 'json';
-  if(/^ya?ml$/.test(e)) return 'yml';
-  if(e==='csv'||e==='tsv') return 'csv';
-  if(e==='html'||e==='htm') return 'html';
-  if(e==='css') return 'css';
-  if(/^(js|ts|mjs|cjs|jsx|tsx)$/.test(e)) return 'js';
-  if(e==='py') return 'py';
-  if(/^(sh|bat|cmd|ps1)$/.test(e)) return 'code';
-  return 'file'; }
-const _CODE_MARK='<path d="M10 13.2l-1.9 2.3 1.9 2.3M14 13.2l1.9 2.3-1.9 2.3"/>';
-const _GRID_MARK='<path d="M8 12.2h8v5.6H8zM8 15h8M11.8 12.2v5.6"/>';
-const _KIND_MARK={
-  md:'<path d="M8.7 17.4v-4.6l2.1 2.3 2.1-2.3v4.6"/>',
-  txt:'<path d="M8.5 12.5h7M8.5 15h7M8.5 17.5h4.5"/>',
-  json:'<path d="M10.3 11.8c-1.6 0-.5 2.8-2.1 2.8 1.6 0 .5 2.8 2.1 2.8M13.7 11.8c1.6 0 .5 2.8 2.1 2.8-1.6 0-.5 2.8-2.1 2.8"/>',
-  yml:'<path d="M8.5 12.5h1.4M11.4 12.5h4.1M8.5 15h1.4M11.4 15h4.1M8.5 17.5h1.4M11.4 17.5h2.6"/>',
-  csv:_GRID_MARK, xls:_GRID_MARK,
-  doc:'<path d="M8.5 12.5h7M8.5 15h7M8.5 17.5h5"/>',
-  pdf:'<path d="M8.5 13h7M8.5 15.5h7M8.5 18h3.5"/>',
-  html:_CODE_MARK, css:_CODE_MARK, js:_CODE_MARK, py:_CODE_MARK, code:_CODE_MARK,
-  img:'<rect x="8" y="11.8" width="8" height="6.2" rx="1"/><path d="M8.7 17l2.2-2.2 1.5 1.5 1.4-1.4 1.7 1.7"/>',
-  file:''};
+// File icons come from the approved generator in icons.js (fileIcon) — the ONLY
+// ext→icon logic in the app. ticon keeps folders (approved as-is, untouched) and
+// grid image thumbnails; every file branch delegates to fileIcon.
+const fic=(name,s)=>`<span class="fic">${fileIcon(name,s)}</span>`;
 function ticon(node,big){ const cls='tico'+(big?' lg':'');
   if(node.type==='dir') return `<span class="${cls}" style="color:#5B9CF6">${_EGL.folder}</span>`;
-  if(big&&isImg(node.name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(node.path)}"></span>`;
-  const k=fileKind(node.name), c=_KIND_COLOR[k];
-  return `<span class="${cls}" style="color:${c}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2.2h7.6L19 7.6V21.8H6z" fill="currentColor" fill-opacity=".12"/><path d="M13.6 2.2v5.4H19"/>${_KIND_MARK[k]||''}</svg></span>`; }
+  if(big&&isImg(node.name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(node.path)}" onerror="this.outerHTML=fileIcon('${jsq(node.name)}',56)"></span>`;
+  return fic(node.name, big?56:20); }
 
 async function openExpl(dir){
   EX.q=''; EX.recursive=false; EX.loading=true;
@@ -2176,7 +2147,7 @@ async function openDocPopup(p){
   hidePeek(); const d=ensureDocPop(); const name=p.split('/').pop(), ext=extOf(name);
   const node=explNodeByPath(p)||{type:'file',name,path:p};
   const raw='/api/raw?path='+encodeURIComponent(p);
-  const head=`<div class="dp-head">${ticon(node)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
+  const head=`<div class="dp-head">${fic(name,20)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
     <a title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:7px;color:var(--secondary)"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
     <button title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button></div>`;
   const show=(body)=>{ d.innerHTML=`<div class="dp-box">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); };
@@ -2184,7 +2155,7 @@ async function openDocPopup(p){
   if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
   if(/^(xlsx?|xlsm|docx?|zip|7z|rar|woff2?|ttf|bin|dat)$/.test(ext) ){
     const meta=[node.size!=null?fmtSize(node.size):null, node.mtime?new Date(node.mtime).toLocaleString():null].filter(Boolean).join('  ·  ');
-    return show(`<div class="dp-card">${ticon(node,true)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}No inline preview for this type.</div>
+    return show(`<div class="dp-card">${fileIcon(name,64)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}No inline preview for this type.</div>
       <div class="acts"><a href="${raw}" download="${esc(name)}">⤓ Download</a><button onclick="apiOpen('${jsq(p)}')">↗ Open externally</button></div></div>`);
   }
   show('<div class="dp-card"><span class="pk-load">Loading…</span></div>');
@@ -2256,7 +2227,7 @@ function renderSideHtml(){
   const favs=explFavs();
   if(favs.length) h+=sec('fav','Favorites', favs.map(p=>{ const n=explNodeByPath(p);
     if(!n) return `<div class="en broken" data-brokenfav="${esc(p)}"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn" title="${esc(p)} (missing)">${esc(p.split('/').pop()||p)}</span><button class="fx" title="Remove from Favorites">✕</button></div>`;
-    return `<div class="en${EX.path===p?' on':''}" data-fav="${esc(p)}" data-dir="${n.type==='dir'?1:0}"><span class="tw"></span><span class="ti">${n.type==='dir'?_EGL.folder:ticon(n)}</span><span class="tn">${esc(n.name)}</span><button class="fx" title="Remove from Favorites">✕</button></div>`; }).join(''));
+    return `<div class="en${EX.path===p?' on':''}" data-fav="${esc(p)}" data-dir="${n.type==='dir'?1:0}"><span class="tw"></span><span class="ti">${n.type==='dir'?_EGL.folder:fileIcon(n.name,16)}</span><span class="tn">${esc(n.name)}</span><button class="fx" title="Remove from Favorites">✕</button></div>`; }).join(''));
   const tree=`<div class="en${EX.path===''?' on':''}" data-path="" data-dir="1"><span class="tw"></span><span class="ti">${_EGL.folder}</span><span class="tn">/</span></div>`+walk(explRoot(),0);
   return h+sec('tree', state.repoName||'Project', tree);
 }
@@ -2466,7 +2437,7 @@ async function explDelete(){ const paths=[...EX.sel]; if(!paths.length) return;
   // snapshot small text files (and empty folders) so Undo can restore them
   const snap=[]; let unrecoverable=0;
   for(const p of paths){ const n=explNodeByPath(p);
-    if(n&&n.type==='file' && (n.size||0)<=262144 && !/^(img|pdf|xls|doc|file)$/.test(fileKind(n.name))){
+    if(n&&n.type==='file' && (n.size||0)<=262144 && !/^(img|pdf|xls|doc|gen)$/.test(ICON_EXT2TYPE[extOf(n.name)]||'gen')){
       try{ snap.push({p, content:await FS.read(p)}); }catch{ unrecoverable++; } }
     else if(n&&n.type==='dir' && !(n.children||[]).length) snap.push({p, folder:true});
     else unrecoverable++; }
@@ -2490,7 +2461,7 @@ function explProps(target){ const n=explNodeByPath(target); if(!n) return;
   else row('Size', fmtSize(n.size)||'—');
   if(n.ctime) row('Created', new Date(n.ctime).toLocaleString());
   if(n.mtime) row('Modified', new Date(n.mtime).toLocaleString());
-  d.innerHTML=`<div class="pp-box"><div class="pp-head">${ticon(n,true)}<span class="pp-name">${esc(n.name||'/')}</span><button class="pp-x" onclick="$('propPop').classList.remove('show')">✕</button></div><div class="pp-rows">${rows.join('')}</div></div>`;
+  d.innerHTML=`<div class="pp-box"><div class="pp-head">${n.type==='dir'?ticon(n,true):fic(n.name,28)}<span class="pp-name">${esc(n.name||'/')}</span><button class="pp-x" onclick="$('propPop').classList.remove('show')">✕</button></div><div class="pp-rows">${rows.join('')}</div></div>`;
   d.classList.add('show'); }
 function explKey(e){
   if(e.target.closest && e.target.closest('.expl-rename')) return;   // rename input owns its keys
@@ -2548,20 +2519,22 @@ async function showPeek(itemEl, path, mx){
   const el=ensurePeek(); peekPath=path;
   document.querySelectorAll('.peeking').forEach(x=>x.classList.remove('peeking')); itemEl.classList.add('peeking');
   const name=path.split('/').pop(), ext=extOf(name);
-  const mkFoot=(badge)=>`<div class="pk-foot"><span class="nm">${esc(name)}</span><span class="pk-ext">${esc(badge)}</span></div>`;
+  const isDir=itemEl.dataset.dir==='1';
+  const ficon=isDir?`<span class="tico" style="color:#5B9CF6">${_EGL.folder}</span>`:fic(name,20);
+  const mkFoot=(badge)=>`<div class="pk-foot">${ficon}<span class="nm">${esc(name)}</span><span class="pk-ext">${esc(badge)}</span></div>`;
   let foot=mkFoot((ext||'file').toUpperCase());
   const paint=(media)=>{ el.innerHTML=media+foot; positionPeek(el,itemEl,mx); el.classList.add('show'); };
   // folders: list the first 8 children + "N items"
   if(itemEl.dataset.dir==='1'){
     const node=explNodeByPath(path), kids=(node&&node.children)||[];
     foot=mkFoot(kids.length+' item'+(kids.length===1?'':'s'));
-    const rows=kids.slice(0,8).map(k=>`<div class="pk-krow">${ticon(k)}<span>${esc(k.name)}</span></div>`).join('');
+    const rows=kids.slice(0,8).map(k=>`<div class="pk-krow">${k.type==='dir'?ticon(k):fic(k.name,16)}<span>${esc(k.name)}</span></div>`).join('');
     paint(`<div class="pk-kids">${rows||'<div class="pk-kempty">Empty folder</div>'}</div>`); return;
   }
   if(isImg(name)){ paint(`<div class="pk-media"><img src="/api/raw?path=${encodeURIComponent(path)}" alt=""></div>`); return; }
   if(isHtml(name)){ paint(`<div class="pk-media"><iframe class="pk-frame" sandbox="allow-same-origin" src="/api/raw?path=${encodeURIComponent(path)}"></iframe></div>`); return; }
   if(/\.(pdf|xlsx?|zip|docx?|node|dll|exe|bin|ico|woff2?|ttf)$/i.test(name)){
-    paint(`<div class="pk-none"><span class="ftile lg" style="background:${EXT_COLOR[ext]||'#565656'}">${(ext.slice(0,4).toUpperCase())||'?'}</span>No inline preview</div>`); return;
+    paint(`<div class="pk-none">${fileIcon(name,56)}No inline preview</div>`); return;
   }
   // text-like → fetch a snippet (cached)
   if(peekCache[path]===undefined){
