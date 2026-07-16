@@ -668,6 +668,10 @@
   .expl-menu .sh{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono)}
   .expl-menu button:hover:not(:disabled) .sh{color:rgba(255,255,255,.7)}
   .expl-menu .div{height:1px;background:var(--line);margin:4px 6px}
+  .expl-menu .mi-sub{position:relative}
+  .expl-menu .mi-sub>.submenu{display:none;position:absolute;left:calc(100% - 4px);top:-5px;min-width:170px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:0 16px 44px rgba(0,0,0,.5);padding:5px}
+  .expl-menu .mi-sub:hover>.submenu{display:block}
+  .expl-menu .mi-sub>button .sh{font-family:inherit}
   .expl-drag{position:fixed;z-index:95;pointer-events:none;background:var(--elev);border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--primary);box-shadow:0 8px 24px rgba(0,0,0,.5);display:none;align-items:center;gap:7px}
   /* hover file preview ("quick look") — square card that pops beside the tile */
   .filepeek{position:fixed;z-index:80;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:0 18px 50px rgba(0,0,0,.55);overflow:hidden;opacity:0;transform:scale(.97);transition:opacity .12s ease,transform .12s ease;pointer-events:none;display:none}
@@ -1922,7 +1926,7 @@ const FS = {
   tree(){ return api('/api/files').then(r=>r.tree||[]); },
   read(p){ return api('/api/file?path='+encodeURIComponent(p)).then(r=>r.content); },
   _post(op,body){ return api('/api/fs/'+op,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); },
-  create(dir,name,type){ return this._post('create',{dir,name,type}); },
+  create(dir,name,type,autosuffix){ return this._post('create',{dir,name,type,autosuffix:!!autosuffix}); },
   rename(p,newName){ return this._post('rename',{path:p,newName}); },
   move(paths,targetDir){ return this._post('move',{paths,targetDir}); },
   copy(paths,targetDir){ return this._post('copy',{paths,targetDir}); },
@@ -1949,13 +1953,16 @@ async function openExpl(dir){
   $('explWrap').classList.add('show'); explSetupMain(); renderExpl();
   try{ EX.tree=await FS.tree(); }catch{ EX.tree=[]; }
   EX.loading=false; EX.path=dir||'';
-  EX.all = !!EX.path && !nodeExistsIn(filterTree(EX.tree), EX.path) && nodeExistsIn(EX.tree, EX.path);
   EX.open.clear(); let acc=''; for(const part of EX.path.split('/').filter(Boolean)){ acc=acc?acc+'/'+part:part; EX.open.add(acc); }
   EX.hist=[EX.path]; EX.hi=0; EX.sel.clear(); EX.cur=null;
   if($('explSearch')) $('explSearch').value='';
   setupExplPeek(); renderExpl(); $('explMain').focus();
 }
-function explRoot(){ return EX.all?EX.tree:filterTree(EX.tree); }
+// The explorer ALWAYS browses the full repo tree. The app's crsOnly project
+// filter hid non-project paths here too — so files created at root (or anywhere
+// off-project) existed on disk but were invisible, and retries hit "already
+// exists" with nothing to see. A file manager must show what's really there.
+function explRoot(){ return EX.tree; }
 function nodeExistsIn(root, pathStr){ let nodes=root; for(const part of pathStr.split('/')){ const n=(nodes||[]).find(x=>x.type==='dir'&&x.name===part); if(!n) return false; nodes=n.children; } return true; }
 function explNodeAt(pathStr){ if(!pathStr) return {children:explRoot(),type:'dir',path:''}; let nodes=explRoot(),node=null;
   for(const part of pathStr.split('/')){ node=(nodes||[]).find(n=>n.type==='dir'&&n.name===part); if(!node) return {children:[]}; nodes=node.children; } return node; }
@@ -2140,11 +2147,17 @@ function explMenuAt(x,y,html){ const mn=$('explMenu'); mn.innerHTML=html; mn.cla
   const w=mn.offsetWidth,h=mn.offsetHeight; mn.style.left=Math.min(x,innerWidth-w-6)+'px'; mn.style.top=Math.min(y,innerHeight-h-6)+'px'; }
 function explBuildMenu(target){
   const mi=(label,act,{sh='',dis=false}={})=>`<button ${dis?'disabled':''} data-act="${act}"><span>${esc(label)}</span>${sh?`<span class="sh">${sh}</span>`:''}</button>`;
+  const sub=(label,items)=>`<div class="mi-sub"><button type="button"><span>${esc(label)}</span><span class="sh">▸</span></button><div class="submenu">${items}</div></div>`;
+  const newFileSub=sub('New file', mi('Markdown (.md)','newfile:md')+mi('Text (.txt)','newfile:txt')+mi('JSON (.json)','newfile:json')+mi('HTML (.html)','newfile:html'));
   const div='<div class="div"></div>', hasClip=!!EX.clip;
-  if(target==null) return mi('New folder','newfolder',{sh:'⌘N'})+mi('New file','newfile')+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+mi('Sort by name','sortname')+mi('Sort by date','sortdate')+mi(EX.view==='list'?'Grid view':'List view','toggleview');
+  if(target==null){
+    const sortSub=sub('Sort by', ['name','date','type','size'].map(k=>mi(k[0].toUpperCase()+k.slice(1)+(EX.sortKey===k?(EX.sortDir>0?'  ▲':'  ▼'):''),'sort:'+k)).join(''));
+    const viewSub=sub('View', mi('List'+(EX.view==='list'?'  ✓':''),'view:list')+mi('Grid'+(EX.view==='grid'?'  ✓':''),'view:grid'));
+    return mi('New folder','newfolder',{sh:'⌘N'})+newFileSub+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+sortSub+viewSub;
+  }
   const node=explVisible().find(n=>n.path===target)||{type:'file'};
   const multi=EX.sel.size>1;
-  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+mi('New file inside','newfile')+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
+  if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
   return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+mi('Copy path','copypath')+mi('Properties','props');
 }
 async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
@@ -2154,7 +2167,9 @@ async function explAct(act,target){
     if(act==='open'){ const n=explVisible().find(x=>x.path===target); if(n) n.type==='dir'?explGoto(n.path):explOpenFile(n.path); }
     else if(act==='rename'){ if(target!=null) explBeginRename(target); }
     else if(act==='newfolder'){ explNew('folder', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path); }
-    else if(act==='newfile'){ explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path); }
+    else if(act.startsWith('newfile')){ const ext=act.split(':')[1]||'md'; explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path, ext); }
+    else if(act.startsWith('sort:')){ explDoSort(act.slice(5)); }
+    else if(act.startsWith('view:')){ explSetView(act.slice(5)); }
     else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
     else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }
@@ -2168,12 +2183,12 @@ async function explAct(act,target){
     else if(act==='toggleview'){ explSetView(EX.view==='list'?'grid':'list'); }
   }catch(e){ toast(e.message); }
 }
-async function explNew(type,dir){
+async function explNew(type,dir,ext){
   if(dir!=null && dir!==EX.path) explGoto(dir); const d=EX.path;
-  const existing=new Set((explNodeAt(d).children||[]).map(n=>n.name));
-  let base=type==='folder'?'New folder':'untitled.md', name=base, i=2;   // new files default to .md (an allowed type) so they appear in the tree
-  while(existing.has(name)) name=(type==='folder'?'New folder '+i:'untitled '+i+'.md'),i++;
-  try{ await FS.create(d, name, type); await explReload(); const np=(d?d+'/':'')+name; explSelectPath(np); explBeginRename(np); }
+  // The server auto-suffixes on collision ("untitled 2.md") — the client never
+  // guesses from its (possibly stale/filtered) tree, so no bogus "already exists".
+  const name=type==='folder'?'New folder':('untitled.'+(ext||'md'));
+  try{ const r=await FS.create(d, name, type, true); await explReload(); explSelectPath(r.path); explBeginRename(r.path); }
   catch(e){ toast(e.message); }
 }
 function explBeginRename(path){

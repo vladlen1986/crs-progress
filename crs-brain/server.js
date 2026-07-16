@@ -1545,11 +1545,17 @@ const server = http.createServer(async (req, res) => {
       try {
         if (p === '/api/fs/create') {
           if (badName(body.name)) return send(res, 400, { error: 'invalid name' });
-          const abs = safeRepoPath((body.dir ? body.dir + '/' : '') + body.name);
-          if (fs.existsSync(abs)) return send(res, 409, { error: 'already exists' });
+          let abs = safeRepoPath((body.dir ? body.dir + '/' : '') + body.name);
+          if (fs.existsSync(abs)) {
+            if (!body.autosuffix) return send(res, 409, { error: 'already exists' });
+            // "untitled.md" → "untitled 2.md", "New folder" → "New folder 2", …
+            const ext = body.type === 'folder' ? '' : path.extname(abs);
+            const base = path.basename(abs, ext), dir = path.dirname(abs);
+            let i = 2; do { abs = path.join(dir, `${base} ${i++}${ext}`); } while (fs.existsSync(abs));
+          }
           if (body.type === 'folder') fs.mkdirSync(abs, { recursive: false });
           else { fs.mkdirSync(path.dirname(abs), { recursive: true }); fs.writeFileSync(abs, ''); }
-          return send(res, 200, { ok: true, path: (body.dir ? body.dir + '/' : '') + body.name });
+          return send(res, 200, { ok: true, path: path.relative(REPO_ROOT, abs).split(path.sep).join('/') });
         }
         if (p === '/api/fs/rename') {
           if (badName(body.newName)) return send(res, 400, { error: 'invalid name' });
