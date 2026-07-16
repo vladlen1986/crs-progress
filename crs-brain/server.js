@@ -64,8 +64,9 @@ const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
 const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
+const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');         // agent-captured run-mode screenshots
 
-for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR]) fs.mkdirSync(d, { recursive: true });
+for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs.mkdirSync(d, { recursive: true });
 // Generate the hook settings file (absolute path to the guard) so every `claude -p`
 // spawn hard-blocks dangerous Buildprint CLI commands (apply-to-live, --force-apply,
 // sync --reset, data delete, …) regardless of what the model tries.
@@ -334,6 +335,13 @@ const BP_PROMPT = (ws) => [
   '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
+  'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
+  `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
+  `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
+  '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
+  '- `--viewport mobile` / `tablet` to check responsive.',
+  `Then READ the PNG (you see images) to inspect it, and when it helps the user, EMBED it in your reply as \`![what it shows](crs-brain/data/screenshots/<name>.png)\` — the chat renders it inline. Report what you SAW (pass/fail per item), not just that you captured it.`,
+  'INTERACTIVE checks (click a flow, verify behavior, read console/errors): use `agent-browser` — `agent-browser open <run-mode-url>`, `agent-browser snapshot -i` (clickable refs), click/fill via refs, `agent-browser console` / `errors`. If either `buildprint screenshot` or `agent-browser` reports "agent-browser not found", tell Vlad it needs a one-time install (`npm install -g agent-browser`) — do not try to work around it.',
   'RESPONSE FORMAT (important — keep replies readable, not walls of text): put your step-by-step reasoning in',
   'your THINKING, not the final message. Write each reply as clean, scannable Markdown: open with a ONE-LINE',
   'outcome, then short `##` sections with bullet points and small tables. Bold the load-bearing facts (entity',
@@ -676,7 +684,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + local scripting (fast selection/dedup) + MCP + web
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks) + local scripting + MCP + web
       '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];

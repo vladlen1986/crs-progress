@@ -10,3 +10,4 @@ __pycache__/
 .claude/
 crs-brain/.pin
 crs-brain/data/bp-guard-settings.json
+crs-brain/data/screenshots/
