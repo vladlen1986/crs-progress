@@ -1890,9 +1890,13 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req).catch(() => ({}));
       const token = String((body && body.token) || '').trim();
       if (!token) return send(res, 400, { error: 'token required' });
-      const bin = resolveBin('buildprint') || 'buildprint';
       let done = false;
-      const child = spawn(bin, ['link', token], { cwd: REPO_ROOT, windowsHide: true });
+      // Windows: `buildprint` is a .cmd shim — spawn without a shell can't resolve it,
+      // so wrap in cmd.exe /c (same fix as spawnClaude). Node still quotes args safely.
+      const isWin = process.platform === 'win32';
+      const child = isWin
+        ? spawn('cmd.exe', ['/c', 'buildprint', 'link', token], { cwd: REPO_ROOT, windowsHide: true })
+        : spawn(resolveBin('buildprint') || 'buildprint', ['link', token], { cwd: REPO_ROOT, windowsHide: true });
       let out = '';
       child.stdout.on('data', (d) => (out += d));
       child.stderr.on('data', (d) => (out += d));
