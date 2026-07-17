@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T16:37:17.895Z",
+  "updated": "2026-07-17T16:42:15.002Z",
   "messages": [
     {
       "role": "user",
@@ -31,6 +31,17 @@
       "role": "assistant",
       "content": "Done. The 29 CLI agent guidelines are ingested — with one important catch along the way.\n\n**What happened:**\n- **The attachment was subtly corrupted.** Its compiler demoted `#` lines *inside code fences* too, turning bash comments like `# Output:` into `## Output:`. Since the CLI is linked, I rebuilt all 29 files directly from `buildprint guidelines get <path>` — 28 matched my attachment-derived split byte-for-byte, and `browser/agent-browser` had 12 corrupted lines now fixed. Everything under `brain/buildprint/guidelines/` is CLI-verbatim; the attachment stays as a download record only.\n- **Routing:** `brain/buildprint/INDEX.md` has a new \"CLI agent guidelines\" section mapping all 29 paths (title/intro/Gaps updated), and `brain/changelog.md` has the ingest entry.\n- **Cross-links:** `crs-brain-operations.md` and `CLI-MCP-PLAYBOOK.md` now say \"read the matching guideline before editing a surface.\"\n- **Found a real bug while cross-checking:** `brain/buildprint/crs-brain-operations.md` had the loop as `savepoint → apply → check`. That contradicts CLAUDE.md, the playbook, and the official quickstart (`check` must pass *before* `apply`). Fixed to `savepoint → edit → check → apply`, guardrail 3 rephrased to match.\n\n**Housekeeping:** your task-1 commit resolved itself — the Brain app auto-committed it (`35c2e55`), and an \"ideas board\" auto-commit swept in the first-pass guideline files mid-session. The final 5 files (INDEX, ops, playbook, changelog, the agent-browser fix) are staged, but `git commit` needs your approval — approve and I'll run it. I left the QA cycle-3 checklist edits, `CRS_Spec-13.html`, and `qa-scratch/` alone; they're not mine.\n\nMost CRS-relevant files for the Pattern A work: `guidelines/schema-data-type.md` (exact `privacy_role` JSON shape), `guidelines/security-privacy-rules.md`, and `guidelines/security-bubble.md`.",
       "ts": "2026-07-17T16:37:17.895Z"
+    },
+    {
+      "role": "user",
+      "content": "ok give me prompt and i will ask buildprint to fix it and provide you in a way you need",
+      "ts": "2026-07-17T16:41:37.738Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "No prompt needed — there's nothing for Buildprint to fix. The corrupted file was just the *export* you downloaded; I already pulled all 29 guidelines verbatim from the linked CLI myself (`buildprint guidelines get <path>`), so the brain copies are exact originals. Asking a Buildprint web agent to re-compile them would burn metered agent runtime to produce a worse version of what we already have.\n\nFor the future: when guidelines update upstream, just tell me \"refresh the guidelines\" — I re-capture all 29 directly from the CLI in one pass, free, no intermediate markdown.\n\nStill pending from before: the 5-file commit is staged and blocked on your approval — say \"commit\" (or approve the prompt when it appears) and it's done.",
+      "ts": "2026-07-17T16:42:15.002Z"
     }
   ]
 }
