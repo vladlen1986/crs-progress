@@ -83,3 +83,13 @@ Created 2026-07-17 by the pre-execution gate run.
 | P11-kanban-loop.3 | Board tabs/filters | Switch FILES/IDEAS tabs, toggle text/tiles view, apply an extension chip and type in board search | Columns re-render filtered; counts update; search narrows cards live | dark+light | UNTESTED | | |
 | P11-kanban-loop.4 | Mobile embed board | Load map.html embedded on a narrow viewport (<=720px) and open the board | Board fills the screen (no galaxy behind), canvas render loop paused, host composer notified via setMapBoardOpen | dark+light | UNTESTED | | |
 | P11-kanban-loop.5 | QA loop files | Check brain/qa/master-checklist.md and brain/qa/program-state.md exist and are populated after this phase completes | Both files exist with checklist rows and program state entries; a qa-loop commit appears in git log | n/a | UNTESTED | | |
+
+| P11K.1 | kanban | Load /map, click ▦ BOARD in top toolbar | Right-side 400px drawer (--bg-secondary, left border); toolbar buttons slide left; no bottom sheet | dark+light | UNTESTED | | |
+| P11K.2 | kanban | Drawer open, hover a file card | Map dims to node+cluster; curved accent edge fades in from drawer edge with accent ring; preview appears left of drawer | dark+light | UNTESTED | | |
+| P11K.3 | kanban | Mouse off card / close drawer | Edge+ring disappear; dim state returns | dark+light | UNTESTED | | |
+| P11K.4 | kanban | Hover map file node with visible card; hover hub; enter drawer | Card gets --accent-border-active + scrolls into view; hub highlights descendants; entering drawer releases | dark+light | UNTESTED | | |
+| P11K.5 | kanban | Click a card | Preview fills area left of drawer, no overlap; Rendered/Text/new-tab work | dark+light | UNTESTED | | |
+| P11K.6 | kanban | IDEAS tab: add 'test #tag !high', move, delete | All work; HIGH badge --error-tint; !med amber; !low neutral | dark+light | UNTESTED | | |
+| P11K.7 | kanban | Toggle theme with drawer open + card hovered | 200ms cross-fade; canvas edge/ring re-read tokens | dark+light | UNTESTED | | |
+| P11K.8 | kanban | Resize ≤720px / embed #board | Full-width takeover; header wraps; rAF paused while covered | dark+light | UNTESTED | | |
+| P11K.9 | kanban | Drawer open: check Ask dock + MENU panel | Dock re-centers left of drawer; MENU opens left of drawer | dark+light | UNTESTED | | |

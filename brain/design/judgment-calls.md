@@ -26,3 +26,9 @@
 | 20 | Extended constellation palette --c-mem6..8 | map.html :root | JS palette had 8 memory colors, only 5 declared as vars — completed the set so JS reads all category colors from CSS. | Completes call #6. |
 | 21 | Compact control sizing below spec minimums in the board drawer | map.html board header + idea cards | Drawer-header search ~28px and 19px hover actions kept for density; tokens/focus rings applied. Flagged, not silently resized. | §2.9 sizes assume form contexts; dense toolbar furniture. |
 | 22 | Menu-panel padding 16px (below §15's 18-24 card range) | map.html .panel | 230px control popover follows §6 dropdown density, not §15 card padding. | §6 is the nearer anchor. |
+| 23 | Board drawer "r6 sections" → `--radius-btn` token (7px) | map.html board | Tokens-only rule wins over the prompt's raw 6px. | §2.9 documents the 6-7 range. |
+| 24 | Board cards badge = priority (!high/!med/!low), not status | map.html board | Status IS the column — a status badge would duplicate it; priority uses §20.7 tints (error/warning/neutral). | §20.7. |
+| 25 | Board open slides toolbar buttons left of the drawer | map.html | Keeps BOARD toggleable + its active state visible instead of burying the buttons. | §14 states visibility. |
+| 26 | Mobile board = full-width takeover (54vh half-sheet removed) | map.html ≤720px | Matches the existing embed behavior; galaxy rAF paused while covered. | §19 mobile TBD — nearest existing pattern. |
+| 27 | Hover routing edge starts at the drawer's left edge at card center | map.html canvas | Spec allowed drawer edge or card position; edge reads cleaner across the canvas. | §2.8 motion language. |
+| 28 | Hub hover highlights ALL descendant cards (prefix match) | map.html | Direct-children-only felt arbitrary from the map side; descendants match the dim-cluster behavior. | Consistency with existing matches-dimming. |

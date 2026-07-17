@@ -15,6 +15,7 @@
     --c-mem6:#E879F9; --c-mem7:#9333EA; --c-mem8:#C4B5FD;
     --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    --board-w:400px;   /* right-side board drawer width (spec 380–420px) */
   }
   *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
   /* scrollbars — §2.2: track --bg-secondary, thumb --border-hover → --border-active, --accent while dragging */
@@ -35,9 +36,12 @@
   .brand span{color:var(--text-muted);letter-spacing:2.5px;font-size:13px;font-weight:300}
   .brand .by{position:absolute;top:29px;left:36px;font-size:10px;letter-spacing:1.5px;color:var(--text-muted);opacity:.85}
 
-  .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit}
+  .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit;transition:transform var(--transition),background-color var(--transition-colors),color var(--transition-colors),border-color var(--transition-colors)}
   .menu-btn:hover{background:var(--bg-tertiary);color:var(--text-primary);border-color:var(--border-hover)}
   .menu-btn.on{background:var(--accent-tint);color:var(--accent-text);border-color:var(--border-default)}
+  /* board open → toolbar buttons slide left of the drawer so BOARD stays reachable/toggleable */
+  body.board-open .menu-btn{transform:translateX(calc(0px - var(--board-w)))}
+  body.board-open .panel{right:calc(20px + var(--board-w))}
 
   .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
@@ -65,43 +69,51 @@
   .bake:hover{background:var(--accent-hover)}
   .bake:active{background:var(--accent-active)}
 
-  /* kanban board drawer — folders as columns, files as cards */
-  .board{position:fixed;left:0;right:0;bottom:0;height:38vh;min-height:230px;z-index:12;background:var(--bg-secondary);border-top:1px solid var(--border-default);transform:translateY(105%);transition:transform var(--transition);display:flex;flex-direction:column}
-  .board.open{transform:translateY(0)}
-  .board .bhead{display:flex;align-items:center;gap:10px;padding:10px 18px 6px;color:var(--text-primary);font-size:11px;font-weight:700;letter-spacing:.1em}
+  /* kanban board drawer — right-side collapsible panel; folders/status as columns, files as cards */
+  .board{position:fixed;top:0;right:0;bottom:0;width:var(--board-w);max-width:94vw;z-index:12;background:var(--bg-secondary);border-left:1px solid var(--border-default);transform:translateX(105%);transition:transform var(--transition);display:flex;flex-direction:column}
+  .board.open{transform:translateX(0)}
+  .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 40px 6px 16px;color:var(--text-primary);font-size:11px;font-weight:700;letter-spacing:.1em}
   .board .bhead .n{color:var(--text-muted);font-weight:400;letter-spacing:.3px}
-  .board .bhead .close{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit}
+  .board .bhead .close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit}
   .board .bhead .close:hover{color:var(--text-primary)}
-  .board .cols{flex:1;display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 18px 16px}
+  .board .cols{flex:1;display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 16px 16px}
   .bcol{flex:0 0 210px;display:flex;flex-direction:column;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden}
   .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border-default);font-size:11px;font-weight:700;color:var(--text-primary);letter-spacing:.8px;flex:0 0 auto}
   .bcol .chead .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
   .bcol .chead .cnt{margin-left:auto;color:var(--text-muted);font-weight:600;font-size:10px;font-family:var(--mono);background:var(--na);border-radius:var(--radius-pill);padding:1px 7px}
   .bcol .cards{flex:1;overflow-y:auto;padding:7px}
-  .bcard{display:flex;align-items:center;gap:7px;padding:7px 9px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-left:2px solid var(--cc,var(--border-hover));border-radius:var(--radius-card);font-size:11.5px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
-  .bcard:hover{color:var(--text-primary);border-color:var(--border-hover);border-left-color:var(--cc)}
-  .bcard .ext{margin-left:auto;font-size:9px;color:var(--text-muted);text-transform:uppercase;flex:0 0 auto}
-  .bcard .nm{overflow:hidden;text-overflow:ellipsis}
-  body.board-open .dock{bottom:calc(38vh + 26px)}
+  /* card anatomy — title Body Strong 13/600 --text-primary, meta Caption 11 --text-muted */
+  .bcard{display:flex;align-items:center;gap:7px;padding:8px 10px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-left:2px solid var(--cc,var(--border-hover));border-radius:var(--radius-btn);font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
+  .bcard:hover{border-color:var(--border-hover);border-left-color:var(--cc)}
+  .bcard .ext{margin-left:auto;font-size:11px;color:var(--text-muted);text-transform:uppercase;flex:0 0 auto}
+  .bcard .nm{overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text-primary)}
+  /* map-node hover → its board card(s) light up (§20.7 Chip-Active border) */
+  .bcard.linked,.tile.linked{border-color:var(--accent-border-active)}
+  body.board-open .dock{left:calc((100vw - var(--board-w))/2);width:min(720px,calc(100vw - var(--board-w) - 32px))}
   body.board-open .hint{display:none}
-  .bhead .bseg{display:flex;gap:2px;margin-left:14px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
+  .bhead .bseg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
   .bhead .bseg button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
   .bhead .bseg button.on{background:var(--accent);color:var(--white)}
   .bhead .btabs{display:flex;gap:3px}
   .bhead .btabs button{background:none;border:none;color:var(--text-secondary);padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:1.2px;cursor:pointer;font-family:inherit;border-radius:var(--radius-btn)}
   .bhead .btabs button:hover:not(.on){background:var(--bg-tertiary);color:var(--text-primary)}
   .bhead .btabs button.on{color:var(--accent-text);background:var(--accent-tint)}
-  .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:190px;margin-left:12px}
+  .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:auto;flex:1 1 120px;min-width:110px}
   .bhead .bsearch:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .bfilters{display:flex;gap:5px;align-items:center;padding:0 18px 6px;flex-wrap:wrap;flex:0 0 auto}
+  .bfilters{display:flex;gap:5px;align-items:center;padding:0 16px 6px;flex-wrap:wrap;flex:0 0 auto}
   .bfilters .fc{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-pill);padding:2px 11px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px}
   .bfilters .fc.on{background:var(--accent-tint);border-color:var(--accent-border-active);color:var(--accent-text)}
   .bfilters .fl{font-size:9px;letter-spacing:1.2px;color:var(--text-muted);text-transform:uppercase;margin-right:2px}
   /* ideas cards */
-  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-left:3px solid var(--pc,var(--border-active));border-radius:var(--radius-card);padding:8px 9px;margin-bottom:6px;font-size:11.5px;color:var(--text-secondary);line-height:1.45;position:relative}
+  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-left:3px solid var(--pc,var(--border-active));border-radius:var(--radius-btn);padding:8px 10px;margin-bottom:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.45;position:relative}
   .icard:hover{border-color:var(--border-hover);border-left-color:var(--pc)}
-  .icard .tags{margin-top:5px;display:flex;gap:4px;flex-wrap:wrap}
+  .icard .tags{margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
   .icard .tag{font-size:10px;font-weight:600;color:var(--accent-soft);background:var(--accent-tint);border-radius:var(--radius-badge);padding:1px 7px}
+  /* priority badge — §20.7 status-badge tints (status itself = the column) */
+  .icard .pbadge{font-size:10px;font-weight:600;border-radius:var(--radius-badge);padding:1px 7px;text-transform:uppercase;letter-spacing:.4px}
+  .icard .pbadge.high{background:var(--error-tint);color:var(--error)}
+  .icard .pbadge.med{background:var(--warning-tint);color:var(--warning)}
+  .icard .pbadge.low{background:var(--na);color:var(--text-muted)}
   .icard .iact{position:absolute;top:5px;right:6px;display:none;gap:3px}
   .icard:hover .iact{display:flex}
   .icard .iact button{background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-muted);border-radius:var(--radius-badge);width:19px;height:19px;font-size:10px;cursor:pointer;font-family:inherit;line-height:1}
@@ -135,8 +147,8 @@
   .hpv img{width:100%;height:100%;object-fit:contain}
   .hpv .hcap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-primary);font-size:10px;padding:4px 10px;border-top:1px solid var(--border-default)}
 
-  /* preview panel — floats above the board */
-  .pv{position:fixed;left:16px;right:16px;bottom:calc(38vh + 12px);top:64px;z-index:13;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);display:none;flex-direction:column;overflow:hidden}
+  /* preview panel — floats left of the board drawer */
+  .pv{position:fixed;left:16px;right:calc(var(--board-w) + 12px);top:64px;bottom:16px;z-index:13;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);display:none;flex-direction:column;overflow:hidden}
   .pv.open{display:flex}
   .pv .pvhead{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border-default);flex:0 0 auto}
   .pv .pvhead .nm{color:var(--text-primary);font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -232,22 +244,21 @@
     .panel{top:50px;right:12px;left:auto;width:min(84vw,290px);max-height:calc(100dvh - 140px);overflow-y:auto}
     .dock{left:10px;right:10px;width:auto;bottom:10px;transform:none}
     .dock .dbody{max-height:32vh}
-    body.board-open .dock{bottom:calc(54vh + 18px)}
-    .board{height:54vh;min-height:0}
+    /* On a phone the right drawer takes the full width — a full-screen takeover. */
+    .board{width:100%;max-width:none}
+    body.board-open .menu-btn{transform:none}      /* drawer covers the toolbar anyway */
     /* Embedded on a phone: the kanban/list board fills the screen — no galaxy behind
        it, no floating map chrome. (The app's own header switches views.) transform:none
        pins it full-screen deterministically instead of relying on the slide translate. */
-    body.embed.board-open .board{top:0;height:auto;min-height:0;background:var(--bg-primary);transform:none;transition:none}
+    body.embed.board-open .board{background:var(--bg-primary);border-left:none;transform:none;transition:none}
     body.embed.board-open .brand,
     body.embed.board-open .menu-btn,
     body.embed.board-open .panel,
     body.embed.board-open .hint{display:none}
-    .board .bhead{flex-wrap:wrap;gap:8px;padding:10px 13px 6px}
-    .board .bhead .bseg,.board .bhead .bsearch{margin-left:0}
-    .board .bhead .bsearch{width:auto;flex:1 1 120px;min-width:110px}
+    .board .bhead{padding:10px 40px 6px 13px}
     .board .cols{padding:6px 13px 14px}
     .bcol,.bcol.tiles{flex-basis:80vw;max-width:88vw}
-    .pv{left:10px;right:10px;top:54px;bottom:calc(54vh + 10px)}
+    .pv{left:10px;right:10px;top:54px;bottom:10px}
     .pv .pvhead{flex-wrap:wrap;gap:8px}
     .pv .pvhead .sp{display:none}
     .pv .pvbody{padding:14px 15px}
@@ -1085,6 +1096,8 @@ function draw(){
 
   // routing-edge overlay — real citations from the routing docs (draw-only)
   drawRefOverlay();
+  // board→map hover link — temporary routing edge from the drawer to the hovered card's node
+  drawBoardLink(now);
 
   // data pulses with comet tails — every connection exchanges light
   const want=Math.round(44*sp);
@@ -1199,8 +1212,8 @@ function draw(){
 let last=performance.now();
 function loop(now){
   const dt=Math.min(50,now-last); last=now;   // dt BEFORE updating last (the 50ms cap absorbs pauses)
-  // On a phone the open board fully covers the galaxy — don't burn battery drawing it.
-  if(EMBED && boardOpen && innerWidth<=720){ requestAnimationFrame(loop); return; }
+  // On a phone the open board drawer fully covers the galaxy — don't burn battery drawing it.
+  if(boardOpen && innerWidth<=720){ requestAnimationFrame(loop); return; }
   step(dt); draw(); requestAnimationFrame(loop); }
 
 // ---- interaction ----------------------------------------------------------------------
@@ -1243,6 +1256,7 @@ cv.addEventListener('pointermove',e=>{
     hover=pick(e.clientX,e.clientY);
     hoverRef=hover?null:pickRef(e.clientX,e.clientY);   // routing edges/ghosts only when no node hit
     if(hover&&hover!==prev) hover.rippleT=performance.now();
+    if(hover!==prev) syncBoardHover();                  // map node ↔ board card hover link
     cv.classList.toggle('pointing', !!hover && (hover.kind==='file'||hover.kind==='hub'));
     if(hover){ ui.tip.style.display='block'; ui.tip.style.left=(e.clientX+14)+'px'; ui.tip.style.top=(e.clientY+12)+'px';
       ui.tip.innerHTML= hover.kind==='file' ? `${hover.label}<div class="sub">${hover.path} · click to open</div>`
@@ -1346,11 +1360,49 @@ function toggleBoard(){ boardOpen=!boardOpen;
   document.getElementById('board').classList.toggle('open',boardOpen);
   document.body.classList.toggle('board-open',boardOpen);
   document.getElementById('boardBtn').classList.toggle('on',boardOpen);
-  // Tell the host app so it can un-float its composer — the board is pinned to our
-  // bottom and would otherwise sit behind the chat input. Covers BOTH the app's
-  // Kanban button and this in-map BOARD button.
+  if(!boardOpen){ boardLink=null; syncBoardHover(); }
+  // Tell the host app so it can un-float its composer — the right-side drawer overlaps
+  // the composer's corner and it would otherwise sit behind the panel. Covers BOTH the
+  // app's Kanban button and this in-map BOARD button.
   if(EMBED && window.parent.setMapBoardOpen){ try{ window.parent.setMapBoardOpen(boardOpen); }catch{} }
   if(boardOpen) renderBoard(); else closePv(); }
+
+// ---- board ↔ map hover link ----------------------------------------------------------
+// Hovering a file card draws a temporary routing edge from the drawer edge to the file's
+// map node — same curved, low-opacity accent language as the reference-edge overlay —
+// and hovering a map node lights up its card(s) in the drawer (.linked, §20.7 border).
+let boardLink=null;   // {path, sx, sy, t0} — screen-space start at the drawer edge
+function drawBoardLink(now){
+  if(!boardLink||!boardOpen) return;
+  let t=byId[boardLink.path];
+  if(t&&t.hidden&&t.cluster) t=byId[t.cluster];              // collapsed file → its hub
+  if(!t||t.hidden) return;
+  const a=toWorld(boardLink.sx,boardLink.sy);                // drawer edge → world coords
+  const fade=Math.min(1,(now-boardLink.t0)/160);             // §2.8 --transition 160ms
+  const [cx,cy]=refCtrl(a,t);                                // reuse the refgraph curve bow
+  ctx.save(); ctx.globalAlpha=fade;
+  ctx.strokeStyle=COLORS.accent+'66'; ctx.lineWidth=1.6/cam.k;   // low-opacity accent, like refEdges
+  ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(cx,cy,t.x,t.y); ctx.stroke();
+  ctx.strokeStyle=COLORS.accent; ctx.lineWidth=1.4/cam.k;        // full-accent ring on the target node
+  ctx.beginPath(); ctx.arc(t.x,t.y,(t.r||4)+5/Math.sqrt(cam.k),0,7); ctx.stroke();
+  ctx.restore();
+}
+let linkedEls=[];
+function syncBoardHover(){
+  for(const el of linkedEls) el.classList.remove('linked');
+  linkedEls=[];
+  if(!boardOpen||boardTab!=='files'||!hover) return;
+  const one=hover.kind==='file'&&hover.path;
+  const match= one ? (p=>p===hover.path)
+    : (hover.kind==='hub'&&hover.folder) ? (p=>p===hover.folder||p.startsWith(hover.folder+'/')) : null;
+  if(!match) return;
+  for(const el of document.querySelectorAll('#boardCols [data-path]'))
+    if(match(el.dataset.path)){ el.classList.add('linked'); linkedEls.push(el); }
+  if(one&&linkedEls.length) linkedEls[0].scrollIntoView({block:'nearest',behavior:'smooth'});
+}
+// entering the drawer means the map node is no longer hovered — release its card highlight
+document.getElementById('board').addEventListener('pointerenter',()=>{
+  if(hover){ hover=null; syncBoardHover(); } ui.tip.style.display='none'; });
 document.getElementById('boardTabs').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
   boardTab=b.dataset.t; document.querySelectorAll('#boardTabs button').forEach(x=>x.classList.toggle('on',x===b));
   boardQ=''; document.getElementById('boardQ').value=''; extFilter=tagFilter=priFilter=null;
@@ -1360,6 +1412,7 @@ async function loadIdeas(){ if(!ideas){ try{ ideas=await (await fetch('/api/idea
 function saveIdeas(){ fetch('/api/ideas',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(ideas)}); }
 function chip(label,on,cb){ const b=document.createElement('button'); b.className='fc'+(on?' on':''); b.textContent=label; b.onclick=cb; return b; }
 function renderBoard(keepFocus){
+  linkedEls=[];                       // cards are rebuilt — drop stale hover-link handles
   if(boardTab==='ideas') return renderIdeas(keepFocus);
   renderFiles(); }
 const SNIPCACHE={};   // path → first ~400 chars, for md/text tiles
@@ -1380,7 +1433,9 @@ function showHover(f,x,y){
   moveHover(x,y); hpv.classList.add('show');
 }
 function moveHover(x,y){
-  hpv.style.left=Math.min(innerWidth-372,x+18)+'px';
+  // keep the floating preview left of the drawer so it never covers the hovered card
+  const bEdge=boardOpen?document.getElementById('board').getBoundingClientRect().left:innerWidth;
+  hpv.style.left=Math.max(10,Math.min(bEdge-372,x+18))+'px';
   hpv.style.top=Math.max(10,Math.min(innerHeight-312,y-310))+'px';
 }
 function hideHover(){ hpv.classList.remove('show'); hpv.innerHTML=''; }
@@ -1423,11 +1478,14 @@ function renderFiles(){
         c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
       }
       c.title=f.path+' — click to preview';
+      c.dataset.path=f.path;
       c.onclick=()=>openPreview({path:f.path,label:f.name});
       c.onmouseenter=(e)=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); }
+        const r=c.getBoundingClientRect(), bx=document.getElementById('board').getBoundingClientRect().left;
+        boardLink={path:f.path, sx:bx, sy:r.top+r.height/2, t0:performance.now()};
         showHover({path:f.path,name:f.name},e.clientX,e.clientY); };
       c.onmousemove=(e)=>moveHover(e.clientX,e.clientY);
-      c.onmouseleave=()=>{ matches=searchMatches; hideHover(); };
+      c.onmouseleave=()=>{ matches=searchMatches; boardLink=null; hideHover(); };
       cards.appendChild(c);
     });
     cols.appendChild(col);
@@ -1477,7 +1535,7 @@ async function renderIdeas(keepFocus){
       c.style.setProperty('--pc', p.pri?PRI[p.pri]:color);
       const txt=it.text.replace(/</g,'&lt;').replace(/#([\w-]+)/g,'').replace(/!(high|med|low)\b/g,'').trim();
       c.innerHTML=`<div>${txt||'—'}</div>`
-        +(p.tags.length?`<div class="tags">${p.tags.map(t=>'<span class="tag">#'+t+'</span>').join('')}</div>`:'')
+        +(p.tags.length||p.pri?`<div class="tags">${p.pri?'<span class="pbadge '+p.pri+'">'+p.pri+'</span>':''}${p.tags.map(t=>'<span class="tag">#'+t+'</span>').join('')}</div>`:'')
         +`<div class="iact">`
         +(ci>0?`<button title="Move left">◀</button>`:'')
         +(ci<IDEA_COLS.length-1?`<button title="Move right">▶</button>`:'')
