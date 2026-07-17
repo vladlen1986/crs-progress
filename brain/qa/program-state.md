@@ -192,3 +192,24 @@ Four parallel recon subagents (handoff brief · program-state/checklist audit ·
 **Environment (Windows):** Node v24.16.0; node-pty Windows binaries present; `crs-brain/start.bat` exists; app running + serving this repo on :4317; git identity + push verified (local was 6 ahead); bash only via Git Bash (`scripts/update-manuals.sh` is the sole .sh dependency); PowerShell 5.1.
 
 **Cycle-2 execution model (per Vlad's directives, 2026-07-17):** dedicated non-throttled Chrome rig (headless=new via puppeteer-core on system Chrome) — the in-session browser pane is background-throttled (hidden renderer: no rAF, no screenshots, stale computed styles) and MUST NOT be used for verification. Rig sanity-proven on a known-PASS row before trust. Parallel verifier fan-out, both themes; statuses written to master-checklist.md incrementally as each verifier returns; rows the rig can't prove → ENV-LIMITED with exact reason, collected into a "needs-eyes run" list for Vlad. Windows-portability sweep (3 parallel agents: paths/traversal, spawn/shell, CRLF) runs fixes BEFORE verifiers so verified code = shipped code. Then close cycle 2: counts, delta vs c1, cycle-3 decision (goal: two consecutive clean runs).
+
+## Cycle 2 — CLOSED (2026-07-17), CLEAN
+
+**Rig:** puppeteer-core driving system Chrome `headless:'new'` with `--disable-background-timer-throttling` + siblings. Sanity-proven before trust (visibilityState visible, rAF fires, real screenshots, `getComputedStyle` recomputes after class-toggle — the exact things the in-session pane failed). Shared harness `runBothThemes` (dark+light, a row passes only if it passes in every theme). Verification fanned out to 6 fresh-context subagents (V1 explorer base/nav · V2 explorer polish/fix3 · V3 fix2/os-interop/icons · V4 os-grade/notify · V5 kanban/USR · V6 sounds/conn/map/queue/sync) + 1 static verifier for non-browser rows; the orchestrator (single writer of this file + the checklist) applied each batch incrementally.
+
+**Result: 98/98 rows carry `2026-07-17 c2`. 91 PASS · 7 ENV-LIMITED · 0 FAIL · 0 UNTESTED.** This is a CLEAN run (ENV-LIMITED excluded from the goal and listed below).
+
+**Delta vs cycle 1** (c1 was 72 PASS / 5 FAIL / 5 ENV-LIMITED / rest untested over the then-82 rows): every c1 FAIL is now PASS — P4-explorer-fix2.5 (md render tokens), P9-os-grade.3 (4 hardcoded scrims now tokenized to `--overlay`/`--veil`), P9-os-grade.8 (compliance-matrix + honest-limits present), P11-kanban-loop.5 (qa-loop commit landed), P11K.9 (MENU panel positions above the bottom sheet). All 13 previously-UNTESTED rows (P7 icons, P8.6 queue, P11-kanban-loop.1–4) are now resolved. No regressions.
+
+**7 ENV-LIMITED = the "needs-eyes / needs-auth" list:**
+- P1-promptgen.3 — live Buildprint prompt generation (needs an interactive/authed run).
+- P8-sounds-wishlist.7 — read-only issue checker (needs `buildprint link <token>`; CLI installed, not linked).
+- P6-os-interop.1 — upload >100 MB body (413 path not exercised; synthetic guards pass).
+- P6-os-interop.3 — real Finder drag-IN folder-structure/progress (synthetic DataTransfer verified).
+- P6-os-interop.4 — real OS clipboard paste + screenshot→image.png (synthetic paste verified).
+- P6-os-interop.5 — real drag-OUT to Desktop / non-Chromium skip (DownloadURL code-path verified).
+- P8-sounds-wishlist.6 — queue usage-limit-failure + server-restart resumeAt persistence (can't kill the running server; enqueue + blocked-limit banner + boot-requeue code path verified).
+
+**Windows-portability fixes committed BEFORE the verifiers ran** (commit `e9c6120 resume: windows-portability`), so cycle 2 verified shipped code: `/api/file-binary` backslash-traversal hole into `.git`/`node_modules` closed (re-probed 403); `runBuildprint`/`maybeSyncManuals` Windows-safe spawns; `bpSyncDiff` surfaces sync failure; `tree.html` md renderer CRLF-tolerant; repo-root `.gitattributes` added.
+
+**Cycle-3 decision: REQUIRED for the two-consecutive-clean-runs goal.** The ptree change reset the consecutive-green counter, so cycle 2 is the *first* clean run after it. Cycle 3 must be a full re-verify against UNCHANGED code (no code edits between c2 close and c3). The verifier scripts are persisted in the rig dir and re-executable in fresh processes; if c3 is also 0-FAIL/0-UNTESTED the goal is met and the program's QA loop closes.
