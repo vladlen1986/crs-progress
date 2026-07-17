@@ -81,7 +81,7 @@
 
   /* brand */
   .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:11px}
-  .brand .logo{width:30px;height:30px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;flex:0 0 30px}
+  .brand .wordmark{width:70px;height:22px;color:var(--primary);flex:0 0 70px;display:block}
   .brand h1{font-size:15px;margin:0;color:var(--primary);font-weight:650;letter-spacing:.2px}
   .brand .sub{font-size:11px;color:var(--muted);margin-top:1px}
 
@@ -480,6 +480,27 @@
   .msg.assistant .body>hr{border:none;border-top:1px solid var(--line);margin:1.4em 0}
   .msg.assistant .body tbody td{color:var(--prose)}
   .msg.assistant .body .md-tbl{border-color:var(--line3)}
+
+  /* chat-media: inline image previews (thumbnail grid + solo) + file chips + dead refs */
+  .cm-grid{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0}
+  .cm-shot{padding:0;margin:0;border:1px solid var(--border-default);border-radius:6px;background:var(--bg-secondary);cursor:pointer;overflow:hidden;width:104px;display:flex;flex-direction:column;font-family:inherit;text-align:left;transition:border-color .15s ease,filter .15s ease}
+  .cm-shot:hover{border-color:var(--border-hover);filter:brightness(1.06)}
+  .cm-shot:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .cm-shot img{width:104px;height:78px;object-fit:cover;display:block;background:var(--bg-tertiary)}
+  .cm-cap{font-size:11px;line-height:1.3;color:var(--text-secondary);padding:4px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:104px}
+  .cm-shot.cm-solo{width:auto;max-width:320px}
+  .cm-shot.cm-solo img{width:auto;max-width:320px;height:auto;max-height:260px;object-fit:contain}
+  .cm-shot.cm-solo .cm-cap{max-width:320px}
+  .cm-more{width:104px;height:104px;border:1px dashed var(--border-default);border-radius:6px;background:var(--bg-tertiary);color:var(--text-secondary);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;transition:border-color .15s ease,color .15s ease}
+  .cm-more:hover{border-color:var(--border-hover);color:var(--text-primary)}
+  .cm-more:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .cm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 6px;border:1px solid var(--border-default);border-radius:var(--radius-pill);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;text-decoration:none;vertical-align:baseline;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+  .cm-chip:hover{border-color:var(--border-hover);color:var(--text-primary)}
+  .cm-chip .cm-ic{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
+  .cm-chip .cm-ic svg{width:16px;height:16px}
+  .cm-chip.cm-dead{cursor:default;color:var(--text-muted);border-style:dashed;background:none}
+  .cm-chip.cm-dead:hover{border-color:var(--border-default);color:var(--text-muted)}
+  .cm-chip .cm-dead-tag{font-size:10px;color:var(--text-muted);opacity:.85}
 
   /* file chips in chat: show a download button on hover */
   .matt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;color:var(--primary);text-decoration:none}
@@ -987,7 +1008,6 @@
   .item .x{display:inline-flex;align-items:center}
   .newbtn .ic{opacity:.8}
   .avatar .ic{width:16px;height:16px}
-  .brand .logo .ic{width:17px;height:17px}
   .hero-mark .ic{width:26px;height:26px}
 
   /* usage panel */
@@ -1106,6 +1126,7 @@
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></symbol>
+  <symbol id="i-crs" viewBox="0 0 1024 324"><path fill="currentColor" stroke="none" d="M190.193 23.2843C200.571 22.281 224.786 22.9283 236.014 22.9575L321.039 23.0299L478.737 23.0178C494.579 23.0147 510.688 23.2877 526.504 23.0017C587.336 21.9019 670.73 24.2163 699.054 89.5594C707.097 111.998 703.172 131.179 733.491 134.007C754.044 135.924 774.756 134.941 795.711 135.161C828.268 135.503 861.187 135.314 893.801 135.402C913.522 135.455 937.136 139.969 955.412 147.68C1003.25 167.866 1003.99 242.882 969.816 275.325C935.777 307.081 880.604 303.884 836.903 303.931C812.867 303.984 788.831 303.836 764.798 303.488C759.08 298.58 747.841 285.713 742.298 279.779L697.591 231.676C738.878 233.513 784.787 232.098 826.532 232.345L863.732 232.384C880.936 232.379 909.81 235.088 909.264 210.218C908.794 188.802 884.666 190.825 869.576 190.822L842.008 190.828C813.147 190.843 784.491 190.511 755.625 190.868C740.247 190.884 720.406 191.394 705.383 189.603C675.1 185.994 634.361 173.276 620.188 143.47C614.424 132.152 614.082 116.755 604.326 107.737C587.513 92.1963 558.219 96.0959 536.977 95.97L448.691 95.9169L288.75 95.9794C257.629 95.9625 226.484 95.9868 195.361 95.9983C171.507 96.0072 146.259 102.526 129.157 120.239C117.136 132.51 110.598 149.125 111.032 166.297C111.69 201.029 139.74 224.149 171.997 229.973C188.85 233.016 206.411 232.148 223.497 232.255C249.006 232.538 274.516 232.475 300.023 232.066C300.786 246.85 300.278 262.76 300.401 277.667C300.45 283.477 300.704 298.486 299.933 303.587L231.415 303.718C167.947 304.122 116.071 303.58 65.8834 256.912C13.3973 208.107 8.9359 125.604 58.8321 73.4673C92.6335 38.1483 142.556 24.3324 190.193 23.2843Z"/><path fill="currentColor" stroke="none" d="M516.239 160.264C539.455 161.022 564.257 159.638 587.663 160.44C593.392 166.145 599.208 172.529 604.682 178.509C643.111 220.491 683.09 261.367 721.268 303.543C716.508 304.155 709.372 303.934 704.388 303.924L677.702 303.883L636.735 303.919C628.956 303.926 619.816 304.169 612.191 303.69C610.297 302.321 604.732 295.36 602.981 293.262L587.346 274.679L562.906 245.871C558.886 241.138 552.711 234.271 549.313 229.487L539.375 229.437C501.491 229.335 460.586 228.579 422.933 229.539L422.743 276.95C422.732 284.791 423.134 296.118 422.555 303.54L336.274 303.616C335.365 290.038 336.012 268.451 336.012 254.123L336.054 160.345L516.239 160.264Z"/><path fill="currentColor" stroke="none" d="M735.749 23.2874C746.301 22.6796 759.978 22.995 770.756 22.9953L830.4 23.0011C881.614 22.9942 934.303 22.3637 985.401 23.0995C980.16 30.8945 971.838 41.0366 965.909 48.6904L933.168 91.2403C930.469 95.0541 929.3 95.8535 924.43 95.8805C917.427 95.9193 910.442 95.5005 903.435 95.5658L820.058 95.675C801.594 95.7901 783.13 95.7814 764.667 95.6489C755.837 95.6655 742.398 96.1519 733.804 95.5067C732.189 91.2229 730.804 85.196 728.976 80.3274C719.97 56.3314 708.82 44.0813 689.957 27.8474C707.604 25.2315 717.649 23.6539 735.749 23.2874Z"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
   <symbol id="i-clip" viewBox="0 0 24 24"><path d="M21 11.5l-8.7 8.7a5 5 0 0 1-7.1-7.1l8.7-8.7a3.3 3.3 0 0 1 4.7 4.7l-8.7 8.7a1.7 1.7 0 0 1-2.4-2.4l8-8"/></symbol>
@@ -1170,7 +1191,7 @@
       <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openPageWindow('/queue.html','Task queue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
-    <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
+    <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS"><use href="#i-crs"/></svg><div><h1>Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Conversations</button>
@@ -1412,6 +1433,102 @@ function renderMd(src){
   return html;
 }
 
+// ---------- chat-media: inline image previews + file chips (post-render pass) ----------
+// Runs over a FINISHED assistant message body. Turns repo file references
+// (backticked <code>, bare-path/markdown <a data-path>) into: thumbnail grids for
+// images (one gallery per message, seeded into the existing image viewer), file
+// chips for other known types, and muted "not found" chips for dead refs. Reuses
+// smartOpen + the P9.5 viewer; never fetches outside the repo. Idempotent per body.
+const CM_IMG_EXT=/^(png|jpe?g|gif|webp|svg)$/i;
+const CM_KNOWN_EXT=/\.(md|html?|css|js|py|json|txt|csv|ya?ml|xlsx|png|jpe?g|gif|webp|svg)$/i;
+const CM_PATH_SHAPE=/^(?:[\w][\w.\-]*\/)*[\w][\w.\-]*\.[A-Za-z0-9]+$/;   // relative path w/ extension, no spaces
+function cmNorm(p){ return String(p||'').trim().replace(/^\.\//,'').replace(/^\/+/,''); }
+function cmOutsideRepo(p){ return /(^|\/)\.\.(\/|$)/.test(p) || /^[a-z]+:\/\//i.test(p) || p.startsWith('/'); }
+function cmClassify(rawPath){
+  const p=cmNorm(rawPath);
+  if(!p || !CM_PATH_SHAPE.test(p) || !CM_KNOWN_EXT.test(p)) return null;   // not a file reference
+  const name=p.split('/').pop(), ext=(name.split('.').pop()||'').toLowerCase();
+  if(cmOutsideRepo(p)) return {p,name,ext,kind:'dead'};                    // never fetch outside repo
+  const known=(typeof DW!=='undefined'&&DW.allPaths&&DW.allPaths.size)?DW.allPaths:null;
+  const isImg=CM_IMG_EXT.test(ext);
+  if(known){ if(!known.has(p)) return {p,name,ext,kind:'dead'}; return {p,name,ext,kind:isImg?'img':'file'}; }
+  return {p,name,ext,kind:isImg?'img':'file'};   // tree not loaded yet → optimistic (img onerror falls back)
+}
+// The block a reference lives in — used to group images that sit together.
+function cmBlock(el,root){ let n=el; while(n&&n!==root){ if(/^(P|LI|TD|TH|BLOCKQUOTE|H1|H2|H3|H4|H5|H6)$/.test(n.tagName)) return n; n=n.parentElement; } return el; }
+function cmChipEl(info){
+  if(info.kind==='dead'){
+    const s=document.createElement('span'); s.className='cm-chip cm-dead'; s.title=info.p+' — not found';
+    s.innerHTML=`<span class="cm-nm">${esc(info.name)}</span><span class="cm-dead-tag">not found</span>`; return s;
+  }
+  const a=document.createElement('a'); a.className='cm-chip'; a.href='#'; a.dataset.path=info.p; a.title=info.p;
+  a.innerHTML=`<span class="cm-ic">${fileIcon(info.name,16)}</span><span class="cm-nm">${esc(info.name)}</span>`; return a;   // click → smartOpen via global a[data-path] delegation
+}
+function cmTile(path,gi,solo){
+  const b=document.createElement('button'); b.type='button'; b.className='cm-shot'+(solo?' cm-solo':'');
+  b.dataset.i=gi; b.title=path;
+  b.innerHTML=`<img loading="lazy" src="/api/raw?path=${encodeURIComponent(path)}" alt="${esc(path.split('/').pop())}"><span class="cm-cap">${esc(path.split('/').pop())}</span>`;
+  const img=b.querySelector('img');
+  img.onerror=()=>{ const info={p:path,name:path.split('/').pop(),kind:'dead'}; b.replaceWith(cmChipEl(info)); };   // no broken-img soup
+  return b;
+}
+function cmGrid(runPaths,msgImgs){
+  const g=document.createElement('div'); g.className='cm-grid'; g._imgs=msgImgs;
+  const solo=(runPaths.length===1 && msgImgs.length===1);
+  const CAP=10;
+  const add=(list)=>list.forEach(p=>g.appendChild(cmTile(p,msgImgs.indexOf(p),solo)));
+  if(runPaths.length>CAP){
+    add(runPaths.slice(0,CAP));
+    const more=document.createElement('button'); more.type='button'; more.className='cm-more';
+    more.textContent='+'+(runPaths.length-CAP)+' more';
+    more.onclick=()=>{ more.remove(); add(runPaths.slice(CAP)); };   // expand in place
+    g.appendChild(more);
+  } else add(runPaths);
+  return g;
+}
+function enhanceChatMedia(body){
+  if(!body || body.dataset.cm==='1') return; body.dataset.cm='1';
+  // 1. collect reference tokens (code + data-path anchors), classify, skip non-refs
+  const toks=[];
+  body.querySelectorAll('code, a[data-path]').forEach(el=>{
+    if(el.closest('pre')) return;                                   // real code blocks are literal
+    if(el.tagName==='A' && el.closest('code')) return;              // backticked paths become <code><a data-path>…</a></code> — process the outer <code> only, once
+    const raw=el.tagName==='A' ? el.dataset.path : el.textContent;
+    const info=cmClassify(raw); if(!info) return;
+    toks.push({el,info});
+  });
+  if(!toks.length) return;
+  // 2. the message gallery = each image ref once, in document order
+  const seen=new Set(), msgImgs=[];
+  toks.filter(t=>t.info.kind==='img').forEach(t=>{ if(!seen.has(t.info.p)){ seen.add(t.info.p); msgImgs.push(t.info.p); } });
+  // 3. group consecutive image tokens into runs (same block, or adjacent sibling blocks)
+  const runs=[]; let cur=null, prevBlock=null;
+  for(const t of toks){
+    if(t.info.kind!=='img'){ cur=null; prevBlock=null; continue; }
+    const blk=cmBlock(t.el,body);
+    const adjacent = prevBlock && (blk===prevBlock || blk.previousElementSibling===prevBlock);
+    if(cur && adjacent){ cur.toks.push(t); } else { cur={toks:[t]}; runs.push(cur); }
+    prevBlock=blk;
+  }
+  // 4. render image runs: grid replaces the run's first token; other run tokens (and now-empty blocks) removed
+  for(const run of runs){
+    const first=run.toks[0].el, grid=cmGrid(run.toks.map(t=>t.info.p),msgImgs);
+    const firstBlock=cmBlock(first,body);
+    (firstBlock&&firstBlock!==body?firstBlock:first).before(grid);
+    for(const t of run.toks){ const blk=cmBlock(t.el,body); t.el.remove(); if(blk&&blk!==body&&!blk.textContent.trim()&&!blk.querySelector('img,.cm-grid,.cm-chip')) blk.remove(); }
+  }
+  // 5. non-image refs → chips (replace in place). Use body.contains (not
+  // isConnected): renderChat enhances the body BEFORE appending it, so the
+  // subtree is detached — contains() still tells us if step 4 removed a token.
+  for(const t of toks){ if(t.info.kind==='img') continue; if(!body.contains(t.el)) continue; t.el.replaceWith(cmChipEl(t.info)); }
+}
+// one delegated handler: a chat thumbnail opens the P9.5 viewer seeded with its message's gallery
+document.addEventListener('click',(e)=>{
+  const shot=e.target.closest('.cm-shot'); if(!shot) return;
+  const g=shot.closest('.cm-grid'); const imgs=(g&&g._imgs)||[]; const i=+shot.dataset.i||0;
+  if(imgs.length) openDocWindow(imgs[i],{ivImgs:imgs,ivIdx:i});
+});
+
 let _toastTimer=null;
 function toast(t,ms){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200); }
 // In-app confirm (§5 modal, danger variant) — replaces native confirm(); resolves boolean.
@@ -1631,7 +1748,7 @@ function renderChat(messages){
   for(const m of messages){
     if(m.role==='user'){ log.appendChild(userMsgEl(m.content, m.attachments)); lastBot=null; }
     else{
-      const el=botMsgEl(); el.querySelector('.body').innerHTML=renderMd(m.content||'');
+      const el=botMsgEl(); const bd=el.querySelector('.body'); bd.innerHTML=renderMd(m.content||''); enhanceChatMedia(bd);
       if(m.content) addReplyActions(el, m.content);
       log.appendChild(el); lastBot=el; lastBotMsg=m;
     }
@@ -2055,7 +2172,7 @@ async function streamChat(text, opts={}){
     if(stoppedReply && !full.trim()){
       answerEl.innerHTML='<span class="stopped-note">Stopped before any output.</span>';
     }else{
-      answerEl.style.opacity='0'; answerEl.innerHTML=renderMd(full);
+      answerEl.style.opacity='0'; answerEl.innerHTML=renderMd(full); enhanceChatMedia(answerEl);
       setTimeout(()=>{ answerEl.style.transition='opacity .28s ease'; answerEl.style.opacity='1'; }, 20);
     }
     if(stoppedReply && full.trim()){ const n=document.createElement('div'); n.className='stopped-note'; n.textContent='⏹ Stopped'; answerEl.after(n); }
@@ -2515,7 +2632,8 @@ async function openDocWindow(p, opts){
   p=String(p).replace(/^\.\//,'').replace(/^\/+/,'');
   if(typeof hidePeek==='function') hidePeek();
   if(isHtml(p) && !opts.editSource){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor)
-  const dup=dwFind(p); if(dup){ dwFocus(dup); return dup; }   // same path already open → focus, never duplicate
+  const ivSeed=opts.ivImgs&&opts.ivImgs.length ? {imgs:opts.ivImgs.slice(), idx:opts.ivIdx||0} : null;   // chat-gallery: explicit image set + start index
+  const dup=dwFind(p); if(dup){ dwFocus(dup); if(ivSeed&&dup.kind==='img'){ dup.ivSeed=ivSeed; ivFill(dup); } return dup; }   // same path already open → focus (re-seed gallery if asked)
   if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window — never one with unsaved edits
     const v=dwList().filter(x=>x.id!==DW.active&&!x.dirty).sort((a,b)=>a.lastFocus-b.lastFocus)[0];
     if(v){ toast(`Closing “${v.name}” — window limit`); dwClose(v,true); }
@@ -2523,7 +2641,7 @@ async function openDocWindow(p, opts){
   const id=++DW.seq, name=p.split('/').pop();
   const el=document.createElement('div'); el.className='docwin'; el.tabIndex=-1; el.dataset.path=p;
   const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null,
-    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null};
+    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null,ivSeed};
   if(w.kind==='img') el.classList.add('imgwin');   // P9.5: viewer species (same window manager, different body)
   el.innerHTML=dwHeadHtml(w)+'<div class="dp-body"><div class="dp-card"><span class="pk-load">Loading…</span></div></div>';
   document.body.appendChild(el); DW.wins.set(id,w);
@@ -2843,7 +2961,10 @@ function ivSiblings(p){
 }
 function ivFill(w){
   const body=w.el.querySelector('.dp-body');
-  const imgs=ivSiblings(w.path), idx=Math.max(0,imgs.indexOf(w.path));
+  // explicit gallery seed (e.g. a chat message's image set) wins over folder siblings
+  const seed=w.ivSeed;
+  const imgs=seed?seed.imgs:ivSiblings(w.path);
+  const idx=seed?Math.max(0,Math.min(imgs.length-1,seed.idx)):Math.max(0,imgs.indexOf(w.path));
   w.iv={imgs, idx, scale:1, tx:0, ty:0, rot:0, base:1, natW:0, natH:0, svg:false, timer:null, pin:false};
   body.innerHTML=`<div class="iv">
     <div class="iv-stage"><div class="iv-pan"><img class="iv-img" draggable="false" alt=""></div></div>
@@ -3962,7 +4083,7 @@ async function bpTrack(){
         else if(ev.type==='error'){ body.classList.add('err'); body.textContent='⚠ '+ev.error; }
       }
     }
-    if(full && !body.classList.contains('err')) body.innerHTML=renderMd(full);
+    if(full && !body.classList.contains('err')){ body.innerHTML=renderMd(full); enhanceChatMedia(body); }
     loadChats(); loadProgress(); loadFiles();
   }catch(e){ body.classList.add('err'); body.textContent='⚠ '+e.message; }
   finally{ state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight; }
