@@ -1,0 +1,62 @@
+/* CRS design tokens — brain/design/CRS-design-system.md §2.10, pasted verbatim.
+ * Single canonical stylesheet for every CRS Brain page. Component CSS must
+ * reference var(--…) only; approved literals carry a citation comment. */
+
+:root, [data-theme="dark"] {
+  --bg-primary:#181818; --bg-secondary:#1E1E1E; --bg-tertiary:#242424; --bg-elevated:#2A2A2A;
+  --border-default:#242424; --border-hover:#333333; --border-active:#3D3D3D; --input-border:#2A2A2A;
+  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#3B82F6;
+  --accent-soft:#60A5FA; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
+  --accent-border-active:rgba(59,130,246,0.55);
+  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
+  --success:#22C55E; --success-soft:#4ADE80; --error:#EF4444; --error-soft:#F87171; --warning:#F59E0B;
+  --purple:#8B5CF6; --purple-accent:#A855F7; --cyan:#06B6D4; --na:#2B2B2B;
+  --success-tint:rgba(34,197,94,0.13); --warning-tint:rgba(245,158,11,0.13); --error-tint:rgba(239,68,68,0.13);
+  --white:#FFFFFF; --black:#000000; --transparent:rgba(255,255,255,0);
+  --shadow-modal:0 24px 60px rgba(0,0,0,0.6); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.55);
+  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
+  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --bg-primary:#FAFAFA; --bg-secondary:#FFFFFF; --bg-tertiary:#F4F4F5; --bg-elevated:#FFFFFF;
+  --border-default:#EAEAEB; --border-hover:#DCDCDE; --border-active:#C8C8CB; --input-border:#E4E4E6;
+  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#1D4ED8;
+  --accent-soft:#2563EB; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
+  --accent-border-active:rgba(59,130,246,0.55);
+  --text-primary:#18181B; --text-secondary:#5F5F66; --text-muted:#8E8E95; --text-disabled:#B6B6BB;
+  --success:#16A34A; --success-soft:#22C55E; --error:#DC2626; --error-soft:#DC2626; --warning:#D97706;
+  --purple:#7C3AED; --purple-accent:#9333EA; --cyan:#0891B2; --na:#E6E6E8;
+  --success-tint:rgba(22,163,74,0.10); --warning-tint:rgba(217,119,6,0.10); --error-tint:rgba(220,38,38,0.10);
+  --shadow-modal:0 16px 40px rgba(0,0,0,0.10); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.08);
+  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
+  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  color-scheme: light;
+}
+
+/* Smooth theme cross-fade — §2.8: every themed color property transitions. */
+* { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
+
+/* ---- Legacy alias layer ------------------------------------------------- */
+/* The app's original short token names, now derived from the canonical set.
+ * Aliases resolve per-theme automatically (var() substitutes at computed-value
+ * time on the themed root). New code uses canonical names; these exist so the
+ * whole app inherits light values without a big-bang rename. */
+:root {
+  --bg: var(--bg-primary);
+  --panel: var(--bg-secondary);
+  --panel2: var(--bg-tertiary);
+  --elev: var(--bg-elevated);
+  --line: var(--border-default);
+  --line2: var(--border-hover);
+  --line3: var(--border-active);
+  --primary: var(--text-primary);
+  --secondary: var(--text-secondary);
+  --muted: var(--text-muted);
+  --accent2: var(--accent-soft);
+  --good: var(--success);
+  --warn: var(--warning);
+  --danger: var(--error);
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+}
