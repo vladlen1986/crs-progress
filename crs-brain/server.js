@@ -259,16 +259,34 @@ function loadWishlist() {
   catch { return saveWishlist(seedWishlist()); }
 }
 
+const SOUND_EVENTS = ['new-notification', 'task-complete', 'warning', 'error', 'process-start', 'connection-lost', 'connection-restored'];
+const DEFAULT_SOUND_EVENTS = {
+  'new-notification': 's01', 'task-complete': 's02', 'warning': 's19', 'error': 's21',
+  'process-start': 's12', 'connection-lost': 's22', 'connection-restored': 's07',
+};
 const DEFAULT_SETTINGS = {
   model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
   theme: 'dark',                              // 'dark' | 'light'
   bpAutoTrack: true,                          // auto-track Buildprint changes into the brain
-  notify: { inApp: true, sound: true, soundName: 'ping', email: false, emailTo: '' },
+  notify: { inApp: true, sound: true, email: false, emailTo: '' },
+  sounds: { volume: 80, events: { ...DEFAULT_SOUND_EVENTS } },
 };
+// Old 5-sound system → nearest new default (one-time migration of notify.soundName).
+const OLD_SOUND_MAP = { ping: 's01', chime: 's03', pop: 's16', alert: 's19', blip: 's13', none: 'none' };
 const SMTP_FILE = path.join(DATA_DIR, 'smtp.json');   // gitignored secrets store (see .gitignore)
 function loadSettings() {
-  try { return { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
-  catch { return { ...DEFAULT_SETTINGS }; }
+  let s;
+  try { s = { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
+  catch { s = { ...DEFAULT_SETTINGS }; }
+  if (!s.sounds || typeof s.sounds !== 'object') s.sounds = { volume: 80, events: { ...DEFAULT_SOUND_EVENTS } };
+  s.sounds.events = { ...DEFAULT_SOUND_EVENTS, ...(s.sounds.events || {}) };
+  if (s.sounds.volume == null) s.sounds.volume = 80;
+  if (s.notify && s.notify.soundName) {   // migrate the retired picker
+    s.sounds.events['new-notification'] = OLD_SOUND_MAP[s.notify.soundName] || 's01';
+    delete s.notify.soundName;
+    try { saveSettings(s); } catch {}
+  }
+  return s;
 }
 function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2)); }
 
@@ -276,6 +294,7 @@ function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, nul
 // One source of truth: an append-only JSONL store. Server events (digests,
 // watchers, errors) and client UI events both post here; the header bell reads
 // it. `notify.email` + `emailTo` triggers a best-effort email per notification.
+const SOUNDS_DIR = path.join(DATA_DIR, 'sounds');   // rendered 16-bit PCM WAVs (committed — deterministic, cross-platform)
 const NOTIF_FILE = path.join(DATA_DIR, 'notifications.jsonl');
 const NOTIF_READ_FILE = path.join(DATA_DIR, 'notifications-read.json');
 const NOTIF_LEVELS = ['info', 'success', 'warning', 'error'];
@@ -2039,9 +2058,45 @@ const server = http.createServer(async (req, res) => {
         notify: body.notify && typeof body.notify === 'object'
           ? { ...(cur.notify || {}), ...body.notify, emailTo: String((body.notify.emailTo != null ? body.notify.emailTo : (cur.notify && cur.notify.emailTo) || '')).slice(0, 200) }
           : cur.notify,
+        sounds: body.sounds && typeof body.sounds === 'object'
+          ? {
+              volume: body.sounds.volume != null ? Math.max(0, Math.min(100, Number(body.sounds.volume) || 0)) : cur.sounds.volume,
+              events: body.sounds.events && typeof body.sounds.events === 'object'
+                ? Object.fromEntries(SOUND_EVENTS.map((ev) => {
+                    const v = body.sounds.events[ev] != null ? body.sounds.events[ev] : cur.sounds.events[ev];
+                    return [ev, (v === 'none' || /^s\d{2}$/.test(String(v))) ? String(v) : cur.sounds.events[ev]];
+                  }))
+                : cur.sounds.events,
+            }
+          : cur.sounds,
       };
       saveSettings(next);
       return send(res, 200, next);
+    }
+
+    // ---- sounds: local WAV store (data/sounds/) ----
+    if (p === '/api/ping') return send(res, 200, { ok: true, ts: Date.now() });
+    if (p === '/api/sounds/list' && req.method === 'GET') {
+      let files = [];
+      try { files = fs.readdirSync(SOUNDS_DIR).filter((f) => f.endsWith('.wav')); } catch {}
+      let total = 0;
+      for (const f of files) { try { total += fs.statSync(path.join(SOUNDS_DIR, f)).size; } catch {} }
+      return send(res, 200, { files, totalBytes: total });
+    }
+    if (p === '/api/sounds/save' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const file = String((body && body.file) || '');
+      // Hard path guard: fixed name shape, no separators, always inside data/sounds/.
+      if (!/^s\d{2}-[a-z0-9-]+\.wav$/.test(file)) return send(res, 400, { error: 'bad sound filename' });
+      const abs = path.resolve(SOUNDS_DIR, file);
+      if (!abs.startsWith(SOUNDS_DIR + path.sep)) return send(res, 403, { error: 'forbidden' });
+      let buf;
+      try { buf = Buffer.from(String((body && body.data) || ''), 'base64'); } catch { return send(res, 400, { error: 'bad data' }); }
+      if (!buf.length || buf.length > 2 * 1024 * 1024) return send(res, 400, { error: 'bad size' });
+      if (buf.slice(0, 4).toString('ascii') !== 'RIFF') return send(res, 400, { error: 'not a wav' });
+      fs.mkdirSync(SOUNDS_DIR, { recursive: true });
+      fs.writeFileSync(abs, buf);
+      return send(res, 200, { ok: true, file, bytes: buf.length });
     }
 
     // ---- notifications (bell + inbox) ----
@@ -2388,6 +2443,17 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(abs, (body.content || '').toString());
       const rel = path.relative(REPO_ROOT, abs).split(path.sep).join('/');
       return send(res, 200, { path: rel });
+    }
+
+    // Serve the rendered notification WAVs (data/sounds/ is outside PUBLIC_DIR).
+    if (p.startsWith('/sounds/') && req.method === 'GET') {
+      const file = p.slice('/sounds/'.length);
+      if (!/^s\d{2}-[a-z0-9-]+\.wav$/.test(file)) return send(res, 404, { error: 'not found' });
+      return fs.readFile(path.join(SOUNDS_DIR, file), (err, data) => {
+        if (err) return send(res, 404, { error: 'not found' });
+        res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-cache, must-revalidate' });
+        res.end(data);
+      });
     }
 
     // Serve raw file bytes (images, html previews) from inside the repo.

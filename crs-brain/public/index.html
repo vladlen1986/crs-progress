@@ -872,6 +872,9 @@
   .refresh{background:none;border:none;color:var(--muted);font-size:13px;margin-left:auto;cursor:pointer;transition:.15s;border-radius:6px;width:24px;height:24px}
   .refresh:hover{color:var(--primary);background:var(--panel2)}
 
+  .conndot{width:8px;height:8px;border-radius:50%;align-self:center;flex:none;background:var(--good)}
+  .conndot.warn{background:var(--warn)}
+  .conndot.err{background:var(--danger)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:11px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
@@ -1099,6 +1102,7 @@
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
       <button class="uchip" id="usageChip" onclick="toggleUsagePop(event)" title="Usage & limits — click for detail"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gauge"/></svg><span id="usageChipTxt" class="dim">Usage</span></button>
+      <span class="conndot ok" id="connDot" title="Connection: online"></span>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
@@ -1253,6 +1257,8 @@
 </div>
 
 <script src="icons.js"></script>
+<script src="sounds-synth.js"></script>
+<script src="sounds.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
@@ -3414,21 +3420,42 @@ let SETTINGS=null;
 function themeParam(){ try{ return new URLSearchParams(location.search).get('theme'); }catch{ return null; } }
 try{ document.documentElement.setAttribute('data-theme', themeParam()||localStorage.getItem('crs-theme')||'dark'); }catch{}
 function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{} }
-async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,soundName:'ping',email:false,emailTo:''}}; } applyTheme(themeParam()||SETTINGS.theme); return SETTINGS; }
+async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); return SETTINGS; }
 async function saveSettingsPatch(patch){ try{ SETTINGS=await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)}); }catch(e){ toast('Save failed: '+e.message); } return SETTINGS; }
 
-// ---- notification sound (Web Audio — no asset files) ----
-let _ac=null;
-function playSound(name){ if(!name||name==='none')return; try{ _ac=_ac||new (window.AudioContext||window.webkitAudioContext)(); const ac=_ac; if(ac.state==='suspended')ac.resume();
-  const seq = name==='chime'?[[660,0],[880,.09],[1175,.18]] : name==='pop'?[[520,0]] : name==='alert'?[[520,0],[392,.14]] : name==='blip'?[[1320,0]] : [[880,0],[1175,.08]];
-  seq.forEach(([f,t])=>{ const o=ac.createOscillator(),g=ac.createGain(); o.type='sine'; o.frequency.value=f; const st=ac.currentTime+t; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(0.0001,st); g.gain.exponentialRampToValueAtTime(0.18,st+.012); g.gain.exponentialRampToValueAtTime(0.0001,st+.17); o.start(st); o.stop(st+.2); }); }catch{} }
+// ---- notification sounds: 24 local WAVs in data/sounds/ (sounds.js engine) ----
+// Missing files are re-rendered client-side (OfflineAudioContext → 16-bit WAV →
+// POST /api/sounds/save) — fully offline, no assets fetched from the network.
+function _abToB64(ab){ const u=new Uint8Array(ab); let s=''; for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); }
+async function ensureSoundFiles(force){
+  let have=[]; try{ have=(await api('/api/sounds/list')).files||[]; }catch{}
+  const todo=SOUNDS_SYNTH.list.filter(s=>force||!have.includes(SOUNDS_SYNTH.fileName(s)));
+  if(!todo.length) return {rendered:0};
+  let bytes=0;
+  for(const s of todo){
+    try{
+      const buf=await SOUNDS_SYNTH.renderOffline(s.id);
+      const wav=SOUNDS_SYNTH.encodeWav(buf);
+      const r=await api('/api/sounds/save',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({file:SOUNDS_SYNTH.fileName(s),data:_abToB64(wav)})});
+      bytes+=(r&&r.bytes)||0;
+      await SOUNDS.reload(s.id);
+    }catch(e){ console.warn('[sounds] render failed for '+s.id+': '+e.message); }
+  }
+  console.log(`[sounds] rendered ${todo.length} WAV file(s), ${(bytes/1024).toFixed(0)} KB`);
+  return {rendered:todo.length,bytes};
+}
+async function regenSounds(){ toast('Regenerating sound files…'); const r=await ensureSoundFiles(true); const t=await api('/api/sounds/list').catch(()=>null); notify({type:'sounds',level:'success',title:'Sound files regenerated',body:`${r.rendered} WAVs, ${t?(t.totalBytes/1024).toFixed(0):'?'} KB total`,soundEvent:'task-complete'}); }
+// Kept as a thin shim: everything routes through the engine now.
+function playSound(id){ SOUNDS.playSound(id); }
 
 // ---- central notify: toast + sound + persistent store + bell badge ----
+// o.soundEvent picks the per-event sound; defaults derive from o.level.
+const LEVEL_EVENT={info:'new-notification',success:'task-complete',warning:'warning',error:'error'};
 async function notify(o){ o=o||{}; const level=o.level||'info';
   if(o.toast!==false) toast((o.title||'')+(o.title&&o.body?' — ':'')+(o.body||''));
-  const np=(SETTINGS&&SETTINGS.notify)||{inApp:true,sound:true,soundName:'ping'};
+  const np=(SETTINGS&&SETTINGS.notify)||{inApp:true,sound:true};
   if(np.inApp!==false){
-    if(np.sound!==false && o.sound!==false) playSound(np.soundName||'ping');
+    if(np.sound!==false && o.sound!==false) SOUNDS.playEvent(o.soundEvent||LEVEL_EVENT[level]||'new-notification');
     try{ await api('/api/notifications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:o.type||'general',title:o.title||'',body:o.body||'',level})}); }catch{}
     loadNotifications();
   }
@@ -3446,25 +3473,47 @@ function closeNotifOut(ev){ const box=$('ninbox'),b=$('notifBell'); if(box&&!box
 async function markNotifRead(){ try{ await api('/api/notifications/read',{method:'POST'}); }catch{} NOTIFS.readAt=Date.now(); NOTIFS.unread=0; renderNotifBadge(); }
 async function clearNotifs(){ try{ await api('/api/notifications/clear',{method:'POST'}); }catch{} await loadNotifications(); renderInbox(); }
 
-// ---- connection watchers → notifications ----
+// ---- connection watchers: internet + brain server → header dot, toasts, sounds ----
+// Two layers: the app is localhost (survives net loss) but Claude/agent work
+// needs internet; a crashed server is a distinct failure while the tab lives on.
+const CONN={net:true,srv:true,netFails:0,srvFails:0};
+function connDot(){ const d=$('connDot'); if(!d)return; const st=!CONN.srv?['err','Connection: brain server unreachable']:!CONN.net?['warn','Connection: no internet — local app still works']:['ok','Connection: online']; d.className='conndot '+st[0]; d.title=st[1]; }
+async function _probe(url,opts){ const c=new AbortController(); const t=setTimeout(()=>c.abort(),5000); try{ await fetch(url,Object.assign({cache:'no-store',signal:c.signal},opts)); return true; }catch{ return false; }finally{ clearTimeout(t); } }
+function setNet(up){ if(up===CONN.net){ connDot(); return; } CONN.net=up; connDot();
+  if(up) notify({type:'connection',level:'success',title:'Connection restored',body:'Internet is back.',soundEvent:'connection-restored'});
+  else notify({type:'connection',level:'error',title:'Internet connection lost',body:'The brain still runs locally, but Claude/agent work will fail until you reconnect.',soundEvent:'connection-lost'});
+}
+function setSrv(up){ if(up===CONN.srv){ connDot(); return; } CONN.srv=up; connDot();
+  if(up) notify({type:'connection',level:'success',title:'Brain server back',body:'Reconnected to the local server.',soundEvent:'connection-restored'});
+  else { toast('Brain server unreachable'); SOUNDS.playEvent('error'); }   // server down — nowhere to persist a notification
+}
+async function connHeartbeat(){
+  // 2 consecutive fails = down, 1 success = up (debounces flapping links).
+  const netOk=await _probe('https://www.gstatic.com/generate_204',{mode:'no-cors'});
+  CONN.netFails=netOk?0:CONN.netFails+1; if(netOk)setNet(true); else if(CONN.netFails>=2)setNet(false);
+  const srvOk=await _probe('/api/ping');
+  CONN.srvFails=srvOk?0:CONN.srvFails+1; if(srvOk)setSrv(true); else if(CONN.srvFails>=2)setSrv(false);
+}
 function initConnWatch(){
-  window.addEventListener('online', ()=>notify({type:'connection',level:'success',title:'Back online',body:'Internet connection restored.'}));
-  window.addEventListener('offline', ()=>notify({type:'connection',level:'error',title:'No internet connection',body:'You are offline — the brain can’t reach Claude until you reconnect.'}));
+  window.addEventListener('online', ()=>{ CONN.netFails=0; setNet(true); });
+  window.addEventListener('offline', ()=>setNet(false));
+  connDot(); setTimeout(connHeartbeat,3000); setInterval(connHeartbeat,30000);
 }
 
 // ===================== settings modal =====================
-const SOUND_OPTS=[['ping','Ping'],['chime','Chime'],['pop','Pop'],['alert','Alert'],['blip','Blip'],['none','Silent']];
 let settingsTab='appearance';
 function openSettings(t){ if(t)settingsTab=t; $('settingsWrap').classList.add('show'); renderSettings(); }
 function closeSettings(){ $('settingsWrap').classList.remove('show'); }
 function setSettingsTab(t){ settingsTab=t; renderSettings(); }
 function setTheme(t){ applyTheme(t); if(SETTINGS)SETTINGS.theme=t; saveSettingsPatch({theme:t}); renderSettings(); }
-function setNotifPref(k,v){ SETTINGS.notify=Object.assign({},SETTINGS.notify,{[k]:v}); saveSettingsPatch({notify:{[k]:v}}); if(k==='soundName')playSound(v); renderSettings(); }
+function setNotifPref(k,v){ SETTINGS.notify=Object.assign({},SETTINGS.notify,{[k]:v}); saveSettingsPatch({notify:{[k]:v}}); renderSettings(); }
+function setSoundEvent(ev,id){ const cur=(SETTINGS.sounds&&SETTINGS.sounds.events)||{}; SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{events:Object.assign({},cur,{[ev]:id})}); SOUNDS.configure(SETTINGS.sounds); saveSettingsPatch({sounds:{events:{[ev]:id}}}); if(id!=='none')SOUNDS.playSound(id); }
+function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
 async function renderSettings(){
   const s=SETTINGS||await loadSettingsCache(); const n=s.notify||{};
-  const nav=[['general','i-cog','General'],['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['connections','i-plug','Connections'],['about','i-file','About']];
+  const nav=[['general','i-cog','General'],['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['sounds','i-volume','Sounds'],['connections','i-plug','Connections'],['about','i-file','About']];
   const sw=(on,onclick)=>`<label class="switch"><input type="checkbox" ${on?'checked':''} onchange="${onclick}"><span class="sl"></span></label>`;
   let pane='';
   if(settingsTab==='general'){
@@ -3480,12 +3529,25 @@ async function renderSettings(){
     pane=`<div class="msec-title">In-app</div>
       <div class="mrow"><div class="mlbl"><b>In-app notifications</b><span>Show toasts and collect events in the bell inbox.</span></div><div class="mctl">${sw(n.inApp!==false,"setNotifPref('inApp',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Sound</b><span>Play a sound when a notification arrives.</span></div><div class="mctl">${sw(n.sound!==false,"setNotifPref('sound',this.checked)")}</div></div>
-      <div class="mrow"><div class="mlbl"><b>Notification sound</b><span>Pick the alert tone. Selecting one plays a preview.</span></div>
-        <div class="mctl"><select class="sel" onchange="setNotifPref('soundName',this.value)">${SOUND_OPTS.map(([v,l])=>`<option value="${v}"${(n.soundName||'ping')===v?' selected':''}>${l}</option>`).join('')}</select>
-        <button class="mbtn2" onclick="playSound((SETTINGS.notify&&SETTINGS.notify.soundName)||'ping')">${svg('i-volume','sm')} Test</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Sounds</b><span>Pick per-event sounds, preview all 24, and set the volume in the Sounds tab.</span></div>
+        <div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
       <div class="msec-title" style="margin-top:16px">Email</div>
       <div class="mrow"><div class="mlbl"><b>Email notifications</b><span>Also send notifications to your email (best-effort — needs a local mail relay / sendmail).</span></div><div class="mctl">${sw(!!n.email,"setNotifPref('email',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Email address</b><span>Where to send them.</span></div><div class="mctl"><input class="tinput" id="setEmail" placeholder="you@example.com" value="${esc(n.emailTo||'')}"><button class="mbtn2 primary" onclick="saveEmail()">Save</button></div></div>`;
+  } else if(settingsTab==='sounds'){
+    const snd=s.sounds||{volume:80,events:Object.assign({},SOUNDS.defaults)};
+    const EV_LBL=[['new-notification','New notification','A notification arrives in the bell'],['task-complete','Task complete','A chat/agent run finishes'],['warning','Warning','Something needs attention'],['error','Error','Something failed'],['process-start','Process start','A long run kicks off'],['connection-lost','Connection lost','Internet or server went down'],['connection-restored','Connection restored','Back online']];
+    const cats=['notif','done','warn','err','info'];
+    const opts=id=>`<option value="none"${id==='none'?' selected':''}>None</option>`+cats.map(c=>`<optgroup label="${SOUNDS_SYNTH.catLabel[c]}">${SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<option value="${x.id}"${id===x.id?' selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`).join('');
+    pane=`<div class="msec-title">Volume</div>
+      <div class="mrow"><div class="mlbl"><b>Master volume</b><span>Applies to every sound. Release the slider to save + preview.</span></div>
+        <div class="mctl"><input type="range" min="0" max="100" value="${snd.volume!=null?snd.volume:80}" style="width:160px" oninput="setSoundVolume(this.value,false)" onchange="setSoundVolume(this.value,true)"><span class="dim" style="min-width:32px;text-align:right">${snd.volume!=null?snd.volume:80}</span></div></div>
+      <div class="msec-title" style="margin-top:16px">Event sounds</div>
+      ${EV_LBL.map(([ev,lbl,d])=>`<div class="mrow"><div class="mlbl"><b>${lbl}</b><span>${d}</span></div><div class="mctl"><select class="sel" onchange="setSoundEvent('${ev}',this.value)">${opts((snd.events||{})[ev]||SOUNDS.defaults[ev])}</select><button class="mbtn2" onclick="SOUNDS.playEvent('${ev}')">${svg('i-volume','sm')} Test</button></div></div>`).join('')}
+      <div class="msec-title" style="margin-top:16px">Sound files</div>
+      <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 24 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Library — all 24</div>
+      ${cats.map(c=>`<div class="msec-title" style="margin-top:10px;font-size:11px;opacity:.7">${SOUNDS_SYNTH.catLabel[c]}</div>`+SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<div class="mrow"><div class="mlbl"><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></div><div class="mctl"><button class="mbtn2" onclick="SOUNDS.playSound('${x.id}')">${svg('i-volume','sm')} Play</button></div></div>`).join('')).join('')}`;
   } else if(settingsTab==='connections'){
     pane=`<div class="msec-title">Claude (subscription)</div>
       <div class="mrow"><div class="mlbl"><b>Claude Code</b><span id="connClaudeSub">Checking…</span></div><div class="mctl"><span class="mstat" id="connClaude">…</span><button class="mbtn2" id="connClaudeBtn" onclick="connClaudeAction()">…</button></div></div>
@@ -3524,7 +3586,7 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
 
-(async function(){ await loadSettingsCache(); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>
