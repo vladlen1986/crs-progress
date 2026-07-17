@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T19:59:26.826Z",
+  "updated": "2026-07-17T20:10:36.897Z",
   "messages": [
     {
       "role": "user",
@@ -348,6 +348,17 @@
       "role": "assistant",
       "content": "Done. I redesigned the chat so each exchange reads as **one action**.\n\n**What changed** (all in `crs-brain/public/index.html`)\n- **Unified turn:** your prompt + thinking + working + answer now live inside a single `.turn` with a left **timeline spine** connecting them. Your prompt is no longer a floating right-side bubble — it leads the action, left-aligned in a subtle accent tint.\n- **Timestamps repositioned:** **Started** sits top-left (blue milestone dot), **Completed** bottom-left (green dot, with elapsed duration). The right-side prompt timestamp and the clock icon are gone.\n- **24-hour time** everywhere (`hourCycle:'h23'`) — e.g. `Started 17 Jul 2026, 23:05:54` … `Completed 23:14:11 · 28s`.\n- Wired through every path: live streaming (meta→Started, finalize→Completed), history reload, regenerate, chat re-attach, and the Buildprint sync flow. Legacy messages without real timing degrade gracefully (no fake `0s`).\n\nBoth files pass syntax checks. This is **client-only** — a hard refresh shows it (no server restart needed this time).\n\n**Preview:** `crs-brain/data/docs/turn-timeline-demo.html` — click to see the exact new look now, without waiting to generate a live reply.\n\nOne call I made for you: I left-aligned your prompt into the thread rather than keeping it a right-side bubble, because that's what makes it read as a single action. If you'd rather keep the prompt on the right with the Started/Completed rails on the left, say so and I'll switch it.",
       "ts": "2026-07-17T19:59:26.826Z"
+    },
+    {
+      "role": "user",
+      "content": "but after i refresh the thinking and working tree is missing why ? Keep it",
+      "ts": "2026-07-17T20:01:31.172Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The work tree now persists across refresh.\n\n**What was broken:** the \"Worked for Xs\" tree (thinking, tool calls, reclaimed narration notes) was built live from SSE events and never written to the chat JSON — so on reload `renderChat` had nothing to rebuild from. It wasn't lost by the turn redesign; it was never saved.\n\n**The fix:**\n- `crs-brain/server.js` — while streaming, the server now mirrors the live builder into a flat ordered `steps[]` (thinking / tool / note, one group per turn, each body capped at 1600 chars) and stores it on the assistant message (both the normal and stopped-mid-stream paths).\n- `crs-brain/public/index.html` — `stepsGroupEl()` rebuilds the exact same `.wgroup > .wghead + .wsteps` DOM the live builder produces, just finished + collapsed; `renderChat` inserts it above each reply body.\n\nBoth files pass syntax checks.\n\n**Two caveats:**\n1. This touches `server.js`, so **restart the app**, then **hard-refresh** the browser.\n2. Persistence applies to **new replies going forward** — old replies have no stored `steps`, so their tree stays empty on reload (nothing to rebuild). Send one new message and the tree will survive refresh.",
+      "ts": "2026-07-17T20:10:36.897Z"
     }
   ]
 }
