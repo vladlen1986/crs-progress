@@ -8,7 +8,7 @@
   :root{
     --bg:#0A0A0C; --panel:#141417; --panel2:#1C1C21; --line:#26262C; --line2:#35353D;
     --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
-    --accent:#3B82F6; --accent2:#60A5FA;
+    --accent:#3B82F6; --accent2:#60A5FA; --error:#EF4444; /* --error matches design/tokens.css */
     --c-mem1:#8B5CF6; --c-mem2:#C084FC; --c-mem3:#A78BFA; --c-mem4:#D8B4FE; --c-mem5:#7C3AED;
     --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
@@ -165,6 +165,24 @@
   .pv .md mark{background:rgba(249,115,22,.35);color:#fff;border-radius:3px;padding:0 2px}
   .pv .md .secbadge{display:inline-block;font-size:9.5px;letter-spacing:1.2px;font-weight:700;color:var(--sc);border:1px solid var(--sc);border-radius:10px;padding:1px 9px;margin-bottom:4px;text-transform:uppercase}
 
+  /* dangling-references panel — cited paths that don't exist = broken brain routing */
+  .refpanel{position:fixed;left:20px;bottom:16px;width:290px;z-index:11;background:rgba(20,20,23,.92);backdrop-filter:blur(8px);border:1px solid var(--line);border-radius:10px;overflow:hidden;display:none}
+  body:not(.embed) .refpanel{bottom:110px}   /* clear the Ask-the-Brain dock in standalone mode */
+  .refpanel.show{display:block}
+  .refpanel .rhead{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:var(--primary);font-family:inherit;font-size:10px;font-weight:700;letter-spacing:1.4px;padding:9px 12px;cursor:pointer;text-align:left}
+  .refpanel .rdot{width:7px;height:7px;border-radius:50%;background:var(--error);flex:0 0 7px}
+  .refpanel .rdot.ok{background:var(--muted)}
+  .refpanel .rn{color:var(--error);font-variant-numeric:tabular-nums}
+  .refpanel .rcaret{margin-left:auto;color:var(--muted);font-size:11px}
+  .refpanel .rlist{max-height:32vh;overflow-y:auto;padding:0 8px 8px;display:none}
+  .refpanel.open .rlist{display:block}
+  .refpanel .ritem{border:1px solid var(--line);border-left:2px solid var(--error);border-radius:7px;padding:6px 9px;margin-bottom:5px;cursor:pointer;background:var(--panel2)}
+  .refpanel .ritem:hover{border-color:var(--line2);border-left-color:var(--error)}
+  .refpanel .rpath{color:var(--error);font-size:11px;font-weight:600;word-break:break-all}
+  .refpanel .rsrc{color:var(--secondary);font-size:10px;margin-top:1px}
+  .refpanel .rquote{color:var(--muted);font-size:10px;margin-top:3px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .refpanel .rnone{color:var(--muted);font-size:11px;padding:2px 4px 6px}
+
   .tip{position:fixed;pointer-events:none;background:rgba(20,20,23,.95);border:1px solid var(--line2);border-radius:7px;padding:7px 11px;font-size:11.5px;color:var(--primary);z-index:20;display:none;max-width:300px}
   .tip .sub{color:var(--muted);font-size:10px;margin-top:2px}
   .hint{position:fixed;bottom:14px;right:20px;color:var(--muted);font-size:10.5px;z-index:10;pointer-events:none;letter-spacing:.3px}
@@ -190,6 +208,7 @@
   @media (hover:none){ .tip,.hpv{display:none!important} }   /* no hover previews on touch */
   @media (max-width:720px){
     .hint{display:none}
+    .refpanel{display:none!important}     /* bottom-left collides with the dock on phones */
     .brand{top:11px;left:13px}
     .brand span,.brand .by{display:none}
     .brand b{font-size:12px;letter-spacing:1.4px}
@@ -273,6 +292,10 @@
   <div class="seg" id="viewSeg">
     <button data-v="departments" class="on">Departments</button><button data-v="folders">Folders</button>
   </div>
+  <div class="lbl">Edges</div>
+  <div class="seg" id="edgeSeg">
+    <button data-e="structure">Structure</button><button data-e="refs">References</button><button data-e="both" class="on">Both</button>
+  </div>
   <div class="lbl">Content</div>
   <div class="seg" id="contentSeg">
     <button data-c="all" class="on" title="Every file in the repo">All</button><button data-c="crs" title="Only files for building the CRS Bubble app — hides this second-brain app's own files (crs-brain/, scripts/) and the reference manuals">CRS only</button>
@@ -288,6 +311,10 @@
   <button class="bake" onclick="bake()">Bake settings</button>
 </div>
 <div class="tip" id="tip"></div>
+<div class="refpanel" id="refPanel">
+  <button class="rhead" onclick="toggleRefPanel()"><span class="rdot" id="refDot"></span>DANGLING REFERENCES <span class="rn" id="refN"></span><span class="rcaret" id="refCaret">▾</span></button>
+  <div class="rlist" id="refList"></div>
+</div>
 <div class="hint">drag to pan · wheel to zoom · click a file to open it · double-click a hub to collapse</div>
 <div class="dock" id="dock">
   <div class="dhead"><span class="dot"></span> ASK THE BRAIN <button class="fold" id="dockFold" title="Collapse">—</button></div>
@@ -315,7 +342,7 @@ addEventListener('resize',resize); resize();
 
 // ---- settings (bakeable) ----------------------------------------------------
 const S = Object.assign({
-  layout:'force', view:'departments', content:'all', spin:18, names:false, spring:38, size:50, collapsed:{},
+  layout:'force', view:'departments', content:'all', edges:'both', spin:18, names:false, spring:38, size:50, collapsed:{},
 }, JSON.parse(localStorage.getItem('crsmap')||'{}'));
 
 // CRS-only mode: product knowledge only — hide the tool internals & pipeline.
@@ -460,6 +487,242 @@ function buildGraph(){
   ui.q.placeholder=`Search ${fileCount.toLocaleString()} files… ( / )`;
   applyLayout(true);
   if(boardOpen) renderBoard();
+}
+
+// ---- reference graph (w-refgraph) ----------------------------------------------
+// Real citation edges: the routing docs (CLAUDE.md, brain/INDEX.md, decisions.md)
+// are parsed for references to repo files/folders and drawn as a curved accent
+// overlay. Draw-only — no spring forces, the physics simulation never sees them.
+// References that point at paths that DON'T exist become dashed --error edges to
+// hollow "ghost" nodes + a Dangling-references panel: the brain can't route there.
+const REF_DOCS=['CLAUDE.md','brain/INDEX.md','decisions.md'];
+const REF_ACCENT=(getComputedStyle(document.documentElement).getPropertyValue('--accent').trim())||'#3B82F6';
+const REF_DANGER=(getComputedStyle(document.documentElement).getPropertyValue('--error').trim())||'#EF4444';
+let refEdges=[];      // resolved  {src,target,isDir,lines:[{n,text}],count}
+let refDangling=[];   // dangling  {src,target,lines:[{n,text}],count,gi,gx,gy}
+let refReady=false, hoverRef=null, refPanelOpen=true;
+
+// REFPARSE-BEGIN — pure parsing logic (unit-tested by extracting this block)
+function refNormalize(raw){
+  let t=(raw||'').trim();
+  if(!t) return null;
+  if(/^(https?:|mailto:|#|\/|~|<|\$)/i.test(t)) return null;      // external / anchor / absolute / template
+  t=t.replace(/^\.\//,'');                                        // normalize ./ prefix
+  t=t.replace(/[)>\],;:!?'"”’]+$/,'').replace(/\.$/,'');          // trailing punctuation (keeps .md etc.)
+  t=t.split('#')[0];                                              // strip #fragment
+  t=t.replace(/:\d+(?:[-:]\d+)?$/,'');                            // strip :line / :line-line suffix
+  const wasDir=/\/$/.test(t);
+  t=t.replace(/\/+$/,'');
+  if(!t||/[\s`*(){}|\\<>]/.test(t)) return null;                  // globs / spaces / templates (<scope>)
+  if(/(^|\/)(node_modules|\.git|\.claude)(\/|$)/.test(t)) return null;  // server-ignored dirs
+  const seg1=t.replace(/^(\.\.\/)+/,'').split('/')[0];
+  if(/\.[a-z]{2,}$/i.test(seg1)&&t.includes('/')) return null;    // domain-like (github.com/…)
+  const hasSlash=t.includes('/');
+  const hasExt=/\.[A-Za-z][A-Za-z0-9]{0,4}$/.test(t);
+  if(!hasSlash&&!hasExt&&!wasDir) return null;                    // bare word — not a path
+  return {path:t, hasSlash, hasExt};
+}
+function refCandidates(line){
+  const out=[];                                                   // trusted: explicit md links + backticks
+  for(const m of line.matchAll(/\[[^\]]*\]\(([^)\s]+)\)/g)) out.push({raw:m[1],trusted:true});
+  for(const m of line.matchAll(/`([^`\n]+)`/g)) out.push({raw:m[1],trusted:true});
+  const bare=line.replace(/`[^`]*`/g,' ').replace(/\[[^\]]*\]\([^)]*\)/g,' ');
+  for(const m of bare.matchAll(/(?:^|[\s("'“])((?:\.{1,2}\/)*[\w.\-]+(?:\/[\w.\-]+)+\/?)/g)) out.push({raw:m[1],trusted:false});
+  for(const m of bare.matchAll(/(?:^|[\s("'“])([\w\-]+\.[A-Za-z][A-Za-z0-9]{0,4})(?=[\s).,;:!?'"]|$)/g)) out.push({raw:m[1],trusted:false});
+  return out;
+}
+// One doc → {resolved:Map, dangling:Map}. exists(p)→'file'|'dir'|null.
+// Resolution order: repo root, then relative to the citing doc's folder (brain/
+// INDEX.md links like ../decisions.md or buildprint/INDEX.md). baseMatch(name)→
+// unique repo path for a bare filename (STATUS.md → brain/STATUS.md), else null.
+// Prose guards: slashless names that match nothing are DROPPED, not dangled
+// ("Node.js", "e.g."); untrusted slashed tokens without a file extension can only
+// RESOLVE, never dangle ("UI/UX", "chat/kanban" are prose, not broken routing).
+function parseRefDoc(docPath, content, exists, baseMatch){
+  const resolved=new Map(), dangling=new Map();
+  const dir=docPath.includes('/')?docPath.slice(0,docPath.lastIndexOf('/')+1):'';
+  const rel=p=>{ const out=[];                                    // join doc dir + p, fold ../ ./
+    for(const s of (dir+p).split('/')){ if(s==='.'||s==='') continue;
+      if(s==='..'){ if(!out.length) return null; out.pop(); } else out.push(s); }
+    return out.join('/')||null; };
+  const add=(map,target,isDir,n,text)=>{
+    let e=map.get(target);
+    if(!e){ e={src:docPath,target,isDir,lines:[],count:0}; map.set(target,e); }
+    e.count++;                                                    // de-dup: same doc→target = one edge
+    if(e.lines.length<3) e.lines.push({n:n+1,text:text.trim().slice(0,160)});
+  };
+  content.replace(/\r/g,'').split('\n').forEach((text,n)=>{
+    for(const cand of refCandidates(text)){
+      const c=refNormalize(cand.raw);
+      if(!c) continue;
+      let target=c.path, kind=exists(target);
+      if(!kind&&dir){ const r=rel(c.path); if(r&&exists(r)){ target=r; kind=exists(r); } }
+      if(target===docPath) continue;                              // self-reference
+      if(kind){ add(resolved,target,kind==='dir',n,text); continue; }
+      if(!c.hasSlash){ const m=baseMatch(c.path); if(m&&m!==docPath) add(resolved,m,false,n,text); continue; }
+      if(!cand.trusted&&!c.hasExt) continue;                      // prose word/word — not a path claim
+      if(/^\.\./.test(c.path)){ const r=rel(c.path); if(!r) continue; target=r; }
+      add(dangling,target,false,n,text);
+    }
+  });
+  return {resolved,dangling};
+}
+// REFPARSE-END
+
+let refFileSet=null, refDirSet=null, refBaseMap=null;
+function buildRefIndex(){                      // existence checks run on the FULL tree,
+  refFileSet=new Set(); refDirSet=new Set();   // not the CRS-filtered one — a filtered
+  refBaseMap=new Map();                        // file still exists, it's just hidden
+  (function w(ch){ for(const x of ch){
+    if(x.type==='dir'){ refDirSet.add(x.path); w(x.children); }
+    else { refFileSet.add(x.path);
+      const a=refBaseMap.get(x.name); a?a.push(x.path):refBaseMap.set(x.name,[x.path]); }
+  }})(tree||[]);
+}
+const refExists=p=> refFileSet.has(p)?'file' : refDirSet.has(p)?'dir' : null;
+const refBaseMatch=b=>{ const a=refBaseMap&&refBaseMap.get(b); return (a&&a.length===1)?a[0]:null; };
+
+async function loadRefs(){                     // all three docs fetched exactly once
+  buildRefIndex();
+  refEdges=[]; refDangling=[];
+  for(const doc of REF_DOCS){
+    if(refExists(doc)!=='file') continue;
+    let content='';
+    try{ content=(await (await fetch('/api/file?path='+encodeURIComponent(doc))).json()).content||''; }
+    catch{ continue; }
+    const {resolved,dangling}=parseRefDoc(doc,content,refExists,refBaseMatch);
+    for(const e of resolved.values()) refEdges.push(e);
+    for(const e of dangling.values()) refDangling.push(e);
+  }
+  refDangling.forEach((d,i)=>d.gi=i);
+  refReady=true;
+  console.log('[refgraph]',refEdges.length,'resolved,',refDangling.length,'dangling',refDangling.map(d=>d.target));
+  renderRefPanel();
+}
+
+// endpoint lookup at draw time — survives buildGraph() rebuilds and both views
+function refNode(p){
+  const n=byId[p]; if(n&&!n.hidden) return n;               // file node
+  if(p==='CLAUDE.md') return byId['@center'];               // center IS CLAUDE.MD
+  const h=byId['#'+p]; if(h&&!h.hidden) return h;           // dir → hub ('#brain', '#brain/bubble', …)
+  return null;                                              // filtered out / collapsed → skip edge
+}
+function refCtrl(a,b){                                      // quadratic control point: slight bow so
+  const mx=(a.x+b.x)/2, my=(a.y+b.y)/2;                     // routing edges never sit on straight
+  const dx=b.x-a.x, dy=b.y-a.y;                             // structure edges
+  const d=Math.sqrt(dx*dx+dy*dy)||1, off=Math.min(60,12+d*0.12);
+  return [mx-dy/d*off, my+dx/d*off];
+}
+function ghostPos(d,src){                                   // ghost orbits its citing doc
+  const a=(hash(d.target)%628)/100 + d.gi*0.9, r=110+(d.gi%4)*26;
+  return {x:src.x+Math.cos(a)*r, y:src.y+Math.sin(a)*r*0.85};
+}
+function drawRefOverlay(){
+  if(!refReady||S.edges==='structure') return;
+  ctx.save();
+  ctx.globalAlpha=matches?0.25:1;
+  // resolved routing edges — one batched stroke, flat accent at low opacity
+  ctx.lineWidth=1.2/cam.k; ctx.beginPath();
+  for(const e of refEdges){
+    const a=refNode(e.src), b=refNode(e.target); if(!a||!b||a===b) continue;
+    const [cx,cy]=refCtrl(a,b);
+    ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(cx,cy,b.x,b.y);
+  }
+  ctx.strokeStyle=REF_ACCENT+'4D'; ctx.stroke();            // ~0.30 alpha
+  // dangling edges — dashed --error strokes to ghost nodes, one batched path
+  ctx.setLineDash([5/cam.k,5/cam.k]); ctx.beginPath();
+  for(const d of refDangling){
+    const a=refNode(d.src); if(!a){ d.gx=undefined; continue; }
+    const g=ghostPos(d,a); d.gx=g.x; d.gy=g.y;              // cached for hit-test / fly-to
+    ctx.moveTo(a.x,a.y); ctx.lineTo(g.x,g.y);
+  }
+  ctx.strokeStyle=REF_DANGER+'59'; ctx.stroke();            // ~0.35 alpha
+  // ghost nodes — hollow dashed circles, flat, no glow: missing knowledge has no light
+  for(const d of refDangling){
+    if(d.gx===undefined) continue;
+    const hov=hoverRef&&hoverRef.e===d, r=4.5/Math.sqrt(cam.k);
+    ctx.strokeStyle=REF_DANGER+(hov?'FF':'B3');
+    ctx.lineWidth=(hov?1.6:1.1)/cam.k;
+    ctx.setLineDash([2.5/cam.k,2.5/cam.k]);
+    ctx.beginPath(); ctx.arc(d.gx,d.gy,r,0,7); ctx.stroke();
+    if(cam.k>0.55||hov){
+      ctx.setLineDash([]);
+      ctx.font=`400 ${9/cam.k}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='top';
+      ctx.fillStyle=REF_DANGER+(hov?'FF':'99');
+      ctx.fillText(d.target.length>32?'…'+d.target.slice(-31):d.target, d.gx, d.gy+r+3/cam.k);
+    }
+  }
+  ctx.setLineDash([]);
+  // hovered resolved edge redrawn on top at full accent
+  if(hoverRef&&hoverRef.kind==='edge'){
+    const e=hoverRef.e, a=refNode(e.src), b=refNode(e.target);
+    if(a&&b&&a!==b){ const [cx,cy]=refCtrl(a,b);
+      ctx.strokeStyle=REF_ACCENT; ctx.lineWidth=1.6/cam.k;
+      ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.quadraticCurveTo(cx,cy,b.x,b.y); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+function segDist2(p,x1,y1,x2,y2){                           // point → segment, squared
+  const dx=x2-x1, dy=y2-y1, L2=dx*dx+dy*dy||1;
+  const t=Math.max(0,Math.min(1,((p.x-x1)*dx+(p.y-y1)*dy)/L2));
+  const qx=x1+dx*t-p.x, qy=y1+dy*t-p.y; return qx*qx+qy*qy;
+}
+function pickRef(px,py){                                    // nearest-edge hit-test, ~6px
+  if(!refReady||S.edges==='structure') return null;
+  const p=toWorld(px,py), tol2=(6/cam.k)*(6/cam.k);
+  for(const d of refDangling){ if(d.gx===undefined) continue;
+    const rr=Math.max(7/cam.k,5), dx=p.x-d.gx, dy=p.y-d.gy;
+    if(dx*dx+dy*dy<rr*rr) return {kind:'ghost',e:d};
+  }
+  for(const d of refDangling){ if(d.gx===undefined) continue;
+    const a=refNode(d.src); if(!a) continue;
+    if(segDist2(p,a.x,a.y,d.gx,d.gy)<tol2) return {kind:'ghost',e:d};
+  }
+  for(const e of refEdges){                                 // curve ≈ 8-segment polyline
+    const a=refNode(e.src), b=refNode(e.target); if(!a||!b||a===b) continue;
+    const [cx,cy]=refCtrl(a,b);
+    let lx=a.x, ly=a.y;
+    for(let i=1;i<=8;i++){ const t=i/8, u=1-t;
+      const x=u*u*a.x+2*u*t*cx+t*t*b.x, y=u*u*a.y+2*u*t*cy+t*t*b.y;
+      if(segDist2(p,lx,ly,x,y)<tol2) return {kind:'edge',e};
+      lx=x; ly=y;
+    }
+  }
+  return null;
+}
+function refTip(h){
+  const r=h.e;
+  const cite=r.lines.map(l=>escH(r.src)+':'+l.n+' — '+escH(l.text.slice(0,110))).join('<br>');
+  return (h.kind==='ghost'
+    ? '<span style="color:var(--error)">missing · '+escH(r.target)+'</span>'
+    : escH(r.src)+' → '+escH(r.target)+(r.count>1?' <span style="color:var(--muted)">· ×'+r.count+' citations</span>':''))
+    +'<div class="sub">'+cite+'</div>';
+}
+function toggleRefPanel(){ refPanelOpen=!refPanelOpen;
+  document.getElementById('refPanel').classList.toggle('open',refPanelOpen);
+  document.getElementById('refCaret').textContent=refPanelOpen?'▾':'▸'; }
+function flyToGhost(d){ const a=refNode(d.src); if(!a) return;
+  const g=ghostPos(d,a);
+  cam.k=Math.max(cam.k,1.2); cam.x=-g.x*cam.k; cam.y=-g.y*cam.k;
+  flash('Missing: '+d.target); }
+function renderRefPanel(){
+  const el=document.getElementById('refPanel');
+  el.classList.toggle('show', refReady&&S.edges!=='structure');  // hidden in Structure-only mode
+  el.classList.toggle('open', refPanelOpen);
+  document.getElementById('refCaret').textContent=refPanelOpen?'▾':'▸';
+  document.getElementById('refN').textContent=refDangling.length?'('+refDangling.length+')':'';
+  document.getElementById('refDot').classList.toggle('ok',!refDangling.length);
+  const list=document.getElementById('refList'); list.innerHTML='';
+  if(!refDangling.length){ list.innerHTML='<div class="rnone">none — all references resolve</div>'; return; }
+  for(const d of refDangling){
+    const it=document.createElement('div'); it.className='ritem'; it.title='Fly to the ghost node';
+    const l=d.lines[0]||{n:0,text:''};
+    it.innerHTML='<div class="rpath">'+escH(d.target)+'</div>'
+      +'<div class="rsrc">← '+escH(d.src)+':'+l.n+(d.count>1?' · ×'+d.count:'')+'</div>'
+      +'<div class="rquote">'+escH(l.text.slice(0,90))+'</div>';
+    it.onclick=()=>flyToGhost(d);
+    list.appendChild(it);
+  }
 }
 
 // ---- layouts ------------------------------------------------------------------
@@ -756,6 +1019,9 @@ function draw(){
 
   // links — backbone lines carry marching energy dashes; leaf links batched into
   // two path strokes (dim + normal) so 700+ links cost 2 draw calls, not 700.
+  // References mode: structure edges dimmed hard (nodes stay — they're endpoints).
+  const sDim=S.edges==='refs'?0.15:1;
+  ctx.globalAlpha=sDim;
   ctx.lineWidth=1/cam.k;
   ctx.beginPath();
   for(const l of links){ const a=byId[l.a], b=byId[l.b]; if(!a||!b||a.hidden||b.hidden) continue;
@@ -778,6 +1044,10 @@ function draw(){
     ctx.lineDashOffset=-(now*0.014*sp)%(14/cam.k);
     ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
     ctx.restore(); }
+  ctx.globalAlpha=1;
+
+  // routing-edge overlay — real citations from the routing docs (draw-only)
+  drawRefOverlay();
 
   // data pulses with comet tails — every connection exchanges light
   const want=Math.round(44*sp);
@@ -791,7 +1061,7 @@ function draw(){
     const x=a.x+(b.x-a.x)*e, y=a.y+(b.y-a.y)*e;
     const et=Math.max(0,e-f.tail), tx=a.x+(b.x-a.x)*et, ty=a.y+(b.y-a.y)*et;
     const fade=Math.sin(f.t*Math.PI);
-    const A=(matches?0.06:0.6)*fade;
+    const A=(matches?0.06:0.6)*fade*sDim;   // pulses ride structure links → dim with them
     // tail
     const grad=ctx.createLinearGradient(x,y,tx,ty);
     grad.addColorStop(0,f.color+'B0'); grad.addColorStop(1,f.color+'00');
@@ -932,12 +1202,15 @@ cv.addEventListener('pointermove',e=>{
   } else {
     const prev=hover;
     hover=pick(e.clientX,e.clientY);
+    hoverRef=hover?null:pickRef(e.clientX,e.clientY);   // routing edges/ghosts only when no node hit
     if(hover&&hover!==prev) hover.rippleT=performance.now();
     cv.classList.toggle('pointing', !!hover && (hover.kind==='file'||hover.kind==='hub'));
     if(hover){ ui.tip.style.display='block'; ui.tip.style.left=(e.clientX+14)+'px'; ui.tip.style.top=(e.clientY+12)+'px';
       ui.tip.innerHTML= hover.kind==='file' ? `${hover.label}<div class="sub">${hover.path} · click to open</div>`
         : hover.kind==='hub' ? `${hover.label}<div class="sub">${hover.count} files · double-click to ${S.collapsed[hover.id]?'expand':'collapse'}</div>`
         : `${hover.label}`;
+    } else if(hoverRef){ ui.tip.style.display='block'; ui.tip.style.left=(e.clientX+14)+'px'; ui.tip.style.top=(e.clientY+12)+'px';
+      ui.tip.innerHTML=refTip(hoverRef);
     } else ui.tip.style.display='none';
   }});
 function openNode(n){
@@ -983,6 +1256,10 @@ document.getElementById('contentSeg').addEventListener('click',e=>{ const b=e.ta
   document.querySelectorAll('#boardSeg button').forEach(x=>x.classList.toggle('on',x.dataset.c===S.content));
   buildGraph();
   flash(S.content==='crs'?'CRS Bubble-app files only':'Showing everything'); });
+document.getElementById('edgeSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;
+  S.edges=b.dataset.e; [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+  hoverRef=null; renderRefPanel();
+  flash(S.edges==='structure'?'Structure edges only':S.edges==='refs'?'Reference edges (structure dimmed)':'Structure + references'); });
 // fullscreen
 function toggleFS(){
   if(document.fullscreenElement){ document.exitFullscreen(); }
@@ -1010,6 +1287,7 @@ addEventListener('keydown',e=>{ if(e.key==='/'&&document.activeElement!==ui.q){ 
 // restore baked seg states
 document.querySelectorAll('#layoutSeg button,#layoutSeg2 button').forEach(b=>b.classList.toggle('on',b.dataset.l===S.layout));
 document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.view));
+document.querySelectorAll('#edgeSeg button').forEach(b=>b.classList.toggle('on',b.dataset.e===S.edges));
 document.querySelectorAll('#contentSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
 document.querySelectorAll('#boardSeg button').forEach(b=>b.classList.toggle('on',b.dataset.c===S.content));
 
@@ -1333,7 +1611,7 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
 // ---- boot ----------------------------------------------------------------------------
 // Embedded in the app: the app's composer is the one chat, so drop the map's own dock.
 if(EMBED){ document.body.classList.add('embed'); const dk=document.getElementById('dock'); if(dk) dk.style.display='none'; }
-fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); requestAnimationFrame(loop); applyView(modeFromHash()); })
+fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); loadRefs(); requestAnimationFrame(loop); applyView(modeFromHash()); })
   .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#A6A6A6">Could not load the repo tree — is the CRS Brain server running?</div>'); });
 // Files-as-a-list vs. columns: same board data, just stack the folder columns vertically.
 function setBoardLayout(layout){ document.body.classList.toggle('blist', layout==='list'); }

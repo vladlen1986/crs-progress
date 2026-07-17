@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-07-16**.
+Last updated: **2026-07-17**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
@@ -30,6 +30,21 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 - **Icons**: approved two-tier generator `icons.js` (badge tier ≥40px / glyph tier <40px), used at every render site.
 - **Other pages**: `map.html` galaxy map + kanban (dept hubs all linked to the CLAUDE.MD center; promoted subfolder clusters are namespaced — a `#data` id collision used to leave one hub floating), `tree.html` Progress Tree (46 modules), `wishlist.html` (app todos + Claude-Code prompt generator per item).
 - **Cross-platform**: zero-dep server, node_modules gitignored (per-OS builds), `.gitattributes` line-ending lock, `doctor.js` health check, `start.bat` / `start.command` launchers.
+
+---
+
+## Session 2026-07-17 — sounds, watchers, ref-graph, task queue, issue checker (A–E multi-phase)
+
+One orchestrated run, one commit per phase (`brain: <phase>-…`).
+
+1. **A — sound system + connectivity.** 24 approved synth sounds now exist as real local WAVs in `data/sounds/` (22.05 kHz mono, 1.7 MB; auto-rendered client-side via OfflineAudioContext → `POST /api/sounds/save` when missing; Regenerate button in prefs). `public/sounds-synth.js` (defs) + `public/sounds.js` (engine: WAV-first, live-synth fallback, master gain). New Sounds settings tab: per-event dropdowns (7 events), volume 0–100 (default 80), 24-sound library with previews. Old 5-sound system removed; `notify.soundName` migrates (ping→s01, chime→s03, pop→s16, alert→s19, blip→s13). Dual connectivity watcher (internet no-cors probe + `/api/ping`, 30 s, 2-fail debounce) → header dot (green/amber/red) + toasts + sounds.
+2. **B — Bubble awareness.** Deterministic bare-fetch watchers (always-on, daily, `data/state.json` stamps): forum digest → `brain/bubble/forum-digest.md`; release notes → `brain/bubble/release-notes.md` with ⚠ locked-decision cross-check vs decisions.md + warning notification. IMPORTANT: bubble.io/release-notes is an unscrapeable Bubble SPA — the watcher reads the forum Announcements category (id 9) instead, which the page itself names as the archive. Manual buttons in Settings→General. Research docs: `brain/bubble/conditional-style-swapping.md` (reconciled with design/design.md §3.2 — the June 2026 feature CONFIRMS the locked paired-styles pattern) and `brain/bubble/global-expressions.md` (3 CRS candidates, all PROPOSALS).
+3. **C — galaxy map reference edges (w-refgraph).** map.html parses CLAUDE.md / brain/INDEX.md / decisions.md client-side (`/api/file`), draws curved accent routing edges (draw-only overlay, no physics impact), dashed `--error` edges to ghost nodes for missing targets, Structure/References/Both toggle, dangling-refs panel with fly-to. First run found 65 resolved refs + **5 real dangling refs** (floor-alert-stations.md ×2, pricing/msa-template.md, smtp.json cited 2 ways).
+4. **D — task queue (w-loops MVP).** `data/task-queue.json` + `/queue.html` panel. Sequential runner through `runClaudeStream` (bp-guard `--settings` applies to every spawn — gate can't be bypassed). Limit detection (error signature; `/api/queue/stub` test hook) → `blocked-limit`, auto-resume at `usage.json rate_limits.*.resets_at` (epoch SECONDS) + 2 min; resumeAt persists and re-arms at boot. Verified live incl. server restart mid-countdown. Bounds: max 20 open, no retries, no parallelism. Follow-up logged as `w-orchestration`.
+5. **E — issue checker (w-bugfix, read-only pass).** Daily + on-demand `buildprint sync` (best-effort) + `check` on the test workspace → `brain/bubble/issue-reports/YYYY-MM-DD.md` with PROPOSED fixes (Sonnet/low, prompt-locked read-only; only spawned when issues exist). Auto-apply deliberately out of scope. NOTE: this Mac's buildprint link is currently **Unauthorized** (CLI auto-update 4.1.6→4.2.5 also pending) — re-link via `buildprint link <token>`; checker degrades to last-synced state with a caveat in the report.
+
+Gotchas for next session: `resets_at` is epoch seconds (×1000); new settings keys must be added to BOTH `DEFAULT_SETTINGS` and the PUT whitelist merge; `serveStatic` serves only `public/` (WAVs go through the dedicated `/sounds/` route, GET+HEAD); server-side `addNotification` shows in the bell but only client-side `notify()` plays a sound.
+
 
 ---
 
