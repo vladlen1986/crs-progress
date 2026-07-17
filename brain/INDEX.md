@@ -18,6 +18,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
 | Buildprint manual | [buildprint/INDEX.md](buildprint/INDEX.md) | Scraped official docs — how Buildprint works: modes, agents, prompts, troubleshooting |
 | Bubble manual | [bubble/INDEX.md](bubble/INDEX.md) | COMPLETE official manual (583 pages, verbatim) — data, privacy rules, workflows, API, elements, workload, security |
 | Bubble forum (curated) | [bubble-forum/INDEX.md](bubble-forum/INDEX.md) | 87 top community threads: WU optimization, privacy rules, multi-tenant, bulk ops, performance — community advice, manual overrides |
+| Bubble performance manual | [bubble-performance/INDEX.md](bubble-performance/INDEX.md) | *The Ultimate Guide to Bubble Performance* (Petter Amlie, Rev 3, 227 pp) — build technique for fast, scalable apps: RG trap, efficient searches, DB structuring, process spreading, recursive/trigger workflows, WU. Third-party expert guidance. |
 
 ## Authoritative sources elsewhere (do NOT restate here)
 
@@ -38,6 +39,7 @@ One fact = one home. Files below LINK to existing authoritative docs — they ne
    **Privacy rules** → security.md. **Workflows/buttons** → workflows.md.
    **"What do I migrate next / how"** → migrations.md. **Buildprint how-to** → buildprint/INDEX.md.
    **Bubble platform how-to** (privacy rules, WU, API, elements…) → bubble/INDEX.md.
+   **Bubble performance / how to build fast at scale** (slow lists, RG trap, efficient search, DB structuring, workflow spreading) → bubble-performance/INDEX.md.
    **Community patterns/workarounds** → bubble-forum/INDEX.md (or live: forum.bubble.io/search.json?q=…+in:solved).
 2. Every brain file uses the same skeleton: **Current state / Pending / Where in Bubble / Links** — jump to the section, don't read whole files.
 3. If a fact isn't in brain/ or its linked sources, say so — never guess.

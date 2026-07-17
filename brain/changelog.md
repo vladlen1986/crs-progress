@@ -4,6 +4,17 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-17 — Added Bubble performance manual to brain/
+
+Ingested *The Ultimate Guide to Bubble Performance* (Petter Amlie, Revision 3, 227 pp PDF) into a new domain.
+
+- **New folder `brain/bubble-performance/`** — PDF extracted verbatim to markdown, one file per chapter (00 intro → 07 conclusion), plus `INDEX.md` (routing table, topic→file map, CRS relevance). Original PDF kept in-folder as authoritative source (`the-ultimate-guide-to-bubble-performance-rev3.pdf`); text reflowed geometrically from the designed PDF (tables flatten to text runs — check the PDF page cited in each file's header if a passage looks garbled).
+- **brain/INDEX.md** — registered the manual in the domain table + retrieval rules.
+- **brain/bubble/INDEX.md** — added cross-reference (performance/how-to-build-fast → bubble-performance).
+- Labeled throughout as **third-party expert guidance**, not official Bubble docs; official manual wins on platform facts (WU numbers, limits), this book wins on build technique.
+
+---
+
 ## 2026-07-16 — Bubble sync `a297cb2b → be1670b3`: settings/client-safe.json only
 
 One-file sync. `git name-status` shows exactly one change: `M settings/client-safe.json`. No data types, option sets, styles, pages, or workflows touched — Pattern A status unchanged (still 0/46 live DTs compliant), nothing moves between Pending/Current anywhere.
