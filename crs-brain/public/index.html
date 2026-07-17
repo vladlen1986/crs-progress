@@ -142,7 +142,7 @@
   .viewseg button{background:none;border:none;color:var(--secondary);font-family:inherit;font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:var(--transition);white-space:nowrap}
   .viewseg button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
   .viewseg button:hover{color:var(--secondary)}
-  .viewseg button.on{background:var(--accent);color:#fff}
+  .viewseg button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule — no accent fill on view/mode toggles */
   .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:var(--transition)}
   .ghost:hover{border-color:var(--line3);color:var(--primary)}
   .ghost.on{color:var(--primary);background:var(--accent-glow)} /* active = bg+text only (CRS rule) */
@@ -318,7 +318,7 @@
   .seg2{display:inline-flex;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
   .seg2 button{background:none;border:none;color:var(--secondary);font:inherit;font-size:12.5px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:var(--transition)}
   .seg2 button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
-  .seg2 button.on{background:var(--accent);color:#fff}
+  .seg2 button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .seg2 button:not(.on):hover{color:var(--secondary)}
   /* chat starter template cards (mode-aware) */
   .tcards{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;max-width:600px;margin:24px auto 0}
@@ -416,12 +416,6 @@
   .hero-t{color:var(--primary);font-size:20px;font-weight:650;margin-bottom:8px}
   .hero-s{color:var(--muted);font-size:13.5px;line-height:1.6}
 
-  /* file editor */
-  .editor{flex:1;display:flex;flex-direction:column;overflow:hidden}
-  .editor textarea{flex:1;background:var(--bg);color:var(--primary);border:none;padding:20px 24px;font-family:var(--mono);font-size:13px;line-height:1.65;resize:none}
-  .editor textarea:focus{outline:none}
-  .doc{flex:1;overflow:auto;padding:26px 34px;max-width:940px}
-
   /* markdown */
   .md{line-height:1.62}
   .md>*:first-child{margin-top:0}
@@ -446,7 +440,7 @@
   .md blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:2px 0 2px 14px;color:var(--muted)}
   .md ul,.md ol{padding-left:22px}
   .md li{margin:.25em 0}
-  .md .md-img,.doc .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
+  .md .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
   .md a[data-path]{color:var(--accent2);border-bottom:1px dashed var(--accent-border-active)}
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
 
@@ -625,10 +619,10 @@
   .expl-search .clr{cursor:pointer;color:var(--muted);border:0;background:none;font-size:14px;display:none;padding:0 2px}
   .expl-search.has .clr{display:block}
   .expl-search .rc{border:0;background:none;color:var(--muted);cursor:pointer;font-size:10px;font-weight:700;padding:1px 4px;border-radius:4px;letter-spacing:.5px}
-  .expl-search .rc.on{background:var(--accent-tint);color:var(--accent2)}
+  .expl-search .rc.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .expl-viewtog{display:flex;border:1px solid var(--line2);border-radius:8px;overflow:hidden;flex:0 0 auto;height:32px}
   .expl-viewtog button{width:32px;height:30px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
-  .expl-viewtog button.on{background:var(--panel2);color:var(--accent2)}
+  .expl-viewtog button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .expl-viewtog svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
   .expl-x{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);font-size:15px;cursor:pointer;flex:0 0 auto}
   .expl-x:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
@@ -810,6 +804,80 @@
   .docwin .dp-card .acts{display:flex;gap:10px}
   .docwin .dp-card .acts a,.docwin .dp-card .acts button{background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
   .docwin .dp-card .acts a:hover,.docwin .dp-card .acts button:hover{border-color:var(--line3)}
+  /* ── P9.4 editors ─ title-bar dirty dot + Edit ghost (§20.1 28px), editor pane,
+     csv/xlsx grids, docx render. States per §14: focus = accent border + inset glow. */
+  .docwin .dp-name{display:flex;align-items:center;gap:6px;min-width:0}
+  .docwin .dp-nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .docwin .dw-dot{display:none;width:7px;height:7px;border-radius:50%;background:var(--accent);flex:0 0 auto}
+  .docwin.dirty .dw-dot{display:inline-block}
+  .winctl button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule — edit-mode is a toggle, not an action */
+  .dw-ed{height:100%;display:flex;flex-direction:column;min-height:0}
+  .dw-edtb{display:flex;align-items:center;gap:8px;padding:7px 10px;border-bottom:1px solid var(--line);flex:0 0 auto}
+  .dw-btn{height:28px;padding:0 12px;border-radius:var(--radius-btn);background:none;border:1px solid var(--line2);color:var(--secondary);font:inherit;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .16s ease-in-out,color .16s ease-in-out}
+  .dw-btn:hover{background:var(--panel2);color:var(--primary)}
+  .dw-btn.on{background:var(--bg-elevated);color:var(--text-primary);border-color:transparent}   /* greyscale toggle rule (Preview toggle) */
+  .dw-btn.primary{background:var(--accent);border-color:transparent;color:#fff}
+  .dw-btn.primary:hover{background:var(--accent-hover)}
+  .dw-edhint{color:var(--muted);font-size:11px;white-space:nowrap}
+  .dw-ederr{color:var(--danger);font-size:12px;flex:1;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dw-edwrap{flex:1;display:flex;min-height:0;background:var(--code-bg)}
+  .dw-gut{flex:0 0 auto;overflow:hidden;padding:14px 0;border-right:1px solid var(--line);user-select:none}
+  .dw-gutin{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--muted);text-align:right;padding:0 10px;min-width:26px;white-space:pre;will-change:transform}
+  .dw-edta{flex:1;border:0;outline:none;resize:none;background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:12.5px;line-height:1.65;padding:14px 16px;white-space:pre;overflow:auto;tab-size:2}
+  .dw-edprev{flex:1;overflow:auto;display:none}
+  .dw-csvwrap{flex:1;overflow:auto;padding:14px 16px}
+  table.dw-csv{border-collapse:collapse;font-size:12.5px}
+  .dw-csv th,.dw-csv td{border:1px solid var(--line2);padding:5px 10px;min-width:64px;color:var(--secondary);outline:none}
+  .dw-csv th{background:var(--panel2);color:var(--primary);font-weight:700;text-align:left}
+  .dw-csv td:focus,.dw-csv th:focus{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+  .dw-xl{height:100%;display:flex;flex-direction:column;min-height:0}
+  .dw-xltabs{display:flex;align-items:center;gap:4px;padding:6px 10px;border-bottom:1px solid var(--line);flex:0 0 auto;overflow-x:auto}
+  .dw-xltab{height:26px;padding:0 11px;border-radius:var(--radius-btn);background:none;border:0;color:var(--secondary);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+  .dw-xltab:hover{background:var(--panel2);color:var(--primary)}
+  .dw-xltab.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule (sheet switcher) */
+  .dw-xlwrap{flex:1;overflow:auto}
+  table.dw-xlgrid{border-collapse:separate;border-spacing:0;font-size:12px;font-family:var(--mono)}
+  .dw-xlgrid th{position:sticky;background:var(--panel2);color:var(--muted);font-weight:600;font-size:10.5px;padding:3px 9px;border:1px solid var(--line2);z-index:1}
+  .dw-xlgrid thead th{top:0;z-index:2}
+  .dw-xlgrid tbody th{left:0;text-align:right;min-width:36px}
+  .dw-xlgrid td{border:1px solid var(--line);padding:3px 9px;min-width:72px;max-width:340px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--secondary);outline:none}
+  .dw-xlgrid td:focus{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent);white-space:normal}
+  .dw-xlnote{padding:5px 12px;color:var(--muted);font-size:11px;border-top:1px solid var(--line);flex:0 0 auto}
+  .dp-docx{padding:26px 32px;max-width:840px;margin:0 auto;font-size:14px;line-height:1.7;color:var(--secondary)}
+  .dp-docx h1,.dp-docx h2,.dp-docx h3,.dp-docx h4{color:var(--primary);line-height:1.3}
+  .dp-docx img{max-width:100%}
+  .dp-docx table{border-collapse:collapse}.dp-docx td,.dp-docx th{border:1px solid var(--line2);padding:5px 9px}
+  .dp-docx a{color:var(--accent2)}
+  /* ── P9.5 image viewer ─ own window species. Judgment call: the stage backdrop
+     is a near-black LITERAL in BOTH themes — §3.3 keeps light surfaces white, but
+     a photo viewer needs a dark neutral ground so images read true; the window
+     chrome (title bar) stays themed. Viewer UI colors are dark-chrome literals
+     for the same reason (they float over the dark stage in both themes). */
+  .docwin.imgwin .dp-body{background:#0C0C0F;overflow:hidden}
+  .iv{position:absolute;inset:0;overflow:hidden;outline:none}
+  .iv-stage{position:absolute;inset:0;overflow:hidden;cursor:grab}
+  .iv-stage.panning{cursor:grabbing}
+  .iv-pan{position:absolute;left:0;top:0;width:0;height:0;transform-origin:0 0}
+  .iv-img{position:absolute;transform-origin:center center;max-width:none;user-select:none;-webkit-user-drag:none}
+  .iv-ui{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:8px;padding:12px;opacity:0;pointer-events:none;transition:opacity .16s ease-in-out}   /* §2.8 interaction timing */
+  .iv.show-ui .iv-ui{opacity:1;pointer-events:auto}
+  .iv-ctl{display:flex;align-items:center;gap:2px;background:rgba(18,18,22,.85);border:1px solid rgba(255,255,255,.09);border-radius:9px;padding:4px;backdrop-filter:blur(6px)}
+  .iv-ctl button,.iv-ctl a{width:28px;height:28px;border-radius:7px;background:none;border:0;color:#A6A6A6;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;font:inherit;font-size:13px;text-decoration:none;transition:background .16s ease-in-out,color .16s ease-in-out}
+  .iv-ctl button:hover,.iv-ctl a:hover{background:rgba(255,255,255,.09);color:#E0E0E0}
+  .iv-ctl .iv-pct{min-width:48px;text-align:center;color:#E0E0E0;font-family:var(--mono);font-size:11px}
+  .iv-ctl .txt{width:auto;padding:0 9px;font-size:11px;font-weight:600}
+  .iv-chev{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:56px;border:0;border-radius:9px;background:rgba(18,18,22,.6);color:#E0E0E0;font-size:22px;line-height:1;cursor:pointer;opacity:0;transition:opacity .16s ease-in-out;pointer-events:none;z-index:2}
+  .iv.show-ui .iv-chev{opacity:.85;pointer-events:auto}
+  .iv-chev:hover{background:rgba(18,18,22,.92)}
+  .iv-chev.prev{left:10px}.iv-chev.next{right:10px}
+  .iv-chev:disabled{opacity:.15!important;pointer-events:none}
+  .iv-strip{display:flex;gap:6px;max-width:92%;overflow-x:auto;padding:5px;background:rgba(18,18,22,.85);border:1px solid rgba(255,255,255,.09);border-radius:10px;backdrop-filter:blur(6px)}
+  .iv-th{width:56px;height:42px;flex:0 0 auto;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;background:#000;padding:0}
+  .iv-th img{width:100%;height:100%;object-fit:cover;display:block}
+  .iv-th.on{border-color:var(--accent)}   /* border-only current marker — thumbnails have no text to tint */
+  .iv-cnt{color:var(--muted);font-size:11px;font-family:var(--mono);flex:0 0 auto}
+  /* in-app page windows (single-app rule — tool pages never open a browser tab) */
+  .dp-page{width:100%;height:100%;border:0;display:block;background:var(--bg)}
   /* fullscreen HTML overlay (sandboxed) */
   .htmlfull{position:fixed;inset:0;z-index:350;background:var(--bg);display:none;flex-direction:column}
   .htmlfull.show{display:flex}
@@ -956,7 +1024,7 @@
   .bub-tabs{display:inline-flex;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:2px;gap:1px}
   .bub-tabs button{background:none;border:none;color:var(--muted);font-size:12px;font-weight:600;padding:5px 12px;border-radius:8px;cursor:pointer;font-family:inherit;transition:var(--transition);white-space:nowrap}
   .bub-tabs button:hover{color:var(--secondary)}
-  .bub-tabs button.on{background:var(--accent);color:#fff}
+  .bub-tabs button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .bub-q{flex:1;min-width:110px;max-width:250px;background:var(--panel2);border:1px solid var(--line);border-radius:7px;color:var(--primary);padding:6px 9px;font-size:12px;font-family:inherit;outline:none}
   .bub-q:focus{border-color:var(--accent)}
   .bub-del{display:inline-flex;align-items:center;gap:5px;color:var(--muted);font-size:11.5px;cursor:pointer;user-select:none}
@@ -1074,11 +1142,11 @@
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
-      <button title="Progress Tree — modules in build-priority order" onclick="window.open('/tree.html','crstree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
-      <button title="Activity log — every action, timestamped" onclick="window.open('/activity.html','crsactivity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
-      <button title="Memory — what the brain always remembers" onclick="window.open('/memory.html','crsmemory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
-      <button title="Wishlist — Brain app improvement todos" onclick="window.open('/wishlist.html','crswishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
-      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="window.open('/queue.html','crsqueue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
+      <button title="Progress Tree — modules in build-priority order" onclick="openPageWindow('/tree.html','Progress Tree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
+      <button title="Activity log — every action, timestamped" onclick="openPageWindow('/activity.html','Activity log')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
+      <button title="Memory — what the brain always remembers" onclick="openPageWindow('/memory.html','Memory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
+      <button title="Wishlist — Brain app improvement todos" onclick="openPageWindow('/wishlist.html','Wishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openPageWindow('/queue.html','Task queue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -1111,7 +1179,6 @@
   <div class="col center" id="centerCol">
     <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
-      <button class="ghost hbackleft" id="backBtn" style="display:none" onclick="goBack()" title="Back to where you were">← Back</button>
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
@@ -1129,10 +1196,6 @@
         <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
-      <button class="ghost" id="openExt" style="display:none" onclick="apiOpen(state.filePath)" title="Open with your default app">Open in browser ↗</button>
-      <button class="ghost" id="downloadBtn" style="display:none" onclick="downloadFile()" title="Download this file">↓ Download</button>
-      <button class="ghost" id="editToggle" style="display:none" onclick="toggleEdit()">Edit</button>
-      <button class="ghost" id="saveBtn" style="display:none" onclick="saveFile()">Save</button>
     </div>
     <!-- usage & limits popover (opened from the header chip) -->
     <div class="upop" id="usagePop">
@@ -1147,11 +1210,6 @@
       </div>
       <!-- dashboard (home) -->
       <div id="dashView" class="dash" style="display:none"></div>
-      <!-- file view -->
-      <div id="fileView" class="editor" style="display:none">
-        <div class="doc md" id="fileDoc"></div>
-        <textarea id="fileEdit" style="display:none"></textarea>
-      </div>
       <!-- embedded galaxy map (was a separate /map page; now lives above the chat input) -->
       <div id="mapView" style="display:none;flex:1;min-height:0">
         <iframe id="mapFrame" title="Galaxy map" style="width:100%;height:100%;border:0;display:block"></iframe>
@@ -1602,7 +1660,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); openDocWindow(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1624,9 +1682,8 @@ state.kbCrs = localStorage.getItem('kbCrs')!=='0';   // default: project scope
 function showKanban(mode){
   bumpView();
   kbMode = mode==='list' ? 'list' : 'board';
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none';
   $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('kanbanView').style.display='flex';
   $('centerTitle').textContent = kbMode==='list' ? 'List' : 'Kanban';
   markView(kbMode==='list' ? 'list' : 'kanban');
@@ -1670,8 +1727,7 @@ function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none'; $('kanbanView').style.display='none';
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none'; $('kanbanView').style.display='none';
   $('centerCol').classList.add('no-composer');
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
@@ -1702,9 +1758,8 @@ function setMapBoardOpen(open){
 // ---------- dashboard (home) ----------
 function showDashboard(){
   bumpView();
-  state.chatId=null; state.filePath=null;
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
+  state.chatId=null;
+  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
@@ -1761,11 +1816,11 @@ async function renderDashboard(){
     </div></section>
 
     <section><div class="lbl">Tools</div><div class="tools">
-      ${T('i-gauge','Progress Tree',"window.open('/tree.html','crstree')",c.green)}
-      ${T('i-clock','Activity log',"window.open('/activity.html','crsactivity')",c.amber)}
-      ${T('i-book','Memory',"window.open('/memory.html','crsmemory')",c.purple)}
-      ${T('i-flag','Wishlist',"window.open('/wishlist.html','crswishlist')",c.accent)}
-      ${T('i-list','Task queue',"window.open('/queue.html','crsqueue')",c.accent)}
+      ${T('i-gauge','Progress Tree',"openPageWindow('/tree.html','Progress Tree')",c.green)}
+      ${T('i-clock','Activity log',"openPageWindow('/activity.html','Activity log')",c.amber)}
+      ${T('i-book','Memory',"openPageWindow('/memory.html','Memory')",c.purple)}
+      ${T('i-flag','Wishlist',"openPageWindow('/wishlist.html','Wishlist')",c.accent)}
+      ${T('i-list','Task queue',"openPageWindow('/queue.html','Task queue')",c.accent)}
       ${T('i-sparkle','Weekly digest','runDigest()',c.soft)}
     </div></section>
 
@@ -2308,7 +2363,12 @@ function dwFocus(w){ if(w.min){ w.min=false; w.el.style.display='flex'; }
 function dwMinimize(w){ w.min=true; w.el.style.display='none';
   if(DW.active===w.id){ const t=dwTop(); DW.active=t?t.id:null; if(!t) DW.focusIsDoc=false; }
   dwChipsPaint(); }
-function dwClose(w){ if(!DW.wins.has(w.id)) return; DW.wins.delete(w.id); w.el.remove(); if(w.chip) w.chip.remove();
+function dwClose(w,force){ if(!DW.wins.has(w.id)) return;
+  if(w.dirty && !force){   // unsaved edits guard — Esc, ✕, chip ✕ and Ctrl+W all land here
+    crsConfirm({title:'Discard changes?',body:'“'+w.name+'” has unsaved changes. They will be lost.',confirmLabel:'Discard'})
+      .then(ok=>{ if(ok) dwClose(w,true); });
+    return; }
+  DW.wins.delete(w.id); w.el.remove(); if(w.chip) w.chip.remove();
   if(DW.active===w.id){ const t=dwTop(); DW.active=t?t.id:null; if(t) t.el.classList.add('focus'); else DW.focusIsDoc=false; }
   dwChipsPaint(); }
 // taskbar: ONE bar (#minBar) carries a chip per open doc window — minimized is a
@@ -2405,11 +2465,24 @@ function hlCode(src){
     i=re.lastIndex; }
   push(null,src.slice(i)); return out.join('');
 }
-function csvTable(txt){
-  const rows=txt.split(/\r?\n/).filter(l=>l.trim().length).slice(0,500).map(l=>l.split(','));
+// RFC4180 csv: quoted fields may hold commas / quotes ("" escapes) / newlines.
+function parseCsv(txt){ const rows=[]; let row=[],cur='',q=false;
+  for(let i=0;i<txt.length;i++){ const c=txt[i];
+    if(q){ if(c==='"'){ if(txt[i+1]==='"'){ cur+='"'; i++; } else q=false; } else cur+=c; }
+    else if(c==='"') q=true;
+    else if(c===','){ row.push(cur); cur=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&txt[i+1]==='\n') i++; row.push(cur); cur=''; rows.push(row); row=[]; }
+    else cur+=c; }
+  if(cur!==''||row.length) { row.push(cur); rows.push(row); }
+  return rows;
+}
+function csvField(v){ v=String(v==null?'':v); return /[",\n\r]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v; }
+function csvRows(txt,tsv){ return tsv? txt.split(/\r?\n/).filter(l=>l.length).map(l=>l.split('\t')) : parseCsv(txt).filter(r=>r.length>1||String(r[0]).trim().length); }
+function csvTable(txt,tsv){
+  const rows=csvRows(txt,tsv).slice(0,500);
   if(!rows.length) return '<div class="dp-card">Empty file</div>';
-  return '<div class="dp-tblwrap"><table><thead><tr>'+rows[0].map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'
-    + rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
+  return '<div class="dp-tblwrap"><table><thead><tr>'+rows[0].map(c=>'<th>'+esc(String(c))+'</th>').join('')+'</tr></thead><tbody>'
+    + rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+esc(String(c))+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 }
 // ---- THE single document-open entry point (all open paths route here) ----
 async function openDocWindow(p, opts){
@@ -2417,25 +2490,45 @@ async function openDocWindow(p, opts){
   if(!p) return null;
   p=String(p).replace(/^\.\//,'').replace(/^\/+/,'');
   if(typeof hidePeek==='function') hidePeek();
-  if(isHtml(p)){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer
+  if(isHtml(p) && !opts.editSource){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor)
   const dup=dwFind(p); if(dup){ dwFocus(dup); return dup; }   // same path already open → focus, never duplicate
-  if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window
-    const v=dwList().filter(x=>x.id!==DW.active).sort((a,b)=>a.lastFocus-b.lastFocus)[0]||dwList()[0];
-    if(v){ toast(`Closing “${v.name}” — window limit`); dwClose(v); }
+  if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window — never one with unsaved edits
+    const v=dwList().filter(x=>x.id!==DW.active&&!x.dirty).sort((a,b)=>a.lastFocus-b.lastFocus)[0];
+    if(v){ toast(`Closing “${v.name}” — window limit`); dwClose(v,true); }
   }
   const id=++DW.seq, name=p.split('/').pop();
   const el=document.createElement('div'); el.className='docwin'; el.tabIndex=-1; el.dataset.path=p;
-  const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null};
+  const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null,
+    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null};
+  if(w.kind==='img') el.classList.add('imgwin');   // P9.5: viewer species (same window manager, different body)
   el.innerHTML=dwHeadHtml(w)+'<div class="dp-body"><div class="dp-card"><span class="pk-load">Loading…</span></div></div>';
   document.body.appendChild(el); DW.wins.set(id,w);
   dwApply(w); dwWire(w); dwChipAdd(w); dwFocus(w);
   pushRecentOpened(p); loadRecentOpened();
   await dwFill(w);
+  if(opts.editSource && (w.kind==='text'||w.kind==='csv') && w.mode!=='edit') dwEditToggle(w);
   return w;
 }
+// P9.4 tier router — what a window IS decides its viewer and its Edit affordance.
+function dwKind(name){ const ext=extOf(name);
+  if(isImg(name)) return 'img';
+  if(ext==='pdf') return 'pdf';
+  if(/^(xlsx|xls|xlsm)$/.test(ext)) return 'xlsx';
+  if(ext==='docx') return 'docx';
+  if(ext==='csv'||ext==='tsv') return 'csv';
+  if(/^(zip|7z|rar|gz|tgz|tar|woff2?|ttf|otf|eot|bin|dat|doc|xlsb|ppt|pptx|ico|mp3|mp4|mov|wav|dmg|iso)$/.test(ext)) return 'bin';
+  return 'text';   // md/txt/json/yml/csv-like/code — Tier 1, editable in-app
+}
+const PENCIL_SVG='<svg viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>';
+const EDIT_EXT_SVG='<svg viewBox="0 0 24 24"><path d="M14 4h6v6M20 4L11 13M9 5H6a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg>';
 function dwHeadHtml(w){ const raw='/api/raw?path='+encodeURIComponent(w.path);
-  return `<div class="dp-head">${fic(w.name,20)}<div class="dp-t"><div class="dp-name">${esc(w.name)}</div><div class="dp-path">${esc(w.path)}</div></div>
-    <div class="winctl">
+  const k=w.kind||dwKind(w.name);
+  // Honest tiers: in-app pencil only where we can write the format back safely;
+  // pdf/docx/binary get a clearly-labeled Edit-externally instead (view stays in-app).
+  const edit = (k==='text'||k==='csv'||k==='xlsx') ? `<button title="Edit" data-act="edit">${PENCIL_SVG}</button>`
+    : (k==='pdf'||k==='docx'||k==='bin') ? `<button title="Edit externally — opens your default app" data-act="editext">${EDIT_EXT_SVG}</button>` : '';
+  return `<div class="dp-head">${fic(w.name,20)}<div class="dp-t"><div class="dp-name"><span class="dw-dot" title="Unsaved changes"></span><span class="dp-nm">${esc(w.name)}</span><span class="iv-cnt" style="display:none"></span></div><div class="dp-path">${esc(w.path)}</div></div>
+    <div class="winctl">${edit}
       <a class="dl" title="Download" href="${raw}" download="${esc(w.name)}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;color:var(--muted)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
       <button title="Minimize" data-act="min"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
       <button title="Maximize / Restore" data-act="max">${WIN_MAX_SVG}</button>
@@ -2462,23 +2555,374 @@ function dwWire(w){ const el=w.el;
       const s=getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
+  const eb=el.querySelector('[data-act="edit"]'); if(eb) eb.onclick=()=>dwEditToggle(w);
+  const xb=el.querySelector('[data-act="editext"]'); if(xb) xb.onclick=()=>apiOpen(w.path);
+  // Ctrl/Cmd+S saves the focused editor window
+  el.addEventListener('keydown',(e)=>{ if((e.ctrlKey||e.metaKey)&&!e.altKey&&e.key.toLowerCase()==='s'){
+    if(w.mode==='edit'){ e.preventDefault(); e.stopPropagation(); dwSave(w); } } });
   el.addEventListener('click',(e)=>dwLinkClick(w,e));   // OS-style link routing
 }
 async function dwFill(w){
-  const p=w.path, name=w.name, ext=extOf(name), raw='/api/raw?path='+encodeURIComponent(p);
+  const p=w.path, name=w.name, raw='/api/raw?path='+encodeURIComponent(p);
   const body=w.el.querySelector('.dp-body'); const show=(h)=>{ body.innerHTML=h; };
-  if(isImg(name)) return show(`<div class="dp-imgwrap"><img src="${raw}" alt=""></div>`);
-  if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
-  if(/^(xlsx?|xlsm|docx?|zip|7z|rar|woff2?|ttf|bin|dat)$/.test(ext) ){
+  const k=w.kind=dwKind(name);
+  if(k==='img') return ivFill(w);   // P9.5 viewer species
+  // pdf: NATIVE Chromium viewer — shipped via <iframe> (an <embed> here stayed
+  // blank in Chromium; the iframe paints the built-in viewer), pdf.js skipped.
+  // View-only in-app (Tier 3): rewriting pdf content is not honest without a real
+  // pdf editor; the title-bar action opens the OS default app instead.
+  if(k==='pdf') return show(`<iframe class="dp-embed" src="${raw}" title="${esc(name)}"></iframe>`);
+  if(k==='xlsx') return dwXlsxFill(w);   // Tier 2 — SheetJS grid, editable, saves real xlsx
+  if(k==='docx') return dwDocxFill(w);   // Tier 2 — mammoth render, view-only (Tier 3 edit rule)
+  if(k==='bin'){   // unknown/binary → honest file card
     const node=explNodeByPath(p)||{type:'file',name,path:p};
     const meta=[node.size!=null?fmtSize(node.size):null, node.mtime?new Date(node.mtime).toLocaleString():null].filter(Boolean).join('  ·  ');
-    return show(`<div class="dp-card">${fileIcon(name,64)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}No inline preview for this type.</div>
-      <div class="acts"><a href="${raw}" download="${esc(name)}">⤓ Download</a><button onclick="apiOpen('${jsq(p)}')">↗ Open externally</button></div></div>`);
+    return show(`<div class="dp-card">${fileIcon(name,64)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}${meta?'  ·  ':''}No inline preview for this type.</div>
+      <div class="acts"><a href="${raw}&dl=1" download="${esc(name)}">⤓ Download</a><button onclick="apiOpen('${jsq(p)}')">↗ Edit externally</button></div></div>`);
   }
   let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
-  if(/^(md|markdown)$/.test(ext)) show(`<div class="dp-md md">${renderMd(content)}</div>`);
-  else if(ext==='csv'||ext==='tsv') show(csvTable(content));
-  else show(`<pre class="dp-code">${hlCode(content.slice(0,300000))}</pre>`);
+  w.text=content;
+  dwRenderView(w);
+}
+function dwRenderView(w){
+  const body=w.el.querySelector('.dp-body'), ext=extOf(w.name), t=w.text==null?'':w.text;
+  if(/^(md|markdown)$/.test(ext)) body.innerHTML=`<div class="dp-md md">${renderMd(t)}</div>`;
+  else if(ext==='csv'||ext==='tsv') body.innerHTML=csvTable(t, ext==='tsv');
+  else body.innerHTML=`<pre class="dp-code">${hlCode(t.slice(0,300000))}</pre>`;
+}
+
+// ===================== P9.4 — in-window editors (honest tiers) =====================
+// Tier 1 (text/code/json/csv): real in-app editing via PUT /api/file.
+// Tier 2 (xlsx): SheetJS grid → PUT /api/file-binary writes a valid workbook.
+// Tier 3 (pdf/docx/binary): view in-app, edit EXTERNALLY only — no fake editors.
+const VENDOR={ xlsx:{src:'/vendor/xlsx.full.min.js', ok:()=>!!window.XLSX},
+               mammoth:{src:'/vendor/mammoth.browser.min.js', ok:()=>!!window.mammoth} };
+function loadVendor(k){ const v=VENDOR[k];
+  if(v.ok()) return Promise.resolve();
+  if(v.p) return v.p;
+  v.p=new Promise((res,rej)=>{ const s=document.createElement('script'); s.src=v.src;   // local vendored build — runtime never touches a CDN
+    s.onload=()=>v.ok()?res():rej(new Error('vendor did not initialise: '+v.src));
+    s.onerror=()=>{ v.p=null; rej(new Error('could not load '+v.src)); };
+    document.head.appendChild(s); });
+  return v.p;
+}
+function dwDirty(w,v){ w.dirty=!!v; w.el.classList.toggle('dirty',w.dirty); }
+function dwEditBtnState(w,on){ const b=w.el.querySelector('[data-act="edit"]'); if(b){ b.classList.toggle('on',!!on); b.title=on?'Back to view':'Edit'; } }
+async function dwEditToggle(w){
+  if(w.kind==='xlsx') return dwXlsxEditToggle(w);
+  if(w.mode==='edit'){
+    if(w.dirty && !await crsConfirm({title:'Discard changes?',body:'“'+w.name+'” has unsaved edits. They will be lost.',confirmLabel:'Discard'})) return;
+    w.mode='view'; w.ed=null; dwDirty(w,false); dwEditBtnState(w,false); dwRenderView(w); return;
+  }
+  if(w.text==null){ try{ w.text=await FS.read(w.path); }catch(e){ toast('Could not read: '+e.message); return; } }
+  w.mode='edit'; dwEditBtnState(w,true);
+  if(w.kind==='csv') dwBuildCsvEditor(w); else dwBuildTextEditor(w);
+}
+function dwBuildTextEditor(w){
+  const body=w.el.querySelector('.dp-body'), ext=extOf(w.name);
+  const isMd=/^(md|markdown)$/.test(ext), isJson=ext==='json';
+  body.innerHTML=`<div class="dw-ed">
+    <div class="dw-edtb">
+      <button class="dw-btn primary" data-ed="save">Save</button>
+      ${isMd?`<button class="dw-btn" data-ed="prev">Preview</button>`:''}
+      <span class="dw-edhint">${isJson?'JSON is validated on save · ':''}Ctrl+S saves · Esc closes</span>
+      <span class="dw-ederr"></span>
+    </div>
+    <div class="dw-edwrap">
+      <div class="dw-gut"><div class="dw-gutin"></div></div>
+      <textarea class="dw-edta" spellcheck="false"></textarea>
+    </div>
+    ${isMd?`<div class="dw-edprev dp-md md"></div>`:''}
+  </div>`;
+  const ta=body.querySelector('.dw-edta'), gut=body.querySelector('.dw-gutin');
+  ta.value=w.text; w.ed={ta};
+  const nums=()=>{ const n=ta.value.split('\n').length;
+    if(gut._n!==n){ gut._n=n; let s=''; for(let i=1;i<=n;i++) s+=i+'\n'; gut.textContent=s; } };
+  nums();
+  ta.addEventListener('input',()=>{ dwDirty(w,true); nums(); const er=body.querySelector('.dw-ederr'); if(er) er.textContent=''; });
+  ta.addEventListener('scroll',()=>{ gut.style.transform='translateY('+(-ta.scrollTop)+'px)'; });   // synced gutter
+  body.querySelector('[data-ed="save"]').onclick=()=>dwSave(w);
+  const pv=body.querySelector('[data-ed="prev"]');
+  if(pv) pv.onclick=()=>{ const pw=body.querySelector('.dw-edprev'), ew=body.querySelector('.dw-edwrap');
+    const on=pw.style.display!=='block';
+    pv.classList.toggle('on',on); pw.style.display=on?'block':'none'; ew.style.display=on?'none':'flex';
+    if(on) pw.innerHTML=renderMd(ta.value); };
+  ta.focus();
+}
+function dwBuildCsvEditor(w){
+  const body=w.el.querySelector('.dp-body'), tsv=extOf(w.name)==='tsv';
+  const grid=csvRows(w.text,tsv); if(!grid.length) grid.push(['']);
+  const width=Math.max(...grid.map(r=>r.length)); grid.forEach(r=>{ while(r.length<width) r.push(''); });
+  w.ed={grid,tsv};
+  body.innerHTML=`<div class="dw-ed">
+    <div class="dw-edtb">
+      <button class="dw-btn primary" data-ed="save">Save</button>
+      <button class="dw-btn" data-ed="rowplus">+ Row</button><button class="dw-btn" data-ed="rowminus">− Row</button>
+      <button class="dw-btn" data-ed="colplus">+ Col</button><button class="dw-btn" data-ed="colminus">− Col</button>
+      <span class="dw-edhint">Click a cell to edit · Ctrl+S saves</span>
+      <span class="dw-ederr"></span>
+    </div>
+    <div class="dw-csvwrap"><table class="dw-csv"></table></div>
+  </div>`;
+  const tbl=body.querySelector('.dw-csv');
+  const paint=()=>{ tbl.innerHTML=w.ed.grid.map((r,ri)=>'<tr>'+r.map((c,ci)=>{
+      const tag=ri===0?'th':'td';
+      return `<${tag} contenteditable="true" data-r="${ri}" data-c="${ci}">${esc(String(c))}</${tag}>`;
+    }).join('')+'</tr>').join(''); };
+  paint();
+  let cur={r:0,c:0};
+  tbl.addEventListener('focusin',e=>{ const t=e.target.closest('[data-r]'); if(t) cur={r:+t.dataset.r,c:+t.dataset.c}; });
+  tbl.addEventListener('input',e=>{ const t=e.target.closest('[data-r]'); if(!t) return;
+    w.ed.grid[+t.dataset.r][+t.dataset.c]=t.textContent; dwDirty(w,true); });
+  const acts={
+    rowplus(){ w.ed.grid.splice(cur.r+1,0,Array(w.ed.grid[0].length).fill('')); },
+    rowminus(){ if(w.ed.grid.length>1){ w.ed.grid.splice(Math.min(cur.r,w.ed.grid.length-1),1); cur.r=Math.min(cur.r,w.ed.grid.length-1); } },
+    colplus(){ w.ed.grid.forEach(r=>r.splice(cur.c+1,0,'')); },
+    colminus(){ if(w.ed.grid[0].length>1){ w.ed.grid.forEach(r=>r.splice(Math.min(cur.c,r.length-1),1)); cur.c=Math.min(cur.c,w.ed.grid[0].length-1); } },
+  };
+  for(const k of Object.keys(acts)) body.querySelector(`[data-ed="${k}"]`).onclick=()=>{ acts[k](); dwDirty(w,true); paint(); };
+  body.querySelector('[data-ed="save"]').onclick=()=>dwSave(w);
+}
+async function dwSave(w){
+  if(w.kind==='xlsx') return dwXlsxSave(w);
+  if(!w.ed) return;
+  const er=w.el.querySelector('.dw-ederr');
+  let content;
+  if(w.ed.grid) content = w.ed.tsv ? w.ed.grid.map(r=>r.join('\t')).join('\n')+'\n'
+                                   : w.ed.grid.map(r=>r.map(csvField).join(',')).join('\n')+'\n';
+  else content=w.ed.ta.value;
+  if(extOf(w.name)==='json'){   // invalid json never reaches disk
+    try{ JSON.parse(content); }
+    catch(e){ if(er) er.textContent='Invalid JSON — not saved: '+e.message; return; }
+  }
+  if(er) er.textContent='';
+  try{ await FS.write(w.path, content); }
+  catch(e){ if(er) er.textContent='Save failed: '+e.message; return; }
+  w.text=content; dwDirty(w,false); toast('Saved  ·  '+w.name);
+  const pw=w.el.querySelector('.dw-edprev'); if(pw && pw.style.display==='block') pw.innerHTML=renderMd(content);   // refresh open md preview
+  if(typeof loadRecentEdited==='function') loadRecentEdited();
+}
+// ---- Tier 2: xlsx (SheetJS 0.18.5, vendored) ----
+async function dwXlsxFill(w){
+  const body=w.el.querySelector('.dp-body');
+  body.innerHTML='<div class="dp-card"><span class="pk-load">Loading spreadsheet…</span></div>';
+  try{
+    await loadVendor('xlsx');
+    const r=await fetch('/api/raw?path='+encodeURIComponent(w.path)); if(!r.ok) throw new Error('HTTP '+r.status);
+    const wb=XLSX.read(await r.arrayBuffer(),{type:'array'});
+    if(!wb.SheetNames.length) throw new Error('workbook has no sheets');
+    w.xl={wb, sheet:wb.SheetNames[0], aoa:{}, edited:new Set()};
+    dwXlsxRender(w);
+  }catch(e){ body.innerHTML=`<div class="dp-card">Could not open spreadsheet: ${esc(e.message)}
+    <div class="acts"><a href="/api/raw?path=${encodeURIComponent(w.path)}&dl=1" download="${esc(w.name)}">⤓ Download</a><button onclick="apiOpen('${jsq(w.path)}')">↗ Edit externally</button></div></div>`; }
+}
+function dwXlsxAoa(w,name){
+  if(!w.xl.aoa[name]) w.xl.aoa[name]=XLSX.utils.sheet_to_json(w.xl.wb.Sheets[name]||{},{header:1,defval:'',raw:true});
+  const a=w.xl.aoa[name]; if(!a.length) a.push(['']);
+  const width=Math.max(1,...a.map(r=>r.length)); a.forEach(r=>{ while(r.length<width) r.push(''); });
+  return a;
+}
+function xlColName(n){ let s=''; n++; while(n){ n--; s=String.fromCharCode(65+n%26)+s; n=Math.floor(n/26); } return s; }
+function dwXlsxRender(w){
+  const body=w.el.querySelector('.dp-body'), X=w.xl, names=X.wb.SheetNames, edit=w.mode==='edit';
+  const aoa=dwXlsxAoa(w,X.sheet);
+  const R=Math.min(aoa.length,1000), C=Math.min(aoa[0].length,100), cut=aoa.length>R||aoa[0].length>C;
+  let head='<tr><th></th>'; for(let c=0;c<C;c++) head+='<th>'+xlColName(c)+'</th>'; head+='</tr>';
+  let rows='';
+  for(let r=0;r<R;r++){ rows+='<tr><th>'+(r+1)+'</th>';
+    for(let c=0;c<C;c++) rows+=`<td${edit?' contenteditable="true"':''} data-r="${r}" data-c="${c}">${esc(String(aoa[r][c]??''))}</td>`;
+    rows+='</tr>'; }
+  body.innerHTML=`<div class="dw-xl">
+    <div class="dw-xltabs">${names.map(n=>`<button class="dw-xltab${n===X.sheet?' on':''}" data-sheet="${esc(n)}">${esc(n)}</button>`).join('')}
+      ${edit?'<button class="dw-btn primary" style="margin-left:auto;flex:0 0 auto" data-ed="save">Save</button>':''}
+      <span class="dw-ederr"></span></div>
+    <div class="dw-xlwrap"><table class="dw-xlgrid"><thead>${head}</thead><tbody>${rows}</tbody></table></div>
+    ${cut?'<div class="dw-xlnote">Large sheet — showing the first '+R+' rows × '+C+' columns.</div>':''}
+    ${edit?'<div class="dw-xlnote">Saving rewrites edited sheets as plain values — formulas there become their last computed value; cell styling is not kept (SheetJS CE).</div>':''}
+  </div>`;
+  body.querySelectorAll('.dw-xltab').forEach(b=>b.onclick=()=>{ X.sheet=b.dataset.sheet; dwXlsxRender(w); });
+  const sv=body.querySelector('[data-ed="save"]'); if(sv) sv.onclick=()=>dwXlsxSave(w);
+  if(edit) body.querySelector('.dw-xlwrap').addEventListener('input',e=>{ const t=e.target.closest('td[data-r]'); if(!t) return;
+    dwXlsxAoa(w,X.sheet)[+t.dataset.r][+t.dataset.c]=t.textContent; X.edited.add(X.sheet); dwDirty(w,true); });
+}
+async function dwXlsxEditToggle(w){
+  if(!w.xl){ toast('Spreadsheet not loaded'); return; }
+  if(w.mode==='edit'){
+    if(w.dirty && !await crsConfirm({title:'Discard changes?',body:'“'+w.name+'” has unsaved edits. They will be lost.',confirmLabel:'Discard'})) return;
+    for(const s of w.xl.edited) delete w.xl.aoa[s];   // drop edited caches → view re-reads the workbook
+    w.xl.edited.clear(); w.mode='view'; dwDirty(w,false); dwEditBtnState(w,false); dwXlsxRender(w); return;
+  }
+  w.mode='edit'; dwEditBtnState(w,true); dwXlsxRender(w);
+}
+async function dwXlsxSave(w){
+  const er=w.el.querySelector('.dw-ederr');
+  try{
+    for(const s of w.xl.edited){
+      const aoa=w.xl.aoa[s].map(r=>r.map(v=>{
+        if(typeof v==='string'){ const t=v.trim(); if(t!=='' && !isNaN(Number(t)) && String(Number(t))===t) return Number(t); }
+        return v; }));
+      w.xl.wb.Sheets[s]=XLSX.utils.aoa_to_sheet(aoa);
+    }
+    const b64=XLSX.write(w.xl.wb,{bookType:'xlsx',type:'base64'});
+    await api('/api/file-binary',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:w.path,dataBase64:b64})});
+    w.xl.edited.clear(); dwDirty(w,false); if(er) er.textContent=''; toast('Saved  ·  '+w.name);
+    if(typeof loadRecentEdited==='function') loadRecentEdited();
+  }catch(e){ if(er) er.textContent='Save failed: '+e.message; }
+}
+// ---- Tier 2 view / Tier 3 edit: docx (mammoth 1.8.0, vendored) — view-only ----
+async function dwDocxFill(w){
+  const body=w.el.querySelector('.dp-body'), raw='/api/raw?path='+encodeURIComponent(w.path);
+  body.innerHTML='<div class="dp-card"><span class="pk-load">Rendering document…</span></div>';
+  try{
+    await loadVendor('mammoth');
+    const r=await fetch(raw); if(!r.ok) throw new Error('HTTP '+r.status);
+    const out=await mammoth.convertToHtml({arrayBuffer:await r.arrayBuffer()});
+    body.innerHTML=`<div class="dp-docx">${out.value||'<p style="color:var(--muted)">Empty document</p>'}</div>`;
+  }catch(e){ body.innerHTML=`<div class="dp-card">Could not render: ${esc(e.message)}
+    <div class="acts"><a href="${raw}&dl=1" download="${esc(w.name)}">⤓ Download</a><button onclick="apiOpen('${jsq(w.path)}')">↗ Edit externally</button></div></div>`; }
+}
+
+// ===================== in-app page windows (single-app rule) =====================
+// The tool pages (tree/activity/memory/wishlist/queue) open as DW windows with a
+// same-origin iframe body — full chrome (drag/snap/resize/minimize/chip/Esc),
+// cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
+function openPageWindow(url, title){
+  if(typeof hidePeek==='function') hidePeek();
+  for(const x of DW.wins.values()) if(x.pageUrl===url){ dwFocus(x); return x; }   // already open → focus
+  if(DW.wins.size>=DW.CAP){
+    const v=dwList().filter(x=>x.id!==DW.active&&!x.dirty).sort((a,b)=>a.lastFocus-b.lastFocus)[0];
+    if(v){ toast(`Closing “${v.name}” — window limit`); dwClose(v,true); }
+  }
+  const id=++DW.seq;
+  const el=document.createElement('div'); el.className='docwin pagewin'; el.tabIndex=-1; el.dataset.page=url;
+  const w={id,path:url,pageUrl:url,name:title,el,rect:dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null,kind:'page',mode:'view',dirty:false};
+  el.innerHTML=`<div class="dp-head"><span class="tico" style="color:var(--accent2)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg></span>
+    <div class="dp-t"><div class="dp-name"><span class="dp-nm">${esc(title)}</span></div><div class="dp-path">${esc(url)}</div></div>
+    <div class="winctl">
+      <button title="Minimize" data-act="min"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
+      <button title="Maximize / Restore" data-act="max">${WIN_MAX_SVG}</button>
+      <button title="Fullscreen (Esc exits)" data-act="fs"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="close" title="Close (Esc · Ctrl+W)" data-act="close"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div></div>
+    <div class="dp-body"><iframe class="dp-page" src="${esc(url)}" title="${esc(title)}"></iframe></div>`;
+  document.body.appendChild(el); DW.wins.set(id,w);
+  dwApply(w); dwWire(w); dwChipAdd(w); dwFocus(w);
+  return w;
+}
+
+// ===================== P9.5 — image viewer (window species) =====================
+function ivSiblings(p){
+  const dir=p.split('/').slice(0,-1).join('/'), pref=dir?dir+'/':'';
+  const out=[...DW.allPaths].filter(x=>x.startsWith(pref)&&x.slice(pref.length).indexOf('/')<0&&isImg(x));
+  if(!out.includes(p)) out.push(p);
+  return out.sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+}
+function ivFill(w){
+  const body=w.el.querySelector('.dp-body');
+  const imgs=ivSiblings(w.path), idx=Math.max(0,imgs.indexOf(w.path));
+  w.iv={imgs, idx, scale:1, tx:0, ty:0, rot:0, base:1, natW:0, natH:0, svg:false, timer:null, pin:false};
+  body.innerHTML=`<div class="iv">
+    <div class="iv-stage"><div class="iv-pan"><img class="iv-img" draggable="false" alt=""></div></div>
+    <button class="iv-chev prev" title="Previous (←)">‹</button>
+    <button class="iv-chev next" title="Next (→)">›</button>
+    <div class="iv-ui">
+      ${imgs.length>1?`<div class="iv-strip">${imgs.map((x,i)=>`<button class="iv-th${i===idx?' on':''}" data-i="${i}" title="${esc(x.split('/').pop())}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(x)}" alt=""></button>`).join('')}</div>`:''}
+      <div class="iv-ctl">
+        <button data-iv="out" title="Zoom out">−</button>
+        <span class="iv-pct">100%</span>
+        <button data-iv="in" title="Zoom in">+</button>
+        <button data-iv="fit" class="txt" title="Fit to window">Fit</button>
+        <button data-iv="one" class="txt" title="Actual size">1:1</button>
+        <button data-iv="rot" title="Rotate 90°"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M20 8a8 8 0 1 0 1.9 5.1M20 3v5h-5"/></svg></button>
+        <a data-iv="dl" title="Download" download><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
+      </div>
+    </div>
+  </div>`;
+  ivWire(w);
+  ivLoad(w, idx);
+}
+function ivStage(w){ return w.el.querySelector('.iv-stage'); }
+function ivApply(w){ const v=w.iv;
+  const pan=w.el.querySelector('.iv-pan'), img=w.el.querySelector('.iv-img');
+  if(!pan||!img) return;
+  pan.style.transform=`translate(${v.tx}px,${v.ty}px) scale(${v.scale/v.base})`;   // transform-only zoom/pan
+  img.style.transform=`rotate(${v.rot}deg)`;
+  const pct=w.el.querySelector('.iv-pct'); if(pct) pct.textContent=Math.round(v.scale*100)+'%';
+}
+function ivFitScale(w){ const v=w.iv, r=ivStage(w).getBoundingClientRect();
+  const rot=((v.rot%360)+360)%360, ew=rot%180?v.natH:v.natW, eh=rot%180?v.natW:v.natH;
+  if(!ew||!eh||!r.width||!r.height) return 1;
+  const s=Math.min((r.width-24)/ew,(r.height-24)/eh);
+  return v.svg? s : Math.min(1,s);   // raster never upscaled by Fit; svg is vector, scale freely
+}
+function ivFit(w){ const r=ivStage(w).getBoundingClientRect();
+  w.iv.scale=ivFitScale(w); w.iv.tx=r.width/2; w.iv.ty=r.height/2; ivApply(w); }
+function ivZoomAt(w,cx,cy,ns){ const v=w.iv;
+  ns=Math.max(0.05,Math.min(8,ns));   // 800% max
+  v.tx=cx-(cx-v.tx)*(ns/v.scale); v.ty=cy-(cy-v.ty)*(ns/v.scale);   // keep the cursor point fixed
+  v.scale=ns; ivApply(w);
+}
+function ivLoad(w, idx){
+  const v=w.iv; v.idx=Math.max(0,Math.min(v.imgs.length-1,idx));
+  const p=v.imgs[v.idx], name=p.split('/').pop();
+  // the window's identity follows the shown image (path, title, chip, downloads)
+  w.path=p; w.name=name; w.el.dataset.path=p;
+  const nm=w.el.querySelector('.dp-nm'); if(nm) nm.textContent=name;
+  const pt=w.el.querySelector('.dp-path'); if(pt) pt.textContent=p;
+  const cnt=w.el.querySelector('.iv-cnt'); if(cnt){ cnt.style.display=v.imgs.length>1?'':'none'; cnt.textContent=(v.idx+1)+' / '+v.imgs.length; }
+  const hd=w.el.querySelector('.winctl a.dl'); if(hd){ hd.href='/api/raw?path='+encodeURIComponent(p); hd.setAttribute('download',name); }
+  const dl=w.el.querySelector('[data-iv="dl"]'); if(dl){ dl.href='/api/raw?path='+encodeURIComponent(p)+'&dl=1'; dl.setAttribute('download',name); }
+  if(w.chip){ w.chip.title=p;
+    const lb=w.chip.querySelector('span:not(.fic)'); if(lb) lb.textContent=name;   // label (first span is the icon)
+    const ic=w.chip.querySelector('.fic'); if(ic) ic.outerHTML=fic(name,15); }
+  w.el.querySelectorAll('.iv-th').forEach(t=>t.classList.toggle('on',+t.dataset.i===v.idx));
+  const th=w.el.querySelector('.iv-th.on'); if(th) th.scrollIntoView({block:'nearest',inline:'nearest'});
+  const pv=w.el.querySelector('.iv-chev.prev'), nx=w.el.querySelector('.iv-chev.next');
+  if(pv) pv.disabled=v.idx<=0; if(nx) nx.disabled=v.idx>=v.imgs.length-1;
+  const img=w.el.querySelector('.iv-img');
+  v.rot=0; v.svg=extOf(name)==='svg';
+  v.base=v.svg?8:1;   // svg pre-rastered at 8× intrinsic size → transform zoom stays crisp to the 800% cap
+  img.style.opacity='0';
+  img.onload=()=>{ v.natW=img.naturalWidth||800; v.natH=img.naturalHeight||600;
+    img.style.width=(v.natW*v.base)+'px'; img.style.height=(v.natH*v.base)+'px';
+    img.style.left=(-v.natW*v.base/2)+'px'; img.style.top=(-v.natH*v.base/2)+'px';   // centered on the pan origin
+    ivFit(w); img.style.opacity='1'; };
+  img.onerror=()=>{ img.style.opacity='1'; };
+  img.src='/api/raw?path='+encodeURIComponent(p);
+}
+function ivWire(w){
+  const v=w.iv, root=w.el.querySelector('.iv'), st=ivStage(w);
+  const pos=e=>{ const r=st.getBoundingClientRect(); return [e.clientX-r.left, e.clientY-r.top]; };
+  st.addEventListener('wheel',e=>{ e.preventDefault(); const [cx,cy]=pos(e);
+    ivZoomAt(w,cx,cy, v.scale*(e.deltaY<0?1.2:1/1.2)); },{passive:false});
+  st.addEventListener('mousedown',e=>{ if(e.button!==0) return; e.preventDefault();
+    const sx=e.clientX, sy=e.clientY, ox=v.tx, oy=v.ty;
+    st.classList.add('panning');
+    const mv=ev=>{ v.tx=ox+(ev.clientX-sx); v.ty=oy+(ev.clientY-sy); ivApply(w); };
+    const up=()=>{ st.classList.remove('panning'); document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); };
+    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up); });
+  st.addEventListener('dblclick',e=>{ const [cx,cy]=pos(e);
+    if(Math.abs(v.scale-ivFitScale(w))<0.01) ivZoomAt(w,cx,cy,1); else ivFit(w); });   // Fit ⇄ 100%
+  // auto-hiding UI: any movement shows it, 1.6s idle hides it (unless hovered)
+  const showUi=()=>{ root.classList.add('show-ui'); clearTimeout(v.timer);
+    v.timer=setTimeout(()=>{ if(!v.pin) root.classList.remove('show-ui'); },1600); };
+  root.addEventListener('mousemove',showUi); showUi();
+  const ui=root.querySelector('.iv-ui');
+  ui.addEventListener('mouseenter',()=>{ v.pin=true; root.classList.add('show-ui'); clearTimeout(v.timer); });
+  ui.addEventListener('mouseleave',()=>{ v.pin=false; showUi(); });
+  const q=s=>root.querySelector(s), mid=()=>{ const r=st.getBoundingClientRect(); return [r.width/2,r.height/2]; };
+  q('[data-iv="in"]').onclick=()=>{ const [x,y]=mid(); ivZoomAt(w,x,y,v.scale*1.25); };
+  q('[data-iv="out"]').onclick=()=>{ const [x,y]=mid(); ivZoomAt(w,x,y,v.scale/1.25); };
+  q('[data-iv="fit"]').onclick=()=>ivFit(w);
+  q('[data-iv="one"]').onclick=()=>{ const [x,y]=mid(); ivZoomAt(w,x,y,1); };
+  q('[data-iv="rot"]').onclick=()=>{ v.rot=(v.rot+90)%360; ivFit(w); };
+  q('.iv-chev.prev').onclick=()=>ivLoad(w,v.idx-1);
+  q('.iv-chev.next').onclick=()=>ivLoad(w,v.idx+1);
+  root.querySelectorAll('.iv-th').forEach(t=>t.onclick=()=>ivLoad(w,+t.dataset.i));
+  w.el.addEventListener('keydown',e=>{   // arrows step through the folder while this window is focused
+    if(e.key==='ArrowLeft'){ e.preventDefault(); ivLoad(w,v.idx-1); }
+    else if(e.key==='ArrowRight'){ e.preventDefault(); ivLoad(w,v.idx+1); } });
+  addEventListener('resize',()=>{ if(DW.wins.has(w.id) && Math.abs(v.scale-ivFitScale(w))<0.2) ivFit(w); });
 }
 // ---- OS-style links inside rendered document bodies ----
 function dwExists(p){ return DW.allPaths.has(p) || (state.allFiles||[]).includes(p); }
@@ -2522,6 +2966,7 @@ function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('s
 function openHtmlOverlay(p){
   hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
   h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>
+    <button title="Edit source (html is a Tier-1 text format)" onclick="closeHtmlOverlay();openDocWindow('${jsq(p)}',{editSource:true})">✎</button>
     <button title="Open externally" onclick="apiOpen('${jsq(p)}')">↗</button>
     <button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
     <iframe sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
@@ -3088,70 +3533,8 @@ async function showPeek(itemEl, path, mx){
   else paint(`<pre class="pk-text">${esc(txt)}</pre>`);
 }
 
-async function openFile(p){
-  if(currentView()!=='file') state.beforeFile=currentView();
-  // Opened from the Finder explorer? Remember its folder so Back returns to it
-  // (the explorer is an overlay currentView() can't see).
-  if(state.explReturn!=null){ state.beforeFile='expl'; state.beforeExplPath=state.explReturn; state.explReturn=null; }
-  bumpView();
-  pushRecentOpened(p); loadRecentOpened();
-  state.filePath=p; state.editing=false;
-  $('backBtn').style.display=''; $('downloadBtn').style.display='';
-  document.querySelectorAll('.tree .file').forEach(el=>el.classList.toggle('on',el.dataset.path===p));
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('fileView').style.display='flex'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer'); markView('');
-  $('centerTitle').textContent=p;
-  $('openExt').style.display = (isHtml(p)||isImg(p)) ? '' : 'none';
-  const doc=$('fileDoc');
-  if(isImg(p)){ // images render directly, no text fetch
-    $('editToggle').style.display='none'; $('saveBtn').style.display='none';
-    doc.className='doc'; doc.style.display='block'; $('fileEdit').style.display='none';
-    doc.innerHTML='<img class="md-img" style="max-width:100%" src="/api/raw?path='+encodeURIComponent(p)+'" alt="'+esc(p)+'">';
-    return;
-  }
-  const isMd=/\.md$/i.test(p);
-  $('editToggle').style.display = /\.(md|txt|json|css|js|py|csv|ya?ml|html)$/i.test(p) ? '' : 'none';
-  $('editToggle').classList.remove('on'); $('saveBtn').style.display='none';
-  const {content}=await api('/api/file?path='+encodeURIComponent(p));
-  $('fileEdit').value=content;
-  doc.className = isMd ? 'doc md' : 'doc';
-  doc.style.display='block'; $('fileEdit').style.display='none';
-  doc.innerHTML = isMd ? renderMd(content) : '<pre style="white-space:pre-wrap;font-family:var(--mono);font-size:13px;color:var(--secondary)">'+esc(content)+'</pre>';
-}
-function toggleEdit(){
-  state.editing=!state.editing;
-  $('editToggle').classList.toggle('on',state.editing);
-  $('saveBtn').style.display=state.editing?'':'none';
-  $('fileDoc').style.display=state.editing?'none':'block';
-  $('fileEdit').style.display=state.editing?'block':'none';
-  if(!state.editing) openFile(state.filePath);
-}
-async function saveFile(){
-  await api('/api/file',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:state.filePath,content:$('fileEdit').value})});
-  toast('Saved  ·  '+state.filePath); state.editing=false; $('saveBtn').style.display='none'; $('editToggle').classList.remove('on'); openFile(state.filePath);
-}
-// Download the currently-open file (any type — served raw with a forced filename).
-function downloadFile(){
-  if(!state.filePath) return;
-  const a=document.createElement('a');
-  a.href='/api/raw?path='+encodeURIComponent(state.filePath);
-  a.download=state.filePath.split('/').pop();
-  document.body.appendChild(a); a.click(); a.remove();
-}
-// Which center view is showing right now (used to return there via Back).
-function currentView(){
-  if($('fileView').style.display!=='none') return 'file';
-  if($('kanbanView').style.display!=='none') return 'kanban';
-  if($('mapView').style.display!=='none') return 'map';
-  if($('bubbleView').style.display!=='none') return 'bubble';
-  if($('dashView').style.display!=='none') return 'dash';
-  return 'chat';
-}
-// Back out of the file preview to wherever the user was.
-function goBack(){
-  const v=state.beforeFile;
-  if(v==='expl'){ showDashboard(); openExpl(state.beforeExplPath||''); return; }
-  if(v==='chat') showChat(); else if(v==='map') showMap(); else if(v==='kanban') showKanban(kbMode); else if(v==='bubble') showBubble(); else showDashboard();
-}
+// P9.4: the old center-pane file viewer/editor (openFile / toggleEdit / saveFile)
+// is gone — documents open in .docwin windows, which now carry the editors.
 
 // ---------- progress ----------
 const COLS=[['now','Now','var(--accent)'],['next','Next','var(--warn)'],['later','Later','var(--muted)'],['done','Done','var(--good)']];
@@ -3266,9 +3649,8 @@ async function applyModelSettings(){
 let bubState=null, bubTabName='dataTypes', bubChanged=null;
 async function showBubble(){
   bumpView();
-  $('chatView').style.display='none'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none';
   $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
-  $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('openExt').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none';
   $('bubbleView').style.display='flex';
   $('centerTitle').textContent='Bubble data'; markView('');
   if(innerWidth<=900) mob(null);

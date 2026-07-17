@@ -874,12 +874,12 @@ function send(res, code, body, headers = {}) {
   res.end(data);
 }
 
-function readJsonBody(req) {
+function readJsonBody(req, maxBytes = 5 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     let raw = '';
     req.on('data', (c) => {
       raw += c;
-      if (raw.length > 5 * 1024 * 1024) reject(new Error('body too large'));
+      if (raw.length > maxBytes) reject(new Error('body too large'));
     });
     req.on('end', () => {
       try { resolve(raw ? JSON.parse(raw) : {}); } catch (e) { reject(e); }
@@ -1559,6 +1559,24 @@ const server = http.createServer(async (req, res) => {
       fs.mkdirSync(path.dirname(abs), { recursive: true });
       fs.writeFileSync(abs, body.content ?? '');
       return send(res, 200, { ok: true });
+    }
+
+    // Binary write (base64) — the xlsx editor's save path. Same guard set as
+    // /api/sounds/save: safeRepoPath + blocked dirs + 25MB decoded cap. The
+    // 35MB body allowance covers base64's ~4/3 inflation of a 25MB file.
+    if (p === '/api/file-binary' && req.method === 'PUT') {
+      const body = await readJsonBody(req, 35 * 1024 * 1024);
+      const rel = String((body && body.path) || '');
+      if (!rel) return send(res, 400, { error: 'missing path' });
+      if (rel.split('/').some((s) => IGNORE_DIRS.has(s))) return send(res, 403, { error: 'blocked directory' });
+      const abs = safeRepoPath(rel);
+      let buf;
+      try { buf = Buffer.from(String((body && body.dataBase64) || ''), 'base64'); } catch { return send(res, 400, { error: 'bad data' }); }
+      if (!buf.length) return send(res, 400, { error: 'empty file' });
+      if (buf.length > 25 * 1024 * 1024) return send(res, 413, { error: 'file too large (25MB max)' });
+      fs.mkdirSync(path.dirname(abs), { recursive: true });
+      fs.writeFileSync(abs, buf);
+      return send(res, 200, { ok: true, path: rel, bytes: buf.length });
     }
 
     // ---- OS-explorer filesystem mutations (all guarded by safeRepoPath) --------
