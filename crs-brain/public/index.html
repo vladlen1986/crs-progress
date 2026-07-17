@@ -3513,7 +3513,11 @@ function setSoundEvent(ev,id){ const cur=(SETTINGS.sounds&&SETTINGS.sounds.event
 function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
-async function bubbleCheckNow(ep,label){ toast(label+' check running…'); try{ const r=await api('/api/bubble/'+ep,{method:'POST'}); notify({type:'bubble',level:'success',title:label+' check done',body:r.found?`${r.found} new entr${r.found===1?'y':'ies'}${r.attention?` · ⚠ ${r.attention} may affect locked decisions`:''}`:'Nothing new since last check.',soundEvent:'task-complete'}); }catch(e){ notify({type:'bubble',level:'error',title:label+' check failed',body:e.message}); } }
+async function bubbleCheckNow(ep,label){ toast(label+' check running…'); try{ const r=await api('/api/bubble/'+ep,{method:'POST'});
+  const body=r.report?(r.clean?'Clean — 0 issues. Report: '+r.report:`${r.issues} issue line(s) — proposals in ${r.report}`)
+    :(r.found?`${r.found} new entr${r.found===1?'y':'ies'}${r.attention?` · ⚠ ${r.attention} may affect locked decisions`:''}`:'Nothing new since last check.');
+  notify({type:'bubble',level:(r.issues||r.attention)?'warning':'success',title:label+' check done',body,soundEvent:'task-complete'}); }
+  catch(e){ notify({type:'bubble',level:'error',title:label+' check failed',body:e.message}); } }
 async function renderSettings(){
   const s=SETTINGS||await loadSettingsCache(); const n=s.notify||{};
   const nav=[['general','i-cog','General'],['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['sounds','i-volume','Sounds'],['connections','i-plug','Connections'],['about','i-file','About']];
@@ -3525,7 +3529,9 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Auto-track Buildprint → brain</b><span>After Buildprint changes the Bubble app, refresh the brain ledger automatically (checked ~every 20 min; only spends a turn on real changes).</span></div><div class="mctl">${sw(s.bpAutoTrack!==false,"setPref('bpAutoTrack',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Bubble platform watcher</b><span>Once a day, scan Bubble release-notes + forum for CRS-relevant changes and append a dated digest to the brain. Off by default.</span></div><div class="mctl">${sw(s.bubbleWatch===true,"setPref('bubbleWatch',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Bubble awareness — check now</b><span>Always-on daily watchers (no AI cost): new CRS-relevant forum topics → brain/bubble/forum-digest.md; new release entries → brain/bubble/release-notes.md with locked-decision cross-check.</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum')">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes')">Check releases</button></div></div>`;
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum')">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes')">Check releases</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Bubble issue check (read-only)</b><span>Runs buildprint sync + check on the test branch and writes a dated report with PROPOSED fixes to brain/bubble/issue-reports/ — never applies anything. Also runs daily.</span></div>
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check')">Check issues</button></div></div>`;
   } else if(settingsTab==='appearance'){
     pane=`<div class="msec-title">Theme</div>
       <div class="mrow"><div class="mlbl"><b>Appearance</b><span>Switch between dark and light. Applies instantly across the app.</span></div>

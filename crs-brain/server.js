@@ -2429,6 +2429,13 @@ const server = http.createServer(async (req, res) => {
       try { return send(res, 200, await runRelnotesCheck()); }
       catch (e) { return send(res, 502, { error: e.message }); }
     }
+    if (p === '/api/bubble/issue-check' && req.method === 'POST') {
+      if (issueChecking) return send(res, 409, { error: 'already running' });
+      issueChecking = true;
+      try { return send(res, 200, await runIssueCheck()); }
+      catch (e) { return send(res, 502, { error: e.message }); }
+      finally { issueChecking = false; }
+    }
 
     // ---- task queue (w-loops MVP) ----
     if (p === '/api/queue' && req.method === 'GET') {
@@ -2794,6 +2801,87 @@ function maybeForumCheck() {
 }
 setTimeout(maybeForumCheck, 60 * 1000);            // on server start (1 min in)
 setInterval(maybeForumCheck, 3600 * 1000);         // hourly gate, daily action
+
+// ---- w-bugfix, READ-ONLY pass: scheduled Bubble issue checker ----------------
+// Daily (+ on-demand) `buildprint sync` + `buildprint check` on the TEST branch,
+// written to brain/bubble/issue-reports/YYYY-MM-DD.md with PROPOSED fixes.
+// This pass never applies anything: no `buildprint apply` exists in this code
+// path, and the fix-proposal agent is prompt-locked to analysis only. Auto-fix
+// requires a separate approved design (wishlist note on w-bugfix).
+const ISSUE_REPORTS_DIR = path.join(REPO_ROOT, 'brain', 'bubble', 'issue-reports');
+const ISSUE_PROPOSAL_PROMPT = [
+  'You are the CRS Brain\'s READ-ONLY Bubble issue analyst. You are given the raw output of `buildprint check` from the CRS test branch.',
+  'HARD RULES: run NO buildprint commands, NO git mutations, change NO files. You only read repo docs (brain/, decisions.md, design/) to ground proposals.',
+  'For each issue in the given output, emit one markdown block:',
+  '### <short issue title>',
+  '- **Severity:** critical | high | medium | low (your judgment)',
+  '- **Affected:** <element/data type/workflow from the output>',
+  '- **PROPOSED fix (not applied):** <concrete, minimal fix grounded in CRS conventions — cite the brain/ or decisions.md source you used>',
+  'If an issue touches a locked decision, say so explicitly. Output ONLY the markdown blocks, no preamble.',
+].join('\n');
+
+let issueChecking = false;
+async function runIssueCheck() {
+  const ws = findBpWorkspace();
+  if (!ws) throw new Error('no Buildprint test/dev workspace on this machine');
+  // Sync is best-effort: it needs an authorized `buildprint link` on this machine.
+  // If it fails (expired link, CLI update pending), still run the local check and
+  // record the caveat — a stale-but-real report beats no report.
+  let syncNote = '';
+  const sync = await runBuildprint(['sync'], ws);
+  if (!sync.ok) syncNote = String(sync.err || sync.out || 'sync failed').replace(/\x1b\[[0-9;]*m/g, '').trim().slice(0, 300);
+  const chk = await runBuildprint(['check'], ws);          // local validation — mutates nothing
+  const raw = (String(chk.out || '') + (chk.err ? '\n' + String(chk.err) : '')).trim();
+  const issueLines = raw.split('\n').map((l) => l.trim()).filter((l) =>
+    /(issue|error|warn|invalid|missing|broken|fail|✗|⚠)/i.test(l) &&
+    !/(0 (issues?|errors?|warnings?|problems?)|no issues?|all checks? passed|check passed|✓)/i.test(l));
+  const clean = chk.ok && issueLines.length === 0;
+  const date = nowIso().slice(0, 10);
+  fs.mkdirSync(ISSUE_REPORTS_DIR, { recursive: true });
+  const file = path.join(ISSUE_REPORTS_DIR, date + '.md');
+  let proposals = '';
+  if (!clean) {
+    try {
+      const msg = `buildprint check output from the CRS TEST branch (${ws.app}/${ws.branch}), ${date}:\n\n\`\`\`\n${raw.slice(0, 12000)}\n\`\`\`\n\nAnalyze per your rules.`;
+      const r = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: ISSUE_PROPOSAL_PROMPT, cwd: REPO_ROOT });
+      proposals = (r.text || '').trim();
+    } catch (e) { proposals = '_Proposal agent unavailable: ' + e.message + '_'; }
+  }
+  const report = [
+    `# Bubble issue report — ${date}`,
+    '',
+    `> READ-ONLY pass (\`buildprint sync\` + \`buildprint check\` on **${ws.app}/${ws.branch}**). Nothing was applied or changed in the Bubble app — every fix below is a **proposal**. Auto-fix is out of scope pending an approved design.`,
+    ...(syncNote ? ['', `> ⚠ **sync failed on this machine** — checked the last-synced local state instead. Fix: re-link the CLI (\`buildprint link <token>\`) or run \`buildprint update\`. Error: ${syncNote}`] : []),
+    '',
+    clean ? '## Result: 0 issues — check passed clean.' : `## Result: ${issueLines.length} issue line(s) flagged`,
+    '',
+    '## Raw check output',
+    '```',
+    raw.slice(0, 8000) || '(empty)',
+    '```',
+    ...(clean ? [] : ['', '## Proposed fixes (NOT applied)', proposals || '_none generated_']),
+    '',
+  ].join('\n');
+  fs.writeFileSync(file, report);
+  const prev = loadState().issueLastCount;
+  saveState({ issueCheckedAt: Date.now(), issueLastCount: clean ? 0 : issueLines.length });
+  autoCommit('bubble issue report (read-only)');
+  if (!clean) addNotification({ type: 'bubble', level: 'warning', title: `Bubble check: ${issueLines.length} issue line(s)${prev != null && issueLines.length !== prev ? ` (was ${prev})` : ''}`, body: `Read-only report saved to brain/bubble/issue-reports/${date}.md — proposals only, nothing applied.` });
+  return { ok: true, clean, issues: clean ? 0 : issueLines.length, report: 'brain/bubble/issue-reports/' + date + '.md' };
+}
+function maybeIssueCheck() {
+  if (issueChecking) return;
+  if (Date.now() - (loadState().issueCheckedAt || 0) < BUBBLE_DAY) return;
+  if (!findBpWorkspace()) return;                          // machine without the clone: skip silently
+  issueChecking = true;
+  console.log('  ⟳ Bubble issue checker: read-only sync + check on the test branch…');
+  runIssueCheck()
+    .then((r) => console.log(`  ⟳ Issue report written (${r.clean ? 'clean' : r.issues + ' issue lines'}).`))
+    .catch((e) => console.log('  ⟳ Issue check failed:', e.message))
+    .finally(() => { issueChecking = false; });
+}
+setTimeout(maybeIssueCheck, 240 * 1000);           // ~4 min after boot
+setInterval(maybeIssueCheck, 3600 * 1000);         // hourly gate, daily action
 
 // ---- w-loops MVP: durable task queue with limit-aware auto-resume ------------
 // Sequential only, max 20 open tasks, no retry loops (failed = failed).
