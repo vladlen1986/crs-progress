@@ -4,7 +4,7 @@
   "sessionId": "fef59bf4-7326-4b4e-a8e8-f7790c43248c",
   "bp": false,
   "created": "2026-07-17T10:45:23.003Z",
-  "updated": "2026-07-17T11:02:00.550Z",
+  "updated": "2026-07-17T11:04:07.863Z",
   "messages": [
     {
       "role": "user",
@@ -71,6 +71,17 @@
       "role": "assistant",
       "content": "Honest answer: **no, not automatically or guaranteed.** Two things are true:\n\n1. It's now **discoverable** — registered in `brain/INDEX.md`'s retrieval rules, so when a build is performance-sensitive (list views, searches, bulk/recursive workflows, the audit write) I'll reach for it and inject the relevant technique into the prompt.\n\n2. But the Buildprint prompt-generation procedure in `CLAUDE.md` (the PROMPT-STANDARD steps) pulls a **fixed set of state files** — STATUS.md, decisions.md, security.md, modules.json, record counts. The performance manual is **not** on that mandatory list. So whether it gets consulted depends on me judging the build as performance-relevant — which is exactly the kind of thing that gets missed under pressure.\n\nIf you want it **guaranteed**, the fix is one line in `CLAUDE.md`: add a step to the prompt procedure — *\"for any build touching lists, searches, or bulk/scheduled workflows, consult `brain/bubble-performance/INDEX.md` and inline the applicable rule.\"* That makes it a standing input, not a judgment call.\n\nThe trade-off: not every prompt needs it (a pure Option Set edit or a privacy-rule fix doesn't), so I'd scope it to list/search/workflow builds rather than *every* prompt — otherwise you bloat prompts with irrelevant performance boilerplate.\n\nWant me to add that scoped rule to `CLAUDE.md`?",
       "ts": "2026-07-17T11:02:00.550Z"
+    },
+    {
+      "role": "user",
+      "content": "yes please, it is a must and also when building prompt it must refer to the best practices from forum and bubble manual and buildprint manual",
+      "ts": "2026-07-17T11:03:09.421Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. `CLAUDE.md`'s Buildprint prompt-generation procedure now has a **mandatory step 3** that forces me to consult, before writing any prompt, and inline the relevant practices (with source citations):\n\n- **`brain/bubble-performance/`** — *required* for list/RG, search, or bulk/scheduled/recursive-workflow builds\n- **`brain/bubble/`** — official manual (wins on facts/limits)\n- **`brain/bubble-forum/`** — community best practices (labeled as community advice)\n- **`brain/buildprint/`** — so the prompt stays within what BP can actually do\n\nWith one guardrail I kept in on purpose: if none apply (a pure Option-Set or privacy-rule fix), I state that in one line rather than padding the prompt — otherwise every prompt bloats with irrelevant boilerplate, which makes BP prompts *worse*, not better.\n\nOne consistency note, since this is a \"must\": the four sources are consult-and-inline inputs, but the emitted prompt still has to stay **self-contained** — BP can't open `brain/` files. So I inline the actual rule text and cite it; I never point BP at a path. That's consistent with the existing standard.\n\nThis edit to `CLAUDE.md` is **uncommitted**, alongside the still-unstaged performance-manual commit from earlier. Want me to commit both now (I'll still need your approval on the `git` commands)?",
+      "ts": "2026-07-17T11:04:07.863Z"
     }
   ]
 }
