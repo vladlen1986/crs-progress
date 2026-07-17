@@ -2420,6 +2420,16 @@ const server = http.createServer(async (req, res) => {
       } catch (e) { return send(res, 502, { error: e.message }); }
     }
 
+    // Deterministic Bubble watchers — manual "Check now" (items w-forum, w-relnotes).
+    if (p === '/api/bubble/forum-check' && req.method === 'POST') {
+      try { return send(res, 200, await runForumDigest()); }
+      catch (e) { return send(res, 502, { error: e.message }); }
+    }
+    if (p === '/api/bubble/relnotes-check' && req.method === 'POST') {
+      try { return send(res, 200, await runRelnotesCheck()); }
+      catch (e) { return send(res, 502, { error: e.message }); }
+    }
+
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
     if (p === '/api/attach' && req.method === 'POST') {
       const body = await readJsonBody(req);
@@ -2446,13 +2456,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     // Serve the rendered notification WAVs (data/sounds/ is outside PUBLIC_DIR).
-    if (p.startsWith('/sounds/') && req.method === 'GET') {
+    if (p.startsWith('/sounds/') && (req.method === 'GET' || req.method === 'HEAD')) {
       const file = p.slice('/sounds/'.length);
       if (!/^s\d{2}-[a-z0-9-]+\.wav$/.test(file)) return send(res, 404, { error: 'not found' });
       return fs.readFile(path.join(SOUNDS_DIR, file), (err, data) => {
         if (err) return send(res, 404, { error: 'not found' });
-        res.writeHead(200, { 'Content-Type': 'audio/wav', 'Cache-Control': 'no-cache, must-revalidate' });
-        res.end(data);
+        res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': data.length, 'Cache-Control': 'no-cache, must-revalidate' });
+        res.end(req.method === 'HEAD' ? undefined : data);
       });
     }
 
@@ -2636,6 +2646,104 @@ function maybeBubbleWatch() {
 }
 setTimeout(maybeBubbleWatch, 200 * 1000);          // ~3.3 min after boot
 setInterval(maybeBubbleWatch, 3600 * 1000);        // hourly gate, daily action
+
+// ---- deterministic Bubble awareness: forum digest + release-notes watcher ----
+// Unlike the Claude-powered digest above, these are bare-fetch, zero-cost, and
+// always on. Sources: Discourse JSON (forum.bubble.io). bubble.io/release-notes
+// itself is an unscrapeable Bubble SPA (volatile tokens in the HTML → raw-HTML
+// diffing false-positives every fetch); its own sidebar points to the forum
+// Announcements category as the archive, so that is the release-notes source.
+const STATE_FILE = path.join(DATA_DIR, 'state.json');   // durable last-run stamps + seen-sets
+function loadState() { try { return JSON.parse(fs.readFileSync(STATE_FILE, 'utf8')); } catch { return {}; } }
+function saveState(patch) { const s = { ...loadState(), ...patch }; fs.writeFileSync(STATE_FILE, JSON.stringify(s, null, 2)); return s; }
+
+const FORUM_DIGEST_FILE = path.join(REPO_ROOT, 'brain', 'bubble', 'forum-digest.md');
+const RELNOTES_FILE = path.join(REPO_ROOT, 'brain', 'bubble', 'release-notes.md');
+const RELNOTES_SNAPSHOT = path.join(DATA_DIR, 'bubble-release-notes.snapshot');
+const FORUM_KEYWORDS = /plugin|breaking|deprecat|workload|\bwu\b|performance|privacy|style|expression|release/i;
+// Terms that appear in locked decisions — a new release entry mentioning one is
+// surfaced in the "needs attention" list (checked against decisions.md content).
+const DECISION_TERMS = ['privacy', 'style', 'expression', 'workflow', 'option set', 'search', 'permission', 'role', 'tenant', 'property', 'database', 'performance', 'workload', 'api connector'];
+
+async function fetchForumJson(url) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), 15000);
+  try {
+    const r = await fetch(url, { signal: c.signal, headers: { 'User-Agent': 'CRS-Brain local watcher (vladlen.biz@gmail.com)' } });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+const topicUrl = (t) => `https://forum.bubble.io/t/${t.slug}/${t.id}`;
+const cleanExcerpt = (x) => String(x || '').replace(/&hellip;/g, '…').replace(/&amp;/g, '&').replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/\s+/g, ' ').trim().slice(0, 220);
+function appendDigest(file, title, section) {
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  const header = fs.existsSync(file) ? '' : `# ${title}\n\n> Auto-appended by the CRS Brain watcher — dated sections, newest at bottom, never overwritten.\n\n`;
+  fs.appendFileSync(file, header + section + '\n\n');
+}
+
+// B1 (w-forum): new CRS-relevant forum topics since the last run → forum-digest.md.
+async function runForumDigest() {
+  const seen = new Set(loadState().forumSeenIds || []);
+  const first = seen.size === 0;
+  const data = await fetchForumJson('https://forum.bubble.io/latest.json');
+  const topics = ((data.topic_list || {}).topics || []);
+  const fresh = topics.filter((t) => !seen.has(t.id) && FORUM_KEYWORDS.test((t.title || '') + ' ' + (t.excerpt || '')));
+  topics.forEach((t) => seen.add(t.id));
+  saveState({ forumSeenIds: [...seen].slice(-2000), forumCheckedAt: Date.now() });
+  if (fresh.length) {
+    const lines = fresh.map((t) => `- **${String(t.created_at || '').slice(0, 10)}** [${t.title}](${topicUrl(t)})${t.excerpt ? ' — ' + cleanExcerpt(t.excerpt) : ''}`);
+    appendDigest(FORUM_DIGEST_FILE, 'Bubble forum digest', `## ${nowIso().slice(0, 10)} — forum check${first ? ' (first run — baseline)' : ''}\n${lines.join('\n')}`);
+    autoCommit('bubble forum digest');
+  }
+  return { ok: true, found: fresh.length, scanned: topics.length };
+}
+
+// B2 (w-relnotes): new entries in the release archive (forum Announcements, cat 9)
+// diffed against a stored id snapshot → release-notes.md + decision cross-check.
+async function runRelnotesCheck() {
+  let snap = { ids: [] };
+  try { snap = JSON.parse(fs.readFileSync(RELNOTES_SNAPSHOT, 'utf8')); } catch {}
+  const prev = new Set(snap.ids || []);
+  const first = prev.size === 0;
+  const data = await fetchForumJson('https://forum.bubble.io/c/announcements/9.json');
+  const topics = ((data.topic_list || {}).topics || []).filter((t) => !t.pinned);
+  const fresh = topics.filter((t) => !prev.has(t.id));
+  topics.forEach((t) => prev.add(t.id));
+  fs.writeFileSync(RELNOTES_SNAPSHOT, JSON.stringify({ ids: [...prev].slice(-2000), at: nowIso() }, null, 2));
+  saveState({ relnotesCheckedAt: Date.now() });
+  let attention = [];
+  if (fresh.length) {
+    let decisions = '';
+    try { decisions = fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8').toLowerCase(); } catch {}
+    attention = fresh.filter((t) => {
+      const txt = ((t.title || '') + ' ' + (t.excerpt || '')).toLowerCase();
+      return DECISION_TERMS.some((k) => txt.includes(k) && decisions.includes(k));
+    });
+    const line = (t) => `- **${String(t.created_at || '').slice(0, 10)}** [${t.title}](${topicUrl(t)})${t.excerpt ? ' — ' + cleanExcerpt(t.excerpt) : ''}`;
+    const warn = attention.length ? `**⚠ needs attention — may affect locked decisions:**\n${attention.map(line).join('\n')}\n\n` : '';
+    appendDigest(RELNOTES_FILE, 'Bubble release notes', `## ${nowIso().slice(0, 10)} — release-notes check${first ? ' (first run — baseline)' : ''}\n${warn}${fresh.map(line).join('\n')}`);
+    autoCommit('bubble release-notes digest');
+    if (attention.length) addNotification({ type: 'bubble', level: 'warning', title: 'Bubble change may affect locked decisions', body: attention.map((t) => t.title).join(' · ').slice(0, 900) });
+    else addNotification({ type: 'bubble', level: 'info', title: `Bubble release notes: ${fresh.length} new entr${fresh.length === 1 ? 'y' : 'ies'}`, body: fresh.slice(0, 3).map((t) => t.title).join(' · ').slice(0, 900) });
+  }
+  return { ok: true, found: fresh.length, attention: attention.length };
+}
+
+let forumChecking = false;
+function maybeForumCheck() {
+  if (forumChecking) return;
+  const st = loadState();
+  if (Date.now() - (st.forumCheckedAt || 0) < BUBBLE_DAY) return;
+  if (Date.now() - (st.relnotesCheckedAt || 0) < BUBBLE_DAY && (st.forumCheckedAt || 0) > 0) { /* fall through per-watcher */ }
+  forumChecking = true;
+  const jobs = [];
+  if (Date.now() - (st.forumCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runForumDigest().catch((e) => console.log('  ⟳ forum digest failed:', e.message)));
+  if (Date.now() - (st.relnotesCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runRelnotesCheck().catch((e) => console.log('  ⟳ release-notes check failed:', e.message)));
+  Promise.all(jobs).finally(() => { forumChecking = false; });
+}
+setTimeout(maybeForumCheck, 60 * 1000);            // on server start (1 min in)
+setInterval(maybeForumCheck, 3600 * 1000);         // hourly gate, daily action
 
 // Open the app in the default browser (Windows / macOS / Linux).
 function openBrowser(url) {

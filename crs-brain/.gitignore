@@ -2,6 +2,8 @@ node_modules/
 data/usage.json
 data/notifications.jsonl
 data/notifications-read.json
+data/state.json
+data/bubble-release-notes.snapshot
 # secrets — never commit (Claude/Buildprint/SMTP creds live here)
 .env.local
 .env
