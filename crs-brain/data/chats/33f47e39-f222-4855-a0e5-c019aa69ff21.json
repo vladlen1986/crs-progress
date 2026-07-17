@@ -1,0 +1,21 @@
+{
+  "id": "33f47e39-f222-4855-a0e5-c019aa69ff21",
+  "title": "What changed in the CRS project recently?",
+  "sessionId": "9cfac146-3a53-44cc-8795-ebac0758abf8",
+  "bp": false,
+  "created": "2026-07-17T01:04:21.025Z",
+  "updated": "2026-07-17T01:04:58.236Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What changed in the CRS project recently?",
+      "ts": "2026-07-17T01:04:21.025Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Recent changes are almost all **CRS Brain app / tooling** work (today, 2026-07-17) — not the CRS product itself. From newest:\n\n**Today (2026-07-17) — Brain app features**\n- **C-refgraph** — galaxy map now draws real Bubble reference edges (`w-refgraph`).\n- **E-issue-checker** — read-only Bubble *issue reports* (first pass, `w-bugfix`); two issue reports committed.\n- **D-queue** — durable task queue with limit-aware auto-resume (`w-loops` MVP).\n- **B-bubble-awareness** — forum digest + release-notes watcher + 2 research docs; watcher runtime state now gitignored.\n- **A-sounds** — 24-sound local WAV system, per-event prefs, connectivity alerts.\n- **explorer-os** — OS-style file explorer: drag files/folders in from the OS, paste in, drag out, Download/Copy menu items.\n- Infra: pure-JS CRC32 zip fallback for Node < 20.15; merged `ui-ux-overhaul` (Mac audit-prompt) into main; docs/map refresh (fixed floating DATA hub id collision); wishlist exported to md.\n\n**Earlier product/brain milestones (2026-07-15)** — still the latest substantive *product* changes:\n- First full **Buildprint inventory** of the test branch ingested — brain/ went from spec-only to as-built (110 DTs, 98 option sets, 29 backend + 343 page workflows, full privacy-rule tracker).\n- Standing fact: **0/46 DTs meet Pattern A**; 39 public DTs, Employee PII exposed. Rollout plan in `brain/security.md`.\n- New canonical `brain/STATUS.md` product tracker; Progress Tree page (`crs-brain/public/tree.html`).\n\nNet: the **product build itself hasn't moved since the 2026-07-15 inventory** — this week's activity is all Brain-tool capability. Want me to check `crs-brain/data/progress.json` for the current product NOW/NEXT?",
+      "ts": "2026-07-17T01:04:58.236Z"
+    }
+  ]
+}
