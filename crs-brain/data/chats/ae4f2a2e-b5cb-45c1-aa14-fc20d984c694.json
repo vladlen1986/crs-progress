@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T20:33:51.158Z",
+  "updated": "2026-07-17T20:35:09.346Z",
   "messages": [
     {
       "role": "user",
@@ -394,6 +394,17 @@
       "role": "assistant",
       "content": "Found the real cause — and it's not a code bug. Your changes are correct on disk; the **running server never loaded them**.\n\nHere's the proof. I opened the actual saved file for this chat, `crs-brain/data/chats/ae4f2a2e-…json`. Every assistant reply in it — including the \"lets try test\" one — is bare:\n\n```json\n{ \"role\": \"assistant\", \"content\": \"Done — that run produced a work step…\", \"ts\": \"2026-07-17T20:11:32.202Z\" }\n```\n\nNo `steps`. No `startedAt`/`completedAt` either. But the current `server.js` (line 2058, the exact path a `bp:false` chat like this one uses) writes all three:\n\n```js\nchat.messages.push({ role:'assistant', content:finalText, ts:completedAt, startedAt, completedAt, ...(steps.length ? { steps } : {}) … });\n```\n\nIf the live server were running this code, those fields would be in the file. They aren't — on a single reply.\n\nWhy: your Brain `node` process (PID 14048) has been up since **19:52:58**. The `steps`-saving code was written *after* that (when you asked me to \"keep it,\" ~20:10). **Node loads `server.js` once at startup and never re-reads it** — so every reply since has been saved by the old in-memory code. The live tree you saw was built purely client-side from the stream; nothing was ever written to disk, so a refresh has nothing to rebuild.\n\n**The fix is one action: fully restart the Brain app** (stop the node process, start it again — same way you did earlier). I'm deliberately *not* killing it myself, because that process is streaming this very reply to your browser.\n\nAfter restart:\n1. Send **one new message**.\n2. Hard-refresh — its \"Worked for Xs\" tree stays.\n\nOld replies will still be bare (their steps were never captured — can't recover what wasn't saved). Only messages generated *after* the restart persist. If you want to confirm it took, after that new message the saved chat file will contain a `\"steps\"` array for the first time.",
       "ts": "2026-07-17T20:33:51.158Z"
+    },
+    {
+      "role": "user",
+      "content": "do some small job and lets see",
+      "ts": "2026-07-17T20:34:36.541Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Small job done — read the board, checked git. This reply's tree has **thinking → Read progress.json → git status** in it, so it's a real test case.\n\n**Progress board** (`crs-brain/data/progress.json`, updated 2026-07-15):\n- **Now:** User Management — security Pass-2 (owed: privacy rules, server-guarded CRUD, NEG proof, purge 22 demo records, mobile Filters button)\n- **Next:** Pattern A rollout packet (0/46 DTs isolated), Fiscal Week Management\n- **Later:** Reporting tenant isolation · permission-migration tail · app-wide ActivityLog\n- **Done:** Roles & Permissions · Casino Settings · Design System page\n\n**Git:** your 3 tracked edits (`server.js`, `index.html`, `BRAIN_APP_PROGRESS.md`) are pending — they'll ride the app's next auto-commit. Untracked: `CRS_Spec-13.html`, the two logos, `qa-scratch/`.\n\nNow the actual test: **hard-refresh** (Ctrl+Shift+R). If you restarted the server, the \"Worked for Xs\" tree above this reply survives with those three steps folded in. If it vanishes, the server didn't reload — tell me and we'll sort the restart.",
+      "ts": "2026-07-17T20:35:09.346Z"
     }
   ]
 }
