@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T17:46:22.626Z",
+  "updated": "2026-07-17T17:46:36.283Z",
   "messages": [
     {
       "role": "user",
@@ -183,8 +183,8 @@
     },
     {
       "role": "assistant",
-      "content": "While this reply streams, look at the top-left: the ring should be orbiting around the brain badge, glow pulsing, colors cycling. The moment this message finishes, it should fade back to the static pink→indigo brain within ~a third of a second.\n\nIf it's not animating: hard-refresh (Ctrl+Shift+R) to bust the cached HTML and send another message. If it still doesn't move, tell me what you see (no ring at all vs. ring stuck on) — that distinguishes a CSS issue from the class toggle not firing.",
-      "ts": "2026-07-17T17:46:22.626Z"
+      "content": "Halo should be live again right now — spinning ring + glow around the brain badge while this streams, still afterwards.\n\nWorking, or not? If not: does the badge show at all (static brain at the wordmark's corner), and did you hard-refresh (Ctrl+Shift+R)?",
+      "ts": "2026-07-17T17:46:36.283Z"
     }
   ]
 }
