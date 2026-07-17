@@ -15,7 +15,7 @@
     --c-mem6:#E879F9; --c-mem7:#9333EA; --c-mem8:#C4B5FD;
     --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    --board-w:400px;   /* right-side board drawer width (spec 380–420px) */
+    --board-h:40vh;   /* bottom board sheet height (user override 2026-07-17: bottom, not right) */
   }
   *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
   /* scrollbars — §2.2: track --bg-secondary, thumb --border-hover → --border-active, --accent while dragging */
@@ -38,11 +38,9 @@
 
   .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit;transition:transform var(--transition),background-color var(--transition-colors),color var(--transition-colors),border-color var(--transition-colors)}
   .menu-btn:hover{background:var(--bg-tertiary);color:var(--text-primary);border-color:var(--border-hover)}
-  .menu-btn.on{background:var(--accent-tint);color:var(--accent-text);border-color:var(--border-default)}
+  .menu-btn.on{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-default)}
   /* board open → toolbar buttons slide left of the drawer so BOARD stays reachable/toggleable */
-  body.board-open .menu-btn{transform:translateX(calc(0px - var(--board-w)))}
-  body.board-open .panel{right:calc(20px + var(--board-w))}
-
+  
   .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
   .panel input[type=search]{width:100%;height:36px;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:0 10px;font-size:12px;font-family:inherit;outline:none}
@@ -50,7 +48,7 @@
   .panel .lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;margin:2px 0 -4px}
   .seg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
   .seg button{flex:1;background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:6px 0;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit}
-  .seg button.on{background:var(--accent);color:var(--white)}
+  .seg button.on{background:var(--bg-elevated);color:var(--text-primary)}
   .seg button:hover:not(.on){color:var(--text-primary)}
   .row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary)}
   .row .val{margin-left:auto;color:var(--text-secondary);font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;font-size:10.5px}
@@ -70,8 +68,8 @@
   .bake:active{background:var(--accent-active)}
 
   /* kanban board drawer — right-side collapsible panel; folders/status as columns, files as cards */
-  .board{position:fixed;top:0;right:0;bottom:0;width:var(--board-w);max-width:94vw;z-index:12;background:var(--bg-secondary);border-left:1px solid var(--border-default);transform:translateX(105%);transition:transform var(--transition);display:flex;flex-direction:column}
-  .board.open{transform:translateX(0)}
+  .board{position:fixed;left:0;right:0;bottom:0;height:var(--board-h);min-height:280px;z-index:12;background:var(--bg-secondary);border-top:1px solid var(--border-default);transform:translateY(105%);transition:transform var(--transition);display:flex;flex-direction:column}
+  .board.open{transform:translateY(0)}
   .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 40px 6px 16px;color:var(--text-primary);font-size:11px;font-weight:700;letter-spacing:.1em}
   .board .bhead .n{color:var(--text-muted);font-weight:400;letter-spacing:.3px}
   .board .bhead .close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit}
@@ -89,20 +87,21 @@
   .bcard .nm{overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text-primary)}
   /* map-node hover → its board card(s) light up (§20.7 Chip-Active border) */
   .bcard.linked,.tile.linked{border-color:var(--accent-border-active)}
-  body.board-open .dock{left:calc((100vw - var(--board-w))/2);width:min(720px,calc(100vw - var(--board-w) - 32px))}
+  body.board-open .dock{bottom:calc(var(--board-h) + 14px)}
   body.board-open .hint{display:none}
+  body.board-open .pv{bottom:calc(var(--board-h) + 12px)}
   .bhead .bseg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
   .bhead .bseg button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
-  .bhead .bseg button.on{background:var(--accent);color:var(--white)}
+  .bhead .bseg button.on{background:var(--bg-elevated);color:var(--text-primary)}
   .bhead .btabs{display:flex;gap:3px}
   .bhead .btabs button{background:none;border:none;color:var(--text-secondary);padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:1.2px;cursor:pointer;font-family:inherit;border-radius:var(--radius-btn)}
   .bhead .btabs button:hover:not(.on){background:var(--bg-tertiary);color:var(--text-primary)}
-  .bhead .btabs button.on{color:var(--accent-text);background:var(--accent-tint)}
+  .bhead .btabs button.on{color:var(--text-primary);background:var(--bg-elevated)}
   .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:auto;flex:1 1 120px;min-width:110px}
   .bhead .bsearch:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
   .bfilters{display:flex;gap:5px;align-items:center;padding:0 16px 6px;flex-wrap:wrap;flex:0 0 auto}
   .bfilters .fc{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-pill);padding:2px 11px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px}
-  .bfilters .fc.on{background:var(--accent-tint);border-color:var(--accent-border-active);color:var(--accent-text)}
+  .bfilters .fc.on{background:var(--bg-elevated);border-color:var(--border-active);color:var(--text-primary)}
   .bfilters .fl{font-size:9px;letter-spacing:1.2px;color:var(--text-muted);text-transform:uppercase;margin-right:2px}
   /* ideas cards */
   .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-left:3px solid var(--pc,var(--border-active));border-radius:var(--radius-btn);padding:8px 10px;margin-bottom:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.45;position:relative}
@@ -148,14 +147,14 @@
   .hpv .hcap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-primary);font-size:10px;padding:4px 10px;border-top:1px solid var(--border-default)}
 
   /* preview panel — floats left of the board drawer */
-  .pv{position:fixed;left:16px;right:calc(var(--board-w) + 12px);top:64px;bottom:16px;z-index:13;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);display:none;flex-direction:column;overflow:hidden}
+  .pv{position:fixed;left:16px;right:16px;top:64px;bottom:16px;z-index:13;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);display:none;flex-direction:column;overflow:hidden}
   .pv.open{display:flex}
   .pv .pvhead{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border-default);flex:0 0 auto}
   .pv .pvhead .nm{color:var(--text-primary);font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pv .pvhead .sp{flex:1}
   .pv .pvhead button{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
   .pv .pvhead button:hover{color:var(--text-primary);border-color:var(--border-hover)}
-  .pv .pvhead button.on{background:var(--accent-tint);color:var(--accent-text);border-color:var(--border-default)}
+  .pv .pvhead button.on{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-default)}
   .pv .pvhead .x{border:none;background:none;font-size:15px;color:var(--text-muted)}
   .pv .pvhead .x:hover{color:var(--text-primary)}
   .pv iframe{flex:1;border:none;background:var(--white)}
@@ -244,13 +243,12 @@
     .panel{top:50px;right:12px;left:auto;width:min(84vw,290px);max-height:calc(100dvh - 140px);overflow-y:auto}
     .dock{left:10px;right:10px;width:auto;bottom:10px;transform:none}
     .dock .dbody{max-height:32vh}
-    /* On a phone the right drawer takes the full width — a full-screen takeover. */
-    .board{width:100%;max-width:none}
-    body.board-open .menu-btn{transform:none}      /* drawer covers the toolbar anyway */
+    /* On a phone the bottom sheet takes the full screen. */
+    .board{height:100dvh;min-height:0}
     /* Embedded on a phone: the kanban/list board fills the screen — no galaxy behind
        it, no floating map chrome. (The app's own header switches views.) transform:none
        pins it full-screen deterministically instead of relying on the slide translate. */
-    body.embed.board-open .board{background:var(--bg-primary);border-left:none;transform:none;transition:none}
+    body.embed.board-open .board{background:var(--bg-primary);border-top:none;height:100dvh;transform:none;transition:none}
     body.embed.board-open .brand,
     body.embed.board-open .menu-btn,
     body.embed.board-open .panel,
@@ -1371,7 +1369,7 @@ function toggleBoard(){ boardOpen=!boardOpen;
 // Hovering a file card draws a temporary routing edge from the drawer edge to the file's
 // map node — same curved, low-opacity accent language as the reference-edge overlay —
 // and hovering a map node lights up its card(s) in the drawer (.linked, §20.7 border).
-let boardLink=null;   // {path, sx, sy, t0} — screen-space start at the drawer edge
+let boardLink=null;   // {path, sx, sy, t0} — screen-space start at the sheet’s top edge
 function drawBoardLink(now){
   if(!boardLink||!boardOpen) return;
   let t=byId[boardLink.path];
@@ -1433,10 +1431,10 @@ function showHover(f,x,y){
   moveHover(x,y); hpv.classList.add('show');
 }
 function moveHover(x,y){
-  // keep the floating preview left of the drawer so it never covers the hovered card
-  const bEdge=boardOpen?document.getElementById('board').getBoundingClientRect().left:innerWidth;
-  hpv.style.left=Math.max(10,Math.min(bEdge-372,x+18))+'px';
-  hpv.style.top=Math.max(10,Math.min(innerHeight-312,y-310))+'px';
+  // keep the floating preview above the bottom sheet so it never covers the hovered card
+  const sTop=boardOpen?document.getElementById('board').getBoundingClientRect().top:innerHeight;
+  hpv.style.left=Math.max(10,Math.min(innerWidth-372,x+18))+'px';
+  hpv.style.top=Math.max(10,Math.min(sTop-312,y-310))+'px';
 }
 function hideHover(){ hpv.classList.remove('show'); hpv.innerHTML=''; }
 // lazy-load tile iframes only when scrolled into view
@@ -1481,8 +1479,8 @@ function renderFiles(){
       c.dataset.path=f.path;
       c.onclick=()=>openPreview({path:f.path,label:f.name});
       c.onmouseenter=(e)=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); }
-        const r=c.getBoundingClientRect(), bx=document.getElementById('board').getBoundingClientRect().left;
-        boardLink={path:f.path, sx:bx, sy:r.top+r.height/2, t0:performance.now()};
+        const r=c.getBoundingClientRect(), bTop=document.getElementById('board').getBoundingClientRect().top;
+        boardLink={path:f.path, sx:r.left+r.width/2, sy:bTop, t0:performance.now()};
         showHover({path:f.path,name:f.name},e.clientX,e.clientY); };
       c.onmousemove=(e)=>moveHover(e.clientX,e.clientY);
       c.onmouseleave=()=>{ matches=searchMatches; boardLink=null; hideHover(); };
