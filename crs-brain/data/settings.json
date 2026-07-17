@@ -33,6 +33,12 @@
       "info": {
         "soundId": "s03",
         "bell": false
+      },
+      "connection-lost": {
+        "banner": true
+      },
+      "task-complete": {
+        "bell": true
       }
     }
   }
