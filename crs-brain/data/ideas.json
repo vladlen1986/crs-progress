@@ -1,13 +1,7 @@
 {
   "columns": {
     "inbox": [],
-    "exploring": [
-      {
-        "id": "1784304632559704",
-        "text": "QA c2 test idea #qac2 !high",
-        "ts": "2026-07-17T16:10:32.559Z"
-      }
-    ],
+    "exploring": [],
     "planned": [],
     "done": []
   }
