@@ -182,15 +182,35 @@
   .ninbox-head .act{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;padding:3px 7px;border-radius:6px;font-family:inherit}
   .ninbox-head .act:hover{color:var(--accent2);background:var(--panel2)}
   .ninbox-list{overflow:auto;padding:6px}
-  .nitem{display:flex;gap:10px;padding:10px 11px;border-radius:8px;transition:var(--transition)}
+  .nitem{display:flex;gap:10px;padding:10px 11px;border-radius:8px;transition:var(--transition);cursor:default}
   .nitem:hover{background:var(--panel2)}
-  .nitem .ndot{width:8px;height:8px;border-radius:50%;flex:0 0 8px;margin-top:5px}
+  .nitem.link{cursor:pointer}
+  .nitem .nico{width:26px;height:26px;border-radius:7px;background:var(--panel2);display:flex;align-items:center;justify-content:center;flex:0 0 26px;margin-top:1px} /* category icon, §16 role color via inline color */
+  .nitem .nico svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .nitem .ntxt{min-width:0;flex:1}
-  .nitem .nt{color:var(--primary);font-size:12.5px;font-weight:600}
-  .nitem .nb{color:var(--secondary);font-size:12px;line-height:1.45;margin-top:2px;word-break:break-word}
+  .nitem .nt{color:var(--primary);font-size:13px;font-weight:600}
+  .nitem .nb{color:var(--secondary);font-size:12px;line-height:1.45;margin-top:2px;word-break:break-word;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .nitem .nm{color:var(--muted);font-size:10.5px;margin-top:3px;font-family:var(--mono)}
-  .nitem.unread{background:var(--accent-tint)}
+  .nitem .nunread{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 6px;margin-top:7px} /* 6px accent unread dot */
+  .ninbox-foot{display:flex;justify-content:flex-end;gap:4px;padding:8px 10px;border-top:1px solid var(--line)}
+  .ninbox-foot .act{background:none;border:none;color:var(--muted);font-size:11.5px;cursor:pointer;padding:3px 7px;border-radius:6px;font-family:inherit}
+  .ninbox-foot .act:hover{color:var(--accent2);background:var(--panel2)}
+  .ninbox-dnd{display:inline-flex;align-items:center;gap:5px;color:var(--warn);font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.6px}
+  .hicon.dnd{color:var(--warn)}
   .ninbox-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 16px}
+  /* v2 notification settings — compact per-type channel controls */
+  .mrow.ntype{flex-direction:column;align-items:stretch;gap:9px;padding:12px 0}
+  .mrow.ntype .mctl{width:100%;justify-content:flex-start;gap:12px}
+  .mrow.ntype .sel{margin-left:auto;max-width:160px}
+  .chctl{display:flex;flex-direction:column;align-items:center;gap:3px}
+  .chctl>span{font-size:9.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+  .switch.sm{width:30px;height:18px}
+  .switch.sm .sl::before{width:12px;height:12px}
+  .switch.sm input:checked+.sl::before{transform:translateX(12px)}
+  .tbtn28{height:28px;padding:0 10px;display:inline-flex;align-items:center}
+  .sync-stamp{color:var(--muted);font-size:10.5px;font-family:var(--mono);display:block;margin-top:5px}
+  @keyframes nspin{to{transform:rotate(360deg)}}
+  .nspin{display:inline-block;width:11px;height:11px;border:1.5px solid var(--line3);border-top-color:var(--accent2);border-radius:50%;animation:nspin .7s linear infinite;vertical-align:-1px;margin-right:5px}
 
   /* generic modal (settings) */
   .modal-wrap{position:fixed;inset:0;background:var(--overlay);z-index:380;display:none;align-items:center;justify-content:center;padding:24px}
@@ -1116,6 +1136,7 @@
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></symbol>
   <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
+  <symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13c-.4-1.3-.6-3-.6-5a6 6 0 0 0-9.3-5M6.3 6.3C6.1 6.8 6 7.4 6 8c0 7-3 9-3 9h14"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
   <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></symbol>
@@ -1335,6 +1356,7 @@
 <script src="icons.js"></script>
 <script src="sounds-synth.js"></script>
 <script src="sounds.js"></script>
+<script src="notify-registry.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
@@ -1389,7 +1411,8 @@ function renderMd(src){
   return html;
 }
 
-function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+let _toastTimer=null;
+function toast(t,ms){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200); }
 // In-app confirm (§5 modal, danger variant) — replaces native confirm(); resolves boolean.
 function crsConfirm(o){ o=typeof o==='string'?{body:o}:(o||{});
   return new Promise(res=>{
@@ -2083,9 +2106,9 @@ async function streamChat(text, opts={}){
     if(mine()){ state.sending=false; state.abort=null; setGenerating(false); dequeue(); }
     // Outcome notification (bell + sound; toast only for failures — success is visible in the log).
     const elapsed=fmtDur(performance.now()-genStart);
-    if(errored){ notify({type:'generation',level:'error',title:'Generation failed',body:'The last request errored — you can retry from the reply.'}); }
-    else if(stoppedReply){ notify({type:'generation',level:'warning',title:'Generation stopped',body:'Stopped after '+elapsed+'.',toast:false}); }
-    else { notify({type:'generation',level:'success',title:(live.bp?'Buildprint task complete':'Response ready'),body:elapsed+(genOut?' · ↓ '+fmtTok(genOut)+' tokens out':''),toast:false}); }
+    if(errored){ notifyT('task-failed',{title:'Generation failed',message:'The last request errored — you can retry from the reply.'}); }
+    else if(stoppedReply){ notifyT('warning',{title:'Generation stopped',message:'Stopped after '+elapsed+'.',banner:false}); }
+    else { notifyT('task-complete',{title:(live.bp?'Buildprint task complete':'Response ready'),message:elapsed+(genOut?' · ↓ '+fmtTok(genOut)+' tokens out':''),banner:false}); }
     loadChats(); loadProgress(); loadPlan();
     // Ingest & Buildprint chats write files into brain/ — refresh the tree,
     // Cmd+K index, and Recently-edited so new files appear without a reload.
@@ -3809,7 +3832,7 @@ async function genPacket(){
 }
 
 // ---------- live usage / limits ----------
-function fmtAgo(ms){ const s=Math.max(0,Math.round((Date.now()-ms)/1000)); if(s<60)return s+'s ago'; const m=Math.round(s/60); if(m<60)return m+'m ago'; const h=Math.round(m/60); return h+'h ago'; }
+function fmtAgo(ms){ const s=Math.max(0,Math.round((Date.now()-ms)/1000)); if(s<60)return s+'s ago'; const m=Math.round(s/60); if(m<60)return m+'m ago'; const h=Math.round(m/60); if(h<48)return h+'h ago'; return Math.round(h/24)+'d ago'; }
 function fmtReset(sec){ const ms=sec*1000-Date.now(); if(ms<=0) return 'resetting…'; const m=Math.round(ms/60000); if(m<60) return 'resets in '+m+'m'; const h=Math.floor(m/60), mm=m%60; if(h<24) return 'resets in '+h+'h '+mm+'m'; const d=Math.floor(h/24); return 'resets in '+d+'d '+(h%24)+'h'; }
 function barColor(p){ return p>=90?'var(--danger)':p>=70?'var(--warn)':'var(--good)'; }
 function usageRow(label, w){
@@ -3978,7 +4001,7 @@ function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.document
   const d=$('thDark'),l=$('thLight'); if(d&&l){ d.classList.toggle('on',th==='dark'); l.classList.toggle('on',th==='light'); } }
 // Cross-window theme sync: standalone pages (map/tree/wishlist/queue/…) follow via the storage event.
 addEventListener('storage',e=>{ if(e.key==='crs-theme'&&e.newValue) applyTheme(e.newValue); });
-async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); return SETTINGS; }
+async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)},notifyPrefs:{dnd:false,bannerSec:4,types:{}}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); if(typeof renderBellDnd==='function') renderBellDnd(); return SETTINGS; }
 async function saveSettingsPatch(patch){ try{ SETTINGS=await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)}); }catch(e){ toast('Save failed: '+e.message); } return SETTINGS; }
 
 // ---- notification sounds: 24 local WAVs in data/sounds/ (sounds.js engine) ----
@@ -4002,33 +4025,76 @@ async function ensureSoundFiles(force){
   console.log(`[sounds] rendered ${todo.length} WAV file(s), ${(bytes/1024).toFixed(0)} KB`);
   return {rendered:todo.length,bytes};
 }
-async function regenSounds(){ toast('Regenerating sound files…'); const r=await ensureSoundFiles(true); const t=await api('/api/sounds/list').catch(()=>null); notify({type:'sounds',level:'success',title:'Sound files regenerated',body:`${r.rendered} WAVs, ${t?(t.totalBytes/1024).toFixed(0):'?'} KB total`,soundEvent:'task-complete'}); }
+async function regenSounds(){ toast('Regenerating sound files…'); const r=await ensureSoundFiles(true); const t=await api('/api/sounds/list').catch(()=>null); notifyT('success',{title:'Sound files regenerated',message:`${r.rendered} WAVs, ${t?(t.totalBytes/1024).toFixed(0):'?'} KB total`}); }
 // Kept as a thin shim: everything routes through the engine now.
 function playSound(id){ SOUNDS.playSound(id); }
 
-// ---- central notify: toast + sound + persistent store + bell badge ----
-// o.soundEvent picks the per-event sound; defaults derive from o.level.
-const LEVEL_EVENT={info:'new-notification',success:'task-complete',warning:'warning',error:'error'};
-async function notify(o){ o=o||{}; const level=o.level||'info';
-  if(o.toast!==false) toast((o.title||'')+(o.title&&o.body?' — ':'')+(o.body||''));
-  const np=(SETTINGS&&SETTINGS.notify)||{inApp:true,sound:true};
-  if(np.inApp!==false){
-    if(np.sound!==false && o.sound!==false) SOUNDS.playEvent(o.soundEvent||LEVEL_EVENT[level]||'new-notification');
-    try{ await api('/api/notifications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:o.type||'general',title:o.title||'',body:o.body||'',level})}); }catch{}
+// ---- central notify v2 (Phase 10): ONE entry point, registry-typed ----------
+// notifyT(typeId, {title, message, target?}) routes per user prefs:
+//   Banner → toast (global bannerSec), Sound → SOUNDS.playSound(assigned or
+//   registry defaultSound), Bell → POST /api/notifications (persisted jsonl).
+// DND kills banners + sounds; the bell keeps collecting. Unknown type →
+// console.warn + 'info' fallback, never throws. Types: notify-registry.js.
+function notifPref(id){ const t=NOTIFY_TYPES[id]||NOTIFY_TYPES.info; const o=(((SETTINGS||{}).notifyPrefs||{}).types||{})[id]||{};
+  return { banner:o.banner!=null?o.banner:t.defaults.banner, sound:o.sound!=null?o.sound:t.defaults.sound,
+           bell:o.bell!=null?o.bell:t.defaults.bell, soundId:o.soundId||t.defaultSound }; }
+async function notifyT(typeId,o){ o=o||{};
+  let t=NOTIFY_TYPES[typeId];
+  if(!t){ console.warn('[notify] unknown notification type "'+typeId+'" — falling back to info'); typeId='info'; t=NOTIFY_TYPES.info; }
+  const np=(SETTINGS&&SETTINGS.notifyPrefs)||{dnd:false,bannerSec:4};
+  const p=notifPref(typeId), dnd=!!np.dnd;
+  const title=o.title||t.name, msg=o.message||'';
+  if(!dnd && p.banner && o.banner!==false) toast(title+(title&&msg?' — ':'')+msg,(Math.max(2,Math.min(10,Number(np.bannerSec)||4)))*1000);
+  if(!dnd && p.sound && o.sound!==false) SOUNDS.playSound(p.soundId||t.defaultSound);
+  if(p.bell && o.bell!==false){
+    try{ await api('/api/notifications',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:typeId,level:t.level,title,body:msg,target:o.target||''})}); }catch{}
     loadNotifications();
   }
 }
-let NOTIFS={items:[],unread:0,readAt:0};
+// Legacy wrapper — old notify({level,title,body,toast}) call shape keeps working;
+// level maps onto the matching General registry type.
+const LEVEL_TYPE={info:'info',success:'success',warning:'warning',error:'error'};
+async function notify(o){ o=o||{};
+  return notifyT(LEVEL_TYPE[o.level]||'info',{title:o.title,message:o.body,banner:o.toast===false?false:undefined,sound:o.sound===false?false:undefined});
+}
+let NOTIFS={items:[],unread:0,readAt:0,readIds:[]};
 async function loadNotifications(){ try{ NOTIFS=await api('/api/notifications'); }catch{ return; } renderNotifBadge(); const bx=$('ninbox'); if(bx&&bx.classList.contains('show')) renderInbox(); }
 function renderNotifBadge(){ const b=$('notifBadge'); if(!b)return; if(NOTIFS.unread>0){ b.textContent=NOTIFS.unread>99?'99+':NOTIFS.unread; b.classList.add('show'); } else b.classList.remove('show'); }
-const NCOLOR={info:'var(--accent2)',success:'var(--good)',warning:'var(--warn)',error:'var(--danger)'};
-function renderInbox(){ const box=$('ninbox'); const readAt=NOTIFS.readAt||0;
-  const list=(NOTIFS.items||[]).map(n=>{ const unread=new Date(n.ts).getTime()>readAt; return `<div class="nitem${unread?' unread':''}"><span class="ndot" style="background:${NCOLOR[n.level]||'var(--muted)'}"></span><div class="ntxt"><div class="nt">${esc(n.title||n.type)}</div>${n.body?`<div class="nb">${esc(n.body)}</div>`:''}<div class="nm">${fmtAgo(new Date(n.ts).getTime())}</div></div></div>`; }).join('')||'<div class="ninbox-empty">You’re all caught up — no notifications yet.</div>';
-  box.innerHTML=`<div class="ninbox-head">Notifications<span style="flex:1"></span><button class="act" onclick="markNotifRead()">Mark read</button><button class="act" onclick="clearNotifs()">Clear</button></div><div class="ninbox-list">${list}</div>`;
+// DND indicator: muted-bell glyph + warn tint on the header bell when DND is on.
+function renderBellDnd(){ const b=$('notifBell'); if(!b)return; const dnd=!!(SETTINGS&&SETTINGS.notifyPrefs&&SETTINGS.notifyPrefs.dnd);
+  b.classList.toggle('dnd',dnd); const u=b.querySelector('use'); if(u)u.setAttribute('href',dnd?'#i-bell-off':'#i-bell');
+  b.title=dnd?'Notifications — Do Not Disturb on (bell still collects)':'Notifications'; }
+function notifIsUnread(n){ return new Date(n.ts).getTime()>(NOTIFS.readAt||0) && !(NOTIFS.readIds||[]).includes(n.id); }
+function renderInbox(){ const box=$('ninbox');
+  const dnd=!!(SETTINGS&&SETTINGS.notifyPrefs&&SETTINGS.notifyPrefs.dnd);
+  const list=(NOTIFS.items||[]).map(n=>{
+    const tid=NOTIFY_LEGACY(n.type,n.level), t=NOTIFY_TYPES[tid];
+    const cat=NOTIFY_CATEGORIES.find(c=>c.id===t.category)||NOTIFY_CATEGORIES[3];
+    const unread=notifIsUnread(n);
+    return `<div class="nitem${unread?' unread':''}${n.target?' link':''}" onclick="notifRowClick('${n.id}','${jsq(n.target||'')}')" title="${n.target?'Open '+esc(n.target):''}">
+      <span class="nico" style="color:${cat.color}">${svg(cat.icon)}</span>
+      <div class="ntxt"><div class="nt">${esc(n.title||t.name)}</div>${n.body?`<div class="nb">${esc(n.body)}</div>`:''}<div class="nm">${fmtAgo(new Date(n.ts).getTime())}</div></div>
+      ${unread?'<span class="nunread"></span>':''}</div>`;
+  }).join('')||'<div class="ninbox-empty">You’re all caught up — no notifications yet.</div>';
+  box.innerHTML=`<div class="ninbox-head">Notifications<span style="flex:1"></span>${dnd?`<span class="ninbox-dnd">${svg('i-bell-off','sm')} DND</span>`:''}</div>
+    <div class="ninbox-list">${list}</div>
+    <div class="ninbox-foot"><button class="act" onclick="markNotifRead()">Mark all read</button><button class="act" onclick="clearNotifs()">Clear all</button></div>`;
 }
-function toggleNotif(e){ if(e)e.stopPropagation(); const box=$('ninbox'); const show=!box.classList.contains('show'); box.classList.toggle('show',show); if(show){ renderInbox(); setTimeout(()=>document.addEventListener('click',closeNotifOut),0); markNotifRead(); } else document.removeEventListener('click',closeNotifOut); }
+// Row click: mark THAT row read + open the carried target inside the app
+// (openDocWindow / openPageWindow — single-app rule, never a browser tab).
+async function notifRowClick(id,target){
+  const n=(NOTIFS.items||[]).find(x=>x.id===id);
+  if(n&&notifIsUnread(n)){
+    (NOTIFS.readIds=NOTIFS.readIds||[]).push(id); NOTIFS.unread=Math.max(0,NOTIFS.unread-1);
+    renderNotifBadge(); renderInbox();
+    try{ await api('/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); }catch{}
+  }
+  if(target){ $('ninbox').classList.remove('show'); document.removeEventListener('click',closeNotifOut);
+    if(target.startsWith('/')&&isHtml(target)) openPageWindow(target,target.split('/').pop().replace(/\.html?$/i,'')); else openDocWindow(target); }
+}
+function toggleNotif(e){ if(e)e.stopPropagation(); const box=$('ninbox'); const show=!box.classList.contains('show'); box.classList.toggle('show',show); if(show){ renderInbox(); setTimeout(()=>document.addEventListener('click',closeNotifOut),0); } else document.removeEventListener('click',closeNotifOut); }
 function closeNotifOut(ev){ const box=$('ninbox'),b=$('notifBell'); if(box&&!box.contains(ev.target)&&b&&!b.contains(ev.target)){ box.classList.remove('show'); document.removeEventListener('click',closeNotifOut); } }
-async function markNotifRead(){ try{ await api('/api/notifications/read',{method:'POST'}); }catch{} NOTIFS.readAt=Date.now(); NOTIFS.unread=0; renderNotifBadge(); }
+async function markNotifRead(){ try{ await api('/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'}); }catch{} NOTIFS.readAt=Date.now(); NOTIFS.readIds=[]; NOTIFS.unread=0; renderNotifBadge(); const bx=$('ninbox'); if(bx&&bx.classList.contains('show')) renderInbox(); }
 async function clearNotifs(){ try{ await api('/api/notifications/clear',{method:'POST'}); }catch{} await loadNotifications(); renderInbox(); }
 
 // ---- connection watchers: internet + brain server → header dot, toasts, sounds ----
@@ -4038,12 +4104,12 @@ const CONN={net:true,srv:true,netFails:0,srvFails:0};
 function connDot(){ const d=$('connDot'); if(!d)return; const st=!CONN.srv?['err','Connection: brain server unreachable']:!CONN.net?['warn','Connection: no internet — local app still works']:['ok','Connection: online']; d.className='conndot '+st[0]; d.title=st[1]; }
 async function _probe(url,opts){ const c=new AbortController(); const t=setTimeout(()=>c.abort(),5000); try{ await fetch(url,Object.assign({cache:'no-store',signal:c.signal},opts)); return true; }catch{ return false; }finally{ clearTimeout(t); } }
 function setNet(up){ if(up===CONN.net){ connDot(); return; } CONN.net=up; connDot();
-  if(up) notify({type:'connection',level:'success',title:'Connection restored',body:'Internet is back.',soundEvent:'connection-restored'});
-  else notify({type:'connection',level:'error',title:'Internet connection lost',body:'The brain still runs locally, but Claude/agent work will fail until you reconnect.',soundEvent:'connection-lost'});
+  if(up) notifyT('connection-restored',{title:'Connection restored',message:'Internet is back.'});
+  else notifyT('connection-lost',{title:'Internet connection lost',message:'The brain still runs locally, but Claude/agent work will fail until you reconnect.'});
 }
 function setSrv(up){ if(up===CONN.srv){ connDot(); return; } CONN.srv=up; connDot();
-  if(up) notify({type:'connection',level:'success',title:'Brain server back',body:'Reconnected to the local server.',soundEvent:'connection-restored'});
-  else { toast('Brain server unreachable'); SOUNDS.playEvent('error'); }   // server down — nowhere to persist a notification
+  if(up) notifyT('connection-restored',{title:'Brain server back',message:'Reconnected to the local server.'});
+  else notifyT('server-unreachable',{title:'Brain server unreachable',message:'The local server stopped responding.',bell:false});   // server down — nowhere to persist the bell record
 }
 async function connHeartbeat(){
   // 2 consecutive fails = down, 1 success = up (debounces flapping links).
@@ -4065,15 +4131,42 @@ function closeSettings(){ $('settingsWrap').classList.remove('show'); }
 function setSettingsTab(t){ settingsTab=t; renderSettings(); }
 function setTheme(t){ applyTheme(t); if(SETTINGS)SETTINGS.theme=t; saveSettingsPatch({theme:t}); renderSettings(); }
 function setNotifPref(k,v){ SETTINGS.notify=Object.assign({},SETTINGS.notify,{[k]:v}); saveSettingsPatch({notify:{[k]:v}}); renderSettings(); }
-function setSoundEvent(ev,id){ const cur=(SETTINGS.sounds&&SETTINGS.sounds.events)||{}; SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{events:Object.assign({},cur,{[ev]:id})}); SOUNDS.configure(SETTINGS.sounds); saveSettingsPatch({sounds:{events:{[ev]:id}}}); if(id!=='none')SOUNDS.playSound(id); }
+// ---- v2 notification prefs (notifyPrefs): DND, banner duration, per-type ----
+function setDnd(v){ SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{dnd:v}); renderBellDnd(); saveSettingsPatch({notifyPrefs:{dnd:v}}); }
+function setBannerSec(v,save){ const l=$('bannerSecLbl'); if(l)l.textContent=v+'s'; if(save){ SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{bannerSec:Number(v)}); saveSettingsPatch({notifyPrefs:{bannerSec:Number(v)}}); } }
+function _patchType(id,patch){ const np=SETTINGS.notifyPrefs||{dnd:false,bannerSec:4,types:{}}; const types=Object.assign({},np.types); types[id]=Object.assign({},types[id],patch); SETTINGS.notifyPrefs=Object.assign({},np,{types}); saveSettingsPatch({notifyPrefs:{types:{[id]:patch}}}); }
+function setTypeChannel(id,ch,v){ _patchType(id,{[ch]:v}); }
+function setTypeSound(id,sid){ _patchType(id,{soundId:sid}); if(sid!=='none')SOUNDS.playSound(sid); }
+function testNotifType(id){ const t=NOTIFY_TYPES[id]; notifyT(id,{title:'Test — '+(t?t.name:id),message:t?t.description:''}); }
+function sendTestNotif(){ notifyT('success',{title:'Test notification',message:'Fired through your current notification preferences.'}); }
+async function resetTypePrefs(id){ const np=SETTINGS.notifyPrefs||{}; const types=Object.assign({},np.types); delete types[id]; SETTINGS.notifyPrefs=Object.assign({},np,{types}); await saveSettingsPatch({notifyPrefs:{types:{[id]:{reset:true}}}}); renderSettings(); }
+async function resetAllTypePrefs(){ if(!await crsConfirm({title:'Reset all notification preferences?',body:'Every notification type returns to its default channels and sound.',confirmLabel:'Reset all',danger:false})) return; SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{types:{}}); await saveSettingsPatch({notifyPrefs:{resetAll:true}}); renderSettings(); }
 function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
-async function bubbleCheckNow(ep,label){ toast(label+' check running…'); try{ const r=await api('/api/bubble/'+ep,{method:'POST'});
-  const body=r.report?(r.clean?'Clean — 0 issues. Report: '+r.report:`${r.issues} issue line(s) — proposals in ${r.report}`)
-    :(r.found?`${r.found} new entr${r.found===1?'y':'ies'}${r.attention?` · ⚠ ${r.attention} may affect locked decisions`:''}`:'Nothing new since last check.');
-  notify({type:'bubble',level:(r.issues||r.attention)?'warning':'success',title:label+' check done',body,soundEvent:'task-complete'}); }
-  catch(e){ notify({type:'bubble',level:'error',title:label+' check failed',body:e.message}); } }
+// ---- Bubble sync truth UI (D4): spinner while running, TRUE outcome through
+// the registry pipe, per-source last-successful-sync stamps from state.json.
+const CHECK_META={
+  'forum-check':{type:'forum-new-topics',target:'brain/bubble/forum-digest.md',stamp:'forum'},
+  'relnotes-check':{type:'release-notes-new',target:'brain/bubble/release-notes.md',stamp:'relnotes'},
+  'issue-check':{type:'issue-report-new',target:null,stamp:'issues'},
+};
+async function loadSyncStatus(){ let s; try{ s=await api('/api/sync/status'); }catch{ return; }
+  const set=(id,lbl,v)=>{ const e=$(id); if(e) e.textContent=lbl+(v?('last successful sync '+fmtAgo(v)):'never synced'); };
+  set('syncStamp-forum','Forum: ',(s.forum||{}).lastSync); set('syncStamp-relnotes','Release notes: ',(s.relnotes||{}).lastSync); set('syncStamp-issues','Issue check: ',(s.issues||{}).lastSync); }
+async function bubbleCheckNow(ep,label,btn){
+  const meta=CHECK_META[ep]||{};
+  let orig; if(btn){ orig=btn.innerHTML; btn.disabled=true; btn.innerHTML='<span class="nspin"></span>Checking…'; }
+  try{ const r=await api('/api/bubble/'+ep,{method:'POST'});
+    if(r.report){                                   // issue check → report path is the target
+      if(r.clean) notifyT('success',{title:label+' clean',message:'0 issues. Report: '+r.report,target:r.report});
+      else notifyT('issue-report-new',{title:label+`: ${r.issues} issue line(s)`,message:'Proposals in '+r.report+' — read-only, nothing applied.',target:r.report});
+    } else if(r.found){
+      if(r.attention) notifyT('decision-attention',{title:label+`: ${r.attention} entr${r.attention===1?'y':'ies'} may affect locked decisions`,message:`${r.found} new entr${r.found===1?'y':'ies'} total — see `+meta.target,target:meta.target});
+      else notifyT(meta.type||'success',{title:label+`: ${r.found} new entr${r.found===1?'y':'ies'}`,message:'Appended to '+meta.target,target:meta.target});
+    } else notifyT('info',{title:label+' check complete',message:'Nothing new since last check.'});
+  }catch(e){ notifyT('sync-failed',{title:label+' check failed',message:e.message}); }
+  finally{ if(btn){ btn.disabled=false; btn.innerHTML=orig; } loadSyncStatus(); } }
 async function renderSettings(){
   const s=SETTINGS||await loadSettingsCache(); const n=s.notify||{};
   const nav=[['general','i-cog','General'],['appearance','i-sun','Appearance'],['notifications','i-bell','Notifications'],['sounds','i-volume','Sounds'],['connections','i-plug','Connections'],['about','i-file','About']];
@@ -4084,33 +4177,49 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Smart model routing</b><span>Auto-pick the cheapest capable model per task — Haiku/Sonnet for mechanical work, Opus for reasoning. Off = always use your selected model.</span></div><div class="mctl">${sw(s.autoRoute===true,"setPref('autoRoute',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Auto-track Buildprint → brain</b><span>After Buildprint changes the Bubble app, refresh the brain ledger automatically (checked ~every 20 min; only spends a turn on real changes).</span></div><div class="mctl">${sw(s.bpAutoTrack!==false,"setPref('bpAutoTrack',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Bubble platform watcher</b><span>Once a day, scan Bubble release-notes + forum for CRS-relevant changes and append a dated digest to the brain. Off by default.</span></div><div class="mctl">${sw(s.bubbleWatch===true,"setPref('bubbleWatch',this.checked)")}</div></div>
-      <div class="mrow"><div class="mlbl"><b>Bubble awareness — check now</b><span>Always-on daily watchers (no AI cost): new CRS-relevant forum topics → brain/bubble/forum-digest.md; new release entries → brain/bubble/release-notes.md with locked-decision cross-check.</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum')">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes')">Check releases</button></div></div>
-      <div class="mrow"><div class="mlbl"><b>Bubble issue check (read-only)</b><span>Runs buildprint sync + check on the test branch and writes a dated report with PROPOSED fixes to brain/bubble/issue-reports/ — never applies anything. Also runs daily.</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check')">Check issues</button></div></div>`;
+      <div class="mrow"><div class="mlbl"><b>Bubble awareness — check now</b><span>Always-on daily watchers (no AI cost): new CRS-relevant forum topics → brain/bubble/forum-digest.md; new release entries → brain/bubble/release-notes.md with locked-decision cross-check.</span><span class="sync-stamp" id="syncStamp-forum">…</span><span class="sync-stamp" id="syncStamp-relnotes">…</span></div>
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum',this)">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes',this)">Check releases</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Bubble issue check (read-only)</b><span>Runs buildprint sync + check on the test branch and writes a dated report with PROPOSED fixes to brain/bubble/issue-reports/ — never applies anything. Also runs daily.</span><span class="sync-stamp" id="syncStamp-issues">…</span></div>
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check',this)">Check issues</button></div></div>`;
   } else if(settingsTab==='appearance'){
     pane=`<div class="msec-title">Theme</div>
       <div class="mrow"><div class="mlbl"><b>Appearance</b><span>Switch between dark and light. Applies instantly across the app.</span></div>
       <div class="mctl"><div class="seg"><button class="${s.theme!=='light'?'on':''}" onclick="setTheme('dark')">${svg('i-moon')} Dark</button><button class="${s.theme==='light'?'on':''}" onclick="setTheme('light')">${svg('i-sun')} Light</button></div></div></div>`;
   } else if(settingsTab==='notifications'){
-    pane=`<div class="msec-title">In-app</div>
-      <div class="mrow"><div class="mlbl"><b>In-app notifications</b><span>Show toasts and collect events in the bell inbox.</span></div><div class="mctl">${sw(n.inApp!==false,"setNotifPref('inApp',this.checked)")}</div></div>
-      <div class="mrow"><div class="mlbl"><b>Sound</b><span>Play a sound when a notification arrives.</span></div><div class="mctl">${sw(n.sound!==false,"setNotifPref('sound',this.checked)")}</div></div>
-      <div class="mrow"><div class="mlbl"><b>Sounds</b><span>Pick per-event sounds, preview all 24, and set the volume in the Sounds tab.</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
+    // v2 (Phase 10): global DND + banner duration + per-TYPE channel matrix.
+    // Types/defaults come from notify-registry.js; overrides live in
+    // settings.notifyPrefs. §4 overline category headers, §20.2 switches.
+    const np=s.notifyPrefs||{dnd:false,bannerSec:4,types:{}};
+    const scats=['notif','done','warn','err','info'];
+    const opts=id=>`<option value="none"${id==='none'?' selected':''}>None</option>`+scats.map(c=>`<optgroup label="${SOUNDS_SYNTH.catLabel[c]}">${SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<option value="${x.id}"${id===x.id?' selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`).join('');
+    const swCh=(id,lbl,ch,on)=>`<div class="chctl"><span>${lbl}</span><label class="switch sm"><input type="checkbox" ${on?'checked':''} onchange="setTypeChannel('${id}','${ch}',this.checked)"><span class="sl"></span></label></div>`;
+    const typeRows=cat=>NOTIFY_ORDER.filter(id=>NOTIFY_TYPES[id].category===cat).map(id=>{
+      const t=NOTIFY_TYPES[id], p=notifPref(id);
+      return `<div class="mrow ntype"><div class="mlbl"><b>${esc(t.name)}</b><span>${esc(t.description)}</span></div>
+        <div class="mctl">${swCh(id,'Banner','banner',p.banner)}${swCh(id,'Sound','sound',p.sound)}${swCh(id,'Bell','bell',p.bell)}
+          <select class="sel" onchange="setTypeSound('${id}',this.value)">${opts(p.soundId)}</select>
+          <button class="mbtn2 tbtn28" onclick="testNotifType('${id}')">Test</button>
+          <button class="mbtn2 tbtn28" title="Reset this type to its defaults" onclick="resetTypePrefs('${id}')">↺</button></div></div>`;
+    }).join('');
+    pane=`<div class="msec-title">Global</div>
+      <div class="mrow"><div class="mlbl"><b>Do Not Disturb</b><span>Silences banners and sounds everywhere. The bell keeps collecting, so nothing is lost.</span></div><div class="mctl">${sw(!!np.dnd,"setDnd(this.checked)")}</div></div>
+      <div class="mrow"><div class="mlbl"><b>Banner duration</b><span>How long toast banners stay on screen.</span></div>
+        <div class="mctl"><input type="range" min="2" max="10" step="1" value="${np.bannerSec||4}" style="width:160px" oninput="setBannerSec(this.value,false)" onchange="setBannerSec(this.value,true)"><span class="dim" id="bannerSecLbl" style="min-width:28px;text-align:right">${np.bannerSec||4}s</span></div></div>
+      <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 24-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Test</b><span>Fire a real notification through your current preferences.</span></div><div class="mctl"><button class="mbtn2" onclick="sendTestNotif()">Send test notification</button></div></div>
+      ${NOTIFY_CATEGORIES.map(c=>`<div class="msec-title" style="margin-top:16px">${esc(c.name)}</div>${typeRows(c.id)}`).join('')}
+      <div class="mrow"><div class="mlbl"><b>Reset all</b><span>Return every notification type to its default channels and sound.</span></div><div class="mctl"><button class="mbtn2" onclick="resetAllTypePrefs()">Reset all</button></div></div>
       <div class="msec-title" style="margin-top:16px">Email</div>
       <div class="mrow"><div class="mlbl"><b>Email notifications</b><span>Also send notifications to your email (best-effort — needs a local mail relay / sendmail).</span></div><div class="mctl">${sw(!!n.email,"setNotifPref('email',this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Email address</b><span>Where to send them.</span></div><div class="mctl"><input class="tinput" id="setEmail" placeholder="you@example.com" value="${esc(n.emailTo||'')}"><button class="mbtn2 primary" onclick="saveEmail()">Save</button></div></div>`;
   } else if(settingsTab==='sounds'){
     const snd=s.sounds||{volume:80,events:Object.assign({},SOUNDS.defaults)};
-    const EV_LBL=[['new-notification','New notification','A notification arrives in the bell'],['task-complete','Task complete','A chat/agent run finishes'],['warning','Warning','Something needs attention'],['error','Error','Something failed'],['process-start','Process start','A long run kicks off'],['connection-lost','Connection lost','Internet or server went down'],['connection-restored','Connection restored','Back online']];
     const cats=['notif','done','warn','err','info'];
-    const opts=id=>`<option value="none"${id==='none'?' selected':''}>None</option>`+cats.map(c=>`<optgroup label="${SOUNDS_SYNTH.catLabel[c]}">${SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<option value="${x.id}"${id===x.id?' selected':''}>${esc(x.name)}</option>`).join('')}</optgroup>`).join('');
     pane=`<div class="msec-title">Volume</div>
       <div class="mrow"><div class="mlbl"><b>Master volume</b><span>Applies to every sound. Release the slider to save + preview.</span></div>
         <div class="mctl"><input type="range" min="0" max="100" value="${snd.volume!=null?snd.volume:80}" style="width:160px" oninput="setSoundVolume(this.value,false)" onchange="setSoundVolume(this.value,true)"><span class="dim" style="min-width:32px;text-align:right">${snd.volume!=null?snd.volume:80}</span></div></div>
-      <div class="msec-title" style="margin-top:16px">Event sounds</div>
-      ${EV_LBL.map(([ev,lbl,d])=>`<div class="mrow"><div class="mlbl"><b>${lbl}</b><span>${d}</span></div><div class="mctl"><select class="sel" onchange="setSoundEvent('${ev}',this.value)">${opts((snd.events||{})[ev]||SOUNDS.defaults[ev])}</select><button class="mbtn2" onclick="SOUNDS.playEvent('${ev}')">${svg('i-volume','sm')} Test</button></div></div>`).join('')}
+      <div class="mrow"><div class="mlbl"><b>Per-type sounds</b><span>Sound assignment moved — each notification type picks its sound in the Notifications tab.</span></div>
+        <div class="mctl"><button class="mbtn2" onclick="setSettingsTab('notifications')">${svg('i-bell','sm')} Open Notifications</button></div></div>
       <div class="msec-title" style="margin-top:16px">Sound files</div>
       <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 24 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
       <div class="msec-title" style="margin-top:16px">Library — all 24</div>
@@ -4137,6 +4246,7 @@ async function renderSettings(){
     <div class="modal-body"><div class="modal-nav">${nav.map(([k,ic,l])=>`<button class="${k===settingsTab?'on':''}" onclick="setSettingsTab('${k}')">${svg(ic)} ${l}</button>`).join('')}</div>
     <div class="modal-pane">${pane}</div></div>`;
   if(settingsTab==='connections') refreshConnStatus();
+  if(settingsTab==='general') loadSyncStatus();
 }
 async function refreshConnStatus(){
   try{ const a=await api('/api/auth/status'); const el=$('connClaude'),sub=$('connClaudeSub'),btn=$('connClaudeBtn'); if(el){ if(a.loggedIn){ el.textContent='Connected'; el.className='mstat ok'; if(sub)sub.textContent=`${a.email||'signed in'} · ${a.subscriptionType||a.authMethod||''}`; if(btn)btn.textContent='Sign out'; } else { el.textContent='Not connected'; el.className='mstat off'; if(sub)sub.textContent='Sign in to Claude to use the brain.'; if(btn)btn.textContent='Sign in'; } } }catch{}
@@ -4144,12 +4254,12 @@ async function refreshConnStatus(){
   try{ const sm=await api('/api/connections/smtp'); const el=$('connSmtp'); if(el){ el.textContent=sm.configured?'Configured':'Not set'; el.className='mstat '+(sm.configured?'ok':'off'); }
     if($('smtpHost')){ $('smtpHost').value=sm.host||''; $('smtpPort').value=sm.port||''; $('smtpUser').value=sm.user||''; $('smtpFrom').value=sm.from||''; if(sm.configured&&$('smtpPass')) $('smtpPass').placeholder='•••••••• (saved — leave blank to keep)'; } }catch{}
 }
-function connClaudeAction(){ const btn=$('connClaudeBtn'); if(btn&&/out/i.test(btn.textContent)){ api('/api/auth/logout',{method:'POST'}).then(()=>{ notify({type:'connection',level:'warning',title:'Signed out of Claude'}); refreshConnStatus(); }); } else { api('/api/auth/login',{method:'POST'}); toast('Opening Claude sign-in…'); } }
+function connClaudeAction(){ const btn=$('connClaudeBtn'); if(btn&&/out/i.test(btn.textContent)){ api('/api/auth/logout',{method:'POST'}).then(()=>{ notifyT('warning',{title:'Signed out of Claude'}); refreshConnStatus(); }); } else { api('/api/auth/login',{method:'POST'}); toast('Opening Claude sign-in…'); } }
 async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.value||'').trim(); if(!tok)return toast('Paste your Buildprint token first'); toast('Linking Buildprint…');
-  try{ const r=await api('/api/connections/buildprint-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})}); if(r&&r.ok){ notify({type:'connection',level:'success',title:'Buildprint linked'}); if(inp)inp.value=''; refreshConnStatus(); } else notify({type:'connection',level:'error',title:'Buildprint link failed',body:(r&&r.error)||''}); }
-  catch(e){ notify({type:'connection',level:'error',title:'Buildprint link failed',body:e.message}); } }
+  try{ const r=await api('/api/connections/buildprint-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})}); if(r&&r.ok){ notifyT('success',{title:'Buildprint linked',banner:true,bell:false}); if(inp)inp.value=''; refreshConnStatus(); } else notifyT('error',{title:'Buildprint link failed',message:(r&&r.error)||''}); }
+  catch(e){ notifyT('error',{title:'Buildprint link failed',message:e.message}); } }
 async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),port:($('smtpPort').value||'').trim(),user:($('smtpUser').value||'').trim(),pass:($('smtpPass').value||''),from:($('smtpFrom').value||'').trim()};
-  try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notify({type:'connection',level:'success',title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
+  try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notifyT('success',{title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
 

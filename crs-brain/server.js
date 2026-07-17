@@ -270,6 +270,16 @@ const DEFAULT_SETTINGS = {
   bpAutoTrack: true,                          // auto-track Buildprint changes into the brain
   notify: { inApp: true, sound: true, email: false, emailTo: '' },
   sounds: { volume: 80, events: { ...DEFAULT_SOUND_EVENTS } },
+  // v2 notification prefs (Phase 10): DND master, banner duration, per-type
+  // channel overrides { <typeId>: { banner, sound, bell, soundId } }.
+  // Type ids + channel defaults live in public/notify-registry.js.
+  notifyPrefs: { dnd: false, bannerSec: 4, types: {} },
+};
+// Legacy per-EVENT sound map (settings.sounds.events) → v2 per-TYPE soundId.
+// process-start has no matching v2 type and is not migrated.
+const EVENT_TO_TYPE = {
+  'new-notification': 'info', 'task-complete': 'task-complete', 'warning': 'warning',
+  'error': 'error', 'connection-lost': 'connection-lost', 'connection-restored': 'connection-restored',
 };
 // Old 5-sound system → nearest new default (one-time migration of notify.soundName).
 const OLD_SOUND_MAP = { ping: 's01', chime: 's03', pop: 's16', alert: 's19', blip: 's13', none: 'none' };
@@ -286,6 +296,21 @@ function loadSettings() {
     delete s.notify.soundName;
     try { saveSettings(s); } catch {}
   }
+  // v2 notification prefs: ensure shape + one-time migration of the old 7-event
+  // sound assignments onto the matching type's soundId (only user-changed ones —
+  // registry defaults already cover the rest). sounds.volume stays where it is.
+  if (!s.notifyPrefs || typeof s.notifyPrefs !== 'object') s.notifyPrefs = { dnd: false, bannerSec: 4, types: {} };
+  if (typeof s.notifyPrefs.dnd !== 'boolean') s.notifyPrefs.dnd = false;
+  if (!(Number(s.notifyPrefs.bannerSec) >= 2 && Number(s.notifyPrefs.bannerSec) <= 10)) s.notifyPrefs.bannerSec = 4;
+  if (!s.notifyPrefs.types || typeof s.notifyPrefs.types !== 'object') s.notifyPrefs.types = {};
+  if (!s.notifyPrefs.migratedEvents) {
+    for (const [ev, ty] of Object.entries(EVENT_TO_TYPE)) {
+      const v = s.sounds.events[ev];
+      if (v && v !== DEFAULT_SOUND_EVENTS[ev]) s.notifyPrefs.types[ty] = { ...(s.notifyPrefs.types[ty] || {}), soundId: v };
+    }
+    s.notifyPrefs.migratedEvents = true;
+    try { saveSettings(s); } catch {}
+  }
   return s;
 }
 function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2)); }
@@ -298,23 +323,37 @@ const SOUNDS_DIR = path.join(DATA_DIR, 'sounds');   // rendered 16-bit PCM WAVs 
 const NOTIF_FILE = path.join(DATA_DIR, 'notifications.jsonl');
 const NOTIF_READ_FILE = path.join(DATA_DIR, 'notifications-read.json');
 const NOTIF_LEVELS = ['info', 'success', 'warning', 'error'];
-function readNotifications(limit = 100) {
+const NOTIF_CAP = 200;   // FIFO cap on the jsonl store — oldest entries trimmed on append
+function readNotifications(limit = NOTIF_CAP) {
   let lines = [];
   try { lines = fs.readFileSync(NOTIF_FILE, 'utf8').trim().split('\n').filter(Boolean); } catch { return []; }
   const out = [];
   for (const l of lines.slice(-limit)) { try { out.push(JSON.parse(l)); } catch {} }
   return out.reverse();   // newest first
 }
-function notifReadAt() { try { return JSON.parse(fs.readFileSync(NOTIF_READ_FILE, 'utf8')).at || 0; } catch { return 0; } }
+// Read state: { at } timestamp (mark-all-read) + { ids } set (per-row read).
+function notifReadState() {
+  try { const j = JSON.parse(fs.readFileSync(NOTIF_READ_FILE, 'utf8')); return { at: j.at || 0, ids: Array.isArray(j.ids) ? j.ids : [] }; }
+  catch { return { at: 0, ids: [] }; }
+}
+function notifReadAt() { return notifReadState().at; }
 function addNotification(n) {
   const rec = {
     id: crypto.randomUUID().slice(0, 8), ts: nowIso(),
+    // `type` is a registry id from public/notify-registry.js (legacy free-form
+    // strings still accepted — the client maps them via NOTIFY_LEGACY).
     type: String((n && n.type) || 'general').slice(0, 40),
     level: NOTIF_LEVELS.includes(n && n.level) ? n.level : 'info',
     title: String((n && n.title) || '').slice(0, 200),
     body: String((n && n.body) || '').slice(0, 1000),
+    ...(n && n.target ? { target: String(n.target).slice(0, 300) } : {}),
   };
-  try { fs.appendFileSync(NOTIF_FILE, JSON.stringify(rec) + '\n'); } catch {}
+  try {
+    fs.appendFileSync(NOTIF_FILE, JSON.stringify(rec) + '\n');
+    // Enforce the FIFO cap: keep only the newest NOTIF_CAP lines.
+    const lines = fs.readFileSync(NOTIF_FILE, 'utf8').trim().split('\n').filter(Boolean);
+    if (lines.length > NOTIF_CAP) fs.writeFileSync(NOTIF_FILE, lines.slice(-NOTIF_CAP).join('\n') + '\n');
+  } catch {}
   maybeEmailNotification(rec);
   return rec;
 }
@@ -2087,6 +2126,32 @@ const server = http.createServer(async (req, res) => {
                 : cur.sounds.events,
             }
           : cur.sounds,
+        // v2 notification prefs: dnd + bannerSec (2–10s) + per-type channel
+        // overrides. Per-type patches deep-merge; { reset:true } drops a type's
+        // overrides; { resetAll:true } drops them all. Ids/sounds are validated.
+        notifyPrefs: body.notifyPrefs && typeof body.notifyPrefs === 'object'
+          ? (() => {
+              const cur0 = cur.notifyPrefs || { dnd: false, bannerSec: 4, types: {} };
+              const bp = body.notifyPrefs;
+              const next0 = {
+                dnd: typeof bp.dnd === 'boolean' ? bp.dnd : !!cur0.dnd,
+                bannerSec: bp.bannerSec != null ? Math.max(2, Math.min(10, Number(bp.bannerSec) || 4)) : (cur0.bannerSec || 4),
+                migratedEvents: cur0.migratedEvents === true,
+                types: bp.resetAll === true ? {} : { ...(cur0.types || {}) },
+              };
+              if (bp.resetAll !== true && bp.types && typeof bp.types === 'object') {
+                for (const [id, patch] of Object.entries(bp.types)) {
+                  if (!/^[a-z0-9-]{1,40}$/.test(id) || !patch || typeof patch !== 'object') continue;
+                  if (patch.reset === true) { delete next0.types[id]; continue; }
+                  const t = { ...(next0.types[id] || {}) };
+                  for (const ch of ['banner', 'sound', 'bell']) if (typeof patch[ch] === 'boolean') t[ch] = patch[ch];
+                  if (patch.soundId != null && (patch.soundId === 'none' || /^s\d{2}$/.test(String(patch.soundId)))) t.soundId = String(patch.soundId);
+                  if (Object.keys(t).length) next0.types[id] = t; else delete next0.types[id];
+                }
+              }
+              return next0;
+            })()
+          : (cur.notifyPrefs || { dnd: false, bannerSec: 4, types: {} }),
       };
       saveSettings(next);
       return send(res, 200, next);
@@ -2119,22 +2184,38 @@ const server = http.createServer(async (req, res) => {
 
     // ---- notifications (bell + inbox) ----
     if (p === '/api/notifications' && req.method === 'GET') {
-      const items = readNotifications(100);
-      const readAt = notifReadAt();
-      const unread = items.filter((n) => new Date(n.ts).getTime() > readAt).length;
-      return send(res, 200, { items, unread, readAt });
+      const items = readNotifications(NOTIF_CAP);
+      const read = notifReadState();
+      const unread = items.filter((n) => new Date(n.ts).getTime() > read.at && !read.ids.includes(n.id)).length;
+      return send(res, 200, { items, unread, readAt: read.at, readIds: read.ids });
     }
     if (p === '/api/notifications' && req.method === 'POST') {
       const body = await readJsonBody(req).catch(() => ({}));
       return send(res, 200, addNotification(body || {}));
     }
     if (p === '/api/notifications/read' && req.method === 'POST') {
-      try { fs.writeFileSync(NOTIF_READ_FILE, JSON.stringify({ at: Date.now() })); } catch {}
-      return send(res, 200, { ok: true });
+      // { id } marks one row read; no id = mark-all (timestamp reset, ids cleared).
+      const body = await readJsonBody(req).catch(() => ({}));
+      const cur = notifReadState();
+      const next = body && body.id
+        ? { at: cur.at, ids: [...new Set([...cur.ids, String(body.id).slice(0, 16)])].slice(-2 * NOTIF_CAP) }
+        : { at: Date.now(), ids: [] };
+      try { fs.writeFileSync(NOTIF_READ_FILE, JSON.stringify(next)); } catch {}
+      return send(res, 200, { ok: true, ...next });
     }
     if (p === '/api/notifications/clear' && req.method === 'POST') {
       try { fs.writeFileSync(NOTIF_FILE, ''); } catch {}
       return send(res, 200, { ok: true });
+    }
+    // ---- sync truth (D4): per-source last-successful-sync stamps from state.json.
+    // Stamps are written only after a successful run, so they ARE last-success.
+    if (p === '/api/sync/status' && req.method === 'GET') {
+      const st = loadState();
+      return send(res, 200, {
+        forum: { lastSync: st.forumCheckedAt || 0 },
+        relnotes: { lastSync: st.relnotesCheckedAt || 0 },
+        issues: { lastSync: st.issueCheckedAt || 0, lastCount: st.issueLastCount != null ? st.issueLastCount : null },
+      });
     }
 
     // ---- connections: link Buildprint CLI with the user's token ----
@@ -2155,7 +2236,7 @@ const server = http.createServer(async (req, res) => {
       child.on('error', (e) => { if (done) return; done = true; send(res, 502, { error: 'buildprint not found on PATH: ' + e.message }); });
       child.on('close', (code) => {
         if (done) return; done = true;
-        if (code === 0) { addNotification({ type: 'connection', level: 'success', title: 'Buildprint linked' }); send(res, 200, { ok: true }); }
+        if (code === 0) { addNotification({ type: 'success', level: 'success', title: 'Buildprint linked' }); send(res, 200, { ok: true }); }
         else send(res, 502, { error: (out.trim().slice(-300)) || ('exit ' + code) });
       });
       return;
@@ -2770,6 +2851,7 @@ async function runForumDigest() {
     const lines = fresh.map((t) => `- **${String(t.created_at || '').slice(0, 10)}** [${t.title}](${topicUrl(t)})${t.excerpt ? ' — ' + cleanExcerpt(t.excerpt) : ''}`);
     appendDigest(FORUM_DIGEST_FILE, 'Bubble forum digest', `## ${nowIso().slice(0, 10)} — forum check${first ? ' (first run — baseline)' : ''}\n${lines.join('\n')}`);
     autoCommit('bubble forum digest');
+    addNotification({ type: 'forum-new-topics', level: 'info', title: `Bubble forum: ${fresh.length} new CRS-relevant topic${fresh.length === 1 ? '' : 's'}`, body: fresh.slice(0, 3).map((t) => t.title).join(' · ').slice(0, 900), target: 'brain/bubble/forum-digest.md' });
   }
   return { ok: true, found: fresh.length, scanned: topics.length };
 }
@@ -2799,8 +2881,8 @@ async function runRelnotesCheck() {
     const warn = attention.length ? `**⚠ needs attention — may affect locked decisions:**\n${attention.map(line).join('\n')}\n\n` : '';
     appendDigest(RELNOTES_FILE, 'Bubble release notes', `## ${nowIso().slice(0, 10)} — release-notes check${first ? ' (first run — baseline)' : ''}\n${warn}${fresh.map(line).join('\n')}`);
     autoCommit('bubble release-notes digest');
-    if (attention.length) addNotification({ type: 'bubble', level: 'warning', title: 'Bubble change may affect locked decisions', body: attention.map((t) => t.title).join(' · ').slice(0, 900) });
-    else addNotification({ type: 'bubble', level: 'info', title: `Bubble release notes: ${fresh.length} new entr${fresh.length === 1 ? 'y' : 'ies'}`, body: fresh.slice(0, 3).map((t) => t.title).join(' · ').slice(0, 900) });
+    if (attention.length) addNotification({ type: 'decision-attention', level: 'warning', title: 'Bubble change may affect locked decisions', body: attention.map((t) => t.title).join(' · ').slice(0, 900), target: 'brain/bubble/release-notes.md' });
+    else addNotification({ type: 'release-notes-new', level: 'info', title: `Bubble release notes: ${fresh.length} new entr${fresh.length === 1 ? 'y' : 'ies'}`, body: fresh.slice(0, 3).map((t) => t.title).join(' · ').slice(0, 900), target: 'brain/bubble/release-notes.md' });
   }
   return { ok: true, found: fresh.length, attention: attention.length };
 }
@@ -2813,8 +2895,8 @@ function maybeForumCheck() {
   if (Date.now() - (st.relnotesCheckedAt || 0) < BUBBLE_DAY && (st.forumCheckedAt || 0) > 0) { /* fall through per-watcher */ }
   forumChecking = true;
   const jobs = [];
-  if (Date.now() - (st.forumCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runForumDigest().catch((e) => console.log('  ⟳ forum digest failed:', e.message)));
-  if (Date.now() - (st.relnotesCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runRelnotesCheck().catch((e) => console.log('  ⟳ release-notes check failed:', e.message)));
+  if (Date.now() - (st.forumCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runForumDigest().catch((e) => { console.log('  ⟳ forum digest failed:', e.message); addNotification({ type: 'sync-failed', level: 'error', title: 'Forum sync failed', body: String(e.message).slice(0, 300) }); }));
+  if (Date.now() - (st.relnotesCheckedAt || 0) >= BUBBLE_DAY) jobs.push(runRelnotesCheck().catch((e) => { console.log('  ⟳ release-notes check failed:', e.message); addNotification({ type: 'sync-failed', level: 'error', title: 'Release-notes sync failed', body: String(e.message).slice(0, 300) }); }));
   Promise.all(jobs).finally(() => { forumChecking = false; });
 }
 setTimeout(maybeForumCheck, 60 * 1000);            // on server start (1 min in)
@@ -2884,7 +2966,7 @@ async function runIssueCheck() {
   const prev = loadState().issueLastCount;
   saveState({ issueCheckedAt: Date.now(), issueLastCount: clean ? 0 : issueLines.length });
   autoCommit('bubble issue report (read-only)');
-  if (!clean) addNotification({ type: 'bubble', level: 'warning', title: `Bubble check: ${issueLines.length} issue line(s)${prev != null && issueLines.length !== prev ? ` (was ${prev})` : ''}`, body: `Read-only report saved to brain/bubble/issue-reports/${date}.md — proposals only, nothing applied.` });
+  if (!clean) addNotification({ type: 'issue-report-new', level: 'warning', title: `Bubble check: ${issueLines.length} issue line(s)${prev != null && issueLines.length !== prev ? ` (was ${prev})` : ''}`, body: `Read-only report saved to brain/bubble/issue-reports/${date}.md — proposals only, nothing applied.`, target: `brain/bubble/issue-reports/${date}.md` });
   return { ok: true, clean, issues: clean ? 0 : issueLines.length, report: 'brain/bubble/issue-reports/' + date + '.md' };
 }
 function maybeIssueCheck() {
@@ -2895,7 +2977,7 @@ function maybeIssueCheck() {
   console.log('  ⟳ Bubble issue checker: read-only sync + check on the test branch…');
   runIssueCheck()
     .then((r) => console.log(`  ⟳ Issue report written (${r.clean ? 'clean' : r.issues + ' issue lines'}).`))
-    .catch((e) => console.log('  ⟳ Issue check failed:', e.message))
+    .catch((e) => { console.log('  ⟳ Issue check failed:', e.message); addNotification({ type: 'sync-failed', level: 'error', title: 'Issue check failed', body: String(e.message).slice(0, 300) }); })
     .finally(() => { issueChecking = false; });
 }
 setTimeout(maybeIssueCheck, 240 * 1000);           // ~4 min after boot
@@ -2954,18 +3036,18 @@ async function runQueue() {
         }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT });
         t.sessionId = r.sessionId;
         t.status = 'done'; t.finished = nowIso(); t.result = (r.text || '').slice(0, 4000); qlog(t, 'done'); saveQueue(q);
-        addNotification({ type: 'queue', level: 'success', title: `Queue task done: ${t.title}` });
+        addNotification({ type: 'task-complete', level: 'success', title: `Queue task done: ${t.title}`, target: '/queue.html' });
       } catch (e) {
         if (looksLikeLimit(e.message)) {
           t.status = 'blocked-limit'; qlog(t, 'usage limit: ' + String(e.message).slice(0, 150));
           q.resumeAt = (limitResetMs() || (Date.now() + 30 * 60 * 1000)) + 2 * 60 * 1000;   // reset + 2 min (30-min fallback if reset unknown)
           saveQueue(q);
-          addNotification({ type: 'queue', level: 'warning', title: 'Queue paused — usage limit', body: `Auto-resumes at ${new Date(q.resumeAt).toLocaleString()}` });
+          addNotification({ type: 'queue-blocked-limit', level: 'warning', title: 'Queue paused — usage limit', body: `Auto-resumes at ${new Date(q.resumeAt).toLocaleString()}`, target: '/queue.html' });
           scheduleQueueResume();
           break;
         }
         t.status = 'failed'; t.finished = nowIso(); qlog(t, 'failed: ' + String(e.message).slice(0, 200)); saveQueue(q);
-        addNotification({ type: 'queue', level: 'error', title: `Queue task failed: ${t.title}`, body: String(e.message).slice(0, 200) });
+        addNotification({ type: 'task-failed', level: 'error', title: `Queue task failed: ${t.title}`, body: String(e.message).slice(0, 200), target: '/queue.html' });
         // no auto-retry — Vlad re-queues failures deliberately
       }
     }
@@ -2983,6 +3065,7 @@ function scheduleQueueResume() {
     q2.tasks.forEach((t) => { if (t.status === 'blocked-limit') { t.status = 'queued'; qlog(t, 'auto-resume after limit reset'); } });
     saveQueue(q2);
     console.log('  ⟳ Task queue: usage window reset — resuming.');
+    addNotification({ type: 'queue-resumed', level: 'info', title: 'Task queue resumed', body: 'Usage window reset — continuing queued tasks.', target: '/queue.html' });
     runQueue();
   }, delay);
   console.log(`  ⟳ Task queue: paused by usage limit — resume armed for ${new Date(q.resumeAt).toLocaleString()}.`);
