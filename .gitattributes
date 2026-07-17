@@ -1,0 +1,45 @@
+# Repo-wide line-ending safety (mirrors crs-brain/.gitattributes for the whole tree).
+# Without this, git core.autocrlf=true rewrites the root ledger (decisions.md,
+# brain/**/*.md, CLAUDE.md) to CRLF on a Windows checkout. That breaks two things:
+#   - macOS launchers (*.command/*.sh) fail with "bad interpreter: /bin/bash^M"
+#   - tree.html's Executive md renderer degraded on $-anchored heading regex
+#     (now CRLF-tolerant, but the source files should stay LF regardless)
+# Lock every text type explicitly.
+
+# Default: let git normalize text, but never guess for the files below.
+*                text=auto
+
+# Unix scripts MUST stay LF — executed by /bin/bash on macOS.
+*.command       text eol=lf
+*.sh            text eol=lf
+
+# App + doc source stays LF on every platform (keeps diffs clean, parsers happy).
+*.js            text eol=lf
+*.mjs           text eol=lf
+*.html          text eol=lf
+*.css           text eol=lf
+*.json          text eol=lf
+*.jsonl         text eol=lf
+*.md            text eol=lf
+*.py            text eol=lf
+*.txt           text eol=lf
+
+# Windows batch files stay CRLF (cmd.exe convention).
+*.bat           text eol=crlf
+*.cmd           text eol=crlf
+
+# Native module payloads and archives are binary — git must never touch them.
+*.node          binary
+*.dll           binary
+*.exe           binary
+*.dylib         binary
+*.so            binary
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.pdf           binary
+*.xlsx          binary
+*.wav           binary
+*.zip           binary

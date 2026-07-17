@@ -288,7 +288,7 @@ function inlineMd(s){
     .replace(/⚠️?\s*VERIFY/g,'<span class="vfy">⚠ VERIFY</span>');
 }
 function mdToHtml(src){
-  const lines=String(src||'').split('\n');
+  const lines=String(src||'').replace(/\r/g,'').split('\n'); // strip CRLF so $-anchored heading regex survives a CRLF checkout
   const out=[]; let i=0, para=[], firstHead=true;
   const flush=()=>{ if(para.length){ out.push('<p>'+inlineMd(para.join(' '))+'</p>'); para=[]; } };
   const isSep=l=>/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(l)&&l.indexOf('-')>=0;

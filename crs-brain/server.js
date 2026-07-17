@@ -813,9 +813,18 @@ function bpStepPrompt(packet, step) {
   ].join('\n');
 }
 
+// Windows: `buildprint` resolves to a .cmd shim — spawn without a shell can't
+// launch it (ENOENT). Wrap in cmd.exe /c, same fix as spawnClaude / the link
+// endpoint. Node still quotes the args safely.
+function spawnBuildprint(args, opts = {}) {
+  if (process.platform === 'win32') {
+    return spawn('cmd.exe', ['/c', 'buildprint', ...args], { windowsHide: true, ...opts });
+  }
+  return spawn(resolveBin('buildprint') || 'buildprint', args, { windowsHide: true, ...opts });
+}
 function runBuildprint(args, ws) {
   return new Promise((resolve) => {
-    const c = spawn('buildprint', args, { cwd: ws.dir });
+    const c = spawnBuildprint(args, { cwd: ws.dir });
     let out = '', err = '';
     c.stdout.on('data', (d) => (out += d)); c.stderr.on('data', (d) => (err += d));
     c.on('error', (e) => resolve({ ok: false, out: '', err: e.message }));
@@ -835,18 +844,22 @@ function bpGit(ws, args) {
 async function bpSyncDiff() {
   const ws = findBpWorkspace();
   if (!ws) return { error: 'workspace not found' };
-  await runBuildprint(['sync'], ws);   // pull latest Bubble snapshot into the worktree
+  const sync = await runBuildprint(['sync'], ws);   // pull latest Bubble snapshot into the worktree
+  // If the CLI couldn't run (e.g. not linked / ENOENT), the git diff below would
+  // compare a STALE snapshot and silently report "no changes" — worse than an
+  // error. Surface it so callers don't trust a stale diff.
+  const syncErr = !sync.ok ? (sync.err || 'buildprint sync failed').split('\n')[0] : null;
   const head = (await bpGit(ws, ['rev-parse', 'HEAD'])).out;
   if (!head) return { error: 'could not read workspace HEAD' };
   let base = null;
   try { base = fs.readFileSync(BP_TRACK_FILE, 'utf8').trim(); } catch {}
   if (!base || !/^[0-9a-f]{7,}$/.test(base)) {
     fs.writeFileSync(BP_TRACK_FILE, head);
-    return { ok: true, first: true, ws, head };
+    return { ok: true, first: true, ws, head, syncErr };
   }
   const ns = (await bpGit(ws, ['diff', '--name-status', base, head])).out;
   const changed = ns ? ns.split('\n').filter(Boolean) : [];
-  return { ok: true, first: false, ws, base, head, changed };
+  return { ok: true, first: false, ws, base, head, changed, syncErr };
 }
 
 // ---- Bubble app state (parsed from the cloned Buildprint workspace) ---------
@@ -1607,7 +1620,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readJsonBody(req, 35 * 1024 * 1024);
       const rel = String((body && body.path) || '');
       if (!rel) return send(res, 400, { error: 'missing path' });
-      if (rel.split('/').some((s) => IGNORE_DIRS.has(s))) return send(res, 403, { error: 'blocked directory' });
+      if (rel.split(/[\\/]/).some((s) => IGNORE_DIRS.has(s))) return send(res, 403, { error: 'blocked directory' });
       const abs = safeRepoPath(rel);
       let buf;
       try { buf = Buffer.from(String((body && body.dataBase64) || ''), 'base64'); } catch { return send(res, 400, { error: 'bad data' }); }
@@ -2703,9 +2716,20 @@ function maybeSyncManuals() {
   if (Date.now() - (s.manualsCheckedAt || 0) < MANUALS_WEEK) return;
   const script = path.join(REPO_ROOT, 'scripts', 'update-manuals.sh');
   if (!fs.existsSync(script)) return;
+  // Windows has no `bash` on PATH — the script needs Git Bash. Resolve it
+  // explicitly; if it's absent, back off a week rather than retrying hourly.
+  let bashBin = 'bash';
+  if (process.platform === 'win32') {
+    const gitBash = [
+      'C:\\Program Files\\Git\\bin\\bash.exe',
+      'C:\\Program Files (x86)\\Git\\bin\\bash.exe',
+    ].find((p) => fs.existsSync(p));
+    if (!gitBash) { saveSettings({ ...s, manualsCheckedAt: Date.now() }); return; }
+    bashBin = gitBash;
+  }
   manualsRunning = true;
   console.log('  ⟳ Checking Bubble/Buildprint manuals for upstream updates…');
-  const child = spawn('bash', [script], { cwd: REPO_ROOT });
+  const child = spawn(bashBin, [script], { cwd: REPO_ROOT, windowsHide: true });
   let out = '';
   child.stdout.on('data', (d) => (out += d));
   child.stderr.on('data', (d) => (out += d));
