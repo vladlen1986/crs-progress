@@ -70,7 +70,10 @@
   .side-rail button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .side-rail .rsep{width:22px;height:1px;background:var(--line);margin:5px 0;flex:0 0 auto}
   .side-rail .rspring{flex:1;min-height:6px}
-  .col-collapse{margin-left:auto;background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;transition:var(--transition);padding:0}
+  /* collapse toggle: absolutely pinned right so it doesn't shift the logo's centering;
+     invisible until the sidebar is hovered OR the button is keyboard-focused (a11y) */
+  .col-collapse{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0;opacity:0;transition:opacity .16s ease-in-out,color var(--transition),border-color var(--transition),background var(--transition)}
+  .col.left:hover .col-collapse,.col-collapse:focus-visible{opacity:1}
   .col-collapse:hover{color:var(--primary);border-color:var(--line2);background:var(--panel2)}
   .col-collapse svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
   .expand-handle{display:none;position:absolute;top:14px;z-index:20;background:var(--panel2);border:1px solid var(--line);color:var(--muted);width:24px;height:32px;border-radius:8px;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition)}
@@ -80,7 +83,7 @@
   .expand-handle.right{right:10px}
 
   /* brand */
-  .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:11px}
+  .brand{position:relative;padding:16px 16px 12px;display:flex;align-items:center;justify-content:center;gap:11px}
   .wordwrap{position:relative;display:inline-block;flex:0 0 auto}
   .brand .wordmark{width:110px;height:35px;color:var(--primary);opacity:.72;display:block}
   .brainwrap{position:relative;display:inline-block;width:15px;height:15px}
@@ -198,6 +201,24 @@
   .upop-head .hx{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;border-radius:6px;transition:var(--transition)}
   .upop-head .hx:hover{color:var(--primary);background:var(--panel2)}
   .upop .usage{padding:14px 15px}
+  /* account chip (header): connection dot + usage % only; detail lives in the popover */
+  .uchip.acct{gap:7px}
+  .acct-dot{width:8px;height:8px;border-radius:50%;background:var(--good);flex:0 0 8px;display:inline-block}
+  .acct-dot.warn{background:var(--warn)} .acct-dot.err{background:var(--danger)}
+  /* account popover header block (§6 dropdown) */
+  .apop{border-color:var(--line);box-shadow:var(--shadow-dropdown)}
+  .apop-acct{padding:13px 15px 12px;border-bottom:1px solid var(--line)}
+  .apop-acct .apop-email{color:var(--primary);font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .apop-acct .apop-plan{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .apop-acct .apop-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;color:var(--secondary)}
+  .apop-acct .apop-row .apop-v{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
+  .apop-acct .apop-reset{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:6px}
+  .apop-acct .apop-out{display:flex;align-items:center;gap:8px;width:100%;margin-top:11px;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px;cursor:pointer;transition:var(--transition)}
+  .apop-acct .apop-out:hover{background:rgba(239,68,68,.1);border-color:var(--danger);color:var(--danger)}
+  .apop-acct .apop-out svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9}
+  .apop-acct .apop-connect{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;background:var(--accent);border:none;color:var(--white);border-radius:8px;padding:9px 11px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;transition:var(--transition)}
+  .apop-acct .apop-connect:hover{background:var(--accent-hover)}
+  .apop-acct .apop-connect svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9}
   /* composer is chat-only now — hidden on dashboard / files / map / bubble */
   .col.center.no-composer .composer-wrap{display:none}
 
@@ -616,7 +637,7 @@
   .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
 
   /* ───── dashboard (home) ───── */
-  .brand-home{display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;flex:1;min-width:0;border-radius:8px;transition:var(--transition)}
+  .brand-home{display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;flex:0 1 auto;min-width:0;border-radius:8px;transition:var(--transition)}
   .brand-home:hover{opacity:.85}
   .dash{flex:1;overflow:auto;padding:32px 40px 48px}
   .dash-inner{max-width:1120px;margin:0 auto}
@@ -1271,9 +1292,7 @@
       <div class="rsep"></div>
       <button title="Home — dashboard" onclick="showDashboard()"><svg viewBox="0 0 24 24"><use href="#i-logo"/></svg></button>
       <button title="New conversation" onclick="newChat()"><svg viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
-      <button title="Chats" onclick="railTab('chats')"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg></button>
-      <button title="Buildprint" onclick="railTab('buildprint')"><svg viewBox="0 0 24 24"><use href="#i-ingest"/></svg></button>
-      <button title="Files" onclick="railTab('files')"><svg viewBox="0 0 24 24"><use href="#i-folder"/></svg></button>
+      <button title="Conversations" onclick="railTab('chats')"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg></button>
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
@@ -1285,25 +1304,11 @@
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
-    <div class="account" id="account"><span class="aplan">checking connection…</span></div>
-    <div class="tabs">
-      <button id="tabChats" class="on" onclick="setTab('chats')">Conversations</button>
-      <button id="tabFiles" onclick="setTab('files')">Files</button>
-    </div>
     <div id="chatActions">
       <input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)">
       <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
-      <button class="newbtn" onclick="runDigest()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-sparkle"/></svg> Weekly digest</button>
-      <button class="newbtn" onclick="bpTrack()" title="Pull the latest Buildprint changes into the brain ledger"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg> Sync Buildprint → brain</button>
     </div>
-    <div id="bpActions" style="display:none"><div class="bp-conn" id="bpConn">checking Buildprint…</div></div>
     <div class="pane" id="paneChats"></div>
-    <div class="pane hide" id="paneBuildprint" style="display:none"></div>
-    <div class="pane hide tree" id="paneFiles"></div>
-    <div class="tabs" id="fileFilter" style="display:none;margin-top:0">
-      <button id="ffCrs" class="on" onclick="setFileFilter(true)">Project</button>
-      <button id="ffAll" onclick="setFileFilter(false)">All files</button>
-    </div>
     <div class="side-foot">
       <button class="side-set" onclick="openSettings('general')"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg> Settings &amp; Preferences</button>
     </div>
@@ -1317,8 +1322,7 @@
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
       <span class="title" id="centerTitle">New conversation</span>
       <span class="spacer"></span>
-      <button class="uchip" id="usageChip" onclick="toggleUsagePop(event)" title="Usage & limits — click for detail"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gauge"/></svg><span id="usageChipTxt" class="dim">Usage</span></button>
-      <span class="conndot ok" id="connDot" title="Connection: online"></span>
+      <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
       <div class="seg hseg" id="themeSeg" title="Theme — Dark / Light">
         <button id="thDark" onclick="setTheme('dark')" aria-label="Dark theme"><svg viewBox="0 0 24 24"><use href="#i-moon"/></svg></button>
@@ -1332,9 +1336,9 @@
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
     </div>
-    <!-- usage & limits popover (opened from the header chip) -->
-    <div class="upop" id="usagePop">
-      <div class="upop-head">Usage &amp; limits<button class="hx" title="Close" onclick="toggleUsagePop(event,false)">✕</button></div>
+    <!-- account · usage · connection popover (opened from the header chip) -->
+    <div class="upop apop" id="usagePop">
+      <div class="apop-acct" id="acctInfo"></div>
       <div class="usage" id="usage"></div>
     </div>
     <!-- swappable content area (chat log / dashboard / file / map) — sits ABOVE the persistent composer -->
@@ -1704,14 +1708,12 @@ document.addEventListener('click',e=>{
 });
 
 // ---------- tabs ----------
-function setTab(t){ if(t==='buildprint') t='chats';   // buildprint is now a composer mode, not a sidebar tab
-  state.tab=t;
-  $('tabChats').classList.toggle('on',t==='chats'); $('tabFiles').classList.toggle('on',t==='files');
-  $('paneChats').classList.toggle('hide',t!=='chats'); $('paneFiles').classList.toggle('hide',t!=='files');
-  $('chatActions').style.display = t==='chats' ? '' : 'none';
-  $('fileFilter').style.display = t==='files' ? '' : 'none';
-  // Clicking Conversations while a file/dashboard is open → return to where you were.
-  if(t==='chats' && $('chatView').style.display==='none'){ state.chatId ? openChat(state.chatId) : newChat(); }
+// The Conversations/Files tabs were removed — the sidebar is conversations-only and
+// files live in the explorer. Kept as a safe entrypoint: callers (rail, dashboard
+// KPI, bpTrack) just want the chat view surfaced. Ignores the old tab argument.
+function setTab(t){
+  state.tab='chats';
+  if($('chatView') && $('chatView').style.display==='none'){ state.chatId ? openChat(state.chatId) : newChat(); }
 }
 
 // ---------- Project-only file filter ----------
@@ -1722,8 +1724,10 @@ const CRS_DIRS=new Set(['brain','specs','design','data','demos','pricing','audit
 const CRS_ROOT_FILES=new Set(['decisions.md']);        // README.md / CLAUDE.md are for the brain, not you
 const MANUAL_DIRS=new Set(['bubble','buildprint','bubble-forum']);   // reference manuals — hidden in project view
 state.crsOnly = localStorage.getItem('crsOnly')!=='0';  // default ON
+// Project/All file filter — the toggle UI moved out with the Files tab; the CRS-only
+// default still governs filterTree(). Kept callable (guarded) in case it's rewired.
 function setFileFilter(crs){ state.crsOnly=crs; localStorage.setItem('crsOnly',crs?'1':'0');
-  $('ffCrs').classList.toggle('on',crs); $('ffAll').classList.toggle('on',!crs); loadFiles(); }
+  const fc=$('ffCrs'), fa=$('ffAll'); if(fc)fc.classList.toggle('on',crs); if(fa)fa.classList.toggle('on',!crs); loadFiles(); }
 function filterTree(tree){ if(!state.crsOnly) return tree;
   return tree.filter(n=> n.type==='dir' ? CRS_DIRS.has(n.name) : CRS_ROOT_FILES.has(n.name))
     .map(n=> n.type==='dir'&&n.name==='brain'
@@ -2114,6 +2118,8 @@ async function renderDashboard(){
       ${A('i-ingest','Ingest a report','Route a Buildprint update into the brain','startIngest()',c.amber)}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')',c.green)}
       ${A('i-map','Galaxy map','Explore the brain visually','showMap()',c.soft)}
+      ${A('i-sparkle','Weekly digest','Summarize the week from git + progress','runDigest()',c.soft)}
+      ${A('i-refresh','Sync Buildprint → brain','Pull the latest Bubble changes into the ledger','bpTrack()',c.cyan)}
     </div></section>
 
     <section><div class="lbl">Tools</div><div class="tools">
@@ -2122,7 +2128,6 @@ async function renderDashboard(){
       ${T('i-book','Memory',"openPageWindow('/memory.html','Memory')",c.purple)}
       ${T('i-flag','Wishlist',"openPageWindow('/wishlist.html','Wishlist')",c.accent)}
       ${T('i-list','Task queue',"openPageWindow('/queue.html','Task queue')",c.accent)}
-      ${T('i-sparkle','Weekly digest','runDigest()',c.soft)}
     </div></section>
 
     <section><div class="dash-cols">
@@ -2467,9 +2472,9 @@ async function loadFiles(){
   const {root,tree}=await api('/api/files'); state.repoName=root;
   DW.allPaths=new Set(); (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):DW.allPaths.add(n.path); } })(tree);   // FULL tree — doc-window links check existence here
   const shown=filterTree(tree);
-  const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(shown,true));
+  const box=$('paneFiles'); if(box){ box.innerHTML=''; box.appendChild(renderTree(shown,true)); }   // pane removed with the Files tab; keep the data side-effects below
   state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(shown);
-  $('ffAll').classList.toggle('on',!state.crsOnly); $('ffCrs').classList.toggle('on',state.crsOnly);
+  const fa=$('ffAll'), fc=$('ffCrs'); if(fa)fa.classList.toggle('on',!state.crsOnly); if(fc)fc.classList.toggle('on',state.crsOnly);
 }
 function renderTree(nodes,open){
   const wrap=document.createElement('div');
@@ -3957,23 +3962,31 @@ $('palQ').addEventListener('keydown',e=>{
 addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openPal(); } });
 
 // ---------- account / connection ----------
+// The account card moved from the sidebar into the header chip's popover. loadAuth
+// caches the plan/email into state.auth; renderAcctInfo paints the popover section.
 async function loadAuth(){
-  const box=$('account');
-  try{
-    const a=await api('/api/auth/status');
-    if(a.loggedIn){
-      const plan=(a.subscriptionType||'').replace(/^\w/,c=>c.toUpperCase());
-      const method=a.authMethod==='claude.ai'?'subscription':(a.authMethod||'');
-      box.innerHTML=`<span class="adot on"></span><div class="ainfo"><div class="aemail" title="${esc(a.email||'')}">${esc(a.email||'Connected')}</div><div class="aplan">${esc(plan||'Claude')} · ${esc(method)}</div></div><button class="alink" onclick="logoutClaude()">Disconnect</button>`;
-    }else{
-      box.innerHTML=`<button class="connect" onclick="connectClaude()">${svg('i-link')} Connect Claude account</button>`;
-    }
-  }catch(e){
-    box.innerHTML=`<button class="connect" onclick="connectClaude()">${svg('i-link')} Connect Claude account</button>`;
+  try{ state.auth=await api('/api/auth/status'); }catch(e){ state.auth={loggedIn:false}; }
+  renderAcctInfo();
+}
+// Popover account block: email + plan, live connection state, Disconnect (danger hover, §6).
+function renderAcctInfo(){
+  const el=$('acctInfo'); if(!el) return;
+  const a=state.auth||{}, st=connState();
+  const connRow=`<div class="apop-row"><span>Connection</span><span class="apop-v"><span class="acct-dot${st[0]==='ok'?'':' '+st[0]}"></span>${esc(st[1])}</span></div>`;
+  if(a.loggedIn){
+    const plan=(a.subscriptionType||'').replace(/^\w/,c=>c.toUpperCase());
+    const method=a.authMethod==='claude.ai'?'subscription':(a.authMethod||'');
+    el.innerHTML=`<div class="apop-email" title="${esc(a.email||'')}">${esc(a.email||'Connected')}</div>`+
+      `<div class="apop-plan">${esc(plan||'Claude')}${method?' · '+esc(method):''}</div>`+
+      connRow+
+      `<button class="apop-out" onclick="logoutClaude()">${svg('i-link','sm')} Disconnect</button>`;
+  }else{
+    el.innerHTML=`<div class="apop-plan">Not connected</div>`+connRow+
+      `<button class="apop-connect" onclick="connectClaude()">${svg('i-link','sm')} Connect Claude account</button>`;
   }
 }
 async function connectClaude(){
-  $('account').innerHTML=`<span class="aplan">opening sign-in window…</span>`;
+  renderAcctInfo();
   try{ await api('/api/auth/login',{method:'POST'}); }catch(e){ toast('Could not start login: '+e.message); return loadAuth(); }
   toast('A sign-in window opened — finish in your browser.');
   let tries=0; const iv=setInterval(async()=>{
@@ -4177,7 +4190,7 @@ function usageRow(label, w){
 }
 // header usage chip + popover (usage moved out of the removed right rail)
 function setUsageChip(html, cls){ const el=$('usageChipTxt'); if(el){ el.innerHTML=html; el.classList.remove('dim'); } const chip=$('usageChip'); if(chip){ chip.classList.remove('warn','crit'); if(cls) chip.classList.add(cls); } }
-function toggleUsagePop(e, force){ if(e&&e.stopPropagation) e.stopPropagation(); const p=$('usagePop'); if(!p) return; const show = force===undefined ? !p.classList.contains('show') : !!force; p.classList.toggle('show', show); if(show){ loadUsage(); setTimeout(()=>document.addEventListener('click', closeUsageOnOut),0); } else document.removeEventListener('click', closeUsageOnOut); }
+function toggleUsagePop(e, force){ if(e&&e.stopPropagation) e.stopPropagation(); const p=$('usagePop'); if(!p) return; const show = force===undefined ? !p.classList.contains('show') : !!force; p.classList.toggle('show', show); if(show){ renderAcctInfo(); loadAuth(); loadUsage(); setTimeout(()=>document.addEventListener('click', closeUsageOnOut),0); } else document.removeEventListener('click', closeUsageOnOut); }
 function closeUsageOnOut(ev){ const p=$('usagePop'), c=$('usageChip'); if(p && !p.contains(ev.target) && c && !c.contains(ev.target)){ p.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } }
 async function loadUsage(){
   const box=$('usage'); if(!box) return;
@@ -4188,7 +4201,7 @@ async function loadUsage(){
   }
   let u; try{ u=await api('/api/usage'); }catch{ return; }
   if(!u.enabled){
-    setUsageChip('Usage off','');
+    setUsageChip('—','');
     box.innerHTML=`<div class="ucard"><div class="off">${svg('i-gauge')} Live usage tracking is off</div>`+
       `<button class="enable" onclick="enableUsage()">${svg('i-gauge')} Enable live usage</button>`+
       `<div class="note">Adds a status line to your Claude Code that reports your 5-hour &amp; weekly limits. Enabling fetches your first reading automatically.</div></div>`;
@@ -4223,12 +4236,12 @@ async function loadUsage(){
   if(!rows) rows='<div class="note">Waiting for your next Claude Code render…</div>';
   // For the 5h/7d bars the meaningful timestamp is when the limits were read, which
   // can trail the last render (limits carry forward until a fresh post-response read).
-  // header chip summary: session 5h % · weekly 7d %
+  // header account chip: just the 5-hour session % (the active window); the popover
+  // has the full 5h/7d breakdown + resets. Border severity flags either window.
   const sessP = d.rate_limits&&d.rate_limits.five_hour ? Math.round(d.rate_limits.five_hour.used_percentage||0) : null;
   const wkP = d.rate_limits&&d.rate_limits.seven_day ? Math.round(d.rate_limits.seven_day.used_percentage||0) : null;
-  const chipHtml = [sessP!=null?`<span class="uv">${sessP}%</span> 5h`:'', wkP!=null?`<span class="uv">${wkP}%</span> 7d`:''].filter(Boolean).join('<span class="usep"></span>');
   const maxP = Math.max(sessP||0, wkP||0);
-  setUsageChip(chipHtml||'Usage', maxP>=90?'crit':maxP>=75?'warn':'');
+  setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'), maxP>=90?'crit':maxP>=75?'warn':'');
   const stamp = d.rate_limits ? (d.rate_limits_at||d.at) : d.at;
   const stampLbl = d.rate_limits ? 'Limits read' : 'Updated';
   box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} ${stampLbl} ${fmtAgo(stamp)}</div>`+
@@ -4473,7 +4486,8 @@ async function clearNotifs(){ try{ await api('/api/notifications/clear',{method:
 // Two layers: the app is localhost (survives net loss) but Claude/agent work
 // needs internet; a crashed server is a distinct failure while the tab lives on.
 const CONN={net:true,srv:true,netFails:0,srvFails:0};
-function connDot(){ const d=$('connDot'); if(!d)return; const st=!CONN.srv?['err','Connection: brain server unreachable']:!CONN.net?['warn','Connection: no internet — local app still works']:['ok','Connection: online']; d.className='conndot '+st[0]; d.title=st[1]; }
+function connState(){ return !CONN.srv?['err','Brain server unreachable']:!CONN.net?['warn','No internet — local app still works']:['ok','Online']; }
+function connDot(){ const st=connState(); const d=$('usageDot'); if(d) d.className='acct-dot'+(st[0]==='ok'?'':' '+st[0]); const chip=$('usageChip'); if(chip) chip.title='Account · usage · '+st[1]; const p=$('usagePop'); if(p&&p.classList.contains('show')) renderAcctInfo(); }
 async function _probe(url,opts){ const c=new AbortController(); const t=setTimeout(()=>c.abort(),5000); try{ await fetch(url,Object.assign({cache:'no-store',signal:c.signal},opts)); return true; }catch{ return false; }finally{ clearTimeout(t); } }
 function setNet(up){ if(up===CONN.net){ connDot(); return; } CONN.net=up; connDot();
   if(up) notifyT('connection-restored',{title:'Connection restored',message:'Internet is back.'});
@@ -4633,7 +4647,7 @@ async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.val
 async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),port:($('smtpPort').value||'').trim(),user:($('smtpUser').value||'').trim(),pass:($('smtpPass').value||''),from:($('smtpFrom').value||'').trim()};
   try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notifyT('success',{title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
-document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); } });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
 (async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
