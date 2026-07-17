@@ -5,7 +5,7 @@
   "autoRoute": false,
   "bubbleWatch": false,
   "bubbleCheckedAt": 0,
-  "theme": "dark",
+  "theme": "light",
   "bpAutoTrack": false,
   "notify": {
     "inApp": true,

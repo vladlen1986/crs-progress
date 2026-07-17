@@ -141,19 +141,35 @@ Follow this procedure:
    but turn every tracked *status* into a **confirm/refute verify-question** — never
    an answer. Prompts are **self-contained**: never reference a brain/repo file BP
    can't open; inline what it needs.
-3. **Consistency check.** Validate injected facts against the locked sources (e.g.
+3. **Consult the knowledge base — MANDATORY, before writing the prompt.** Pull the
+   applicable best practices and **inline** them into the prompt (it must stay
+   self-contained — BP cannot open brain/ files). Cite which source each injected
+   practice came from:
+   - **Bubble performance** (`brain/bubble-performance/INDEX.md`) — **REQUIRED** for any
+     build touching lists / Repeating Groups, searches, or bulk / scheduled / recursive
+     workflows (incl. the async `ActivityLog` write). Inline the specific rule (e.g. the
+     RG trap, more-constraints-is-better, process spreading, recursive vs schedule-on-a-list).
+   - **Bubble official manual** (`brain/bubble/INDEX.md`) — correct platform patterns and
+     facts (privacy rules, WU, API, elements, limits). **Wins on facts/limits** when sources conflict.
+   - **Bubble forum, curated** (`brain/bubble-forum/INDEX.md`) — community workarounds /
+     best practices. Label as community advice; the official manual overrides on conflict.
+   - **Buildprint manual** (`brain/buildprint/INDEX.md`) — how BP itself works (modes,
+     snapshots, limits) so the prompt stays within what BP can actually do.
+   If none apply (e.g. a pure Option-Set or privacy-rule fix), **say so in one line** —
+   don't pad the prompt with irrelevant boilerplate.
+4. **Consistency check.** Validate injected facts against the locked sources (e.g.
    module counts vs `design/design.md` / `data/CRS_Module_OptionSets.xlsx`; a status
    vs `brain/STATUS.md`). On any contradiction, **surface it to Vlad — do not pick
    one silently.**
-4. **At most ONE clarifying question**, and only if the answer changes the prompt's
+5. **At most ONE clarifying question**, and only if the answer changes the prompt's
    architecture. Otherwise proceed and **label assumptions inline** at the top of the
    generated prompt.
-5. **Output.** One complete markdown code block, AND save it to
+6. **Output.** One complete markdown code block, AND save it to
    `brain/buildprint/generated/YYYY-MM-DD-<scope>.md`.
-6. **Retrieval transparency.** If an existing artifact already covers ≥80% of the
+7. **Retrieval transparency.** If an existing artifact already covers ≥80% of the
    request, return it labeled **"RETRIEVED from `<path>`, not generated"** with a
    diff-style note of what changed. **Never present retrieval as generation.**
-7. **After a BP report comes back**, offer to **ingest**: update `brain/STATUS.md` +
+8. **After a BP report comes back**, offer to **ingest**: update `brain/STATUS.md` +
    `crs-brain/data/modules.json` from the report's machine block, and append any
    decision candidates to `decisions.md` (never resolve a decision silently).
 
