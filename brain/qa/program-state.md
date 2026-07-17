@@ -213,3 +213,15 @@ Four parallel recon subagents (handoff brief · program-state/checklist audit ·
 **Windows-portability fixes committed BEFORE the verifiers ran** (commit `e9c6120 resume: windows-portability`), so cycle 2 verified shipped code: `/api/file-binary` backslash-traversal hole into `.git`/`node_modules` closed (re-probed 403); `runBuildprint`/`maybeSyncManuals` Windows-safe spawns; `bpSyncDiff` surfaces sync failure; `tree.html` md renderer CRLF-tolerant; repo-root `.gitattributes` added.
 
 **Cycle-3 decision: REQUIRED for the two-consecutive-clean-runs goal.** The ptree change reset the consecutive-green counter, so cycle 2 is the *first* clean run after it. Cycle 3 must be a full re-verify against UNCHANGED code (no code edits between c2 close and c3). The verifier scripts are persisted in the rig dir and re-executable in fresh processes; if c3 is also 0-FAIL/0-UNTESTED the goal is met and the program's QA loop closes.
+
+## Cycle 3 — CLOSED (2026-07-17), CLEAN — QA GOAL MET
+
+**Method:** re-executed all 8 persisted domain verifier scripts (authored by the independent c2 subagents) in fresh Node processes against the live app, stamped `2026-07-17 c3` (harness reads `QA_RUN`). No code changes between the c2 close and c3, so c3 verifies the identical shipped tree. One domain (fix2/os-interop/icons) whose old script hit a self-timing bug on re-run (`Cannot set properties of null` — a script defect, not an app defect) was re-verified by a fresh independent c3 subagent instead of hand-patching the script; it returned identical verdicts.
+
+**Result: 98/98 rows carry `2026-07-17 c3`. 91 PASS · 7 ENV-LIMITED · 0 FAIL · 0 UNTESTED** — byte-identical status distribution to cycle 2, same 7 ENV-LIMITED rows.
+
+**GOAL MET: two consecutive 100%-clean runs (c2 + c3)**, ENV-LIMITED excluded and unchanged across both. The program's QA loop is closed. The only path back to "dirty" is a future code change, which resets the counter (as ptree did) and requires two fresh clean runs.
+
+**Standing follow-ups (not blockers to the QA close):**
+- 7 ENV-LIMITED rows = the needs-eyes / needs-auth list (real-OS drag/clipboard/desktop-drop, >100MB upload, queue restart-persistence, and the two Buildprint-link-gated rows P1-promptgen.3 + P8-sounds-wishlist.7). Buildprint CLI is installed on this machine; it needs `buildprint link <token>` (token from the Buildprint web app, Integrations → CLI) to clear the two auth-gated rows.
+- Remaining PROGRAM (non-QA) work per the execution plan above is still open: P9.3/9.4/9.5 were verified as shipped, but P10.A–D registry/bell/settings items and any other PARTIAL/TODO from the gate audit remain for their own build+verify cycles. (The QA loop that just closed is the regression suite over what is ALREADY shipped — it does not itself build the remaining roadmap.)
