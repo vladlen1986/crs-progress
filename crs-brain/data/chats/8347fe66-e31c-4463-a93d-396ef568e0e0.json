@@ -1,0 +1,21 @@
+{
+  "id": "8347fe66-e31c-4463-a93d-396ef568e0e0",
+  "title": "What changed in the CRS project recently?",
+  "sessionId": "926a6b5b-2227-4e4c-b808-c78bb3b7b2aa",
+  "bp": false,
+  "created": "2026-07-17T16:03:29.266Z",
+  "updated": "2026-07-17T16:03:58.534Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What changed in the CRS project recently?",
+      "ts": "2026-07-17T16:03:29.266Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Recent activity is all dated **today, 2026-07-17** — a busy session. Here's what changed, grouped by theme:\n\n**QA loop on the CRS Brain app** (biggest thread)\n- Cycle-1: 72/82 checks PASS → 5 fixes applied + P9.6 deliverables (`9177b95`)\n- Cycle-2 (partial): re-verified 13 static rows + 7 Progress-Tree rows via a new headless test rig (`c0af2eb`, HEAD)\n\n**CRS Brain app / pages**\n- Progress Tree (`tree.html`) redesigned into a two-renderer Executive/Raw view (`0e5701f`, `59d2cf3`)\n- Ideas board added (`c2c6aa9`, `b1f6354`, `0f49bc8`)\n- Windows portability fixes so the app runs on this machine (`e9c6120`, `910f40b`)\n\n**Knowledge base (`brain/`)**\n- Ingested *The Ultimate Guide to Bubble Performance* (Petter Amlie, 227pp PDF) as a new `brain/bubble-performance/` domain — verbatim per-chapter markdown + INDEX, labeled third-party guidance (`b642387`…`5027755`)\n- Bubble forum digest + Bubble issue report added (`5a0636f`, `97396e9`, `6ca3e25`)\n- Weekly digest generated for 2026-07-17 (`c1dee00`)\n- Image-generation capability note (`8a1abf0`)\n\n**Uncommitted right now:** `CRS_Spec-13.html` and a `qa-scratch/` folder are untracked (likely QA-loop scratch output).\n\nNet: no Bubble schema or module changes — module count still 46, still 0/46 DTs Pattern-A compliant. This session was app QA, the Progress Tree redesign, and knowledge-base ingestion. Want me to dig into any one of these?",
+      "ts": "2026-07-17T16:03:58.534Z"
+    }
+  ]
+}
