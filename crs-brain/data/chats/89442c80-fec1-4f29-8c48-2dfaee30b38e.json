@@ -4,7 +4,7 @@
   "sessionId": "fef59bf4-7326-4b4e-a8e8-f7790c43248c",
   "bp": false,
   "created": "2026-07-17T10:45:23.003Z",
-  "updated": "2026-07-17T11:00:29.194Z",
+  "updated": "2026-07-17T11:02:00.550Z",
   "messages": [
     {
       "role": "user",
@@ -60,6 +60,17 @@
       "role": "assistant",
       "content": "All in **`brain/bubble-performance/`**. The PDF was converted into **8 markdown files** (one per chapter), plus an INDEX and the original PDF:\n\n| File | Chapter |\n|---|---|\n| `brain/bubble-performance/00-front-matter-and-intro.md` | Intro & concepts |\n| `brain/bubble-performance/01-what-performance-is.md` | What performance is |\n| `brain/bubble-performance/02-knowing-the-platform.md` | Platform, DB internals, page load |\n| `brain/bubble-performance/03-building-the-page.md` | The Page (RG trap, rendering) |\n| `brain/bubble-performance/04-building-the-database.md` | The Database (structuring, search) |\n| `brain/bubble-performance/05-building-workflows.md` | Workflows (triggers, process spreading) |\n| `brain/bubble-performance/06-workload-wu.md` | Workload / WU |\n| `brain/bubble-performance/07-conclusion.md` | Conclusion |\n| `brain/bubble-performance/INDEX.md` | Routing / topic map |\n| `brain/bubble-performance/the-ultimate-guide-to-bubble-performance-rev3.pdf` | Original PDF (kept as source) |\n\nSo: **multiple .md files, split by chapter** — not one big file. Start at `brain/bubble-performance/INDEX.md`; it maps every topic to the right chapter file.\n\nReminder: this is all still **uncommitted** — the `git add`/`commit` is waiting on your approval from the previous step.",
       "ts": "2026-07-17T11:00:29.194Z"
+    },
+    {
+      "role": "user",
+      "content": "so everytime i ask the chat to make a prompt for buildprint to build something it will refer to it ?",
+      "ts": "2026-07-17T11:01:41.342Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Honest answer: **no, not automatically or guaranteed.** Two things are true:\n\n1. It's now **discoverable** — registered in `brain/INDEX.md`'s retrieval rules, so when a build is performance-sensitive (list views, searches, bulk/recursive workflows, the audit write) I'll reach for it and inject the relevant technique into the prompt.\n\n2. But the Buildprint prompt-generation procedure in `CLAUDE.md` (the PROMPT-STANDARD steps) pulls a **fixed set of state files** — STATUS.md, decisions.md, security.md, modules.json, record counts. The performance manual is **not** on that mandatory list. So whether it gets consulted depends on me judging the build as performance-relevant — which is exactly the kind of thing that gets missed under pressure.\n\nIf you want it **guaranteed**, the fix is one line in `CLAUDE.md`: add a step to the prompt procedure — *\"for any build touching lists, searches, or bulk/scheduled workflows, consult `brain/bubble-performance/INDEX.md` and inline the applicable rule.\"* That makes it a standing input, not a judgment call.\n\nThe trade-off: not every prompt needs it (a pure Option Set edit or a privacy-rule fix doesn't), so I'd scope it to list/search/workflow builds rather than *every* prompt — otherwise you bloat prompts with irrelevant performance boilerplate.\n\nWant me to add that scoped rule to `CLAUDE.md`?",
+      "ts": "2026-07-17T11:02:00.550Z"
     }
   ]
 }
