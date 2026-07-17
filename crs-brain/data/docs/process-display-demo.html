@@ -60,6 +60,9 @@ button.act.ghost:hover{color:var(--primary);border-color:var(--line3)}
 .collide{color:#F87171;border-bottom:2px dotted #F87171;padding-bottom:1px}
 .caret{display:inline-block;width:7px;height:15px;background:var(--accent2);margin-left:1px;vertical-align:-2px;animation:blink .9s step-end infinite}
 @keyframes blink{50%{opacity:0}}
+/* per-word focus-in reveal — same as the app (index.html .tok / @keyframes tokIn) */
+.tok{opacity:0;animation:tokIn .42s cubic-bezier(.22,.61,.36,1) forwards}
+@keyframes tokIn{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:blur(0)}}
 
 /* ── brain + molecules ── */
 .brainwrap{position:relative;display:inline-block;width:15px;height:15px}
@@ -329,12 +332,21 @@ async function playAfter(){
   onBlock('tool','Read'); onLabel('Read brain/option-sets.md');
   setStepBody('Confirmed: Break List is its own DT, not a Scheduling child.');
   await sleep(650);
-  // final answer (text after the last tool = clean answer, never reclaimed)
+  // final answer (text after the last tool = clean answer, never reclaimed).
+  // Reveal whole words with the app's per-word blur-to-sharp fade (.tok / tokIn).
   endStep();
-  for(const c of chunk(ANSWER,9)){ onDelta(c); await sleep(16); }
+  full=ANSWER;
+  answerEl.innerHTML=''; const caretEl=document.createElement('span'); caretEl.className='caret'; answerEl.appendChild(caretEl);
+  for(const w of ANSWER.split(/(\s+)/)){
+    if(w==='') continue;
+    const s=document.createElement('span'); s.className='tok'; s.textContent=w;
+    answerEl.insertBefore(s, caretEl);
+    await sleep(/^\s+$/.test(w) ? 10 : 58);
+  }
   clearInterval(tick);
   finalizeCard();
-  answerEl.innerHTML=mdRender(full);   // finalize: render markdown, drop caret
+  answerEl.style.opacity='0'; answerEl.innerHTML=mdRender(full);   // finalize: render markdown, drop caret
+  await sleep(20); answerEl.style.transition='opacity .28s ease'; answerEl.style.opacity='1';
 }
 
 function chunk(s,n){ const out=[]; for(let i=0;i<s.length;i+=n) out.push(s.slice(i,i+n)); return out; }
