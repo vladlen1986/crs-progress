@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T17:50:46.230Z",
+  "updated": "2026-07-17T17:58:31.881Z",
   "messages": [
     {
       "role": "user",
@@ -198,6 +198,17 @@
       "role": "assistant",
       "content": "Already done — this came through twice (likely queued while the previous reply was streaming). The molecule cloud is in: five colored dots (pink/cyan/violet/indigo/amber) orbiting the brain at different radii, speeds, and directions, plus the pulsing glow and hue-cycling brain.\n\nHard-refresh (Ctrl+Shift+R), then send a test message and watch the badge while it streams. If the motion isn't what you pictured, describe the difference and I'll tune it.",
       "ts": "2026-07-17T17:50:46.230Z"
+    },
+    {
+      "role": "user",
+      "content": "on the logo is ok but i want in the chat here",
+      "ts": "2026-07-17T17:51:28.582Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done — the molecule brain now lives in the chat too. What changed in `crs-brain/public/index.html`:\n\n- **In-chat indicator**: every streaming reply starts with the gradient brain + 5 orbiting molecules (same animation as the sidebar badge) at the top of the reply body. It's removed the moment the reply finishes.\n- **Old 3-dot typing indicator fully deleted** — markup, CSS, keyframes, and its leftover JS (`clearDots` mechanism).\n- Sidebar logo badge animation stays as-is.\n- Logged in `crs-brain/BRAIN_APP_PROGRESS.md` (2026-07-17 entry).\n\nHard-refresh the app (Ctrl+Shift+R) and send a test message — you should see the animated brain at the top of my reply while it streams (work blocks and text appear under it), and it disappears when the reply completes.",
+      "ts": "2026-07-17T17:58:31.881Z"
     }
   ]
 }
