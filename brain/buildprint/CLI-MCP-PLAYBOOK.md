@@ -41,7 +41,7 @@
 | Manage log **monitors** | ❌ *(no CLI command)* | ✅ | MCP/web-only |
 | **Edit** app structure (pages/WF/DT/OS/styles/settings/API-connector) | ✅ edit files → `apply` | ❌ *data tools can't edit* | MCP can *start agents* that edit (= web runtime) |
 | Edit Bubble **database Things** | ✅ `data create/update/delete` | ✅ `create_thing`/`update_thing`/`delete_thing` | **writes are immediate**; needs Build-mode/MCP-edit access; live-DB writes require explicit user approval (agent guideline rule) |
-| Bubble **File Manager** (test/live realm) | ✅ `file list/search/upload/delete` | — | uploads are **public** unless `--attach-to <thing-id>` + that Thing's privacy rules restrict it |
+| Bubble **File Manager** (test/live realm) | ✅ `file list/search/upload/delete` | — | uploads are **public** unless `--attach-to <thing-id>` + that Thing's privacy rules restrict it. `file search` is **case-sensitive** (verified 2026-07-17: `logo` missed `Logo Transparent.png`) — search both cases or use `file list` |
 | Validate edits | ✅ `check` | — | the gate before `apply` |
 | Push to Bubble | ✅ `apply` | — | requires a passing `check` (unless `--force-apply`) |
 | Savepoints (Bubble restore points) | ✅ `savepoint create/list/restore` | — | goes through Bubble, per branch |
