@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T18:16:23.258Z",
+  "updated": "2026-07-17T18:25:56.628Z",
   "messages": [
     {
       "role": "user",
@@ -256,6 +256,17 @@
       "role": "assistant",
       "content": "Usage credits are required for this model.",
       "ts": "2026-07-17T18:16:23.258Z"
+    },
+    {
+      "role": "user",
+      "content": "Whenever usage credits are needed for the model switch to another model for example opus 4.8 max",
+      "ts": "2026-07-17T18:23:32.081Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Checked the Claude Code docs — the honest answer: **this can't be built the way you're describing, and the direction is backwards anyway.**\n\nTwo hard facts:\n\n1. **Nothing fires on \"credits running low.\"** Claude Code hooks only trigger on tool/prompt lifecycle events (before a tool runs, when a session starts, etc.) — never on billing or usage state. So there's no settings.json entry or hook that can detect \"credits needed\" and swap the model. That feature simply doesn't exist.\n2. **`--fallback-model` won't help here** — it only kicks in when the model is *overloaded* (server 429/5xx), not when you're out of credits/hitting your plan limit. On a Max plan there's also **no** built-in auto-downgrade; when you hit the limit, requests just stop.\n\nAnd the premise itself: switching **to** Opus 4.8 (the most expensive model) when you're low on credits **burns them faster** — that's the opposite of what you'd want. If the real goal is \"don't get interrupted when I'm running low,\" the sane move is to drop to a *cheaper* model (Sonnet/Haiku), not up to Opus.\n\nWhat you can actually do:\n- **Manual switch mid-session:** `/model sonnet` (or `opus` / `haiku`) any time.\n- **Set a default** in settings.json (`\"model\"`) or the `/config` menu.\n- **Overload resilience only:** a `fallbackModel` chain — but again, that's for server overload, not credit limits.\n\nSo — what's the actual goal? If it's \"keep working cheaply once Opus credits are tight,\" I'd set Opus as default and manually `/model sonnet` when your usage panel shows the limit approaching. Want me to set that default, or leave it manual?",
+      "ts": "2026-07-17T18:25:56.628Z"
     }
   ]
 }
