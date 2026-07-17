@@ -16,3 +16,6 @@
 - **2026-07-14** [Create Any Plugin You wish](https://forum.bubble.io/t/create-any-plugin-you-wish/398239) — API, Plugin. For extremely reasonable cost. Reply this thread.
 - **2025-12-09** [[New Plugin] Fluid Chat: The "WhatsApp-style" element. 60fps Scroll, Audio Messages & Images](https://forum.bubble.io/t/new-plugin-fluid-chat-the-whatsapp-style-element-60fps-scroll-audio-messages-images/387118) — Hi everyone! :waving_hand: Building a chat app in Bubble usually means fighting with Repeating Groups: the scroll jumps, “scroll to bottom” is glitchy, and performance drops after 50 messages. I wanted a chat that felt…
 
+## 2026-07-17 — forum check
+- **2026-07-17** [🎬 New Plugin Release: Vimeo Video Bubble Mobile](https://forum.bubble.io/t/new-plugin-release-vimeo-video-bubble-mobile/398333) — Hey everyone :waving_hand: Embedding video in a mobile app usually means fighting webviews and janky controls. Not anymore - meet Vimeo Video Player Bubble Mobile. A few reasons it’s worth a look: :clapper_board: To…
+
