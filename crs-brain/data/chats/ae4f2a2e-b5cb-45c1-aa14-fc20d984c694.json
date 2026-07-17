@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T18:43:58.745Z",
+  "updated": "2026-07-17T19:02:23.195Z",
   "messages": [
     {
       "role": "user",
@@ -278,6 +278,19 @@
       "role": "assistant",
       "content": "Done. The \"switch models when one is inaccessible\" feature is complete and verified.\n\n**What it does now:** when the Brain app spawns `claude` and the chosen model fails *before producing any output* with an outage signature (overload/529, rate-limit/429, 503, not-found/invalid-model, usage-limit, quota/credit, capacity), it automatically re-spawns on the next model in the chain and keeps the reply going — showing an amber \"⚡ Opus 4.8 unavailable — switched to **Sonnet** to keep going\" note above the answer.\n\n**The pieces (all in `crs-brain/`):**\n- `server.js` — `runClaudeWithFallback` wraps `runClaudeStream`; errors are tagged `stage` (`pre`/`mid`) + `retryable`; it switches **only** on `pre`+`retryable` (a mid-answer failure propagates — resuming half a reply on another model is incoherent). Chain = `[primary, ...fallbackModels]`, de-duped. Also fixed a latent bug where an error arriving as a `result` event was saved as the assistant's reply.\n- Settings: `autoFallback` (default on) + `fallbackModels` (`['sonnet','haiku']`).\n- `public/index.html` — `model-switch` SSE handler + `.switch-note`/`.sw-bolt` CSS.\n\n**Verification:**\n- `node --check server.js` and `qa-scratch/check-syntax.js` (index.html) — both clean.\n- `qa-scratch/fallback-test.js` extracts the **real** classifier + fallback loop out of server.js and runs **29 checks, all pass**: matches every realistic outage string, correctly *ignores* non-outages (incl. `exit 143` = your Stop button, so a manual stop never triggers a switch), and the loop switches once / walks the whole chain / refuses to switch mid-answer, on non-retryable, or when disabled.\n\n**One honest caveat** (documented in the progress file): the 5-hour cap is account-wide across all models, so this rescues a *model-specific* outage or a transient overload — not a full account cap. When everything's capped, all chain members fail and you get the error.\n\nI left the working tree uncommitted so it rides the app's next auto-commit, per the usual flow. Want me to force a live test by temporarily pointing the primary at a bogus model name so you can watch the switch-note appear in a real reply?",
       "ts": "2026-07-17T18:43:58.745Z"
+    },
+    {
+      "role": "user",
+      "content": "I dont like how its being displayed make it ui user friendly readable use the best solution to display processes",
+      "ts": "2026-07-17T18:43:59.077Z",
+      "attachments": [
+        "crs-brain/data/attachments/448caf13-Capture.PNG"
+      ]
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The \"display processes\" rework is complete and documented.\n\n**What was wrong** (from your screenshot): Claude's between-tool narration (\"Now finding…\", \"Recon complete…\") streams as visible text exactly like the real answer, and Claude Code mashes all of it into one unpunctuated blob — so sentences collided and the process talk was tangled into the answer.\n\n**The fix — segment at tool boundaries:**\n- **Server** (`crs-brain/server.js`): tracks `answerSeg`, which resets to empty every time a tool runs. So it always holds only the text *after the last tool call* = the clean final answer. That's what gets stored/sent now, not the run-on blob.\n- **Client** (`crs-brain/public/index.html`): when a tool fires, whatever text streamed before it gets reclaimed into a collapsible timeline **note** step (speech-bubble icon) instead of the answer body. The answer area resets clean for the real reply. Long notes expand on click; short ones stay one line.\n\nNet result: the timeline shows the process as discrete steps (thinking → notes → tool actions), and the answer box holds only the final, properly-punctuated answer.\n\n**Verified:** `node --check server.js` OK, `check-syntax.js` → ALL SCRIPTS PASS, and I re-read the event loop for edge cases (no-tools reply stays whole; thinking-only stays clean; bp sync path untouched). Documented in `crs-brain/BRAIN_APP_PROGRESS.md` under the 2026-07-17 entry.\n\nOne caveat: this is verified by reading the code, **not yet seen live in a browser** — that needs a real tool-using reply. Want me to fire one so you can see the segmented display (and the amber model-switch pill) in action?",
+      "ts": "2026-07-17T19:02:23.195Z"
     }
   ]
 }
