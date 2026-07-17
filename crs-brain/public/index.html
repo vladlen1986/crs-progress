@@ -3335,7 +3335,7 @@ function openHtmlOverlay(p){
   h.classList.add('show');
 }
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
-  if(e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
+  if(e.target.closest && e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
   if($('htmlFull')?.classList.contains('show')){ closeHtmlOverlay(); return; }
   if($('propPop')?.classList.contains('show')){ $('propPop').classList.remove('show'); return; }
   if($('settingsWrap')?.classList.contains('show')||$('palWrap')?.classList.contains('show')) return;
