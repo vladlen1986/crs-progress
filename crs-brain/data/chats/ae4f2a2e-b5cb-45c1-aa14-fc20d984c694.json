@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T20:10:36.897Z",
+  "updated": "2026-07-17T20:11:32.202Z",
   "messages": [
     {
       "role": "user",
@@ -359,6 +359,17 @@
       "role": "assistant",
       "content": "Done. The work tree now persists across refresh.\n\n**What was broken:** the \"Worked for Xs\" tree (thinking, tool calls, reclaimed narration notes) was built live from SSE events and never written to the chat JSON — so on reload `renderChat` had nothing to rebuild from. It wasn't lost by the turn redesign; it was never saved.\n\n**The fix:**\n- `crs-brain/server.js` — while streaming, the server now mirrors the live builder into a flat ordered `steps[]` (thinking / tool / note, one group per turn, each body capped at 1600 chars) and stores it on the assistant message (both the normal and stopped-mid-stream paths).\n- `crs-brain/public/index.html` — `stepsGroupEl()` rebuilds the exact same `.wgroup > .wghead + .wsteps` DOM the live builder produces, just finished + collapsed; `renderChat` inserts it above each reply body.\n\nBoth files pass syntax checks.\n\n**Two caveats:**\n1. This touches `server.js`, so **restart the app**, then **hard-refresh** the browser.\n2. Persistence applies to **new replies going forward** — old replies have no stored `steps`, so their tree stays empty on reload (nothing to rebuild). Send one new message and the tree will survive refresh.",
       "ts": "2026-07-17T20:10:36.897Z"
+    },
+    {
+      "role": "user",
+      "content": "lets try test do something short and i will see if it is saved",
+      "ts": "2026-07-17T20:11:18.678Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done — that run produced a work step. Now **hard-refresh** the page: the \"Worked for Xs\" tree above this reply should still be there (collapsed), with the thinking step and this command folded inside it.",
+      "ts": "2026-07-17T20:11:32.202Z"
     }
   ]
 }
