@@ -81,9 +81,41 @@
 
   /* brand */
   .brand{padding:16px 16px 12px;display:flex;align-items:center;gap:11px}
-  .brand .wordmark{width:70px;height:22px;color:var(--primary);flex:0 0 70px;display:block}
-  .brand h1{font-size:15px;margin:0;color:var(--primary);font-weight:650;letter-spacing:.2px}
-  .brand .sub{font-size:11px;color:var(--muted);margin-top:1px}
+  .wordwrap{position:relative;display:inline-block;flex:0 0 auto}
+  .brand .wordmark{width:110px;height:35px;color:var(--primary);opacity:.72;display:block}
+  .brainwrap{position:relative;display:inline-block;width:15px;height:15px}
+  .brand .brainwrap{position:absolute;top:-8px;right:-14px}
+  .brainmark{width:15px;height:15px;display:block;stroke:url(#g-ai)}   /* gradient via CSS (inherits into <use> shadow DOM) so finished steps can grey it */
+  /* in-chat thinking indicator — tops the streaming reply, removed once the first work step or answer text arrives (thinking step's brain takes over) */
+  .chat-brain{display:flex;align-items:center;padding:8px 0 8px 14px}
+  /* molecule cloud — colored dots orbit the brain in different directions/speeds.
+     Animated ONLY in chat scopes (.chat-brain while streaming, .wstep.run Thinking step); the sidebar badge stays static. */
+  .brainwrap::after{content:'';position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.45),transparent 70%);filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+  .chat-brain .brainwrap::after,.wstep.run .brainwrap::after{opacity:1;animation:aipulse 1.6s ease-in-out infinite}
+  .chat-brain .brainmark,.wstep.run .brainmark{animation:aihue 2.4s linear infinite}
+  .brainwrap .mol{position:absolute;top:50%;left:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;opacity:0;transition:opacity .3s;pointer-events:none}
+  .brainwrap .m1{color:#EC4899;--r:9px}
+  .brainwrap .m2{color:#22D3EE;--r:12px;width:2.5px;height:2.5px}
+  .brainwrap .m3{color:#A855F7;--r:7px;width:2px;height:2px}
+  .brainwrap .m4{color:#6366F1;--r:14px}
+  .brainwrap .m5{color:#F59E0B;--r:11px;width:2px;height:2px}
+  .chat-brain .mol,.wstep.run .mol{opacity:1}
+  .chat-brain .m1,.wstep.run .m1{animation:molCW 1.1s linear infinite;animation-delay:-.2s}
+  .chat-brain .m2,.wstep.run .m2{animation:molCCW 1.7s linear infinite;animation-delay:-.8s}
+  .chat-brain .m3,.wstep.run .m3{animation:molCW .9s linear infinite;animation-delay:-.5s}
+  .chat-brain .m4,.wstep.run .m4{animation:molCCW 2.2s linear infinite;animation-delay:-1.4s}
+  .chat-brain .m5,.wstep.run .m5{animation:molCW 1.4s linear infinite;animation-delay:-1s}
+  /* mini brain inside a work-step icon: tighter orbits so dots hug the row */
+  .wstep-ico .brainwrap::after{inset:-5px}
+  .wstep-ico .brainwrap .m1{--r:6.5px}
+  .wstep-ico .brainwrap .m2{--r:8.5px}
+  .wstep-ico .brainwrap .m3{--r:5px}
+  .wstep-ico .brainwrap .m4{--r:10px}
+  .wstep-ico .brainwrap .m5{--r:7.5px}
+  @keyframes molCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(1turn) translateX(var(--r))}}
+  @keyframes molCCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(-1turn) translateX(var(--r))}}
+  @keyframes aihue{to{filter:hue-rotate(360deg)}}
+  @keyframes aipulse{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.15);opacity:1}}
 
   /* account */
   .account{display:flex;align-items:center;gap:9px;margin:2px 12px 6px;padding:9px 11px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;font-size:12px}
@@ -286,12 +318,9 @@
 
   /* streaming reveal */
   .streaming{white-space:pre-wrap;word-break:break-word}
-  .tok{opacity:0;animation:tokIn .5s ease forwards}
+  .tok{opacity:0;animation:tokIn .42s cubic-bezier(.22,.61,.36,1) forwards}
   .caret{display:inline-block;width:7px;height:1.02em;background:var(--accent);border-radius:2px;vertical-align:text-bottom;margin-left:1px;animation:blink 1.05s steps(1) infinite}
   .statusnote{color:var(--muted);font-style:italic;margin-left:7px;font-size:13px}
-  .dots{display:inline-flex;gap:5px;align-items:center;height:20px}
-  .dots i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:dot 1.2s ease-in-out infinite}
-  .dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
   .body.err{color:var(--error-soft)}
 
   /* work blocks — Buildprint-style grouped activity: one "Worked for Xs" header
@@ -299,13 +328,54 @@
   .wblocks{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}
   .wblocks:empty{display:none}
   .wgroup{border:none;background:none}
-  .wghead{display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:2px 0;color:var(--secondary);font:inherit;font-size:13px;text-align:left;cursor:pointer}
+  .wghead{display:flex;width:100%;align-items:center;gap:8px;background:none;border:none;padding:2px 0;color:var(--secondary);font:inherit;font-size:13px;text-align:left;cursor:pointer}
   .wghead:hover .wglabel{color:var(--primary)}
-  .wgchev{width:13px;height:13px;flex:0 0 auto;color:var(--muted);transition:transform .18s}
+  .wgchev{order:9;margin-left:auto;width:13px;height:13px;flex:0 0 auto;color:var(--muted);transition:transform .18s}
   .wgroup.open .wgchev{transform:rotate(90deg)}
   .wglabel{font-weight:500;letter-spacing:.1px;font-variant-numeric:tabular-nums}
   .wgroup.run .wglabel{color:var(--accent2,#60A5FA);animation:wpulse 1.5s ease-in-out infinite}
   @keyframes wpulse{0%,100%{opacity:1}50%{opacity:.5}}
+  /* meshing watch gears in the group header — spin while the group runs, freeze when done */
+  .wgears{position:relative;width:24px;height:20px;flex:0 0 24px}
+  .wgears svg{position:absolute;display:block}
+  .wgears .g1{width:14px;height:14px;left:0;bottom:1px;color:var(--muted)}
+  .wgears .g2{width:10px;height:10px;right:0;top:0;color:var(--muted)}
+  .wgroup.run .wgears .g1{color:var(--accent2,#60A5FA);animation:gearCW 3.2s linear infinite}
+  .wgroup.run .wgears .g2{color:var(--accent2,#60A5FA);animation:gearCCW 2.3s linear infinite}
+  @keyframes gearCW{to{transform:rotate(1turn)}}
+  @keyframes gearCCW{to{transform:rotate(-1turn)}}
+  /* per-type step icons: color + motion ONLY while the step runs; finished steps
+     drop back to the default tone (rules below beat the generic .run accent color) */
+  .wstep.run .wstep-ico .t-wrench{color:#FB923C;animation:aWrench .9s ease-in-out infinite}
+  .wstep.run .wstep-ico .t-todo{color:#A78BFA}
+  .wstep.run .wstep-ico .t-todo .ac1{animation:aTick 1.4s ease-in-out infinite}
+  .wstep.run .wstep-ico .t-todo .ac2{animation:aTick 1.4s ease-in-out .25s infinite}
+  .wstep.run .wstep-ico .t-todo .ac3{animation:aTick 1.4s ease-in-out .5s infinite}
+  .wstep.run .wstep-ico .t-bot{color:#F472B6}
+  .wstep.run .wstep-ico .t-bot .aant{animation:aAnt 1s ease-in-out infinite}
+  .wstep.run .wstep-ico .t-bot .aeyes{animation:aEyes 2.2s infinite}
+  .wstep.run .wstep-ico .t-term{color:#34D399}
+  .wstep.run .wstep-ico .t-term .acur{animation:blink .9s step-end infinite}
+  .wstep.run .wstep-ico .t-globe{color:#818CF8}
+  .wstep.run .wstep-ico .t-globe .amer{stroke-dasharray:3 2.5;animation:aDash 1.1s linear infinite}
+  .wstep.run .wstep-ico .t-search{color:#22D3EE;animation:aScan 1.2s ease-in-out infinite}
+  .wstep.run .wstep-ico .t-pencil{color:#FBBF24;transform-origin:25% 80%;animation:aWrite .55s ease-in-out infinite}
+  .wstep.run .wstep-ico .t-doc{color:#60A5FA}
+  .t-doc .ascan{opacity:0}
+  .wstep.run .wstep-ico .t-doc .ascan{transform-box:fill-box;animation:aRead 1.3s linear infinite}
+  /* thinking brain follows the same rule: gradient while running, grey when done.
+     Stroke must live on the svg (CSS inheritance crosses into <use> shadow DOM;
+     document selectors like ".brainmark g" cannot) */
+  .wstep-ico .brainmark{stroke:var(--muted)}
+  .wstep.run .wstep-ico .brainmark{stroke:url(#g-ai)}
+  @keyframes aWrench{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(12deg)}}
+  @keyframes aTick{0%,15%{opacity:.15}45%,100%{opacity:1}}
+  @keyframes aAnt{0%,100%{opacity:.25}50%{opacity:1}}
+  @keyframes aEyes{0%,88%,100%{opacity:1}93%{opacity:.1}}
+  @keyframes aDash{to{stroke-dashoffset:-11}}
+  @keyframes aScan{0%,100%{transform:translate(-1.2px,-.6px) rotate(-8deg)}50%{transform:translate(1.2px,.6px) rotate(8deg)}}
+  @keyframes aWrite{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(4deg) translateX(1px)}}
+  @keyframes aRead{0%{transform:translateY(0);opacity:0}15%,85%{opacity:1}100%{transform:translateY(5px);opacity:0}}
   .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
   .wgroup.open .wsteps{display:flex}
   .wstep{display:flex;flex-direction:column}
@@ -322,6 +392,11 @@
   .wstep.open .wstep-exp{transform:rotate(90deg)}
   .wstep-body{display:none;white-space:pre-wrap;word-break:break-word;color:var(--muted);font-size:12px;line-height:1.62;padding:3px 8px 9px 33px}
   .wstep.open .wstep-body{display:block}
+
+  /* auto-fallback note: shown when the chosen model was inaccessible and the app switched */
+  .switch-note{display:flex;align-items:center;gap:8px;margin:2px 0 10px;padding:7px 11px;border:1px solid var(--line);border-left:3px solid #F59E0B;background:var(--veil);border-radius:8px;color:var(--secondary);font-size:12.5px;line-height:1.4}
+  .switch-note b{color:var(--primary);font-weight:600}
+  .sw-bolt{color:#F59E0B;font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
 
   /* prompt queue strip */
   .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
@@ -405,11 +480,6 @@
   .send:disabled{opacity:.4;cursor:default}
   .send.stop{background:var(--panel2);border:1px solid var(--line3);color:var(--danger)}
   .send.stop:hover{background:var(--elev);border-color:var(--danger)}
-  /* retry / continue bar under the latest reply */
-  .retry-bar{display:flex;gap:8px;margin-top:11px;flex-wrap:wrap}
-  .retry-bar button{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:6px 13px;font-size:12px;font-weight:500;cursor:pointer;transition:var(--transition)}
-  .retry-bar button:hover{border-color:var(--line2);color:var(--primary);background:var(--elev)}
-  .retry-bar button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
   .stopped-note{color:var(--muted);font-size:12px;font-style:italic;margin-top:6px}
   .ingest-btn{display:none;align-items:center;gap:7px;background:var(--accent-tint);border:1px solid var(--line2);color:var(--accent2);font-weight:600;border-radius:8px;height:38px;padding:0 14px;font-size:12.5px;flex:0 0 auto;transition:var(--transition);white-space:nowrap}
   .ingest-btn.show{display:inline-flex}
@@ -424,10 +494,25 @@
 
   .msg-atts{margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px}
   .matt{font-size:11px;background:var(--veil);border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--primary)}
-  .msg-acts{display:flex;gap:8px;margin-top:10px;opacity:0;transition:opacity .2s}
-  .msg:hover .msg-acts{opacity:1}
-  .msg-acts button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 11px;font-size:11px;cursor:pointer;transition:var(--transition)}
-  .msg-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
+  /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
+  .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
+  .turn>.msg{max-width:none;margin:0;animation:none}
+  .turn>.msg.assistant{margin-top:15px}
+  .turn .msg.user .content{justify-content:flex-start}
+  .turn .msg.user .bubble{background:var(--accent-tint);border:1px solid var(--accent-glow);border-radius:13px;max-width:100%;color:var(--primary);font-size:14.5px;line-height:1.6}
+  /* timestamps — Started (top-left) · Completed (bottom-left) · 24h · no icon · no line */
+  .turn-time{font-family:var(--mono);font-size:11px;letter-spacing:.3px;color:var(--muted);display:flex;align-items:baseline;gap:8px;user-select:none}
+  .turn-start{margin-bottom:14px}
+  .turn-end{margin-top:16px;justify-content:space-between}
+  .turn-meta{display:inline-flex;align-items:baseline;gap:8px;min-width:0}
+  .turn-time .k{color:var(--secondary);font-weight:600;letter-spacing:.4px;text-transform:uppercase;font-size:10px}
+  .turn-time .dur{color:var(--secondary)}
+  /* row of controls to the RIGHT of the Completed stamp — revealed on turn hover */
+  .turn-acts{display:flex;gap:6px;flex:0 0 auto;opacity:0;pointer-events:none;transition:opacity .16s}
+  .turn:hover .turn-acts{opacity:1;pointer-events:auto}
+  .turn-acts button{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:var(--transition)}
+  .turn-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
+  .turn-acts button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
 
   /* hero / empty */
   .hero{max-width:800px;margin:7vh auto 0;text-align:center;animation:msgIn .5s ease both;padding:0 16px}
@@ -531,7 +616,7 @@
   .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
 
   /* ───── dashboard (home) ───── */
-  .brand-home{display:flex;align-items:center;gap:11px;cursor:pointer;flex:1;min-width:0;border-radius:8px;transition:var(--transition)}
+  .brand-home{display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;flex:1;min-width:0;border-radius:8px;transition:var(--transition)}
   .brand-home:hover{opacity:.85}
   .dash{flex:1;overflow:auto;padding:32px 40px 48px}
   .dash-inner{max-width:1120px;margin:0 auto}
@@ -1009,7 +1094,6 @@
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 
   /* icon + text alignment */
-  .msg-acts button{display:inline-flex;align-items:center;gap:6px}
   .account .connect{display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .matt{display:inline-flex;align-items:center;gap:5px}
   .item .x{display:inline-flex;align-items:center}
@@ -1124,9 +1208,8 @@
   .stat.clk:hover,.dcard.clk:hover{border-color:var(--line2);background:var(--elev)}
 
   @keyframes sp{to{transform:rotate(360deg)}}
-  @keyframes tokIn{from{opacity:0}to{opacity:1}}
+  @keyframes tokIn{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:blur(0)}}
   @keyframes blink{50%{opacity:0}}
-  @keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-3px)}}
   @keyframes msgIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
@@ -1134,6 +1217,9 @@
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
   <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></symbol>
   <symbol id="i-crs" viewBox="0 0 1024 324"><path fill="currentColor" stroke="none" d="M190.193 23.2843C200.571 22.281 224.786 22.9283 236.014 22.9575L321.039 23.0299L478.737 23.0178C494.579 23.0147 510.688 23.2877 526.504 23.0017C587.336 21.9019 670.73 24.2163 699.054 89.5594C707.097 111.998 703.172 131.179 733.491 134.007C754.044 135.924 774.756 134.941 795.711 135.161C828.268 135.503 861.187 135.314 893.801 135.402C913.522 135.455 937.136 139.969 955.412 147.68C1003.25 167.866 1003.99 242.882 969.816 275.325C935.777 307.081 880.604 303.884 836.903 303.931C812.867 303.984 788.831 303.836 764.798 303.488C759.08 298.58 747.841 285.713 742.298 279.779L697.591 231.676C738.878 233.513 784.787 232.098 826.532 232.345L863.732 232.384C880.936 232.379 909.81 235.088 909.264 210.218C908.794 188.802 884.666 190.825 869.576 190.822L842.008 190.828C813.147 190.843 784.491 190.511 755.625 190.868C740.247 190.884 720.406 191.394 705.383 189.603C675.1 185.994 634.361 173.276 620.188 143.47C614.424 132.152 614.082 116.755 604.326 107.737C587.513 92.1963 558.219 96.0959 536.977 95.97L448.691 95.9169L288.75 95.9794C257.629 95.9625 226.484 95.9868 195.361 95.9983C171.507 96.0072 146.259 102.526 129.157 120.239C117.136 132.51 110.598 149.125 111.032 166.297C111.69 201.029 139.74 224.149 171.997 229.973C188.85 233.016 206.411 232.148 223.497 232.255C249.006 232.538 274.516 232.475 300.023 232.066C300.786 246.85 300.278 262.76 300.401 277.667C300.45 283.477 300.704 298.486 299.933 303.587L231.415 303.718C167.947 304.122 116.071 303.58 65.8834 256.912C13.3973 208.107 8.9359 125.604 58.8321 73.4673C92.6335 38.1483 142.556 24.3324 190.193 23.2843Z"/><path fill="currentColor" stroke="none" d="M516.239 160.264C539.455 161.022 564.257 159.638 587.663 160.44C593.392 166.145 599.208 172.529 604.682 178.509C643.111 220.491 683.09 261.367 721.268 303.543C716.508 304.155 709.372 303.934 704.388 303.924L677.702 303.883L636.735 303.919C628.956 303.926 619.816 304.169 612.191 303.69C610.297 302.321 604.732 295.36 602.981 293.262L587.346 274.679L562.906 245.871C558.886 241.138 552.711 234.271 549.313 229.487L539.375 229.437C501.491 229.335 460.586 228.579 422.933 229.539L422.743 276.95C422.732 284.791 423.134 296.118 422.555 303.54L336.274 303.616C335.365 290.038 336.012 268.451 336.012 254.123L336.054 160.345L516.239 160.264Z"/><path fill="currentColor" stroke="none" d="M735.749 23.2874C746.301 22.6796 759.978 22.995 770.756 22.9953L830.4 23.0011C881.614 22.9942 934.303 22.3637 985.401 23.0995C980.16 30.8945 971.838 41.0366 965.909 48.6904L933.168 91.2403C930.469 95.0541 929.3 95.8535 924.43 95.8805C917.427 95.9193 910.442 95.5005 903.435 95.5658L820.058 95.675C801.594 95.7901 783.13 95.7814 764.667 95.6489C755.837 95.6655 742.398 96.1519 733.804 95.5067C732.189 91.2229 730.804 85.196 728.976 80.3274C719.97 56.3314 708.82 44.0813 689.957 27.8474C707.604 25.2315 717.649 23.6539 735.749 23.2874Z"/></symbol>
+  <linearGradient id="g-ai" gradientUnits="userSpaceOnUse" x1="3" y1="4" x2="21" y2="20"><stop offset="0" stop-color="#EC4899"/><stop offset=".5" stop-color="#A855F7"/><stop offset="1" stop-color="#6366F1"/></linearGradient>
+  <symbol id="i-brain" viewBox="0 0 24 24"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/></g></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.7"/><path d="M12 3.2v3.4M12 17.4v3.4M3.2 12h3.4M17.4 12h3.4M15.8 8.2l2.4-2.4M8.2 8.2L5.8 5.8M15.8 15.8l2.4 2.4M8.2 15.8l-2.4 2.4"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></symbol>
   <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/></symbol>
   <symbol id="i-clip" viewBox="0 0 24 24"><path d="M21 11.5l-8.7 8.7a5 5 0 0 1-7.1-7.1l8.7-8.7a3.3 3.3 0 0 1 4.7 4.7l-8.7 8.7a1.7 1.7 0 0 1-2.4-2.4l8-8"/></symbol>
@@ -1198,7 +1284,7 @@
       <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openPageWindow('/queue.html','Task queue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
-    <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS"><use href="#i-crs"/></svg><div><h1>Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
+    <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div class="account" id="account"><span class="aplan">checking connection…</span></div>
     <div class="tabs">
       <button id="tabChats" class="on" onclick="setTab('chats')">Conversations</button>
@@ -1716,7 +1802,7 @@ async function openChat(id){
   // keeps typing right where it left off (instead of a blank view + stuck Stop).
   if(state.live && !state.live.done && state.live.chatId===id){
     const live=state.live; live.gen=state.viewGen; state.chatId=id; state.bp=live.bp; showChat();
-    const log=$('chatLog'); log.innerHTML=''; log.appendChild(userMsgEl(live.userText, live.atts)); log.appendChild(live.node);
+    const log=$('chatLog'); log.innerHTML=''; if(live.turn){ log.appendChild(live.turn); } else { const t=newTurn(log); t.appendChild(userMsgEl(live.userText, live.atts)); t.appendChild(live.node); }
     $('centerTitle').textContent=(state.bp?'🔨 ':'')+((state.chatList||[]).find(c=>c.id===id)?.title||'Conversation');
     reflectMode(); state.sending=true; setGenerating(true);
     log.scrollTop=log.scrollHeight; loadChats(); return;
@@ -1738,6 +1824,43 @@ function attsHtml(atts){
       +`<a class="matt-dl" href="/api/raw?path=${encodeURIComponent(p)}" download="${esc(name)}" title="Download ${esc(name)}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a></span>`;
   }).join('')}</div>`;
 }
+// ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
+const T24_={hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
+function fmtClock(iso){ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleTimeString([], T24_); }
+function fmtDateClock(iso){ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleDateString([], {day:'2-digit',month:'short',year:'numeric'})+', '+fmtClock(iso); }
+function fmtSecs(s){ s=Math.max(0,Math.round(s)); if(s<60) return s+'s'; const m=Math.floor(s/60); if(m<60) return m+'m '+(s%60)+'s'; const h=Math.floor(m/60); return h+'h '+(m%60)+'m'; }
+function newTurn(log){ const t=document.createElement('div'); t.className='turn'; if(log) log.appendChild(t); return t; }
+function setTurnStart(turnEl, startedAt){
+  if(!turnEl) return; const d=startedAt?new Date(startedAt):null; if(!d||isNaN(d)) return;
+  let el=turnEl.querySelector(':scope > .turn-start');
+  if(!el){ el=document.createElement('div'); el.className='turn-time turn-start'; turnEl.insertBefore(el, turnEl.firstChild); }
+  el.innerHTML='<span class="k">Started</span><span>'+esc(fmtDateClock(startedAt))+'</span>';
+}
+// The Completed row: an ensured .turn-end flex row holding a left .turn-meta stamp
+// and a right .turn-acts control cluster. turnEndEl() guarantees the row + acts host
+// exist regardless of call order (setTurnEnd vs. addReplyActions/addRetryBar).
+function turnEndEl(turnEl){
+  let el=turnEl.querySelector(':scope > .turn-end');
+  if(!el){ el=document.createElement('div'); el.className='turn-time turn-end'; turnEl.appendChild(el); }
+  return el;
+}
+function turnActs(turnEl){
+  if(!turnEl) return null;
+  const el=turnEndEl(turnEl);
+  let acts=el.querySelector(':scope > .turn-acts');
+  if(!acts){ acts=document.createElement('div'); acts.className='turn-acts'; el.appendChild(acts); }
+  return acts;
+}
+function setTurnEnd(turnEl, completedAt, startedAt){
+  if(!turnEl) return; const c=completedAt?new Date(completedAt):null; if(!c||isNaN(c)) return;
+  const s=startedAt?new Date(startedAt):null; const sOk=s&&!isNaN(s);
+  const sameDay=sOk&&s.toDateString()===c.toDateString();
+  const el=turnEndEl(turnEl);
+  let meta=el.querySelector(':scope > .turn-meta');
+  if(!meta){ meta=document.createElement('span'); meta.className='turn-meta'; el.insertBefore(meta, el.firstChild); }
+  const dur=sOk?fmtSecs((c-s)/1000):'';
+  meta.innerHTML='<span class="k">Completed</span><span>'+esc(sameDay?fmtClock(completedAt):fmtDateClock(completedAt))+'</span>'+(dur?'<span class="dur">· '+esc(dur)+'</span>':'');
+}
 function userMsgEl(content, atts){
   const el=document.createElement('div'); el.className='msg user';
   const body=content?esc(content).replace(/\n/g,'<br>'):'<span class="dim">(files attached)</span>';
@@ -1749,15 +1872,45 @@ function botMsgEl(){
   el.innerHTML=`<div class="avatar bot">${svg('i-logo')}</div><div class="content"><div class="body md"></div></div>`;
   return el;
 }
+// Rebuild the folded "Worked for Xs" tree from a persisted steps[] timeline so the
+// thinking / tool / narration steps survive a reload — static + already collapsed,
+// same DOM the live builder produces (ensureGroup / startCard / addNoteStep).
+function stepsGroupEl(steps, workMs){
+  if(!Array.isArray(steps) || !steps.length) return null;
+  const el=document.createElement('div'); el.className='wgroup';   // no .run, no .open = finished + collapsed
+  el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wgears"><svg class="g1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><use href="#i-gear"/></svg><svg class="g2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><use href="#i-gear"/></svg></span><span class="wglabel">'+esc('Worked for '+fmtDur(workMs||0))+'</span></button><div class="wsteps"></div>';
+  el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
+  const stepsEl=el.querySelector('.wsteps');
+  for(const s of steps){
+    const lbl=s.label || wLabel(s.kind, s.tool);
+    const body=(s.body||'').trim();
+    const st=document.createElement('div'); st.className='wstep'+(body?' has-body':'');
+    st.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(s.kind, s.tool||lbl)+'</span><span class="wstep-lbl">'+esc(lbl)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    if(body) st.querySelector('.wstep-body').textContent=body;
+    st.querySelector('.wstep-head').onclick=()=>{ if(st.classList.contains('has-body')) st.classList.toggle('open'); };
+    stepsEl.appendChild(st);
+  }
+  return el;
+}
 function renderChat(messages){
   const log=$('chatLog'); log.innerHTML='';
-  let lastBot=null, lastBotMsg=null;
+  let curTurn=null, lastBot=null, lastBotMsg=null;
   for(const m of messages){
-    if(m.role==='user'){ log.appendChild(userMsgEl(m.content, m.attachments)); lastBot=null; }
-    else{
+    if(m.role==='user'){
+      curTurn=newTurn(log); curTurn.appendChild(userMsgEl(m.content, m.attachments));
+      setTurnStart(curTurn, m.ts);
+      lastBot=null;
+    }else{
+      if(!curTurn) curTurn=newTurn(log);
       const el=botMsgEl(); const bd=el.querySelector('.body'); bd.innerHTML=renderMd(m.content||''); enhanceChatMedia(bd);
-      if(m.content) addReplyActions(el, m.content);
-      log.appendChild(el); lastBot=el; lastBotMsg=m;
+      const wm=(m.startedAt&&m.completedAt)?(new Date(m.completedAt)-new Date(m.startedAt)):0;
+      const grp=stepsGroupEl(m.steps, wm);
+      if(grp){ const wb=document.createElement('div'); wb.className='wblocks'; wb.appendChild(grp); bd.insertBefore(wb, bd.firstChild); }
+      curTurn.appendChild(el);
+      setTurnStart(curTurn, m.startedAt||m.ts);
+      setTurnEnd(curTurn, m.completedAt||m.ts, m.startedAt);   // raw startedAt → no fake 0s duration on legacy replies
+      if(m.content) addReplyActions(el, m.content);   // after append + turn-end so it lands in .turn-acts
+      lastBot=el; lastBotMsg=m;
     }
   }
   // Reopened chats keep their controls: Try again on the final reply, and
@@ -1766,30 +1919,30 @@ function renderChat(messages){
   log.scrollTop=log.scrollHeight;
 }
 
-// Action bar under each assistant reply: save it as a .md doc and open it, or copy.
+// Per-reply actions live to the RIGHT of the Completed stamp, hover-revealed:
+// save the reply as a .md doc, or copy it. Idempotent per turn.
 function addReplyActions(msgEl, text){
-  const host=msgEl.querySelector('.content')||msgEl;
-  const acts=document.createElement('div'); acts.className='msg-acts';
-  const b1=document.createElement('button'); b1.innerHTML=svg('i-file','sm')+' Open as doc';
+  const turnEl=msgEl.closest('.turn'); const acts=turnActs(turnEl); if(!acts) return;
+  acts.querySelectorAll('.act-doc,.act-copy').forEach(el=>el.remove());
+  const b1=document.createElement('button'); b1.className='act-doc'; b1.innerHTML=svg('i-file','sm')+' Open as doc';
   b1.onclick=()=>openReplyDoc(text, $('centerTitle').textContent);
-  const b2=document.createElement('button'); b2.innerHTML=svg('i-copy','sm')+' Copy';
+  const b2=document.createElement('button'); b2.className='act-copy'; b2.innerHTML=svg('i-copy','sm')+' Copy';
   b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
-  acts.appendChild(b1); acts.appendChild(b2); host.appendChild(acts);
+  acts.appendChild(b1); acts.appendChild(b2);
 }
-// Always-visible controls under the newest reply: regenerate, and (after a Stop) continue.
+// Regenerate (and, after a Stop, Continue) — only the newest reply keeps these;
+// they sit first in the same hover cluster. Tagged .act-nav so a new turn can strip them.
 function addRetryBar(msgEl, stopped){
-  const host=msgEl.querySelector('.content')||msgEl;
-  host.querySelectorAll('.retry-bar').forEach(el=>el.remove());
-  const bar=document.createElement('div'); bar.className='retry-bar';
-  const retry=document.createElement('button'); retry.innerHTML=svg('i-refresh','sm')+' Try again';
+  const turnEl=msgEl.closest('.turn'); const acts=turnActs(turnEl); if(!acts) return;
+  acts.querySelectorAll('.act-nav').forEach(el=>el.remove());
+  const retry=document.createElement('button'); retry.className='act-nav'; retry.innerHTML=svg('i-refresh','sm')+' Try again';
   retry.onclick=()=>regenerate(msgEl);
-  bar.appendChild(retry);
+  acts.insertBefore(retry, acts.firstChild);
   if(stopped){
-    const cont=document.createElement('button'); cont.innerHTML=svg('i-send','sm')+' Continue';
+    const cont=document.createElement('button'); cont.className='act-nav'; cont.innerHTML=svg('i-send','sm')+' Continue';
     cont.onclick=()=>continueGen();
-    bar.appendChild(cont);
+    retry.after(cont);
   }
-  host.appendChild(bar);
 }
 // "Try again" — drop this reply and re-run the preceding user turn (server-side).
 function regenerate(msgEl){
@@ -2061,41 +2214,60 @@ function fmtDur(ms){
   const m=Math.floor(s/60); if(m<60) return m+'m '+(s%60)+'s';
   const h=Math.floor(m/60); return h+'h '+(m%60)+'m';
 }
+// Gradient brain + orbiting molecules (animates only inside .chat-brain / .wstep.run scopes).
+function brainHtml(){ return '<span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg><i class="mol m1"></i><i class="mol m2"></i><i class="mol m3"></i><i class="mol m4"></i><i class="mol m5"></i></span>'; }
 // Small inline icon per work-step, picked from the kind + the tool/label text.
+// Thinking = the molecule brain (orbits while .wstep.run, freezes when done);
+// tools = distinct colored glyphs per action type.
 function stepIco(kind,hint){
+  if(kind==='thinking') return brainHtml();
   const t=((hint||'')+'').toLowerCase();
   let p='dot';
-  if(kind==='thinking') p='sparkle';
-  else if(/\bbash|buildprint|terminal|shell|\bnpm|\bgit\b|python|node|\$/.test(t)) p='term';
+  if(kind==='note') p='note';
+  else if(/buildprint/.test(t)) p='wrench';
+  else if(/todo|checklist/.test(t)) p='todo';
+  else if(/\bagent\b|subagent|\btask\b/.test(t)) p='bot';
+  else if(/\bbash|terminal|shell|\bnpm|\bgit\b|python|node|powershell|\$/.test(t)) p='term';
+  else if(/web|fetch|http|url/.test(t)) p='globe';
   else if(/grep|glob|search|\bfind\b|explor|tree|context|summary|audit/.test(t)) p='search';
-  else if(/\bread|\bcat\b|view|guideline|\.md|\.json|\.js|\.css|\.html|file/.test(t)) p='doc';
-  else if(/web|fetch|http|url|search the/.test(t)) p='globe';
   else if(/edit|write|apply|create|update|savepoint|merge/.test(t)) p='pencil';
+  else if(/\bread|\bcat\b|view|guideline|\.md|\.json|\.js|\.css|\.html|file/.test(t)) p='doc';
   const P={
-    sparkle:'<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/>',
-    term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3M13.5 15H17"/>',
+    wrench:'<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
+    todo:'<path class="ac1" d="M3.5 6l1.5 1.5L7.5 5"/><path class="ac2" d="M3.5 12l1.5 1.5L7.5 11"/><path class="ac3" d="M3.5 18l1.5 1.5L7.5 17"/><path d="M11 6.8h9.5M11 12.8h9.5M11 18.8h9.5"/>',
+    bot:'<circle class="aant" cx="12" cy="3.6" r="1"/><path d="M12 4.6V8"/><rect x="5" y="8" width="14" height="11" rx="2.5"/><path class="aeyes" d="M9.2 12.3v1.8M14.8 12.3v1.8"/>',
+    term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path class="acur" d="M13.5 15H17"/>',
     search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>',
-    doc:'<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/>',
-    globe:'<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
+    doc:'<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/><path class="ascan" d="M8.5 11.5h6"/>',
+    globe:'<circle cx="12" cy="12" r="9"/><path class="amer" d="M3 12h18M12 3c2.6 2.6 2.6 15.4 0 18M12 3c-2.6 2.6-2.6 15.4 0 18"/>',
     pencil:'<path d="M4 20l4.5-1L18 9.5 15.5 7 6 16.5z"/><path d="M14 8.5l2.5 2.5"/>',
+    note:'<path d="M20 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>',
     dot:'<circle cx="12" cy="12" r="3"/>'
   };
-  return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(P[p]||P.dot)+'</svg>';
+  return '<svg class="t-'+p+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(P[p]||P.dot)+'</svg>';
 }
 async function streamChat(text, opts={}){
   if(state.sending) return;
   showChat();
   const log=$('chatLog');
   if(log.querySelector('.hero')||log.querySelector('.empty')) log.innerHTML='';
-  document.querySelectorAll('.retry-bar').forEach(el=>el.remove());   // only the newest reply keeps its retry/continue controls
-  if(!opts.regenerate) log.appendChild(userMsgEl(text, opts.attachmentNames));
+  document.querySelectorAll('.turn-acts .act-nav').forEach(el=>el.remove());   // only the newest reply keeps its retry/continue controls
+  // One unified action: prompt → thinking → working → answer all live inside a single .turn.
+  let turn;
+  if(opts.regenerate){
+    turn=[...log.querySelectorAll('.turn')].pop() || newTurn(log);
+    const oe=turn.querySelector(':scope > .turn-end'); if(oe) oe.remove();   // drop the previous reply's Completed stamp
+  }else{
+    turn=newTurn(log); turn.appendChild(userMsgEl(text, opts.attachmentNames));
+  }
   const a=botMsgEl(); const body=a.querySelector('.body');
   body.innerHTML='';
+  const brainEl=document.createElement('div'); brainEl.className='chat-brain';
+  brainEl.innerHTML=brainHtml();
   const blocksEl=document.createElement('div'); blocksEl.className='wblocks';
   const answerEl=document.createElement('div'); answerEl.className='streaming';
-  answerEl.innerHTML='<span class="dots"><i></i><i></i><i></i></span>';
-  body.appendChild(blocksEl); body.appendChild(answerEl);
-  log.appendChild(a);
+  body.appendChild(brainEl); body.appendChild(blocksEl); body.appendChild(answerEl);
+  turn.appendChild(a);
   log.scrollTop=log.scrollHeight;
   state.sending=true; state.stopped=false;
   const ac=new AbortController(); state.abort=ac;
@@ -2109,16 +2281,15 @@ async function streamChat(text, opts={}){
   const meterIv=setInterval(paintMeter, 250);
   // Register this stream so it can be re-attached if the user switches chats and
   // returns, and so it stops touching the composer once it's no longer the view.
-  const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, userText:text, atts:opts.attachmentNames, bp:state.bp===true };
+  const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, turn, userText:text, atts:opts.attachmentNames, bp:state.bp===true };
   state.live=live;
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
   // ---- grouped work blocks: a run of tool/thinking steps folds under one
   //      "Worked for Xs" header; each step is a clean icon+label row, expandable ----
-  let group=null, activeStep=null, dotsShown=true;
+  let group=null, activeStep=null;
   const timerIv=setInterval(()=>{ if(group&&group.run) group.labelEl.textContent='Working '+fmtDur(performance.now()-group.start); }, 500);
-  function clearDots(){ if(dotsShown){ answerEl.innerHTML=''; dotsShown=false; } }
   function endStep(){ if(activeStep){ activeStep.el.classList.remove('run'); activeStep=null; } }
   function finalizeCard(){   // finalize the whole active group (name kept for call sites)
     endStep();
@@ -2126,11 +2297,11 @@ async function streamChat(text, opts={}){
   }
   function ensureGroup(){
     if(group) return;
-    clearDots();
     const el=document.createElement('div'); el.className='wgroup run open';
-    el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wglabel">Working</span></button><div class="wsteps"></div>';
+    el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wgears"><svg class="g1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><use href="#i-gear"/></svg><svg class="g2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><use href="#i-gear"/></svg></span><span class="wglabel">Working</span></button><div class="wsteps"></div>';
     el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
     blocksEl.appendChild(el);
+    try{ brainEl.remove(); }catch{}   // thinking-step brain takes over from the top placeholder
     group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),start:performance.now(),run:true};
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
@@ -2153,24 +2324,44 @@ async function streamChat(text, opts={}){
     if(!activeStep||activeStep.kind!=='thinking') startCard('thinking');
     setStepBody(activeStep.text+t);
   }
+  // Interim narration (assistant text emitted BETWEEN tool calls) is process, not
+  // the answer — fold it into the timeline as a finished, expandable note step so the
+  // final answer stays clean instead of a run-on wall of "let me… now I'll…" text.
+  function oneLine(t){ return (t||'').trim().replace(/\s+/g,' '); }
+  function addNoteStep(text){
+    const one=oneLine(text); if(!one) return;
+    endStep(); ensureGroup();
+    const el=document.createElement('div'); el.className='wstep';   // already complete — no .run
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco('note')+'</span><span class="wstep-lbl">'+esc(one)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    if(one.length>72||/\n/.test(text.trim())){ el.classList.add('has-body'); el.querySelector('.wstep-body').textContent=text.trim(); }
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
+    if(nearBottom()) log.scrollTop=log.scrollHeight;
+  }
 
   // ---- answer typewriter reveal (into answerEl); setTimeout survives hidden tabs ----
   let full='', revealed=0, streamDone=false, errored=false, started=false, finalized=false, stoppedReply=false;
   const caret=document.createElement('span'); caret.className='caret';
   function pump(){
     if(errored||finalized) return;
-    if(!started && full.length){ clearDots(); finalizeCard(); answerEl.innerHTML=''; answerEl.appendChild(caret); started=true; }
+    if(!started && full.length){ try{ brainEl.remove(); }catch{} answerEl.innerHTML=''; answerEl.appendChild(caret); started=true; }   // group stays open (text may be narration); it finalizes at 'done'
     if(revealed<full.length){
       const remaining=full.length-revealed;
-      const step = remaining>240 ? remaining-200 : 3;   // steady typing; catch up only if far behind
-      const slice=full.slice(revealed, revealed+step); revealed+=slice.length;
+      // Steady typewriter cadence; accelerate (never dump) as the backlog grows, so a
+      // long answer stays snappy but still visibly "types" in a wave instead of at once.
+      let end = revealed + (remaining>1400 ? 64 : remaining>500 ? 20 : remaining>140 ? 7 : 2);
+      if(end < full.length){                 // extend to the next word boundary → each .tok is a whole word (clean fade)
+        while(end<full.length && !/\s/.test(full[end])) end++;
+        while(end<full.length && /\s/.test(full[end])) end++;
+      }else end=full.length;
+      const slice=full.slice(revealed, end); revealed=end;
       const frag=document.createDocumentFragment();
       slice.split(/(\s+)/).forEach(t=>{ if(t===''){return;} const s=document.createElement('span'); s.className='tok'; s.textContent=t; frag.appendChild(s); });
       answerEl.insertBefore(frag, caret);
       if(nearBottom()) log.scrollTop=log.scrollHeight;
     }
     if(streamDone && revealed>=full.length){ return finalize(); }
-    setTimeout(pump, 16);
+    setTimeout(pump, 22);
   }
   function finalize(){
     if(errored||finalized) return; finalized=true;
@@ -2183,6 +2374,7 @@ async function streamChat(text, opts={}){
       setTimeout(()=>{ answerEl.style.transition='opacity .28s ease'; answerEl.style.opacity='1'; }, 20);
     }
     if(stoppedReply && full.trim()){ const n=document.createElement('div'); n.className='stopped-note'; n.textContent='⏹ Stopped'; answerEl.after(n); }
+    setTurnEnd(turn, live.completedAt || new Date().toISOString(), live.startedAt);   // meta first, then acts to its right
     if(full.trim()) addReplyActions(a, full);
     addRetryBar(a, stoppedReply);
     if(nearBottom()) log.scrollTop=log.scrollHeight;
@@ -2201,18 +2393,30 @@ async function streamChat(text, opts={}){
         const chunk=buf.slice(0,idx); buf=buf.slice(idx+2);
         const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
         let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
-        if(ev.type==='meta'){ live.chatId=ev.id; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; }
+        if(ev.type==='meta'){ live.chatId=ev.id; live.startedAt=ev.startedAt; if(ev.startedAt) setTurnStart(turn, ev.startedAt); if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; }
           if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
-        else if(ev.type==='block'){ startCard(ev.kind, ev.tool); }
+        else if(ev.type==='block'){
+          // A new TOOL block means the text streamed so far was interim narration —
+          // reclaim it from the answer body into a timeline note, then start the tool step.
+          if(ev.kind==='tool' && full.trim()){ addNoteStep(full); full=''; revealed=0; answerEl.innerHTML=''; answerEl.appendChild(caret); }
+          startCard(ev.kind, ev.tool);
+        }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
         else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
+        else if(ev.type==='model-switch'){
+          const nice=(m)=>({'claude-opus-4-8':'Opus 4.8','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'}[m]||m);
+          const note=document.createElement('div'); note.className='switch-note';
+          note.innerHTML='<span class="sw-bolt">⚡</span><span>'+esc(nice(ev.from))+' unavailable — switched to <b>'+esc(nice(ev.to))+'</b> to keep going</span>';
+          body.insertBefore(note, blocksEl);
+          if(nearBottom()) log.scrollTop=log.scrollHeight;
+        }
         else if(ev.type==='memory-saved'){ const n=(ev.entries||[]).length; if(n){ const first=ev.entries[0]; toast('🧠 Saved to memory — '+first.category+': '+first.title+(n>1?`  (+${n-1} more)`:'')); } }
         else if(ev.type==='usage'){ genIn=ev.in||genIn; genOut=ev.out||genOut; paintMeter(); }
-        else if(ev.type==='delta'){ if(group) finalizeCard(); full+=ev.text; }
-        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
-        else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; if(mine()) state.chatId=ev.id; }
+        else if(ev.type==='delta'){ endStep(); full+=ev.text; }   // text streaming → stop the last step spinning; keep the group open
+        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
+        else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt; if(mine()) state.chatId=ev.id; }
         else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
       }
     }
@@ -2226,6 +2430,7 @@ async function streamChat(text, opts={}){
     }
   }finally{
     live.done=true; clearInterval(timerIv); clearInterval(meterIv); if(gm&&mine()) gm.classList.remove('show');
+    try{ brainEl.remove(); }catch{}
     // Only touch the composer/queue if this stream still owns the active view —
     // otherwise the user has moved on and a different stream (or none) is in charge.
     if(mine()){ state.sending=false; state.abort=null; setGenerating(false); dequeue(); }
@@ -2259,7 +2464,7 @@ async function runDigest(){
 
 // ---------- files ----------
 async function loadFiles(){
-  const {root,tree}=await api('/api/files'); $('repoName').textContent=root; state.repoName=root;
+  const {root,tree}=await api('/api/files'); state.repoName=root;
   DW.allPaths=new Set(); (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):DW.allPaths.add(n.path); } })(tree);   // FULL tree — doc-window links check existence here
   const shown=filterTree(tree);
   const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(shown,true));
@@ -4071,9 +4276,9 @@ async function bpTrack(){
   state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
-  log.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
+  const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
   const a=botMsgEl(); const body=a.querySelector('.body'); body.classList.add('md');
-  body.innerHTML='<span class="dim">syncing from Bubble…</span>'; log.appendChild(a); log.scrollTop=log.scrollHeight;
+  body.innerHTML='<span class="dim">syncing from Bubble…</span>'; turn.appendChild(a); log.scrollTop=log.scrollHeight;
   state.sending=true; $('sendBtn').disabled=true;
   let full='';
   try{

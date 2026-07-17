@@ -266,6 +266,8 @@ const DEFAULT_SOUND_EVENTS = {
 };
 const DEFAULT_SETTINGS = {
   model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
+  autoFallback: true,                          // if the chosen model is inaccessible (overload / model-specific limit / unavailable), auto-switch to keep working
+  fallbackModels: ['sonnet', 'haiku'],         // ordered chain tried after the primary; aliases survive version bumps. NOTE: the account-wide 5h cap hits every model — fallback only rescues MODEL-specific outages (e.g. Opus limit while the general pool is fine)
   theme: 'dark',                              // 'dark' | 'light'
   bpAutoTrack: true,                          // auto-track Buildprint changes into the brain
   notify: { inApp: true, sound: true, email: false, emailTo: '' },
@@ -1031,9 +1033,19 @@ function summarizeTool(name, input) {
   const arg = p.description || p.file_path || p.path || p.prompt || p.query || p.branch || '';
   return arg ? label + ' · ' + clip(arg, 56) : label;
 }
+// A failure whose cause is the CHOSEN MODEL being inaccessible — overloaded,
+// its own (model-specific) limit hit, or the model unavailable/not-found — as
+// opposed to a real bug in the run. These are the cases where switching to
+// another model can let the work continue. (An account-wide 5h cap matches too,
+// but every model shares that pool, so the fallback chain will simply exhaust.)
+const MODEL_INACCESSIBLE_RE = /overload|rate.?limit|usage limit|limit reached|too many request|model[_\s-]?not[_\s-]?found|not_found|invalid.{0,14}model|unavailable|no access|quota|insufficient|credit balance|\b429\b|\b529\b|\b503\b|resource_exhausted|capacity|temporarily/i;
+function isModelInaccessible(text) { return MODEL_INACCESSIBLE_RE.test(String(text || '')); }
+
 // Spawn `claude -p` in stream-json mode, feed the prompt via stdin, and emit
 // text deltas as they arrive. Uses the Max subscription (no API key).
 // hooks: { onDelta(text), onStatus(text) }. Resolves { text, sessionId }.
+// On failure rejects with an Error tagged { stage:'pre'|'mid', retryable:bool }
+// so a caller can decide whether switching models could rescue the run.
 function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onDelta = hooks.onDelta || (() => {});
   const onStatus = hooks.onStatus || (() => {});
@@ -1066,6 +1078,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     let finalText = '';
     let sawResult = false;
     let aborted = false;
+    let emitted = false;      // did the model produce ANY content (block/text/thinking) before failing?
+    let resultErr = null;     // set when the CLI reports an error via the `result` event
 
     // Stop button / client disconnect: kill the claude child, keep partial output.
     if (opts.signal) {
@@ -1111,23 +1125,27 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
         if (e.type === 'content_block_start' && e.content_block) {
           flushTool();   // safety: emit prior tool detail if its stop was missed
           const cb = e.content_block;
-          if (cb.type === 'thinking') onBlock({ kind: 'thinking' });
+          if (cb.type === 'thinking') { emitted = true; onBlock({ kind: 'thinking' }); }
           else if (cb.type === 'tool_use') {
+            emitted = true;
             toolAcc = { name: cb.name || '', json: '' };
             onBlock({ kind: 'tool', tool: cb.name || '' });
             onStatus(cb.name || 'working');
           }
         } else if (e.type === 'content_block_delta' && e.delta) {
-          if (e.delta.type === 'text_delta') onDelta(e.delta.text || '');
-          else if (e.delta.type === 'thinking_delta') onThink(e.delta.thinking || '');
+          if (e.delta.type === 'text_delta') { emitted = true; onDelta(e.delta.text || ''); }
+          else if (e.delta.type === 'thinking_delta') { emitted = true; onThink(e.delta.thinking || ''); }
           else if (e.delta.type === 'input_json_delta' && toolAcc) toolAcc.json += e.delta.partial_json || '';
         } else if (e.type === 'content_block_stop' || e.type === 'message_stop') {
           flushTool();
         }
       } else if (ev.type === 'result') {
         sawResult = true;
-        finalText = ev.result || finalText;
         sessionId = ev.session_id || sessionId;
+        // An error can arrive AS a result event (is_error) — previously this was
+        // stored as if it were the assistant's reply. Capture it as an error.
+        if (ev.is_error || /^error/.test(String(ev.subtype || ''))) resultErr = String(ev.result || ev.subtype || 'error');
+        else finalText = ev.result || finalText;
       }
     }
 
@@ -1154,15 +1172,54 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
         if (finalText.trim()) return resolve({ text: finalText, sessionId, aborted: true });
         return reject(new Error('claude stopped responding (no output for 10 minutes)'));
       }
-      if (!sawResult && code !== 0) {
-        return reject(new Error(`claude exited ${code}: ${stderr.slice(0, 500)}`));
-      }
+      // Tag failures so a caller can tell a model-outage (switchable) apart from a
+      // real error, and whether the model produced anything before dying.
+      const tagErr = (msg, srcText) => {
+        const err = new Error(msg);
+        err.stage = emitted ? 'mid' : 'pre';
+        err.retryable = isModelInaccessible([srcText, msg, stderr].join(' '));
+        return err;
+      };
+      if (resultErr) return reject(tagErr(`claude: ${String(resultErr).slice(0, 500)}`, resultErr));
+      if (!sawResult && code !== 0) return reject(tagErr(`claude exited ${code}: ${stderr.slice(0, 500)}`, stderr));
       resolve({ text: finalText, sessionId });
     });
 
     child.stdin.write(message);
     child.stdin.end();
   });
+}
+
+// Run through a model FALLBACK CHAIN. Try the primary model; if it fails BEFORE
+// producing any output for a model-inaccessible reason (overload / model-specific
+// limit / unavailable), transparently switch to the next model and keep going.
+// A mid-answer failure, or any non-model error, is surfaced as-is (resuming a
+// half-written reply on another model would be incoherent). Drop-in replacement
+// for runClaudeStream; hooks may add onModelSwitch({ from, to, reason }). Resolve
+// shape adds { model } = the model that actually produced the reply.
+async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) {
+  let s = {}; try { s = loadSettings(); } catch {}
+  const autoFallback = opts.autoFallback != null ? opts.autoFallback : s.autoFallback !== false;
+  const primary = opts.model || null;                        // null => the CLI's own default model
+  const fallbacks = (opts.fallbackModels || s.fallbackModels || []).filter(Boolean);
+  const chain = [primary, ...fallbacks].filter((m, i, a) => a.indexOf(m) === i);   // primary first, de-duped
+  const models = autoFallback ? chain : [primary];
+
+  let lastErr;
+  for (let i = 0; i < models.length; i++) {
+    const model = models[i];
+    try {
+      const r = await runClaudeStream(message, sessionId, hooks, { ...opts, model: model || undefined });
+      return { ...r, model: model || r.model || null };
+    } catch (e) {
+      lastErr = e;
+      const next = models[i + 1];
+      // Only switch when nothing was produced yet AND the cause is a model outage.
+      if (next === undefined || !e || e.stage !== 'pre' || !e.retryable) throw e;
+      try { (hooks.onModelSwitch || (() => {}))({ from: model || 'default', to: next, reason: e.message }); } catch {}
+    }
+  }
+  throw lastErr;
 }
 
 // ---- git helpers -----------------------------------------------------------
@@ -1950,14 +2007,25 @@ const server = http.createServer(async (req, res) => {
       let clientGone = false;
       req.on('close', () => { clientGone = true; ac.abort(); });
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
-      sse({ type: 'meta', id: chat.id, title: chat.title });
+      const startedAt = nowIso();
+      sse({ type: 'meta', id: chat.id, title: chat.title, startedAt });
 
       let streamed = '';
+      let answerSeg = '';   // text since the last TOOL block = the clean final answer; earlier text is interim narration
+      // Capture the live work timeline (thinking + tool steps + reclaimed narration
+      // notes) so the "Worked for Xs" tree can be rebuilt after a reload. Mirrors the
+      // client builder: one flat, ordered steps[] = one folded group per reply.
+      const steps = [];
+      let curStep = null;
+      const oneLineSrv = (t) => (t || '').trim().replace(/\s+/g, ' ');
+      const capBody = (t) => { t = (t || '').trim(); return t.length > 1600 ? t.slice(0, 1600) + '…' : t; };
       try {
         const cfg = loadSettings();
         const runOpts = {
           model: (body.model || cfg.model || '').toString() || undefined,
           effort: (body.effort || cfg.effort || '').toString() || undefined,
+          autoFallback: cfg.autoFallback !== false,
+          fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
         };
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
@@ -1981,30 +2049,47 @@ const server = http.createServer(async (req, res) => {
               return saved;
             }).catch(() => [])
           : Promise.resolve([]);
-        const result = await runClaudeStream(promptToClaude, chat.sessionId, {
-          onDelta: (t) => { streamed += t; sse({ type: 'delta', text: t }); },
-          onThink: (t) => sse({ type: 'think', text: t }),
-          onBlock: (b) => sse({ type: 'block', kind: b.kind, tool: b.tool || null }),
-          onDetail: (t) => sse({ type: 'detail', text: t }),
-          onLabel: (t) => sse({ type: 'label', text: t }),
+        const result = await runClaudeWithFallback(promptToClaude, chat.sessionId, {
+          onDelta: (t) => { streamed += t; answerSeg += t; sse({ type: 'delta', text: t }); },
+          onThink: (t) => {
+            if (!curStep || curStep.kind !== 'thinking') { curStep = { kind: 'thinking', tool: null, label: 'Thinking', body: '' }; steps.push(curStep); }
+            curStep.body = capBody(curStep.body + t);
+            sse({ type: 'think', text: t });
+          },
+          onBlock: (b) => {
+            if (b.kind === 'tool') {
+              const note = answerSeg.trim();   // interim narration between tools → a finished note step
+              if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '' });
+              answerSeg = '';
+            }
+            curStep = { kind: b.kind, tool: b.tool || null, label: null, body: '' };
+            steps.push(curStep);
+            sse({ type: 'block', kind: b.kind, tool: b.tool || null });
+          },
+          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); sse({ type: 'detail', text: t }); },
+          onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
+          onModelSwitch: (m) => sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }),
         }, runOpts);
-        const finalText = result.text || streamed;
+        // Prefer the clean final segment (everything after the last tool call); fall
+        // back to the CLI's full result only if the model ended without final text.
+        const finalText = (answerSeg.trim() ? answerSeg : (result.text || streamed)).replace(/^\s+/, '');
+        const completedAt = nowIso();
         chat.sessionId = result.sessionId || chat.sessionId;
-        chat.updated = nowIso();
+        chat.updated = completedAt;
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
-        chat.messages.push({ role: 'assistant', content: finalText, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
+        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
         saveChat(chat);
         autoCommit(chat.title);
         await memPromise;   // ensure the memory save + toast land before we close the stream
-        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId });
+        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
       } catch (e) {
         // Persist the chat anyway — otherwise the user's message (and a brand-new
         // chat entirely) vanishes on a claude error, with no retry possible.
         try {
-          if (streamed) chat.messages.push({ role: 'assistant', content: streamed, ts: nowIso(), partial: true });
+          if (streamed) chat.messages.push({ role: 'assistant', content: streamed, ts: nowIso(), startedAt, completedAt: nowIso(), ...(steps.length ? { steps } : {}), partial: true });
           chat.updated = nowIso();
           saveChat(chat);
         } catch {}
