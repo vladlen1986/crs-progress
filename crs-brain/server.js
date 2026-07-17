@@ -2430,6 +2430,56 @@ const server = http.createServer(async (req, res) => {
       catch (e) { return send(res, 502, { error: e.message }); }
     }
 
+    // ---- task queue (w-loops MVP) ----
+    if (p === '/api/queue' && req.method === 'GET') {
+      const q = loadQueue();
+      return send(res, 200, { ...q, running: queueRunning });
+    }
+    if (p === '/api/queue' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const q = loadQueue();
+      const open = q.tasks.filter((t) => t.status !== 'done' && t.status !== 'failed').length;
+      if (open >= QUEUE_MAX) return send(res, 400, { error: `queue full (max ${QUEUE_MAX} open tasks)` });
+      const title = String((body && body.title) || '').slice(0, 140).trim();
+      const prompt = String((body && body.prompt) || '').slice(0, 20000).trim();
+      if (!title || !prompt) return send(res, 400, { error: 'title and prompt required' });
+      const t = { id: crypto.randomUUID().slice(0, 8), title, prompt, status: 'queued', created: nowIso(), started: null, finished: null, log: [] };
+      qlog(t, 'queued');
+      q.tasks.push(t); saveQueue(q);
+      return send(res, 200, t);
+    }
+    if (p === '/api/queue/remove' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const q = loadQueue();
+      const t = q.tasks.find((x) => x.id === (body && body.id));
+      if (!t) return send(res, 404, { error: 'no such task' });
+      if (t.status === 'running') return send(res, 400, { error: 'task is running' });
+      q.tasks = q.tasks.filter((x) => x !== t); saveQueue(q);
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/queue/reorder' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const ids = Array.isArray(body && body.ids) ? body.ids : null;
+      if (!ids) return send(res, 400, { error: 'ids array required' });
+      const q = loadQueue();
+      const byId = Object.fromEntries(q.tasks.map((t) => [t.id, t]));
+      const ordered = ids.map((id) => byId[id]).filter(Boolean);
+      if (ordered.length !== q.tasks.length) return send(res, 400, { error: 'ids must cover all tasks' });
+      q.tasks = ordered; saveQueue(q);
+      return send(res, 200, { ok: true });
+    }
+    if (p === '/api/queue/run' && req.method === 'POST') {
+      const r = runQueue();   // fire and forget; status via GET /api/queue
+      return send(res, 200, await Promise.race([r, new Promise((ok) => setTimeout(() => ok({ started: true }), 300))]));
+    }
+    if (p === '/api/queue/stub' && req.method === 'POST') {
+      // Test hook (verify-list): {mode:'limit', resetInSec} fakes a limit response;
+      // {} clears. Never used by the UI.
+      const body = await readJsonBody(req).catch(() => ({}));
+      QUEUE_STUB = body && body.mode === 'limit' ? { mode: 'limit', resetAt: Date.now() + Math.max(5, Number(body.resetInSec) || 60) * 1000 } : null;
+      return send(res, 200, { stub: QUEUE_STUB });
+    }
+
     // Save an uploaded attachment (base64) into data/attachments; return its repo-relative path.
     if (p === '/api/attach' && req.method === 'POST') {
       const body = await readJsonBody(req);
@@ -2744,6 +2794,103 @@ function maybeForumCheck() {
 }
 setTimeout(maybeForumCheck, 60 * 1000);            // on server start (1 min in)
 setInterval(maybeForumCheck, 3600 * 1000);         // hourly gate, daily action
+
+// ---- w-loops MVP: durable task queue with limit-aware auto-resume ------------
+// Sequential only, max 20 open tasks, no retry loops (failed = failed).
+// Auto-resume fires ONLY for usage-limit blocks: the task flips to
+// blocked-limit, the reset time comes from usage.json rate_limits, and a timer
+// resumes the queue at reset + 2 min. Restart-safe: resumeAt persists in the
+// queue file and is re-armed at boot. Every task runs through runClaudeStream,
+// so the bp-guard settings (--settings) apply — the safety gate cannot be
+// bypassed from a queued prompt.
+const QUEUE_FILE = path.join(DATA_DIR, 'task-queue.json');
+const QUEUE_MAX = 20;
+function loadQueue() { try { return JSON.parse(fs.readFileSync(QUEUE_FILE, 'utf8')); } catch { return { tasks: [], resumeAt: null }; } }
+function saveQueue(q) { fs.writeFileSync(QUEUE_FILE, JSON.stringify(q, null, 2)); }
+function qlog(t, msg) { (t.log = t.log || []).push({ ts: nowIso(), msg: String(msg).slice(0, 300) }); if (t.log.length > 50) t.log = t.log.slice(-50); }
+
+let QUEUE_STUB = null;   // test hook: {mode:'limit', resetAt} — POST /api/queue/stub
+const LIMIT_RE = /usage limit|rate.?limit|limit (reached|hit|exceeded)|out of (usage|quota)|quota exceeded|resets at|too many requests|overloaded/i;
+function looksLikeLimit(msg) { return QUEUE_STUB && QUEUE_STUB.mode === 'limit' ? true : LIMIT_RE.test(String(msg || '')); }
+// When is the binding (exhausted) window back? Epoch ms, or null if unknown.
+// usage.json rate_limits.*.resets_at is epoch SECONDS (statusline.js shape).
+function limitResetMs() {
+  if (QUEUE_STUB && QUEUE_STUB.resetAt) return QUEUE_STUB.resetAt;
+  const u = loadUsage();
+  const rl = u && u.rate_limits;
+  if (!rl) return null;
+  const exhausted = ['five_hour', 'seven_day']
+    .map((k) => rl[k]).filter((w) => w && w.resets_at && (w.used_percentage || 0) >= 99)
+    .map((w) => w.resets_at * 1000);
+  if (exhausted.length) return Math.max(...exhausted);
+  return rl.five_hour && rl.five_hour.resets_at ? rl.five_hour.resets_at * 1000 : null;
+}
+
+let queueRunning = false;
+let queueTimer = null;
+async function runQueue() {
+  if (queueRunning) return { already: true };
+  const gate = loadQueue();
+  if (gate.resumeAt && Date.now() < gate.resumeAt) return { waiting: gate.resumeAt };
+  queueRunning = true;
+  try {
+    for (;;) {
+      const q = loadQueue();
+      if (q.resumeAt && Date.now() < q.resumeAt) break;
+      const t = q.tasks.find((x) => x.status === 'queued' || x.status === 'blocked-limit');
+      if (!t) break;
+      t.status = 'running'; t.started = nowIso(); qlog(t, 'started'); saveQueue(q);
+      const cfg = loadSettings();
+      try {
+        if (QUEUE_STUB && QUEUE_STUB.mode === 'limit') throw new Error('usage limit reached (stub)');
+        const r = await runClaudeStream(t.prompt, t.sessionId || null, {
+          onLabel: (l) => { try { qlog(t, l); saveQueue(q); } catch {} },
+        }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT });
+        t.sessionId = r.sessionId;
+        t.status = 'done'; t.finished = nowIso(); t.result = (r.text || '').slice(0, 4000); qlog(t, 'done'); saveQueue(q);
+        addNotification({ type: 'queue', level: 'success', title: `Queue task done: ${t.title}` });
+      } catch (e) {
+        if (looksLikeLimit(e.message)) {
+          t.status = 'blocked-limit'; qlog(t, 'usage limit: ' + String(e.message).slice(0, 150));
+          q.resumeAt = (limitResetMs() || (Date.now() + 30 * 60 * 1000)) + 2 * 60 * 1000;   // reset + 2 min (30-min fallback if reset unknown)
+          saveQueue(q);
+          addNotification({ type: 'queue', level: 'warning', title: 'Queue paused — usage limit', body: `Auto-resumes at ${new Date(q.resumeAt).toLocaleString()}` });
+          scheduleQueueResume();
+          break;
+        }
+        t.status = 'failed'; t.finished = nowIso(); qlog(t, 'failed: ' + String(e.message).slice(0, 200)); saveQueue(q);
+        addNotification({ type: 'queue', level: 'error', title: `Queue task failed: ${t.title}`, body: String(e.message).slice(0, 200) });
+        // no auto-retry — Vlad re-queues failures deliberately
+      }
+    }
+  } finally { queueRunning = false; }
+  return { ok: true };
+}
+function scheduleQueueResume() {
+  const q = loadQueue();
+  if (!q.resumeAt) return;
+  clearTimeout(queueTimer);
+  const delay = Math.min(Math.max(1000, q.resumeAt - Date.now()), 2 ** 31 - 1);
+  queueTimer = setTimeout(() => {
+    const q2 = loadQueue();
+    q2.resumeAt = null;
+    q2.tasks.forEach((t) => { if (t.status === 'blocked-limit') { t.status = 'queued'; qlog(t, 'auto-resume after limit reset'); } });
+    saveQueue(q2);
+    console.log('  ⟳ Task queue: usage window reset — resuming.');
+    runQueue();
+  }, delay);
+  console.log(`  ⟳ Task queue: paused by usage limit — resume armed for ${new Date(q.resumeAt).toLocaleString()}.`);
+}
+// Boot: requeue tasks orphaned mid-run by a restart; re-arm a pending resume.
+(function initQueue() {
+  try {
+    const q = loadQueue();
+    let dirty = false;
+    q.tasks.forEach((t) => { if (t.status === 'running') { t.status = 'queued'; qlog(t, 'server restarted mid-run — requeued'); dirty = true; } });
+    if (dirty) saveQueue(q);
+    if (q.resumeAt) setTimeout(scheduleQueueResume, 5000);
+  } catch {}
+})();
 
 // Open the app in the default browser (Windows / macOS / Linux).
 function openBrowser(url) {

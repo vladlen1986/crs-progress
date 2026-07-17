@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task queue · CRS Brain</title>
+<style>
+  :root{
+    --bg:#181818; --panel:#1E1E1E; --panel2:#242424; --elev:#2A2A2A;
+    --line:#242424; --line2:#333333; --line3:#3D3D3D;
+    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
+    --accent:#3B82F6; --accent2:#60A5FA; --accent-tint:rgba(59,130,246,.08);
+    --good:#22C55E; --warn:#F59E0B; --danger:#EF4444; --purple:#8B5CF6;
+    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+  .wrap{max-width:920px;margin:0 auto;padding:26px 22px 90px}
+  header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+  header.top .t{flex:1;min-width:0}
+  h1{font-size:20px;color:var(--primary);margin:0 0 3px;font-weight:600;letter-spacing:.2px}
+  .sub{color:var(--muted);font-size:12.5px;line-height:1.55}
+  .hbtns{display:flex;gap:8px;flex:0 0 auto;align-items:center}
+  .hbtn{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:7px 12px;font:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .hbtn:hover{color:var(--primary);border-color:var(--line3)}
+  .hbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  .hbtn.primary:disabled{opacity:.5;cursor:default}
+  .banner{margin:14px 0 4px;padding:10px 13px;border-radius:10px;border:1px solid var(--line2);background:var(--panel);font-size:12.8px;display:none}
+  .banner.show{display:block}
+  .banner.limit{border-color:rgba(245,158,11,.4);color:var(--warn)}
+  .banner.running{border-color:rgba(59,130,246,.4);color:var(--accent2)}
+  .add{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px}
+  .add input,.add textarea{background:var(--panel);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;outline:none}
+  .add input:focus,.add textarea:focus{border-color:var(--line3)}
+  .add .title{flex:1;min-width:200px}
+  .add textarea{flex-basis:100%;min-height:74px;resize:vertical;font-family:var(--mono);font-size:12.5px}
+  .add button{background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .sec{margin-top:22px}
+  .sechead{display:flex;align-items:center;gap:9px;font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .sechead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;font-size:11px;letter-spacing:0}
+  .sechead .bar{flex:1;height:1px;background:var(--line)}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:11px;margin-bottom:8px}
+  .item:hover{border-color:var(--line2)}
+  .irow{display:flex;align-items:flex-start;gap:11px;padding:11px 13px}
+  .st{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:5px;white-space:nowrap;margin-top:2px}
+  .st-queued{background:var(--panel2);color:var(--secondary);border:1px solid var(--line2)}
+  .st-running{background:var(--accent-tint);color:var(--accent2);border:1px solid rgba(59,130,246,.3)}
+  .st-blocked-limit{background:rgba(245,158,11,.15);color:var(--warn);border:1px solid rgba(245,158,11,.3)}
+  .st-done{background:rgba(34,197,94,.12);color:var(--good);border:1px solid rgba(34,197,94,.3)}
+  .st-failed{background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.3)}
+  .ibody{flex:1;min-width:0}
+  .ititle{color:var(--primary);font-weight:600;font-size:14px}
+  .imeta{color:var(--muted);font-size:11.5px;margin-top:2px;font-family:var(--mono)}
+  .ilog{margin-top:7px;border-top:1px solid var(--line);padding-top:7px;font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;display:none}
+  .item.open .ilog{display:block}
+  .iacts{display:flex;flex-direction:column;gap:3px;flex:0 0 auto}
+  .iacts button{width:26px;height:22px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:5px;font-size:12px}
+  .iacts button:hover{color:var(--primary);background:var(--panel2)}
+  .empty{color:var(--muted);font-style:italic;font-size:12.5px;padding:8px 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="t">
+      <h1>Task queue</h1>
+      <div class="sub">Durable Claude Code task queue — sequential, max 20 open tasks, no auto-retry. If a run hits the usage limit, the queue pauses and auto-resumes 2&nbsp;minutes after the window resets (survives server restarts). Every task runs behind the Buildprint safety gate.</div>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn" onclick="load()">Refresh</button>
+      <button class="hbtn primary" id="runBtn" onclick="runQ()">Run queue</button>
+    </div>
+  </header>
+  <div class="banner" id="banner"></div>
+  <div class="add">
+    <input class="title" id="nTitle" placeholder="Task title…" maxlength="140">
+    <button onclick="add()">Add task</button>
+    <textarea id="nPrompt" placeholder="The full prompt Claude Code will run for this task…"></textarea>
+  </div>
+  <div class="sec"><div class="sechead">Open <span class="cnt" id="cntOpen">0</span><span class="bar"></span></div><div id="listOpen"></div></div>
+  <div class="sec"><div class="sechead">Finished <span class="cnt" id="cntDone">0</span><span class="bar"></span></div><div id="listDone"></div></div>
+</div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let Q={tasks:[],resumeAt:null,running:false};
+let tick=null;
+async function api(u,o){ const r=await fetch(u,o); const j=await r.json().catch(()=>({})); if(!r.ok) throw new Error(j.error||('HTTP '+r.status)); return j; }
+function fmtT(iso){ return iso?new Date(iso).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):''; }
+function cd(ms){ const s=Math.max(0,Math.floor(ms/1000)); const h=Math.floor(s/3600),m=Math.floor(s%3600/60),x=s%60; return (h?h+'h ':'')+(m?m+'m ':'')+x+'s'; }
+function banner(){
+  const b=$('banner');
+  if(Q.resumeAt&&Q.resumeAt>Date.now()){ b.className='banner show limit'; b.textContent='⏸ Paused — usage limit. Auto-resume in '+cd(Q.resumeAt-Date.now())+' ('+new Date(Q.resumeAt).toLocaleTimeString()+').'; }
+  else if(Q.running){ b.className='banner show running'; b.textContent='▶ Queue is running…'; }
+  else b.className='banner';
+}
+function row(t,i,open){
+  const meta=[t.id, t.started?('started '+fmtT(t.started)):('added '+fmtT(t.created)), t.finished?('finished '+fmtT(t.finished)):''].filter(Boolean).join(' · ');
+  const log=(t.log||[]).map(l=>l.ts.slice(11,19)+'  '+esc(l.msg)).join('\n')+(t.result?('\n\n— result —\n'+esc(t.result.slice(0,1500))):'');
+  const acts=open?`<button title="Move up" onclick="event.stopPropagation();move('${t.id}',-1)">↑</button><button title="Move down" onclick="event.stopPropagation();move('${t.id}',1)">↓</button><button title="Remove" onclick="event.stopPropagation();del('${t.id}')">✕</button>`:`<button title="Remove" onclick="event.stopPropagation();del('${t.id}')">✕</button>`;
+  return `<div class="item" onclick="this.classList.toggle('open')"><div class="irow"><span class="st st-${t.status}">${t.status.toUpperCase()}</span><div class="ibody"><div class="ititle">${esc(t.title)}</div><div class="imeta">${esc(meta)}</div><div class="ilog">${log||'no log yet'}</div></div><div class="iacts">${acts}</div></div></div>`;
+}
+function render(){
+  const open=Q.tasks.filter(t=>t.status!=='done'&&t.status!=='failed');
+  const done=Q.tasks.filter(t=>t.status==='done'||t.status==='failed');
+  $('cntOpen').textContent=open.length; $('cntDone').textContent=done.length;
+  $('listOpen').innerHTML=open.map((t,i)=>row(t,i,true)).join('')||'<div class="empty">Nothing queued. Add a task above.</div>';
+  $('listDone').innerHTML=done.map((t,i)=>row(t,i,false)).join('')||'<div class="empty">Nothing finished yet.</div>';
+  $('runBtn').disabled=Q.running||!Q.tasks.some(t=>t.status==='queued'||t.status==='blocked-limit');
+  banner();
+}
+async function load(){ try{ Q=await api('/api/queue'); render(); }catch(e){} }
+async function add(){
+  const title=$('nTitle').value.trim(), prompt=$('nPrompt').value.trim();
+  if(!title||!prompt) return alert('Title and prompt are both required.');
+  try{ await api('/api/queue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,prompt})}); $('nTitle').value=''; $('nPrompt').value=''; load(); }
+  catch(e){ alert(e.message); }
+}
+async function del(id){ try{ await api('/api/queue/remove',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); load(); }catch(e){ alert(e.message); } }
+async function move(id,dir){
+  const ids=Q.tasks.map(t=>t.id); const i=ids.indexOf(id); const j=i+dir;
+  const openIds=new Set(Q.tasks.filter(t=>t.status!=='done'&&t.status!=='failed').map(t=>t.id));
+  if(j<0||j>=ids.length||!openIds.has(ids[j])) return;
+  [ids[i],ids[j]]=[ids[j],ids[i]];
+  try{ await api('/api/queue/reorder',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})}); load(); }catch(e){ alert(e.message); }
+}
+async function runQ(){ try{ await api('/api/queue/run',{method:'POST'}); load(); }catch(e){ alert(e.message); } }
+load();
+setInterval(load,3000);
+setInterval(banner,1000);
+</script>
+</body>
+</html>

@@ -1065,6 +1065,7 @@
       <button title="Activity log — every action, timestamped" onclick="window.open('/activity.html','crsactivity')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
       <button title="Memory — what the brain always remembers" onclick="window.open('/memory.html','crsmemory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
       <button title="Wishlist — Brain app improvement todos" onclick="window.open('/wishlist.html','crswishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="window.open('/queue.html','crsqueue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><div class="logo"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-logo"/></svg></div><div><h1>CRS Brain</h1><div class="sub" id="repoName"></div></div></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -1726,6 +1727,7 @@ async function renderDashboard(){
       ${T('i-clock','Activity log',"window.open('/activity.html','crsactivity')",c.amber)}
       ${T('i-book','Memory',"window.open('/memory.html','crsmemory')",c.purple)}
       ${T('i-flag','Wishlist',"window.open('/wishlist.html','crswishlist')",c.accent)}
+      ${T('i-list','Task queue',"window.open('/queue.html','crsqueue')",c.accent)}
       ${T('i-sparkle','Weekly digest','runDigest()',c.soft)}
     </div></section>
 

@@ -49,9 +49,9 @@
       "id": "w-loops",
       "section": "Automation / agent behavior",
       "title": "Task loops with limit-aware auto-resume",
-      "detail": "Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check.",
+      "detail": "Use the full Claude subscription. Given several tasks, if the 5-hour usage limit is hit mid-run, detect it, read when it resets (from the usage/statusline data the app already captures), wait, then automatically continue the unfinished tasks. Needs a durable task queue + reset-time detection + a resumable run loop. Must still obey the Buildprint safety gate + plan -> savepoint -> apply -> check. — SHIPPED as MVP 2026-07-17: durable sequential queue (max 20), limit-aware auto-resume at reset+2min, restart-safe. /queue.html",
       "priority": "P1",
-      "status": "idea",
+      "status": "done",
       "order": 4,
       "ts": "2026-07-16T01:44:16.489Z"
     },
@@ -104,6 +104,15 @@
       "status": "idea",
       "order": 9,
       "ts": "2026-07-16T23:00:13.910Z"
+    },
+    {
+      "id": "w-orchestration",
+      "section": "Automation / agent behavior",
+      "title": "Task queue v2 — full orchestration",
+      "detail": "Follow-up to w-loops MVP: parallel tasks, dependencies, retry policies, per-task model routing. Needs its own design session — MVP deliberately excludes all of this.",
+      "priority": "P3",
+      "status": "idea",
+      "ts": 1784248159627
     }
   ]
 }
