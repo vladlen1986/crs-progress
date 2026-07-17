@@ -25,15 +25,25 @@
   .d-done{background:var(--good)} .d-in-progress{background:var(--warn)} .d-not-started{background:var(--na)} .d-roadmap{background:var(--accent2)}
   .toolbar{display:flex;gap:8px;align-items:center;margin:14px 0 6px;flex-wrap:wrap}
   .toolbar .hint{color:var(--muted);font-size:12px;margin-left:auto}
+  /* view segmented toggle — greyscale active per user override #36 */
+  .seg{display:flex;background:var(--bg-tertiary);border:1px solid var(--line);border-radius:var(--radius-btn);padding:2px;gap:2px}
+  .seg button{border:none;background:none;color:var(--text-secondary);font-family:inherit;font-size:11.5px;font-weight:600;padding:4px 11px;border-radius:calc(var(--radius-btn) - 2px);cursor:pointer;transition:background var(--transition),color var(--transition)}
+  .seg button:hover{color:var(--text-primary)}
+  .seg button.on{background:var(--bg-elevated);color:var(--text-primary)}
+  .seg button:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow)}
   .list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
   .sec-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 2px 2px}
   .item{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--panel);overflow:hidden}
   .item:hover{border-color:var(--line2)}
   .item.open{border-color:var(--line3)}
   .item.focus-now{border-color:var(--accent)}
-  .row{display:flex;align-items:center;gap:10px;padding:9px 12px}
+  .row{position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px 11px}
   .row.dragging{opacity:.45}
   .item.drop-above{box-shadow:0 -2px 0 var(--accent)} .item.drop-below{box-shadow:0 2px 0 var(--accent)}
+  /* per-row slim checklist progress bar (ptree) */
+  .rowprog{position:absolute;left:12px;right:12px;bottom:4px;height:2px;border-radius:2px;background:var(--bg-tertiary);display:flex;overflow:hidden}
+  .rowprog i{display:block;height:100%}
+  .rowprog .pd{background:var(--good)} .rowprog .pp{background:var(--warn);opacity:.75}
   .grip{color:var(--muted);cursor:grab;font-size:15px;line-height:1;user-select:none;padding:0 2px}
   .grip:active{cursor:grabbing}
   .ord{font-family:var(--mono);font-size:12px;color:var(--muted);width:22px;text-align:right;flex:0 0 auto}
@@ -61,9 +71,33 @@
   .detail{border-top:1px solid var(--line);padding:14px 14px 16px;background:var(--bg-primary);display:none}
   .item.open .detail{display:block}
   .dgrid{display:flex;flex-direction:column;gap:12px}
-  .dsec h4{margin:0 0 5px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+  .dsec h4{margin:0 0 5px;font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);display:flex;align-items:center;gap:8px}
+  .dsec h4 .cnt{color:var(--secondary)}
   .dsec .none{color:var(--muted);font-size:12px;font-style:italic}
+  /* raw renderer — the honest source twin */
   .dsec pre{margin:0;background:var(--bg);border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-family:var(--mono);font-size:11.5px;line-height:1.5;color:var(--secondary);white-space:pre-wrap;word-break:break-word;max-height:280px;overflow:auto}
+  .mini{margin-left:auto;flex:0 0 auto;border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:var(--radius-btn);font-family:inherit;font-size:10px;font-weight:600;letter-spacing:.04em;padding:2px 8px;cursor:pointer}
+  .mini:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  .mini:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow)}
+  /* executive renderer — parsed md: real tables + clean prose, never a pre fence */
+  .xmd{font-size:12.5px;color:var(--secondary);line-height:1.55;max-height:420px;overflow:auto;padding-right:2px}
+  .xmd p{margin:0 0 8px}
+  .xmd p:last-child,.xmd ul:last-child,.xmd ol:last-child{margin-bottom:0}
+  .xmd h5{margin:12px 0 6px;font-size:11.5px;font-weight:700;color:var(--primary);letter-spacing:.01em}
+  .xmd h5:first-child{margin-top:0}
+  .xmd code{font-family:var(--mono);font-size:11px;background:var(--bg-tertiary);border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--primary);word-break:break-word}
+  .xmd b{color:var(--primary);font-weight:600}
+  .xmd ul,.xmd ol{margin:0 0 8px;padding-left:18px}
+  .xmd li{margin:2px 0}
+  .xmd .quote{border-left:2px solid var(--line3);background:var(--bg-tertiary);border-radius:0 7px 7px 0;padding:7px 10px;margin:0 0 8px;color:var(--muted);font-size:12px}
+  .xmd .quote p{margin:0 0 4px} .xmd .quote p:last-child{margin:0}
+  .xmd .vfy{color:var(--warning);background:var(--warning-tint);border-radius:var(--radius-badge);padding:0 5px;font-size:10px;font-weight:700;white-space:nowrap}
+  .xtblwrap{overflow-x:auto;margin:0 0 10px;border:1px solid var(--line);border-radius:var(--radius-card);background:var(--panel)}
+  .xtblwrap:last-child{margin-bottom:0}
+  .xtbl{width:100%;border-collapse:collapse;font-size:12px}
+  .xtbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--line);background:var(--bg-tertiary);white-space:nowrap}
+  .xtbl td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--secondary)}
+  .xtbl tr:last-child td{border-bottom:none}
   .mention{font-size:11.5px;margin-bottom:6px}
   .mention b{color:var(--primary);font-weight:600}
   .mention .mline{color:var(--muted);font-family:var(--mono);font-size:11px;display:block;padding:1px 0 1px 10px;border-left:1px solid var(--line2);margin-left:2px}
@@ -127,6 +161,10 @@
     <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);cursor:pointer">
       <input type="checkbox" id="groupSec" onchange="render()"> group by section
     </label>
+    <div class="seg" role="tablist" aria-label="Detail renderer" title="Executive = parsed tables + prose · Raw = source blocks with Copy">
+      <button id="seg-exec" role="tab" onclick="setView('exec')">Executive</button>
+      <button id="seg-raw" role="tab" onclick="setView('raw')">Raw</button>
+    </div>
     <span class="hint" id="focusHint"></span>
   </div>
 
@@ -140,6 +178,12 @@ const COLOR={done:'var(--good)','in-progress':'var(--warn)','not-started':'var(-
 let DATA={modules:[]}, saveTimer=null, dragId=null;
 const expanded=new Set(), detailCache={}, promptCache={}, lastKind={}, editReq={};
 const KLABEL={edit:'EDIT prompt — paste into the Buildprint app (applies directly)',sync:'SYNC prompt — read-only, reports back into the brain'};
+// single-app rule (override #37): when embedded, files open via the parent app, never a browser tab
+const EMBED=(()=>{try{return window.self!==window.top}catch(e){return true}})();
+// Executive ⇄ Raw detail renderer (ptree). Executive = parsed md; Raw = source twin.
+let VIEW=localStorage.getItem('crs-tree-view')==='raw'?'raw':'exec';
+function setView(v){ VIEW=v; try{localStorage.setItem('crs-tree-view',v);}catch(e){} paintSeg(); render(); }
+function paintSeg(){ const ex=document.getElementById('seg-exec'), rw=document.getElementById('seg-raw'); ex.classList.toggle('on',VIEW==='exec'); rw.classList.toggle('on',VIEW==='raw'); ex.setAttribute('aria-selected',VIEW==='exec'); rw.setAttribute('aria-selected',VIEW==='raw'); }
 
 async function load(){
   try{
@@ -147,7 +191,10 @@ async function load(){
     DATA.modules=(DATA.modules||[]).sort((a,b)=>(a.order||0)-(b.order||0));
     const sel=document.getElementById('secFilter');
     [...new Set(DATA.modules.map(m=>m.section))].forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;sel.appendChild(o);});
-    render();
+    paintSeg(); render();
+    // deep link: /tree.html#module=<id> expands + scrolls to that module
+    const mm=location.hash.match(/^#module=(.+)$/);
+    if(mm){ const id=decodeURIComponent(mm[1]); if(findMod(id)&&!expanded.has(id)){ await toggle(id); const el=document.querySelector('.item[data-mid="'+(window.CSS&&CSS.escape?CSS.escape(id):id)+'"]'); if(el) el.scrollIntoView({block:'center'}); } }
   }catch(e){ document.getElementById('list').innerHTML='<div class="empty">Could not load modules. Is the server running?</div>'; }
 }
 function setSaved(state,txt){
@@ -180,8 +227,12 @@ function cycleChk(id,ci){ const m=findMod(id); if(!m||!m.checklist||!m.checklist
 function setChkDetail(id,ci,v){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; m.checklist[ci].detail=v; scheduleSave(); } // no re-render: keeps input focus
 
 async function toggle(id){
-  if(expanded.has(id)) expanded.delete(id);
-  else{ expanded.add(id); if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } } }
+  if(expanded.has(id)){ expanded.delete(id); if(location.hash==='#module='+encodeURIComponent(id)&&history.replaceState) history.replaceState(null,'',location.pathname+location.search); }
+  else{
+    expanded.add(id);
+    if(history.replaceState) history.replaceState(null,'',location.pathname+location.search+'#module='+encodeURIComponent(id));
+    if(!detailCache[id]){ try{ detailCache[id]=await (await fetch('/api/modules/detail?id='+encodeURIComponent(id))).json(); }catch(e){ detailCache[id]={error:e.message}; } }
+  }
   render();
 }
 // Hand a prompt to the CRS Brain Buildprint chat (opens a new bp chat, pastes it in the composer).
@@ -223,6 +274,53 @@ async function genPrompt(id,kind){
   }catch(e){ ta.value='error: '+e.message; }
 }
 function copyPrompt(id){ const ta=document.getElementById('pt-'+id); ta.select(); navigator.clipboard.writeText(ta.value); const b=document.getElementById('cp-'+id); const o=b.textContent; b.textContent='✓ Copied'; setTimeout(()=>b.textContent=o,1400); }
+// Raw view: per-block Copy — copies the untouched md source of one section.
+function copyRaw(id,field,btn){ const d=detailCache[id]; if(!d)return; navigator.clipboard.writeText(String(d[field]||'')); const o=btn.textContent; btn.textContent='✓ Copied'; setTimeout(()=>btn.textContent=o,1400); }
+
+/* ── Executive md renderer ─────────────────────────────────────────────
+   Parses the known techRef/STATUS heading structures into real tables
+   (§20.6) + clean prose. Anything unparseable falls through as prose —
+   never a pre fence. */
+function inlineMd(s){
+  return esc(s)
+    .replace(/`([^`]+)`/g,'<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
+    .replace(/⚠️?\s*VERIFY/g,'<span class="vfy">⚠ VERIFY</span>');
+}
+function mdToHtml(src){
+  const lines=String(src||'').split('\n');
+  const out=[]; let i=0, para=[], firstHead=true;
+  const flush=()=>{ if(para.length){ out.push('<p>'+inlineMd(para.join(' '))+'</p>'); para=[]; } };
+  const isSep=l=>/^\s*\|?[\s:|-]+\|[\s:|-]*$/.test(l)&&l.indexOf('-')>=0;
+  const cells=l=>{ let p=l.trim(); if(p.startsWith('|'))p=p.slice(1); if(p.endsWith('|'))p=p.slice(0,-1); return p.split('|').map(c=>c.trim()); };
+  while(i<lines.length){
+    const l=lines[i];
+    if(/^\s*\|/.test(l)&&i+1<lines.length&&isSep(lines[i+1])){ // md table → real table
+      flush();
+      const head=cells(l); i+=2; const rows=[];
+      while(i<lines.length&&/^\s*\|/.test(lines[i])){ rows.push(cells(lines[i])); i++; }
+      out.push('<div class="xtblwrap"><table class="xtbl"><thead><tr>'+head.map(h=>'<th>'+inlineMd(h)+'</th>').join('')+'</tr></thead><tbody>'+
+        rows.map(r=>'<tr>'+head.map((_,ci)=>'<td>'+inlineMd(r[ci]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>');
+      continue;
+    }
+    const h=l.match(/^(#{1,6})\s+(.*)$/);
+    if(h){ flush(); if(firstHead){ firstHead=false; } else out.push('<h5>'+inlineMd(h[2])+'</h5>'); i++; continue; } // first heading = the section title, already shown
+    if(/^\s*>/.test(l)){ flush(); const q=[]; while(i<lines.length&&/^\s*>/.test(lines[i])){ q.push(lines[i].replace(/^\s*>\s?/,'')); i++; }
+      out.push('<div class="quote">'+q.map(x=>x.trim()?'<p>'+inlineMd(x)+'</p>':'').join('')+'</div>'); continue; }
+    if(/^\s*([-*]|\d+\.)\s+/.test(l)){ flush(); const ord=/^\s*\d+\./.test(l); const items=[];
+      while(i<lines.length&&(/^\s*([-*]|\d+\.)\s+/.test(lines[i])||/^\s{2,}\S/.test(lines[i]))){
+        if(/^\s*([-*]|\d+\.)\s+/.test(lines[i])) items.push(lines[i].replace(/^\s*([-*]|\d+\.)\s+/,''));
+        else if(items.length) items[items.length-1]+=' '+lines[i].trim(); // continuation line
+        i++;
+      }
+      out.push((ord?'<ol>':'<ul>')+items.map(x=>'<li>'+inlineMd(x)+'</li>').join('')+(ord?'</ol>':'</ul>')); continue; }
+    if(/^\s*(-{3,}|\*{3,})\s*$/.test(l)){ flush(); i++; continue; } // hr → drop
+    if(!l.trim()){ flush(); i++; continue; }
+    para.push(l.trim()); i++;
+  }
+  flush();
+  return out.join('');
+}
 
 function detailHTML(id){
   const d=detailCache[id];
@@ -230,8 +328,14 @@ function detailHTML(id){
   if(d.error) return `<div class="detail"><div class="dsec none">Could not load detail: ${esc(d.error)}</div></div>`;
   const m0=findMod(id), cl=(m0&&m0.checklist)||[];
   const cdone=cl.filter(c=>c.state==='done').length;
-  const checklist=`<div class="dsec"><h4>Definition of done — <span style="color:var(--secondary)">${cdone}/${cl.length}</span></h4><div class="chklist">${cl.map((c,ci)=>`<div class="chk"><button class="chk-state ${c.state}" title="click: todo → partial → done" onclick="cycleChk('${id}',${ci})">${c.state==='done'?'✓':c.state==='partial'?'◐':'○'}</button><span class="chk-label">${esc(c.label)}</span><input class="chk-detail" value="${esc(c.detail||'')}" placeholder="notes… e.g. 128/128 done" oninput="setChkDetail('${id}',${ci},this.value)"></div>`).join('')}</div></div>`;
-  const sec=(title,body,empty)=> body&&body.trim() ? `<div class="dsec"><h4>${title}</h4><pre>${esc(body)}</pre></div>` : `<div class="dsec"><h4>${title}</h4><div class="none">${empty}</div></div>`;
+  const checklist=`<div class="dsec"><h4>Definition of done — <span class="cnt">${cdone}/${cl.length}</span></h4><div class="chklist">${cl.map((c,ci)=>`<div class="chk"><button class="chk-state ${c.state}" title="click: todo → partial → done" onclick="cycleChk('${id}',${ci})">${c.state==='done'?'✓':c.state==='partial'?'◐':'○'}</button><span class="chk-label">${esc(c.label)}</span><input class="chk-detail" value="${esc(c.detail||'')}" placeholder="notes… e.g. 128/128 done" oninput="setChkDetail('${id}',${ci},this.value)"></div>`).join('')}</div></div>`;
+  // one section, two renderers: Executive = parsed tables/prose · Raw = source pre + Copy
+  const sec=(title,field,empty)=>{
+    const body=d[field];
+    if(!(body&&body.trim())) return `<div class="dsec"><h4>${title}</h4><div class="none">${empty}</div></div>`;
+    if(VIEW==='raw') return `<div class="dsec"><h4>${title}<button class="mini" onclick="copyRaw('${id}','${field}',this)">Copy</button></h4><pre>${esc(body)}</pre></div>`;
+    return `<div class="dsec"><h4>${title}</h4><div class="xmd">${mdToHtml(body)}</div></div>`;
+  };
   let mentions='';
   if(d.mentions&&d.mentions.length){
     mentions=`<div class="dsec"><h4>Referenced across the brain ledger</h4>`+d.mentions.map(m=>
@@ -239,17 +343,18 @@ function detailHTML(id){
       m.lines.slice(0,6).map(l=>`<span class="mline">L${l.line}: ${esc(l.text)}</span>`).join('')+
       (m.count>6?`<span class="mline">… +${m.count-6} more</span>`:'')+`</div>`).join('')+`</div>`;
   }
+  const flink=(p,label)=>`<a class="flink" href="/api/file?path=${encodeURIComponent(p)}" data-path="${esc(p)}" target="_blank">${label} ↗</a>`;
   const links=[];
-  if(d.techRef) links.push(`<a href="/api/file?path=${encodeURIComponent(d.techRef)}" target="_blank">Technical reference ↗</a>`);
-  if(d.userManual) links.push(`<a href="/api/file?path=${encodeURIComponent(d.userManual)}" target="_blank">User manual ↗</a>`);
-  links.push(`<a href="/api/file?path=brain%2FSTATUS.md" target="_blank">STATUS.md ↗</a>`);
+  if(d.techRef) links.push(flink(d.techRef,'Technical reference'));
+  if(d.userManual) links.push(flink(d.userManual,'User manual'));
+  links.push(flink('brain/STATUS.md','STATUS.md'));
   return `<div class="detail"><div class="dgrid">
     ${checklist}
-    ${sec('Status detail (brain/STATUS.md)', d.statusBlock, 'No expanded status block yet — only the Core-7 row in STATUS.md.')}
-    ${sec('Data types & data model', d.dataModel, d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')}
-    ${sec('Option sets', d.optionSets, d.documented?'—':'Not documented yet.')}
-    ${sec('Permissions', d.perms, d.documented?'—':'Not documented yet.')}
-    ${sec('Workflows', d.workflows, d.documented?'—':'Not documented yet.')}
+    ${sec('Status detail (brain/STATUS.md)','statusBlock','No expanded status block yet — only the Core-7 row in STATUS.md.')}
+    ${sec('Data types & data model','dataModel',d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')}
+    ${sec('Option sets','optionSets',d.documented?'—':'Not documented yet.')}
+    ${sec('Permissions','perms',d.documented?'—':'Not documented yet.')}
+    ${sec('Workflows','workflows',d.documented?'—':'Not documented yet.')}
     ${mentions}
     <div class="dsec"><h4>Files</h4><div class="filelinks">${links.join('')}</div></div>
     <div class="dsec"><h4>Buildprint prompts</h4>
@@ -282,8 +387,12 @@ function render(){
     const open=expanded.has(m.id);
     const item=document.createElement('div');
     item.className='item'+(open?' open':'')+(idx===focusIdx?' focus-now':'');
-    item.dataset.idx=idx;
+    item.dataset.idx=idx; item.dataset.mid=m.id;
     const docTag=(detailCache[m.id]&&detailCache[m.id].documented)?'<span class="doc-tag">DOCS</span>':'';
+    // slim per-row progress bar from the checklist ratio (done + partial segments)
+    const cl=m.checklist||[], ct=cl.length||8;
+    const cd=cl.filter(c=>c.state==='done').length, cp=cl.filter(c=>c.state==='partial').length;
+    const rowprog=`<span class="rowprog" title="checklist: ${cd} done · ${cp} partial · ${ct} total"><i class="pd" style="width:${(cd/ct*100).toFixed(1)}%"></i><i class="pp" style="width:${(cp/ct*100).toFixed(1)}%"></i></span>`;
     item.innerHTML=
       `<div class="row" draggable="true">`+
         `<span class="grip" title="Drag to reorder">⠿</span>`+
@@ -293,8 +402,9 @@ function render(){
           `<button title="Move down" ${idx===DATA.modules.length-1?'disabled':''} onclick="event.stopPropagation();move(${idx},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>`+
         `</div>`+
         `<div class="body" onclick="toggle('${m.id}')"><span class="caret">▶</span><div class="bodytext"><div class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span>${docTag}</div><div class="note">${esc(m.note||'')}</div></div></div>`+
-        `<span class="chkprog" title="checklist done / total">${(m.checklist||[]).filter(c=>c.state==='done').length}/${(m.checklist||[]).length||8}</span>`+
+        `<span class="chkprog" title="checklist done / total">${cd}/${ct}</span>`+
         `<button class="pill ${m.status}" title="Click to change status" onclick="event.stopPropagation();cycle(${idx})">${LABEL[m.status]||m.status}</button>`+
+        rowprog+
       `</div>`+
       (open?detailHTML(m.id):'');
     const row=item.querySelector('.row');
@@ -312,6 +422,11 @@ function render(){
   });
   if(!list.children.length) list.innerHTML='<div class="empty">No modules for this filter.</div>';
 }
+// file links: in-app when embedded (parent smartOpen), browser tab only standalone
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a.flink');
+  if(a&&EMBED&&window.parent&&window.parent.smartOpen){ e.preventDefault(); window.parent.smartOpen(a.dataset.path); }
+});
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
 load();
 </script>
