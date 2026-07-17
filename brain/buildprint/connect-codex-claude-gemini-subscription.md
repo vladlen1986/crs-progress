@@ -97,7 +97,7 @@ Most personal Google accounts do not need a Google Cloud project ID. If you use 
 
 You can connect your Cursor account using an API key. 
 
-1. Visit [https://cursor.com/dashboard/integrations](https://docs.buildprint.ai/integrations-wioqs)
+1. Visit [https://cursor.com/dashboard/integrations](https://cursor.com/dashboard/integrations)
 2. In the **User API Keys** section click "Add"
 3. Copy the API key
 4. Click "Connect" in **Integrations > AI Providers** in Buildprint.
@@ -107,6 +107,6 @@ You can connect your Cursor account using an API key.
 
 - **Claude code rejected:** paste the complete authorization code from the callback page.
 - **OpenAI invalid format:** paste the complete ~/.codex/auth.json contents.
-- **Gemini invalid format:** paste the complete ~/.gemini/oauth\_creds.json contents.
+- **Gemini invalid format:** paste the complete ~/.gemini/oauth_creds.json contents.
 - **Expired credentials:** run the provider login flow again and reconnect.
 - **Popup blocked:** allow popups for Buildprint, then try again.

@@ -48,7 +48,7 @@ You should still review and test important AI-generated changes before relying o
 
 **Branch:** a Bubble app version, such as test, live, or a feature branch.
 
-**Version snapshot: **a synced point-in-time view of one Bubble branch.
+**Version snapshot:** a synced point-in-time view of one Bubble branch.
 
 **MCP server:** a public MCP server that lets external AI clients use Buildprint tools.
 

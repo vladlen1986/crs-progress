@@ -14,7 +14,7 @@ MCP clients can search data, inspect logs, list projects and branches, run autom
 
 ## Create an MCP server
 
-1. In Buildprint, go to** Integrations > MCP**.
+1. In Buildprint, go to **Integrations > MCP**.
 2. Click Create MCP server.
 3. Choose all projects or selected projects.
 4. Click Create MCP server.

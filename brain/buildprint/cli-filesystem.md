@@ -124,7 +124,7 @@ Every element's file carries a `children` array listing its direct child map key
 
 ## Element IDs and references
 
-An element's folder name is its **map key** in the parent `elements` object. Its **internal **`id` lives inside `element.json` and is usually a different string (folder key `bTKHu` may hold an element whose `id` is `bTKHJ`).
+An element's folder name is its **map key** in the parent `elements` object. Its **internal** `id` lives inside `element.json` and is usually a different string (folder key `bTKHu` may hold an element whose `id` is `bTKHJ`).
 
 This distinction matters when you follow references. Bubble cross-references such as workflow `element_id` targets, `ShowElement` / `HideElement` / `DisplayGroupData` actions, and `GetElement` expressions point at the internal `id`, not the folder key. Do not resolve a reference by grepping for a folder segment. Use `buildprint context <element-path-or-id-or-map-key>` for reference-aware lookup, and `buildprint tree` to see containment and effective visibility.
 

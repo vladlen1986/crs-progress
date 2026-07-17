@@ -4,6 +4,16 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-17 — Buildprint manual re-verified against fresh docs download; scrape artifacts fixed
+
+Compared all 60 pages of a freshly downloaded docs.buildprint.ai compilation (`crs-brain/data/attachments/c1be79ed-buildprint-docs.md`) against `brain/buildprint/` via normalized diff.
+
+- **Result: upstream unchanged since the 2026-07-14 capture.** No new/removed pages, no factual edits (GPT-5.5 recommendation, paid plans, CLI reference, API reference all identical). Brain stays authoritative; per-page split kept — no merge needed, attachment retained only as a download record.
+- **Fixed local scrape artifacts** (wrong in our files, confirmed against the fresh download): mis-targeted hrefs in `connect-codex-claude-gemini-subscription.md` (cursor.com link) and `creating-a-plugin-in-bubble.md` (bubble.io/home/plugins link); escaped underscores breaking grep in `running-tests.md` (MCP tool names) and the Gemini `oauth_creds.json` mention; source-URL typo in `cli-installation-and-authentication.md` (missing `/cli/` segment); broken bold markers in `how-buildprint-works.md`, `component-libraries.md`, `cli-filesystem.md`, `connect-via-mcp.md`, `cli-installation-and-authentication.md`.
+- **brain/buildprint/INDEX.md** — re-verification note added.
+
+---
+
 ## 2026-07-17 — Added Bubble performance manual to brain/
 
 Ingested *The Ultimate Guide to Bubble Performance* (Petter Amlie, Revision 3, 227 pp PDF) into a new domain.

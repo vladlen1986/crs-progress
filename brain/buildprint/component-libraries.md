@@ -33,8 +33,7 @@ Two things control whether someone can use a component: the **library's listing 
 | **Public** | Published within its library |
 | **Archived** | Retired |
 
-**The rule that ties them together:** a component is reachable by people **outside** your workspace only when the component is **Public **_**and**_** its library**  
-**is Public**. Inside an internal library, every component is effectively internal  
+**The rule that ties them together:** a component is reachable by people **outside** your workspace only when the component is **Public and its library is Public**. Inside an internal library, every component is effectively internal  
 - no matter its own status - because the library itself isn't on the  
 marketplace. That's why a component's badge reads "Internal" until its library  
 goes public.

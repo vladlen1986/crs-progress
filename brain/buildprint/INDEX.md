@@ -9,6 +9,8 @@ Question about HOW to use Buildprint (modes, agents, prompts, limits, troublesho
 
 Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day: first pass 23 high-priority pages, second pass the remaining ~48 (full manual — all doc sections, all 10 CLI reference pages, and the complete REST API reference consolidated from the official OpenAPI schema). Coverage is now the entire docs site.
 
+**Re-verified 2026-07-17** against a freshly downloaded full-site compilation (60 pages, `crs-brain/data/attachments/c1be79ed-buildprint-docs.md`): upstream content unchanged since capture — no new, removed, or edited pages. Only local scrape artifacts were fixed (2 mis-targeted link hrefs, escaped underscores in MCP tool names, a few broken bold markers). These files remain the authoritative split; the attachment is a redundant monolith kept only as a download record.
+
 ## Getting started
 
 | Page | Answers |

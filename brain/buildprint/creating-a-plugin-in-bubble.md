@@ -3,5 +3,5 @@
 
 To work on a plugin in Buildprint, you need to first create a new plugin in Bubble.
 
-1. Visit [https://bubble.io/home/plugins](https://docs.buildprint.ai/cli/plugins-koh83)
+1. Visit [https://bubble.io/home/plugins](https://bubble.io/home/plugins)
 2. Click Create a new plugin

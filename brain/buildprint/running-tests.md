@@ -52,9 +52,9 @@ The start request includes the test or group ID, a branch ID or branch label, an
 
 The hosted MCP server exposes tools for test execution, including:
 
-- start\_test\_run
-- start\_test\_group\_run
-- get\_test\_run
-- get\_test\_group\_run
+- start_test_run
+- start_test_group_run
+- get_test_run
+- get_test_group_run
 
 Use these when an agent or external tool should start a Buildprint test run.
