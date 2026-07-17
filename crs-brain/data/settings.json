@@ -14,7 +14,7 @@
     "emailTo": ""
   },
   "sounds": {
-    "volume": 80,
+    "volume": 100,
     "events": {
       "new-notification": "s03",
       "task-complete": "s02",
