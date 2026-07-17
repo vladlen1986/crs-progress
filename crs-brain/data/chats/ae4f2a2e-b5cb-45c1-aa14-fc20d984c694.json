@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T19:22:53.484Z",
+  "updated": "2026-07-17T19:33:20.335Z",
   "messages": [
     {
       "role": "user",
@@ -313,6 +313,17 @@
       "role": "assistant",
       "content": "Both files pass. The change is client-only (CSS + JS in `index.html`), so no server restart — just a hard refresh of the app.\n\n## What I changed\n\n**The fade** — each word now does a **blur-to-sharp focus-in** (`filter: blur(4px)→0` + opacity, 0.42s ease-out) instead of the old flat opacity pop. Reads as text coming into focus as it types.\n\n**The pacing** — two fixes so it actually feels like a typewriter:\n- Reveals **whole words** (extends each step to the next word boundary) so a word fades as one unit, not in 3-char fragments.\n- Steady ~22ms cadence that **accelerates on backlog instead of dumping**. The old code revealed `remaining−200` chars in a single tick, so long answers appeared all at once with one block-fade. Now even a long answer types in a visible wave (fast, but streaming — never a dump).\n\nNet effect: a soft trailing \"wave\" of ~15–20 words sharpening into focus behind the caret.\n\n## See it now\n- **Instant preview:** re-open **`crs-brain/data/docs/process-display-demo.html`** and hit **▶ Replay** — the answer panel now uses the exact same `.tok`/`tokIn` fade. (I paced the demo a touch slower than the live app so the focus-in is easy to see.)\n- **Live app:** hard-refresh (Ctrl+Shift+R to beat the cache) and send any message.\n\nTake a look and tell me if you want it slower/faster, more or less blur, or a slight upward drift on each word (that last one needs `inline-block`, which carries a small layout risk on code blocks — I left it off by default). Once you're happy I'll log it in `BRAIN_APP_PROGRESS.md`.",
       "ts": "2026-07-17T19:22:53.484Z"
+    },
+    {
+      "role": "user",
+      "content": "ok lets try do something i want to see i just restarted the app",
+      "ts": "2026-07-17T19:32:20.959Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The live typewriter/fade only renders in the browser that sends the message — if I trigger it via the API you'd just get the saved result, not the animation. So you send it; I'll give you a prompt built to show off everything at once.\n\nPaste this into the app:\n\n> **Recon the brain and give me the 3 biggest gaps blocking me from building the first CRS module. Cite the files.**\n\nThat forces the full pipeline you just changed: **thinking** (molecule brain) → **between-tool narration** folded into collapsible timeline notes → a few **Read/Grep tool steps** with their colored icons → then a **structured 3-point answer** that word-by-word focus-fades in. Bonus: the answer is actually useful.\n\nShorter one if you just want the fade on a longer body of text:\n\n> **Summarize the locked architecture decisions in 5 bullets.**\n\nSend one and watch — then tell me if the cadence/blur feels right or needs tuning. If by \"do something\" you meant a specific task (a Buildprint edit, a progress update, something else), say the word and we'll do that instead.",
+      "ts": "2026-07-17T19:33:20.335Z"
     }
   ]
 }
