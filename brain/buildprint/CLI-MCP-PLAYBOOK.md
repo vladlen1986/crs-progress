@@ -154,6 +154,10 @@ Bubble side: make sure `connect@getbuildprints.com` has App + Data + Logs + Vers
 `branch create "x" --from test` · `merge <from> <to>` · `changelog <a> <b>` · `schema "<q>"` ·
 `guidelines get` · `secret` · `quickstart`.
 
+The 29 `guidelines get` docs (the agent's own editing contracts: JSON schemas, `bp_layout`, expressions,
+security, logs/APL, tests-as-code) are captured verbatim under `guidelines/` — routed in
+[INDEX.md → CLI agent guidelines](INDEX.md#cli-agent-guidelines-guidelines). Read the matching one before editing a surface.
+
 ---
 
 ## 7. Do NOT do this (safety)

@@ -4,6 +4,18 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-17 — Ingested the 29 Buildprint CLI agent guidelines (new domain: brain/buildprint/guidelines/)
+
+Vlad supplied a compilation of the internal manuals the Buildprint agent fetches via `buildprint guidelines get <path>` (`crs-brain/data/attachments/ef512e1a-buildprint-guidelines.md`) — content NOT on the docs site and previously absent from the brain.
+
+- **New folder `brain/buildprint/guidelines/`** — one file per guideline path (29 files), each verbatim with a `> Source: buildprint guidelines get <path>` header. Split first from the attachment, then **rebuilt directly from the linked CLI** after discovering the attachment's compiler had demoted `#` comment lines inside code fences (12 corrupted lines in `browser/agent-browser`; the other 28 docs matched the CLI byte-for-byte). Files are now CLI-verbatim, the attachment is kept only as a download record.
+- Highest-CRS-relevance files: `schema-data-type.md` (privacy_role JSON shape — Pattern A rollout), `security-bubble.md` + `security-privacy-rules.md` (audit method), `editing-frontend.md` (bp_layout contract), `schema-dynamic-expression.md` (expression node model), `workflows-backend.md`, `logs-searching.md` (APL).
+- **brain/buildprint/INDEX.md** — new routing section "CLI agent guidelines (guidelines/)" with all 29 paths mapped; title/intro/Gaps updated (coverage = docs site + full guideline catalog).
+- **crs-brain-operations.md** — added read-the-matching-guideline-before-editing rule; **fixed a real ordering bug**: the loop read `savepoint → apply → check`, corrected to `savepoint → edit → check → apply` (check gates apply — per CLAUDE.md, the playbook, and the official quickstart; guardrail 3 rephrased to "check must pass before every apply").
+- **CLI-MCP-PLAYBOOK.md** §6 — pointer to the captured guideline catalog.
+
+---
+
 ## 2026-07-17 — Buildprint manual re-verified against fresh docs download; scrape artifacts fixed
 
 Compared all 60 pages of a freshly downloaded docs.buildprint.ai compilation (`crs-brain/data/attachments/c1be79ed-buildprint-docs.md`) against `brain/buildprint/` via normalized diff.

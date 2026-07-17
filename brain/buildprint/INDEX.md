@@ -1,11 +1,11 @@
-# Buildprint Manual (scraped docs.buildprint.ai)
+# Buildprint Manual (docs.buildprint.ai + CLI agent guidelines)
 
 > **Operating CRS via CLI + MCP without the paid web app → [CLI-MCP-PLAYBOOK.md](CLI-MCP-PLAYBOOK.md)** —
 > the money thesis (CLI/MCP = $0 agent runtime), CLI-vs-MCP capability split, permissions, safety, the
 > per-feature workflow, command reference, and do-not-do. Read this first for "how do I build features
 > without paying for the web app". Operational guardrails live in [crs-brain-operations.md](crs-brain-operations.md).
 
-Question about HOW to use Buildprint (modes, agents, prompts, limits, troubleshooting) → read the relevant page below. Project-specific Buildprint RULES (dev-branch-only, Plan-mode-first, etc.) live in ../../decisions.md 2026-05-01 — those override generic docs advice.
+Question about HOW to use Buildprint (modes, agents, prompts, limits, troubleshooting) → read the relevant page below. Question about HOW to actually edit the Bubble app through the CLI worktree (JSON schemas, bp_layout, expressions, security audits, logs/APL, tests-as-code) → the **[CLI agent guidelines](#cli-agent-guidelines-guidelines)** section — Buildprint's own internal agent manuals, more detailed than the docs site. Project-specific Buildprint RULES (dev-branch-only, Plan-mode-first, etc.) live in ../../decisions.md 2026-05-01 — those override generic docs advice.
 
 Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day: first pass 23 high-priority pages, second pass the remaining ~48 (full manual — all doc sections, all 10 CLI reference pages, and the complete REST API reference consolidated from the official OpenAPI schema). Coverage is now the entire docs site.
 
@@ -147,6 +147,42 @@ Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day:
 |---|---|
 | [api-reference.md](api-reference.md) | Complete public REST API (beta): base URL, bp_ tokens, quick start, and every endpoint (agents, agent messages, code reviews, automations, tests, test groups, test runs, test group runs, test users, versions) with all parameters, request/response fields, model enums, and error codes — generated from the official OpenAPI schema |
 
+## CLI agent guidelines (guidelines/)
+
+The 29 internal manuals the Buildprint agent itself fetches (`buildprint guidelines get <path>`) before touching a Bubble app — NOT on the docs site. Captured 2026-07-17 verbatim from the linked CLI. These are the authoritative editing contract for the worktree: exact JSON schemas, layout system, expression node model, and operational recipes. When a docs-site page and a guideline conflict on worktree editing detail, the guideline wins (it is what the agent actually obeys).
+
+| Path | File | Answers |
+|---|---|---|
+| `general` | [guidelines/general.md](guidelines/general.md) | The master playbook: fast-start loop (init → summary → tree/context → new/copy → edit → check → apply), tool selection, guideline routing, user-facing output rules (Bubble names, never raw IDs), core commands incl. `data create/update/delete`, `file`, `login`, `screenshot`, known gotchas |
+| `editing/apps` | [guidelines/editing-apps.md](guidelines/editing-apps.md) | General edit workflow + engineering standard (smallest diff, no placeholders), structural worktree rules, verification steps |
+| `editing/frontend` | [guidelines/editing-frontend.md](guidelines/editing-frontend.md) | THE UI contract: element.json syntax, `bp_layout` block (size/container/self/spacing) + lowering to Bubble fields, `__bp_layout__.json` sidecar (never hand-edit), child ordering, layout debugging, style workflow, hard rules |
+| `editing/frontend/expressions` | [guidelines/editing-frontend-expressions.md](guidelines/editing-frontend-expressions.md) | Editing dynamic expressions in UI files: copy-nearby-working-patterns rule, failure triage, `buildprint schema` recipes, common patterns |
+| `editing/plugins` | [guidelines/editing-plugins.md](guidelines/editing-plugins.md) | Plugin dev in the worktree: file layout, primitives, code/data rules, closed vocabularies, testing a plugin in an app |
+| `schema/action` | [guidelines/schema-action.md](guidelines/schema-action.md) | Action JSON: canonical shape, rules, common action families |
+| `schema/workflow` | [guidelines/schema-workflow.md](guidelines/schema-workflow.md) | Workflow JSON: canonical shape, trigger properties, related files |
+| `schema/option-set` | [guidelines/schema-option-set.md](guidelines/schema-option-set.md) | Option set JSON: set/value/attribute schemas, dynamic map behavior |
+| `schema/data-type` | [guidelines/schema-data-type.md](guidelines/schema-data-type.md) | Data type JSON (`user_types`): type + field schemas, **privacy rules (`privacy_role`) shape**, editing guidance |
+| `schema/api-connector` | [guidelines/schema-api-connector.md](guidelines/schema-api-connector.md) | Full API Connector schema: group/call bodies, parameter maps, secret handling, `GetDataFromAPI`, action mapping, reinitialization/type-freshness playbook, end-to-end example |
+| `schema/dynamic-expression` | [guidelines/schema-dynamic-expression.md](guidelines/schema-dynamic-expression.md) | The expression node model: DataSource → Message chains, structural invariants, root datasources, Search constraints, TextExpression, parameter wiring, safe-edit checklist |
+| `migrating/frontend` | [guidelines/migrating-frontend.md](guidelines/migrating-frontend.md) | Migrating external designs into Bubble: reusables, colors, images/embeds, implementation order, common mistakes |
+| `cookbooks/upgrade-to-global-expressions` | [guidelines/cookbooks-upgrade-to-global-expressions.md](guidelines/cookbooks-upgrade-to-global-expressions.md) | Global expressions: JSON body, referencing, finding candidates/occurrences, upgrade workflow, parameterizing near-duplicates |
+| `cookbooks/refactoring-into-reusables` | [guidelines/cookbooks-refactoring-into-reusables.md](guidelines/cookbooks-refactoring-into-reusables.md) | 5-phase refactor into reusables (inventory → shell → clone UI → port workflows → swap), high-risk reference patterns, validation checklist |
+| `cookbooks/stripe` | [guidelines/cookbooks-stripe.md](guidelines/cookbooks-stripe.md) | Stripe recipe: API Connector calls, row keys → action property keys, Bubble webhooks, webhook upsert flow, mirror data model |
+| `components/authoring` | [guidelines/components-authoring.md](guidelines/components-authoring.md) | Component packaging: layout, README vs agent docs, node selection, publish/update, what NOT to do |
+| `components/installing` | [guidelines/components-installing.md](guidelines/components-installing.md) | Components are canonical examples, not one-click installs: find → add → understand → adapt → validate |
+| `security/bubble` | [guidelines/security-bubble.md](guidelines/security-bubble.md) | Bubble security model: privacy rules, what Bubble sends to the browser, API Connector / element / page security, client vs server, backend workflows |
+| `security/privacy-rules` | [guidelines/security-privacy-rules.md](guidelines/security-privacy-rules.md) | Auditing privacy rules via `type.json`: what to audit (broad reads, enumeration via search, Data API writes, bypasses) |
+| `workflows` | [guidelines/workflows.md](guidelines/workflows.md) | Workflow filesystem rules, inspecting logic, editing rules |
+| `workflows/backend` | [guidelines/workflows-backend.md](guidelines/workflows-backend.md) | Backend workflows: high-signal fields (exposure/auth), practical rules, inspection |
+| `workflows/custom-events` | [guidelines/workflows-custom-events.md](guidelines/workflows-custom-events.md) | Custom event behavior, what to inspect |
+| `workflows/database-triggers` | [guidelines/workflows-database-triggers.md](guidelines/workflows-database-triggers.md) | Database trigger workflows: what matters, practical rules |
+| `data/retrieving-database-data` | [guidelines/data-retrieving-database-data.md](guidelines/data-retrieving-database-data.md) | Reading live/test DB records: MCP tools (`search_data`/`fetch_data`/`aggregate_data`), safe habits, pairing data with the worktree |
+| `logs/searching` | [guidelines/logs-searching.md](guidelines/logs-searching.md) | Log investigation: simple vs advanced logs, APL query templates, field reference, time windows, counting/dedup, APL watch-outs |
+| `workload/unit-analysis` | [guidelines/workload-unit-analysis.md](guidelines/workload-unit-analysis.md) | WU investigation: core model, MCP tool, investigation steps, reporting rule |
+| `monitors` | [guidelines/monitors.md](guidelines/monitors.md) | Monitor authoring: delivery, MCP tools, structure, example APL pipelines |
+| `browser/agent-browser` | [guidelines/browser-agent-browser.md](guidelines/browser-agent-browser.md) | `agent-browser` automation: sessions, snapshot refs, interactions, authenticated starts (`buildprint login`), screenshots/recording, iframes, tabs, dialogs, debugging |
+| `testing/project-tests` | [guidelines/testing-project-tests.md](guidelines/testing-project-tests.md) | Tests-as-code under `tests/`: builder workflow, definition syntax, test users, stateless execution, reusable components, good-test rules |
+
 ## Gaps
 
-None — every page in the docs site navigation (Documentation, API Reference, and CLI trees) is captured. Known limitation carried over from the first pass: the buildprint-paid-plans page contains a plan-comparison image with exact per-tier allowances that could not be captured as text.
+None — every page in the docs site navigation (Documentation, API Reference, and CLI trees) is captured, plus all 29 CLI agent guideline paths (`buildprint guidelines list` catalog as of 2026-07-17). Known limitation carried over from the first pass: the buildprint-paid-plans page contains a plan-comparison image with exact per-tier allowances that could not be captured as text.

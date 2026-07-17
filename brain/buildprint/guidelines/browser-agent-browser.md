@@ -24,7 +24,7 @@ Every browser automation follows this loop:
 ```bash
 agent-browser open https://example.com/form
 agent-browser snapshot -i
-## Output: @e1 [input type="email"], @e2 [input type="password"], @e3 [button] "Submit"
+# Output: @e1 [input type="email"], @e2 [input type="password"], @e3 [button] "Submit"
 
 agent-browser fill @e1 "user@example.com"
 agent-browser fill @e2 "password123"
@@ -223,11 +223,11 @@ Iframe content is automatically inlined in snapshots. Refs inside iframes carry 
 
 ```bash
 agent-browser snapshot -i
-## @e2 [Iframe] "payment-frame"
-##   @e3 [input] "Card number"
-##   @e4 [button] "Pay"
+# @e2 [Iframe] "payment-frame"
+#   @e3 [input] "Card number"
+#   @e4 [button] "Pay"
 
-## Interact directly — no frame switch needed
+# Interact directly — no frame switch needed
 agent-browser fill @e3 "4111111111111111"
 agent-browser click @e4
 ```

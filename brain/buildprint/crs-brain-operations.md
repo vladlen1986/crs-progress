@@ -18,12 +18,14 @@ buildprint sync                       # ALWAYS first — pull latest Bubble snap
 # → PLAN the change as numbered steps, get Vlad's go-ahead, THEN per step:
 buildprint savepoint "<step name>"    # rollback point BEFORE the apply
 # …edit the shredded files for this ONE step…
+buildprint check                      # validate — MUST pass; if it fails, fix (or `savepoint restore`)
 buildprint apply                      # compile + push this step to Bubble
-buildprint check                      # validate; if it fails, fix or `savepoint restore`
-# …repeat savepoint → apply → check for each step. One step per apply.
+# …repeat savepoint → edit → check → apply for each step. One step per apply.
 ```
 
-**Loop = plan once, then per step: savepoint → apply → check.** A savepoint before every apply keeps each step independently rollback-able.
+**Loop = plan once, then per step: savepoint → edit → check → apply.** A savepoint before every apply keeps each step independently rollback-able. (`check` gates `apply` — same order as CLAUDE.md and the official quickstart.)
+
+**Before editing any surface, read the matching agent guideline** — Buildprint's own internal editing contracts (exact JSON schemas, `bp_layout`, expressions, security audits). All 29 are captured under [guidelines/](INDEX.md#cli-agent-guidelines-guidelines); live fetch: `buildprint guidelines get <path>`.
 
 Key commands: `buildprint quickstart` (conventions) · `project list` / `branch list <appId>` ·
 `sync status` (drift check without changes) · `changelog <a> <b>` (readable branch diff) ·
@@ -34,7 +36,7 @@ exposed uploaders, temp-password leaks, missing redirects, secrets) · savepoint
 
 1. **dev/test branch ONLY. Never clone, edit, or apply the live branch.**
 2. **Always `buildprint sync` before starting work** — editor edits are invisible until synced, and the next apply can clobber them.
-3. **Savepoint before every apply; run `buildprint check` after every apply. One step per apply. NEVER use `--force-apply`, `--no-check`, or `sync --reset --confirm`** without Vlad explicitly approving in that same conversation.
+3. **Savepoint before every apply; `buildprint check` must pass before every apply. One step per apply. NEVER use `--force-apply`, `--no-check`, or `sync --reset --confirm`** without Vlad explicitly approving in that same conversation.
 4. **Show the plan first**: describe the exact files/entities to change and expected Bubble effect; get Vlad's go-ahead before the first `apply` of a session.
 5. **After every applied change**: report what changed, then ingest the summary into brain/ (database.md / workflows.md / etc.) same session.
 6. Schema changes must respect Pattern A: every business Data Type gets `company` + `property` fields and both-field privacy rules.
