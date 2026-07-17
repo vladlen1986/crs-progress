@@ -1,8 +1,12 @@
 // CRS file icons — approved 2026-07-17. Do not modify geometry/colors/glyphs.
 // Wrapped in an IIFE: the app is a classic-script SPA (one shared global scope),
 // so the module's consts (esc, TYPES, …) must not collide with the app's.
+// 2026-07-17 (os-grade): neutral sheet/fold/line colors now read from CSS vars
+// with the approved dark values as fallbacks — dark rendering is pixel-identical;
+// light mode gets legible pairs (index.html :root[data-theme=light]). Geometry,
+// glyphs, and badge colors untouched (judgment-calls.md).
 (function(){
-const SHEET='#2A2A2A', FOLD='#3D3D3D', LINE='#565656';
+const SHEET='var(--icon-sheet,#2A2A2A)', FOLD='var(--icon-fold,#3D3D3D)', LINE='var(--icon-line,#565656)';
 
 const TYPES={ // type: [badge label, color]
   md:['MD','#A855F7'], txt:['TXT','#6B6B6B'], json:['JSON','#F59E0B'],
