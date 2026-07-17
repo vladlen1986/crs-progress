@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T19:02:23.195Z",
+  "updated": "2026-07-17T19:14:11.718Z",
   "messages": [
     {
       "role": "user",
@@ -291,6 +291,17 @@
       "role": "assistant",
       "content": "Done. The \"display processes\" rework is complete and documented.\n\n**What was wrong** (from your screenshot): Claude's between-tool narration (\"Now finding…\", \"Recon complete…\") streams as visible text exactly like the real answer, and Claude Code mashes all of it into one unpunctuated blob — so sentences collided and the process talk was tangled into the answer.\n\n**The fix — segment at tool boundaries:**\n- **Server** (`crs-brain/server.js`): tracks `answerSeg`, which resets to empty every time a tool runs. So it always holds only the text *after the last tool call* = the clean final answer. That's what gets stored/sent now, not the run-on blob.\n- **Client** (`crs-brain/public/index.html`): when a tool fires, whatever text streamed before it gets reclaimed into a collapsible timeline **note** step (speech-bubble icon) instead of the answer body. The answer area resets clean for the real reply. Long notes expand on click; short ones stay one line.\n\nNet result: the timeline shows the process as discrete steps (thinking → notes → tool actions), and the answer box holds only the final, properly-punctuated answer.\n\n**Verified:** `node --check server.js` OK, `check-syntax.js` → ALL SCRIPTS PASS, and I re-read the event loop for edge cases (no-tools reply stays whole; thinking-only stays clean; bp sync path untouched). Documented in `crs-brain/BRAIN_APP_PROGRESS.md` under the 2026-07-17 entry.\n\nOne caveat: this is verified by reading the code, **not yet seen live in a browser** — that needs a real tool-using reply. Want me to fire one so you can see the segmented display (and the amber model-switch pill) in action?",
       "ts": "2026-07-17T19:02:23.195Z"
+    },
+    {
+      "role": "user",
+      "content": "ok let me see what you have done",
+      "ts": "2026-07-17T19:05:54.652Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done — open **`crs-brain/data/docs/process-display-demo.html`** (it auto-plays).\n\n**What it shows** — side by side, same reply, same events:\n- **Left (BEFORE):** the run-on wall from your screenshot — narration mashed into the answer with the three sentence collisions marked in red (`designed.Now`, `allocations.The`, `belongs.### `).\n- **Right (AFTER):** the new render, replayed live through the app's **actual** work-block engine (`ensureGroup / startCard / addNoteStep / endStep`, copied verbatim from `index.html`) — the molecule brain thinks, narration folds into collapsible timeline notes, tool steps flash their per-type colors, and only the text after the last tool renders as the clean, formatted answer.\n\nControls: **▶ Replay**, and a **\"Simulate Opus outage\"** checkbox that also drops in the amber model-switch pill so you can see the fallback UI I built earlier.\n\n**Honesty caveat:** the right panel is a *faithful replica* driven by a scripted event stream — no server, no usage burned. It's the real render code, not a real model. To see it fire against an actual Claude reply you'd need to **refresh the app** (picks up the `index.html` change) and **restart the Node server** (picks up the `answerSeg` split in `server.js`), then ask anything that uses tools — Node doesn't hot-reload, so the running server is still on the old code until then.\n\nWant me to go ahead and restart the server so the live app reflects the change too?",
+      "ts": "2026-07-17T19:14:11.718Z"
     }
   ]
 }

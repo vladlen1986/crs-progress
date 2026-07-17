@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CRS Brain — Process/Answer display (before → after)</title>
+<style>
+/* ── tokens (verbatim from crs-brain/public/tokens.css, dark set + alias layer) ── */
+:root,[data-theme="dark"]{
+  --bg-primary:#181818;--bg-secondary:#1E1E1E;--bg-tertiary:#242424;--bg-elevated:#2A2A2A;
+  --border-default:#242424;--border-hover:#333333;--border-active:#3D3D3D;
+  --accent:#3B82F6;--accent-soft:#60A5FA;--text-primary:#E0E0E0;--text-secondary:#A6A6A6;
+  --text-muted:#6B6B6B;--success:#22C55E;--warning:#F59E0B;--purple:#8B5CF6;
+  --transition:160ms cubic-bezier(.4,0,.2,1);--radius-btn:7px;color-scheme:dark;
+}
+:root{
+  --bg:var(--bg-primary);--panel:var(--bg-secondary);--panel2:var(--bg-tertiary);--elev:var(--bg-elevated);
+  --line:var(--border-default);--line2:var(--border-hover);--line3:var(--border-active);
+  --primary:var(--text-primary);--secondary:var(--text-secondary);--muted:var(--text-muted);
+  --accent2:var(--accent-soft);--warn:var(--warning);
+  --veil:rgba(255,255,255,.05);--prose:#C9C9CE;--code-bg:#0b0b0e;--code-fg:#D4D4D8;
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 22px 60px}
+h1{color:var(--primary);font-size:20px;font-weight:650;margin:0 0 4px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+.sub b{color:var(--secondary);font-weight:600}
+.bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin:0 0 22px}
+button.act{background:var(--accent);border:none;color:#fff;font:inherit;font-weight:600;font-size:13px;padding:9px 16px;border-radius:var(--radius-btn);cursor:pointer;transition:var(--transition)}
+button.act:hover{background:#2563EB}
+button.act.ghost{background:var(--panel2);color:var(--secondary);border:1px solid var(--line2)}
+button.act.ghost:hover{color:var(--primary);border-color:var(--line3)}
+.chk{display:inline-flex;align-items:center;gap:7px;color:var(--secondary);font-size:12.5px;user-select:none;cursor:pointer}
+.chk input{accent-color:var(--warning)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:860px){.grid{grid-template-columns:1fr}}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px 20px;min-height:280px}
+.pane h2{font-size:12px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;margin:0 0 3px;display:flex;align-items:center;gap:8px}
+.pane.before h2{color:#F87171}
+.pane.after h2{color:var(--success-soft,#4ADE80)}
+.pane .cap{color:var(--muted);font-size:11.5px;margin:0 0 16px;line-height:1.5}
+.tag{font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.3px}
+.before .tag{background:rgba(239,68,68,.12);color:#F87171;border:1px solid rgba(239,68,68,.3)}
+.after .tag{background:rgba(34,197,94,.12);color:#4ADE80;border:1px solid rgba(34,197,94,.3)}
+
+/* ── message / body / streaming (verbatim shapes from index.html) ── */
+.msg{display:block;max-width:100%;margin:0}
+.msg.assistant .body{color:var(--prose);font-size:15px;line-height:1.72}
+.streaming{white-space:pre-wrap;word-break:break-word}
+.body h3{color:var(--primary);font-size:14.5px;margin:1.15em 0 .5em}
+.body h3:first-child{margin-top:.2em}
+.body p{margin:0 0 1em}
+.body p:last-child{margin-bottom:0}
+.body code{background:var(--code-bg);color:var(--code-fg);font-family:var(--mono);font-size:12.5px;padding:1px 6px;border-radius:5px}
+.body b{color:var(--primary);font-weight:600}
+.collide{color:#F87171;border-bottom:2px dotted #F87171;padding-bottom:1px}
+.caret{display:inline-block;width:7px;height:15px;background:var(--accent2);margin-left:1px;vertical-align:-2px;animation:blink .9s step-end infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* ── brain + molecules ── */
+.brainwrap{position:relative;display:inline-block;width:15px;height:15px}
+.brainmark{width:15px;height:15px;display:block;stroke:url(#g-ai)}
+.chat-brain{display:flex;align-items:center;padding:6px 0 8px 4px;gap:9px;color:var(--muted);font-size:12.5px}
+.brainwrap::after{content:'';position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.45),transparent 70%);filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+.chat-brain .brainwrap::after,.wstep.run .brainwrap::after{opacity:1;animation:aipulse 1.6s ease-in-out infinite}
+.chat-brain .brainmark,.wstep.run .brainmark{animation:aihue 2.4s linear infinite}
+.brainwrap .mol{position:absolute;top:50%;left:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;opacity:0;transition:opacity .3s;pointer-events:none}
+.brainwrap .m1{color:#EC4899;--r:9px}
+.brainwrap .m2{color:#22D3EE;--r:12px;width:2.5px;height:2.5px}
+.brainwrap .m3{color:#A855F7;--r:7px;width:2px;height:2px}
+.brainwrap .m4{color:#6366F1;--r:14px}
+.brainwrap .m5{color:#F59E0B;--r:11px;width:2px;height:2px}
+.chat-brain .mol,.wstep.run .mol{opacity:1}
+.chat-brain .m1,.wstep.run .m1{animation:molCW 1.1s linear infinite;animation-delay:-.2s}
+.chat-brain .m2,.wstep.run .m2{animation:molCCW 1.7s linear infinite;animation-delay:-.8s}
+.chat-brain .m3,.wstep.run .m3{animation:molCW .9s linear infinite;animation-delay:-.5s}
+.chat-brain .m4,.wstep.run .m4{animation:molCCW 2.2s linear infinite;animation-delay:-1.4s}
+.chat-brain .m5,.wstep.run .m5{animation:molCW 1.4s linear infinite;animation-delay:-1s}
+.wstep-ico .brainwrap::after{inset:-5px}
+.wstep-ico .brainwrap .m1{--r:6.5px}.wstep-ico .brainwrap .m2{--r:8.5px}.wstep-ico .brainwrap .m3{--r:5px}.wstep-ico .brainwrap .m4{--r:10px}.wstep-ico .brainwrap .m5{--r:7.5px}
+@keyframes molCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(1turn) translateX(var(--r))}}
+@keyframes molCCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(-1turn) translateX(var(--r))}}
+@keyframes aihue{to{filter:hue-rotate(360deg)}}
+@keyframes aipulse{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.15);opacity:1}}
+
+/* ── work blocks (verbatim shapes from index.html) ── */
+.wblocks{display:flex;flex-direction:column;gap:16px;margin-bottom:8px}
+.wblocks:empty{display:none}
+.wgroup{border:none;background:none}
+.wghead{display:flex;align-items:center;gap:9px;width:100%;background:none;border:none;color:var(--secondary);font:inherit;font-size:12.5px;font-weight:600;padding:2px 0;cursor:pointer;text-align:left}
+.wgchev{width:13px;height:13px;flex:0 0 auto;color:var(--muted);transition:transform .15s}
+.wgroup.open .wgchev{transform:rotate(90deg)}
+.wglabel{color:var(--secondary)}
+.wgroup.run .wglabel{color:var(--accent2);animation:wpulse 1.5s ease-in-out infinite}
+@keyframes wpulse{0%,100%{opacity:1}50%{opacity:.5}}
+.wgears{position:relative;width:24px;height:20px;flex:0 0 24px}
+.wgears svg{position:absolute;display:block}
+.wgears .g1{width:14px;height:14px;left:0;bottom:1px;color:var(--muted)}
+.wgears .g2{width:10px;height:10px;right:0;top:0;color:var(--muted)}
+.wgroup.run .wgears .g1{color:var(--accent2);animation:gearCW 3.2s linear infinite}
+.wgroup.run .wgears .g2{color:var(--accent2);animation:gearCCW 2.3s linear infinite}
+@keyframes gearCW{to{transform:rotate(1turn)}}
+@keyframes gearCCW{to{transform:rotate(-1turn)}}
+.wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
+.wgroup.open .wsteps{display:flex}
+.wstep{display:flex;flex-direction:column}
+.wstep-head{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:7px;color:var(--secondary);font-size:12.5px;line-height:1.45;cursor:default}
+.wstep.has-body .wstep-head{cursor:pointer}
+.wstep.has-body .wstep-head:hover{background:var(--veil)}
+.wstep-ico{width:15px;height:15px;flex:0 0 auto;color:var(--muted);display:inline-flex;align-items:center;justify-content:center}
+.wstep-ico svg{width:15px;height:15px}
+.wstep-lbl{flex:1 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wstep.run .wstep-lbl,.wstep.run .wstep-ico{color:var(--accent2)}
+.wstep.run .wstep-lbl{animation:wpulse 1.5s ease-in-out infinite}
+.wstep.run .wstep-ico .t-doc{color:#60A5FA}
+.wstep.run .wstep-ico .t-search{color:#22D3EE}
+.wstep.run .wstep-ico .t-term{color:#34D399}
+.wstep-ico .brainmark{stroke:var(--muted)}
+.wstep.run .wstep-ico .brainmark{stroke:url(#g-ai)}
+.wstep-exp{width:11px;height:11px;flex:0 0 auto;color:var(--muted);opacity:0;transition:transform .15s}
+.wstep.has-body .wstep-exp{opacity:.55}
+.wstep.open .wstep-exp{transform:rotate(90deg)}
+.wstep-body{display:none;white-space:pre-wrap;word-break:break-word;color:var(--muted);font-size:12px;line-height:1.62;padding:3px 8px 9px 33px}
+.wstep.open .wstep-body{display:block}
+
+/* ── model-switch pill (verbatim from index.html) ── */
+.switch-note{display:flex;align-items:center;gap:8px;margin:2px 0 10px;padding:7px 11px;border:1px solid var(--line);border-left:3px solid #F59E0B;background:var(--veil);border-radius:8px;color:var(--secondary);font-size:12.5px;line-height:1.4}
+.switch-note b{color:var(--primary);font-weight:600}
+.sw-bolt{color:#F59E0B;font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
+
+.note{color:var(--muted);font-size:11.5px;margin-top:22px;line-height:1.6;border-top:1px solid var(--line);padding-top:14px}
+.note b{color:var(--secondary)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:8px;color:var(--muted);font-size:11px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.dotk{width:9px;height:9px;border-radius:3px;display:inline-block}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <linearGradient id="g-ai" gradientUnits="userSpaceOnUse" x1="3" y1="4" x2="21" y2="20"><stop offset="0" stop-color="#EC4899"/><stop offset=".5" stop-color="#A855F7"/><stop offset="1" stop-color="#6366F1"/></linearGradient>
+  <symbol id="i-brain" viewBox="0 0 24 24"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/></g></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2"/><circle cx="12" cy="12" r="1.7"/><path d="M12 3.2v3.4M12 17.4v3.4M3.2 12h3.4M17.4 12h3.4M15.8 8.2l2.4-2.4M8.2 8.2L5.8 5.8M15.8 15.8l2.4 2.4M8.2 15.8l-2.4 2.4"/></symbol>
+</svg>
+
+<div class="wrap">
+  <h1>Process vs. answer — display fix</h1>
+  <p class="sub">Same reply, same events. <b>Left</b> = how it looked before (the run-on wall from your screenshot). <b>Right</b> = the new segmented render, replayed live through the app's real work-block engine. Prompt: <i>"Where does Break List store its allocation records — which Data Type?"</i></p>
+
+  <div class="bar">
+    <button class="act" id="play">▶ Replay the answer</button>
+    <label class="chk"><input type="checkbox" id="outage"> Simulate Opus outage → show fallback pill</label>
+    <span style="flex:1"></span>
+    <span class="legend">
+      <span><i class="dotk" style="background:#A855F7"></i>thinking</span>
+      <span><i class="dotk" style="background:#6B6B6B"></i>process note</span>
+      <span><i class="dotk" style="background:#60A5FA"></i>tool action</span>
+      <span><i class="dotk" style="background:#C9C9CE"></i>final answer</span>
+    </span>
+  </div>
+
+  <div class="grid">
+    <div class="pane before">
+      <h2><span class="tag">BEFORE</span> one blob</h2>
+      <p class="cap">Between-tool narration was concatenated into the reply with no separators, so it collided with the answer. Dotted red = where sentences ran together.</p>
+      <div class="msg assistant"><div class="body"><div class="streaming" id="beforeBody"></div></div></div>
+    </div>
+
+    <div class="pane after">
+      <h2><span class="tag">AFTER</span> timeline + clean answer</h2>
+      <p class="cap">Narration is reclaimed into collapsible timeline steps (click a note to expand). Only the text after the last tool call renders as the answer.</p>
+      <div class="msg assistant"><div class="body" id="afterBody"></div></div>
+    </div>
+  </div>
+
+  <p class="note"><b>Faithful, not a live model.</b> The right panel runs the actual render functions copied out of <code style="font-family:var(--mono)">crs-brain/public/index.html</code> (<code style="font-family:var(--mono)">ensureGroup / startCard / addNoteStep / endStep</code>) driven by a scripted event stream — no server, no usage. To see it against a real Claude reply, refresh the app (picks up the client change) and restart the Node server (picks up the <code style="font-family:var(--mono)">answerSeg</code> split in <code style="font-family:var(--mono)">server.js</code>), then ask anything that uses tools.</p>
+</div>
+
+<script>
+"use strict";
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function oneLine(t){ return (t||'').trim().replace(/\s+/g,' '); }
+const sleep=(ms)=>new Promise(r=>setTimeout(r,ms));
+
+/* ---- glyph + label pickers (verbatim from index.html) ---- */
+function wLabel(kind,tool){
+  if(kind==='thinking') return 'Thinking';
+  const raw=(tool||'').replace(/^mcp__/,'').replace(/[_-]+/g,' ').trim();
+  if(!raw) return 'Working';
+  return raw.replace(/\b\w/g,c=>c.toUpperCase());
+}
+function brainHtml(){ return '<span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg><i class="mol m1"></i><i class="mol m2"></i><i class="mol m3"></i><i class="mol m4"></i><i class="mol m5"></i></span>'; }
+function stepIco(kind,hint){
+  if(kind==='thinking') return brainHtml();
+  const t=((hint||'')+'').toLowerCase();
+  let p='dot';
+  if(kind==='note') p='note';
+  else if(/buildprint/.test(t)) p='wrench';
+  else if(/todo|checklist/.test(t)) p='todo';
+  else if(/\bagent\b|subagent|\btask\b/.test(t)) p='bot';
+  else if(/\bbash|terminal|shell|\bnpm|\bgit\b|python|node|powershell|\$/.test(t)) p='term';
+  else if(/web|fetch|http|url/.test(t)) p='globe';
+  else if(/grep|glob|search|\bfind\b|explor|tree|context|summary|audit/.test(t)) p='search';
+  else if(/edit|write|apply|create|update|savepoint|merge/.test(t)) p='pencil';
+  else if(/\bread|\bcat\b|view|guideline|\.md|\.json|\.js|\.css|\.html|file/.test(t)) p='doc';
+  const P={
+    search:'<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/>',
+    doc:'<path d="M6 2.5h7l5 5v14H6z"/><path d="M13 2.5V8h5"/><path class="ascan" d="M8.5 11.5h6"/>',
+    term:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M7 9l3 3-3 3"/><path class="acur" d="M13.5 15H17"/>',
+    note:'<path d="M20 15a2 2 0 0 1-2 2H8l-4 4V6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2z"/>',
+    dot:'<circle cx="12" cy="12" r="3"/>'
+  };
+  return '<svg class="t-'+p+'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">'+(P[p]||P.dot)+'</svg>';
+}
+
+/* ---- tiny markdown for the final answer (bold / code / h3) ---- */
+function mdRender(s){
+  const inl=(x)=>x.replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
+  return s.trim().split(/\n\n+/).map(b=>{
+    if(/^### /.test(b)) return '<h3>'+inl(esc(b.replace(/^### /,'')))+'</h3>';
+    return '<p>'+inl(esc(b)).replace(/\n/g,'<br>')+'</p>';
+  }).join('');
+}
+
+/* ---- the scripted reply (what a real tool-using answer streams) ---- */
+const THINK='The user wants the exact Data Type behind Break List, not a guess. I should recon the brain schema and the option-set file, confirm it is its own DT (not part of Scheduling), and only then answer with the real field list and privacy rule.';
+const NARR1='Let me recon the brain to see how Break List is designed.';
+const NARR2='Now finding the exact data type that stores the allocations.';
+const NARR3='The schema is chosen. Recon complete — I can see where the record belongs.';
+const ANSWER='### Break List — where records live\n\n**Data Type:** `BreakAllocation` (Operations section) — its own DT, **not** part of Scheduling. Break List is real-time pit-boss allocation, so it writes its own records.\n\nEach row carries both **`company`** and **`property`** per Pattern A strict isolation, plus `dealer`, `table`, `startTime`, and `status`.\n\nPrivacy rule: `Current User’s company = This BreakAllocation’s company AND Current User’s property = This BreakAllocation’s property`.';
+
+// BEFORE = everything the model emitted, concatenated with no separators.
+const BEFORE_PLAIN=NARR1+NARR2+NARR3+ANSWER;
+
+function paintBefore(){
+  const el=document.getElementById('beforeBody');
+  // Render the run-on blob, marking the three collision seams in red.
+  let html=esc(BEFORE_PLAIN)
+    .replace('designed.Now','designed.<span class="collide">Now</span>')
+    .replace('allocations.The','allocations.<span class="collide">The</span>')
+    .replace('belongs.### ','belongs.<span class="collide">###</span> ')
+    .replace(/### /g,'').replace(/`([^`]+)`/g,'$1').replace(/\*\*([^*]+)\*\*/g,'$1');
+  el.innerHTML=html;
+}
+
+/* ---- AFTER: the real work-block engine (trimmed copy of streamChat's internals) ---- */
+async function playAfter(){
+  const body=document.getElementById('afterBody');
+  body.innerHTML='';
+  // optional fallback pill on top (only when the outage box is ticked)
+  if(document.getElementById('outage').checked){
+    const note=document.createElement('div'); note.className='switch-note';
+    note.innerHTML='<span class="sw-bolt">⚡</span><span>Opus 4.8 unavailable — switched to <b>Sonnet</b> to keep going</span>';
+    body.appendChild(note);
+  }
+  const brainEl=document.createElement('div'); brainEl.className='chat-brain';
+  brainEl.innerHTML=brainHtml()+'<span>Thinking…</span>';
+  const blocksEl=document.createElement('div'); blocksEl.className='wblocks';
+  const answerEl=document.createElement('div'); answerEl.className='streaming';
+  body.appendChild(brainEl); body.appendChild(blocksEl); body.appendChild(answerEl);
+
+  let group=null, activeStep=null;
+  function endStep(){ if(activeStep){ activeStep.el.classList.remove('run'); activeStep=null; } }
+  function finalizeCard(){ endStep(); if(group){ group.run=false; group.el.classList.remove('run'); group.labelEl.textContent='Worked for '+group.secs+'s'; group=null; } }
+  function ensureGroup(){
+    if(group) return;
+    const el=document.createElement('div'); el.className='wgroup run open';
+    el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wgears"><svg class="g1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><use href="#i-gear"/></svg><svg class="g2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><use href="#i-gear"/></svg></span><span class="wglabel">Working</span></button><div class="wsteps"></div>';
+    el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
+    blocksEl.appendChild(el);
+    try{ brainEl.remove(); }catch(e){}
+    group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),run:true,secs:0};
+  }
+  function startCard(kind,tool){
+    endStep(); ensureGroup();
+    const el=document.createElement('div'); el.className='wstep run';
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(kind,tool)+'</span><span class="wstep-lbl">'+esc(wLabel(kind,tool))+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
+    activeStep={el,labelEl:el.querySelector('.wstep-lbl'),bodyEl:el.querySelector('.wstep-body'),kind,text:''};
+  }
+  function setStepBody(t){ if(!activeStep) return; activeStep.text=t; activeStep.bodyEl.textContent=t; activeStep.el.classList.toggle('has-body',!!t.trim()); }
+  function appendThink(t){ if(!activeStep||activeStep.kind!=='thinking') startCard('thinking'); setStepBody(activeStep.text+t); }
+  function addNoteStep(text){
+    const one=oneLine(text); if(!one) return;
+    endStep(); ensureGroup();
+    const el=document.createElement('div'); el.className='wstep';
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco('note')+'</span><span class="wstep-lbl">'+esc(one)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    if(one.length>72||/\n/.test(text.trim())){ el.classList.add('has-body'); el.querySelector('.wstep-body').textContent=text.trim(); }
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
+  }
+
+  // ---- these mirror streamChat's SSE event loop exactly ----
+  let full='';                 // text since the last tool block (the pending answer)
+  const caret='<span class="caret"></span>';
+  function onThink(t){ appendThink(t); }
+  function onDelta(t){ endStep(); full+=t; answerEl.innerHTML=esc(full)+caret; }
+  function onBlock(kind,tool){
+    if(kind==='tool' && full.trim()){ addNoteStep(full); full=''; answerEl.innerHTML=caret; }
+    startCard(kind,tool);
+  }
+  function onLabel(tool){ if(activeStep){ activeStep.labelEl.textContent=wLabel('tool',tool); } }
+
+  // group timer tick
+  const tick=setInterval(()=>{ if(group&&group.run){ group.secs++; group.labelEl.textContent='Working '+group.secs+'s'; } },1000);
+
+  // stream thinking
+  for(const c of chunk(THINK,26)){ onThink(c); await sleep(45); }
+  await sleep(350);
+  // narration 1 (streams as visible text), then a tool → reclaimed as note
+  for(const c of chunk(NARR1,14)){ onDelta(c); await sleep(38); }
+  await sleep(160);
+  onBlock('tool','Read'); onLabel('Read brain/database.md');
+  setStepBody('110 Data Types scanned. Operations section holds the pit-boss allocation tables.');
+  await sleep(650);
+  // narration 2 → tool → reclaimed
+  for(const c of chunk(NARR2,14)){ onDelta(c); await sleep(38); }
+  await sleep(140);
+  onBlock('tool','Grep'); onLabel('Grep "Break"');
+  setStepBody('match: BreakAllocation (Operations) — company, property, dealer, table, startTime, status');
+  await sleep(600);
+  // narration 3 → tool → reclaimed
+  for(const c of chunk(NARR3,15)){ onDelta(c); await sleep(36); }
+  await sleep(140);
+  onBlock('tool','Read'); onLabel('Read brain/option-sets.md');
+  setStepBody('Confirmed: Break List is its own DT, not a Scheduling child.');
+  await sleep(650);
+  // final answer (text after the last tool = clean answer, never reclaimed)
+  endStep();
+  for(const c of chunk(ANSWER,9)){ onDelta(c); await sleep(16); }
+  clearInterval(tick);
+  finalizeCard();
+  answerEl.innerHTML=mdRender(full);   // finalize: render markdown, drop caret
+}
+
+function chunk(s,n){ const out=[]; for(let i=0;i<s.length;i+=n) out.push(s.slice(i,i+n)); return out; }
+
+let playing=false;
+async function run(){ if(playing) return; playing=true; document.getElementById('play').disabled=true; paintBefore(); await playAfter(); document.getElementById('play').disabled=false; playing=false; }
+document.getElementById('play').onclick=run;
+document.getElementById('outage').onchange=()=>{ if(!playing) run(); };
+paintBefore();
+run();
+</script>
+</body>
+</html>
