@@ -1574,7 +1574,9 @@ function miniInline(s){
   return escH(s)
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,'<a href="$2" target="_blank">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g,(m,txt,href)=>/^https?:/i.test(href)
+      ? '<a href="'+href+'" target="_blank" rel="noopener noreferrer">'+txt+'&#8599;</a>'   /* external — single sanctioned exception */
+      : '<a href="#" data-open="'+href+'">'+txt+'</a>');
 }
 function miniMd(src){
   const L=src.replace(/\r/g,'').split('\n'); let h='',i=0;
@@ -1654,7 +1656,18 @@ function pvRenderMd(){
   pv.body.innerHTML=html;
 }
 function pvMode(m){ pvM=m; pvRenderMd(); }
-function pvOpenTab(){ if(pvFile) window.open('/api/raw?path='+encodeURIComponent(pvFile.path),'_blank'); }
+function pvOpenTab(){ if(!pvFile) return;
+  if(EMBED && window.parent.smartOpen){ window.parent.smartOpen(pvFile.path); flash('Opened in app'); return; }
+  window.open('/api/raw?path='+encodeURIComponent(pvFile.path),'_blank'); }
+// single-app rule: internal doc links in previews open in-app (parent smartOpen), never a browser tab
+document.addEventListener('click',e=>{
+  const a=e.target.closest('a[data-open]'); if(!a) return;
+  e.preventDefault();
+  let href=a.dataset.open.replace(/^\.\//,'').replace(/#.*$/,''); if(!href) return;
+  if(!href.includes('/')&&pvFile&&pvFile.path.includes('/')) href=pvFile.path.replace(/\/[^/]*$/,'/')+href;
+  if(EMBED && window.parent.smartOpen){ window.parent.smartOpen(href); }
+  else window.open('/#file='+encodeURIComponent(href),'crsbrain');
+});
 function pvOpenBrowser(){ if(pvFile) fetch('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:pvFile.path})}).then(()=>flash('Opened in your browser')); }
 function closePv(){ pv.el.classList.remove('open'); pv.frame.src='about:blank'; pvFile=null; }
 document.getElementById('boardSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b) return;

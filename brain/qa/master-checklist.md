@@ -97,3 +97,6 @@ Created 2026-07-17 by the pre-execution gate run.
 | USR.1 | toggles | Every segmented control / toggle chip app-wide, active state | Greyscale active: --bg-elevated + --text-primary — NEVER accent fill or accent tint (user override 2026-07-17) | dark+light | UNTESTED | | |
 | USR.2 | kanban | Board opens from map toolbar | BOTTOM sheet (40vh, border-top), not a right drawer; dock lifts above it; preview clamps above it; hover routing edge starts at sheet top (user override) | dark+light | UNTESTED | | |
 | USR.3 | windows | Open a doc popup, drag its edges/corners | Doc windows resize exactly like the explorer window (all edges, min size); drag + snap already verified | dark+light | UNTESTED | | |
+
+| USR.4 | single-app | Click every header tool button + dashboard Tools chip (tree/wishlist/queue/memory/activity); open one twice | Opens an in-app iframe window with full DW chrome — never a browser tab; second open focuses existing | dark+light | UNTESTED | | |
+| USR.5 | single-app | In map preview + any doc window: click internal md links; click an external https link | Internal → in-app popup (never a tab); external → system browser with ↗ (sanctioned exception) | dark+light | UNTESTED | | |
