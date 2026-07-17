@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T17:50:45.526Z",
+  "updated": "2026-07-17T17:50:46.230Z",
   "messages": [
     {
       "role": "user",
@@ -196,19 +196,8 @@
     },
     {
       "role": "assistant",
-      "content": "Ring's gone — now it's a molecule cloud. Five glowing dots (pink, cyan, violet, indigo, amber) orbit the brain on five different radii, at five different speeds, three spinning clockwise and two counter-clockwise, phase-staggered so they never start bunched. The soft pulsing glow and the brain's color-cycling stay underneath.\n\nHard-refresh (Ctrl+Shift+R) and send a test — this very reply should have them swarming.\n\nIf you want it wilder (more dots, elliptical orbits, comet trails) or calmer (slower, fewer), say which direction.",
-      "ts": "2026-07-17T17:49:50.561Z"
-    },
-    {
-      "role": "user",
-      "content": "test",
-      "ts": "2026-07-17T17:50:39.061Z",
-      "attachments": []
-    },
-    {
-      "role": "assistant",
-      "content": "Molecules should be flying around the brain right now — five colored dots, different orbits and directions. When this reply ends they fade out.\n\nSeeing them? If not, hard-refresh (Ctrl+Shift+R) first — the browser may still be serving the cached page.",
-      "ts": "2026-07-17T17:50:45.526Z"
+      "content": "Already done — this came through twice (likely queued while the previous reply was streaming). The molecule cloud is in: five colored dots (pink/cyan/violet/indigo/amber) orbiting the brain at different radii, speeds, and directions, plus the pulsing glow and hue-cycling brain.\n\nHard-refresh (Ctrl+Shift+R), then send a test message and watch the badge while it streams. If the motion isn't what you pictured, describe the difference and I'll tune it.",
+      "ts": "2026-07-17T17:50:46.230Z"
     }
   ]
 }
