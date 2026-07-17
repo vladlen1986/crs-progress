@@ -24,5 +24,16 @@
       "connection-lost": "s22",
       "connection-restored": "s07"
     }
+  },
+  "notifyPrefs": {
+    "dnd": false,
+    "bannerSec": 4,
+    "migratedEvents": true,
+    "types": {
+      "info": {
+        "soundId": "s03",
+        "bell": false
+      }
+    }
   }
 }
