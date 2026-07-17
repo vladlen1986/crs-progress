@@ -176,3 +176,19 @@ Only PARTIAL/TODO work, in dependency order:
 9. **P10.C Settings Notifications tab v2** — per-type table (banner/sound/bell switches + sound dropdown + test), DND master, banner duration slider. Depends on 7.
 10. **P10.D4 sync UI truth** — per-source last-sync timestamps rendered in Settings, spinner during checks. Independent; can run any time.
 11. **QA loop execution** — run master-checklist.md rows (all UNTESTED), update statuses/evidence, feed failures back into fix passes.
+
+---
+
+## Resumed on Windows — 2026-07-17
+
+Four parallel recon subagents (handoff brief · program-state/checklist audit · commits-vs-claims · environment check) merged into this plan.
+
+**Resume point confirmed.** The gate audit above (P9/P10/P11 PARTIAL) is SUPERSEDED by the later same-day `program:` commits — the resume file `resume-2026-07-17.md` is accurate against the commit record: P1–P10 + P11.K done and committed; qa-loop cycle-1 complete (9177b95, 72/82 PASS, 5 fixes); cycle 2 was interrupted with nothing recorded. The queued ptree redesign is now CLOSED — shipped on Windows as `0e5701f` (Executive ⇄ Raw renderers, row progress bars, deep links, single-app links; PTREE.1–7 appended, all PASS).
+
+**Commit-vs-file discrepancies:** none of substance. Two notes: (1) post-handoff commits 5a0636f/6ca3e25 (forum digest, issue report) were produced by the LOCAL Windows server's watchers on first run tonight, not by the Mac tail — expected per the resume file's duplicate-baseline warning; (2) the issue checker on this machine degraded gracefully with `spawn buildprint ENOENT` (CLI not installed here — install/link in progress).
+
+**Checklist truth (start of cycle 2):** 64 rows total — 42 PASS (c1) + 7 PASS (ptree) tagged wrongly in older counts; authoritative split: PASS 49, UNTESTED 13 (P7.1–7, P8.6–7, P11-kanban-loop.1–4), ENV-LIMITED 5 (P1.3, P6.1/3/4/5), FAIL 4 (P4.5, P9.3, P11K.9 — plus P9.8/P11.5 already re-proven PASS by the c2 static verifier). No quarantine list exists yet.
+
+**Environment (Windows):** Node v24.16.0; node-pty Windows binaries present; `crs-brain/start.bat` exists; app running + serving this repo on :4317; git identity + push verified (local was 6 ahead); bash only via Git Bash (`scripts/update-manuals.sh` is the sole .sh dependency); PowerShell 5.1.
+
+**Cycle-2 execution model (per Vlad's directives, 2026-07-17):** dedicated non-throttled Chrome rig (headless=new via puppeteer-core on system Chrome) — the in-session browser pane is background-throttled (hidden renderer: no rAF, no screenshots, stale computed styles) and MUST NOT be used for verification. Rig sanity-proven on a known-PASS row before trust. Parallel verifier fan-out, both themes; statuses written to master-checklist.md incrementally as each verifier returns; rows the rig can't prove → ENV-LIMITED with exact reason, collected into a "needs-eyes run" list for Vlad. Windows-portability sweep (3 parallel agents: paths/traversal, spawn/shell, CRLF) runs fixes BEFORE verifiers so verified code = shipped code. Then close cycle 2: counts, delta vs c1, cycle-3 decision (goal: two consecutive clean runs).
