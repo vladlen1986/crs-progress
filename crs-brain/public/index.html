@@ -502,6 +502,13 @@
   .cm-chip.cm-dead:hover{border-color:var(--border-default);color:var(--text-muted)}
   .cm-chip .cm-dead-tag{font-size:10px;color:var(--text-muted);opacity:.85}
 
+  /* version guard: unobtrusive "app updated" banner (never yanks an in-use tab) */
+  .ver-banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;box-shadow:0 6px 24px var(--overlay,rgba(0,0,0,.3));font-size:13px;color:var(--text-primary)}
+  .ver-banner button{border:none;background:var(--accent);color:var(--white);border-radius:var(--radius-btn);padding:6px 13px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .ver-banner button:hover{background:var(--accent-hover)}
+  .ver-banner .ver-x{background:none;color:var(--text-muted);padding:6px 8px;font-weight:400}
+  .ver-banner .ver-x:hover{background:var(--bg-tertiary);color:var(--text-primary)}
+
   /* file chips in chat: show a download button on hover */
   .matt{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px 6px 4px 10px;color:var(--primary);text-decoration:none}
   .matt .matt-name{color:var(--primary)}
@@ -4090,6 +4097,44 @@ async function bpTrack(){
 }
 
 // ---------- boot ----------
+// Cache-bust safety net (paired with no-store on the shell in server.js). If the
+// server's front-end code advances while this tab is open — or a stale shell got
+// bfcache-restored — surface a one-click "App updated" reload banner. It NEVER
+// auto-reloads: a silent reload could abort an in-flight generation/upload or drop
+// unsaved composer text, so the user always decides when. Loop-safe: a fresh load
+// stamps window.__APP_VERSION__ === the server version, so this only acts on a real
+// divergence; `shownFor` stops it re-nagging for the same version once dismissed.
+(function versionGuard(){
+  const mine=window.__APP_VERSION__;
+  if(!mine) return;   // shell served without a stamp — nothing to compare against
+  let banner=null, shownFor=null;
+  function reload(){
+    // respect the app's unsaved-edits convention (mirrors dwClose) before discarding
+    const dirty=(typeof DW!=='undefined'&&DW.wins&&[...DW.wins.values()].some(w=>w.dirty));
+    if(dirty&&typeof crsConfirm==='function'){ crsConfirm({title:'Reload now?',body:'An open window has unsaved changes. Reload and lose them?'}).then(ok=>{ if(ok) location.reload(); }); return; }
+    location.reload();
+  }
+  function showBanner(v){
+    shownFor=v;
+    if(banner&&document.body.contains(banner)) return;
+    banner=document.createElement('div'); banner.className='ver-banner';
+    banner.append('App updated. ');
+    const b=document.createElement('button'); b.type='button'; b.textContent='Reload'; b.onclick=reload;
+    const x=document.createElement('button'); x.type='button'; x.className='ver-x'; x.title='Dismiss'; x.textContent='✕'; x.onclick=()=>{ if(banner) banner.remove(); };
+    banner.appendChild(b); banner.appendChild(x); document.body.appendChild(banner);
+  }
+  async function check(){
+    try{
+      const r=await fetch('/api/version',{cache:'no-store'}); if(!r.ok) return;
+      const j=await r.json(); const v=j&&j.version; if(!v||v===mine) return;   // in sync → nothing (loop-safe)
+      if(shownFor===v) return;                                                  // already offered this version → don't re-nag
+      showBanner(v);
+    }catch(e){}
+  }
+  setInterval(check, 15000);
+  document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible') check(); });
+  addEventListener('pageshow',(e)=>{ if(e.persisted) check(); });   // bfcache restore → re-check (no-store isn't enough on Chrome 123+)
+})();
 // Deep link: /#file=<path> opens that file (used by the Map's click-to-open).
 function openFromHash(){
   if(location.hash.startsWith('#file=')){

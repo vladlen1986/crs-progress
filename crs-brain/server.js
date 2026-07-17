@@ -1539,16 +1539,41 @@ function buildWishlistPromptMsg(item) {
 
 // ---- static files ----------------------------------------------------------
 const MIME = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css' };
+// A stamp identifying the current front-end code. The shell contributes a hash of
+// its EXACT served bytes (so the stamp can't drift from what the browser got — no
+// read/stat race); sub-assets contribute their mtimes. The served shell embeds it
+// as window.__APP_VERSION__; the client polls /api/version and shows a reload
+// banner when they diverge. `shellBytes` is passed at serve time; /api/version
+// reads the shell fresh.
+function frontendVersion(shellBytes) {
+  try {
+    if (shellBytes == null) shellBytes = fs.readFileSync(path.join(PUBLIC_DIR, 'index.html'));
+    const files = fs.readdirSync(PUBLIC_DIR).filter((f) => /\.(js|css)$/i.test(f)).sort();
+    const sig = files.map((f) => { try { return f + ':' + fs.statSync(path.join(PUBLIC_DIR, f)).mtimeMs; } catch { return f + ':0'; } }).join('|');
+    const shell = crypto.createHash('sha1').update(shellBytes).digest('hex');
+    return crypto.createHash('sha1').update(shell + '|' + sig).digest('hex').slice(0, 12);
+  } catch { return '0'; }
+}
 function serveStatic(res, urlPath) {
   const rel = urlPath === '/' ? 'index.html' : urlPath.replace(/^\/+/, '');
   const abs = path.resolve(PUBLIC_DIR, rel);
   if (!abs.startsWith(PUBLIC_DIR)) return send(res, 403, { error: 'forbidden' });
   fs.readFile(abs, (err, data) => {
     if (err) return send(res, 404, { error: 'not found' });
-    // no-cache so the browser always revalidates — the app's HTML/JS/CSS change
-    // often; without this, a plain refresh (F5) serves a stale cached page.
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(abs)] || 'application/octet-stream', 'Cache-Control': 'no-cache, must-revalidate' });
-    res.end(data);
+    let body = data;
+    let cache = 'no-cache, must-revalidate';   // sub-assets: no validator → revalidation is a full refetch = always fresh
+    if (rel === 'index.html') {
+      // The app shell holds all its JS inline, so a stale shell = stale code. Stamp
+      // the version (derived from these exact bytes) into it and serve it no-store.
+      // NOTE: on Chrome 123+ no-store does NOT by itself make the page bfcache-
+      // ineligible, so the client-side versionGuard (re-checks on visibility +
+      // pageshow) is the real protection against a frozen-heap restore — keep it.
+      const ver = frontendVersion(data);
+      body = Buffer.from(data.toString('utf8').replace(/<\/head\s*>/i, `<script>window.__APP_VERSION__=${JSON.stringify(ver)}</script></head>`));
+      cache = 'no-store, max-age=0, must-revalidate';
+    }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(abs)] || 'application/octet-stream', 'Cache-Control': cache });
+    res.end(body);
   });
 }
 
@@ -2172,6 +2197,7 @@ const server = http.createServer(async (req, res) => {
 
     // ---- sounds: local WAV store (data/sounds/) ----
     if (p === '/api/ping') return send(res, 200, { ok: true, ts: Date.now() });
+    if (p === '/api/version') return send(res, 200, { version: frontendVersion() });
     if (p === '/api/sounds/list' && req.method === 'GET') {
       let files = [];
       try { files = fs.readdirSync(SOUNDS_DIR).filter((f) => f.endsWith('.wav')); } catch {}
