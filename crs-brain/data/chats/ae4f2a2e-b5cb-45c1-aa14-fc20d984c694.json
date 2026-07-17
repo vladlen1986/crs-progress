@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T17:45:25.094Z",
+  "updated": "2026-07-17T17:46:22.626Z",
   "messages": [
     {
       "role": "user",
@@ -174,6 +174,17 @@
       "role": "assistant",
       "content": "Refresh and send any message to see it. While a reply is generating, the brain badge gets its galaxy: a thin spinning ring cycling pink → purple → indigo → cyan, a soft pulsing purple glow behind it, and the brain's own gradient hue-shifts through the spectrum. Fades in/out smoothly (0.35s) instead of popping.\n\nWired into `setGenerating()` — the single point that already flips the Send/Stop buttons — plus a safety re-sync when a stream finishes in the background, so: switch to another view mid-reply → the brain keeps spinning (it's now a true global \"the AI is working\" indicator); when nothing is running anywhere, it goes still.\n\nYou're testing it right now, in fact — this reply should have had the halo spinning.",
       "ts": "2026-07-17T17:45:25.094Z"
+    },
+    {
+      "role": "user",
+      "content": "test message",
+      "ts": "2026-07-17T17:46:13.079Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "While this reply streams, look at the top-left: the ring should be orbiting around the brain badge, glow pulsing, colors cycling. The moment this message finishes, it should fade back to the static pink→indigo brain within ~a third of a second.\n\nIf it's not animating: hard-refresh (Ctrl+Shift+R) to bust the cached HTML and send another message. If it still doesn't move, tell me what you see (no ring at all vs. ring stuck on) — that distinguishes a CSS issue from the class toggle not firing.",
+      "ts": "2026-07-17T17:46:22.626Z"
     }
   ]
 }
