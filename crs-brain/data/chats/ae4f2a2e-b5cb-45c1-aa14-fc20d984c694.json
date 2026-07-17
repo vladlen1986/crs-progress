@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T18:25:56.628Z",
+  "updated": "2026-07-17T18:43:58.745Z",
   "messages": [
     {
       "role": "user",
@@ -267,6 +267,17 @@
       "role": "assistant",
       "content": "Checked the Claude Code docs — the honest answer: **this can't be built the way you're describing, and the direction is backwards anyway.**\n\nTwo hard facts:\n\n1. **Nothing fires on \"credits running low.\"** Claude Code hooks only trigger on tool/prompt lifecycle events (before a tool runs, when a session starts, etc.) — never on billing or usage state. So there's no settings.json entry or hook that can detect \"credits needed\" and swap the model. That feature simply doesn't exist.\n2. **`--fallback-model` won't help here** — it only kicks in when the model is *overloaded* (server 429/5xx), not when you're out of credits/hitting your plan limit. On a Max plan there's also **no** built-in auto-downgrade; when you hit the limit, requests just stop.\n\nAnd the premise itself: switching **to** Opus 4.8 (the most expensive model) when you're low on credits **burns them faster** — that's the opposite of what you'd want. If the real goal is \"don't get interrupted when I'm running low,\" the sane move is to drop to a *cheaper* model (Sonnet/Haiku), not up to Opus.\n\nWhat you can actually do:\n- **Manual switch mid-session:** `/model sonnet` (or `opus` / `haiku`) any time.\n- **Set a default** in settings.json (`\"model\"`) or the `/config` menu.\n- **Overload resilience only:** a `fallbackModel` chain — but again, that's for server overload, not credit limits.\n\nSo — what's the actual goal? If it's \"keep working cheaply once Opus credits are tight,\" I'd set Opus as default and manually `/model sonnet` when your usage panel shows the limit approaching. Want me to set that default, or leave it manual?",
       "ts": "2026-07-17T18:25:56.628Z"
+    },
+    {
+      "role": "user",
+      "content": "Goal if one model is inaccessiible brain app shall monitor this and switch to continue working",
+      "ts": "2026-07-17T18:26:48.912Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. The \"switch models when one is inaccessible\" feature is complete and verified.\n\n**What it does now:** when the Brain app spawns `claude` and the chosen model fails *before producing any output* with an outage signature (overload/529, rate-limit/429, 503, not-found/invalid-model, usage-limit, quota/credit, capacity), it automatically re-spawns on the next model in the chain and keeps the reply going — showing an amber \"⚡ Opus 4.8 unavailable — switched to **Sonnet** to keep going\" note above the answer.\n\n**The pieces (all in `crs-brain/`):**\n- `server.js` — `runClaudeWithFallback` wraps `runClaudeStream`; errors are tagged `stage` (`pre`/`mid`) + `retryable`; it switches **only** on `pre`+`retryable` (a mid-answer failure propagates — resuming half a reply on another model is incoherent). Chain = `[primary, ...fallbackModels]`, de-duped. Also fixed a latent bug where an error arriving as a `result` event was saved as the assistant's reply.\n- Settings: `autoFallback` (default on) + `fallbackModels` (`['sonnet','haiku']`).\n- `public/index.html` — `model-switch` SSE handler + `.switch-note`/`.sw-bolt` CSS.\n\n**Verification:**\n- `node --check server.js` and `qa-scratch/check-syntax.js` (index.html) — both clean.\n- `qa-scratch/fallback-test.js` extracts the **real** classifier + fallback loop out of server.js and runs **29 checks, all pass**: matches every realistic outage string, correctly *ignores* non-outages (incl. `exit 143` = your Stop button, so a manual stop never triggers a switch), and the loop switches once / walks the whole chain / refuses to switch mid-answer, on non-retryable, or when disabled.\n\n**One honest caveat** (documented in the progress file): the 5-hour cap is account-wide across all models, so this rescues a *model-specific* outage or a transient overload — not a full account cap. When everything's capped, all chain members fail and you get the error.\n\nI left the working tree uncommitted so it rides the app's next auto-commit, per the usual flow. Want me to force a live test by temporarily pointing the primary at a bogus model name so you can watch the switch-note appear in a real reply?",
+      "ts": "2026-07-17T18:43:58.745Z"
     }
   ]
 }
