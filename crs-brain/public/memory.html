@@ -8,48 +8,50 @@
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
   .wrap{max-width:900px;margin:0 auto;padding:26px 22px 80px}
   header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
   header.top .t{flex:1;min-width:0}
-  h1{font-size:20px;color:var(--primary);margin:0 0 3px;font-weight:600;letter-spacing:.2px}
-  .sub{color:var(--muted);font-size:12.5px;line-height:1.55}
+  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
+  .sub{color:var(--secondary);font-size:12.5px;line-height:1.55}
   .hbtns{display:flex;gap:8px;flex:0 0 auto}
-  .hbtn{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:7px 12px;font:inherit;font-size:12.5px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
-  .hbtn:hover{color:var(--primary);border-color:var(--line3)}
+  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
   .hbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-  .tip{margin:16px 0 4px;padding:11px 14px;background:var(--panel);border:1px solid var(--line2);border-left:3px solid var(--purple);border-radius:9px;font-size:12.5px;color:var(--secondary);line-height:1.6}
+  .tip{margin:16px 0 4px;padding:11px 14px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--purple);border-radius:var(--radius-card);font-size:12.5px;color:var(--secondary);line-height:1.6}
   .tip b{color:var(--primary)}
-  .tip code{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;color:#DADADA}
+  .tip code{font-family:var(--mono);font-size:11.5px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-badge);padding:1px 6px;color:var(--text-primary)}
 
   .add{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 6px;align-items:stretch}
-  .add select,.add input{background:var(--panel);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 11px;font:inherit;font-size:13px;outline:none}
+  .add select,.add input{background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:13px;outline:none}
+  .add select:focus,.add input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
   .add select{flex:0 0 auto}
   .add input.title{flex:0 0 200px}
   .add input.fact{flex:1;min-width:200px}
   .add input::placeholder{color:var(--muted)}
-  .add button{background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.15s}
-  .add button:hover{filter:brightness(1.08)}
+  .add button{background:var(--accent);border:1px solid var(--accent);color:var(--white) /* approved literal — on-accent text */;border-radius:var(--radius-btn);padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+  .add button:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
+  .add button:active:not(:disabled){background:var(--accent-active);border-color:var(--accent-active)}
   .add button:disabled{opacity:.5;cursor:default}
 
   .cat{margin-top:24px}
-  .cathead{display:flex;align-items:center;gap:9px;font-size:12px;text-transform:uppercase;letter-spacing:.9px;color:var(--muted);font-weight:700;margin-bottom:9px}
-  .cathead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;font-size:11px;letter-spacing:0}
+  .cathead{display:flex;align-items:center;gap:9px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:9px}
+  .cathead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:1px 8px;font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:0}
   .cathead .cbar{flex:1;height:1px;background:var(--line)}
-  .mem{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;background:var(--panel);border:1px solid var(--line);border-radius:10px;margin-bottom:7px;transition:border-color .12s}
+  .mem{display:flex;gap:12px;align-items:flex-start;padding:11px 13px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:7px}
   .mem:hover{border-color:var(--line2)}
   .mem .mbody{flex:1;min-width:0}
   .mem .mtitle{color:var(--primary);font-weight:600;font-size:13.5px;margin-bottom:2px}
   .mem .mfact{color:var(--secondary);font-size:13px;line-height:1.55;word-break:break-word}
   .mem .mdate{color:var(--muted);font-size:11px;margin-top:5px}
-  .mem .del{background:none;border:1px solid var(--line2);color:var(--muted);border-radius:7px;width:28px;height:28px;flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
-  .mem .del:hover{border-color:var(--danger);color:var(--danger)}
+  .mem .del{background:none;border:1px solid var(--line);color:var(--muted);border-radius:var(--radius-btn);width:28px;height:28px;flex:0 0 auto;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .mem .del:hover{border-color:var(--danger);color:var(--danger);background:var(--error-tint)}
   .mem .del svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
-  .empty{text-align:center;color:var(--muted);padding:54px 20px;font-size:13.5px}
-  .empty b{color:var(--secondary);display:block;margin-bottom:6px;font-size:15px}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:11px;font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:50;box-shadow:0 10px 30px rgba(0,0,0,.4)}
+  .empty{text-align:center;color:var(--muted);padding:54px 20px;font-size:13px}
+  .empty b{color:var(--secondary);display:block;margin-bottom:6px;font-size:14px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-secondary);border:1px solid var(--border-active);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity 420ms cubic-bezier(.16,1,.3,1),transform 420ms cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 </style>
 </head>
@@ -83,7 +85,7 @@
 const $=(id)=>document.getElementById(id);
 let DATA={categories:[],entries:[]};
 function esc(s){return (s==null?'':''+s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
-function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),2200); }
+function toast(t){ const el=$('toast'); el.textContent=t; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3500); }
 
 async function load(){
   try{ DATA=await (await fetch('/api/memory')).json(); }catch(e){ DATA={categories:[],entries:[]}; }
