@@ -34,3 +34,6 @@
 - **2026-07-15** [# Listas assíncronas sumindo no editor de plugins mobile do Bubble (alpha): entendendo a causa](https://forum.bubble.io/t/listas-assincronas-sumindo-no-editor-de-plugins-mobile-do-bubble-alpha-entendendo-a-causa/398287) — Se você começou a construir plugins pro editor de plugins mobile do Bubble — que saiu da fase fechada e ficou disponível pra todo mundo em alpha no início de junho de 2026 — é bem provável que já tenha esbarrado nisso: v
 - **2026-06-04** [My take on Global Expressions](https://forum.bubble.io/t/my-take-on-global-expressions/396924) — Hey all, I’m kicking off my new Substack with a piece on the new Global Expressions feature. It launched without that much fanfare, but it’s actually a really nice addition to the Bubble toolbox. The article covers wha…
 
+## 2026-07-17 — forum check
+- **2026-07-17** [Powerful new plugin : Ultimate Charts Studio](https://forum.bubble.io/t/powerful-new-plugin-ultimate-charts-studio/398342) — Hello Bubblers, After spending a lot of time building dashboards and data-heavy apps in Bubble, I wanted to create something that made chart setup feel simpler, cleaner, and more flexible. So I’m happy to share Ultimat…
+
