@@ -4,7 +4,7 @@
   "sessionId": "9d26a265-6a24-4288-ba1f-9373a9c4558a",
   "bp": false,
   "created": "2026-07-17T16:22:01.645Z",
-  "updated": "2026-07-17T19:33:20.335Z",
+  "updated": "2026-07-17T19:45:18.829Z",
   "messages": [
     {
       "role": "user",
@@ -324,6 +324,17 @@
       "role": "assistant",
       "content": "The live typewriter/fade only renders in the browser that sends the message — if I trigger it via the API you'd just get the saved result, not the animation. So you send it; I'll give you a prompt built to show off everything at once.\n\nPaste this into the app:\n\n> **Recon the brain and give me the 3 biggest gaps blocking me from building the first CRS module. Cite the files.**\n\nThat forces the full pipeline you just changed: **thinking** (molecule brain) → **between-tool narration** folded into collapsible timeline notes → a few **Read/Grep tool steps** with their colored icons → then a **structured 3-point answer** that word-by-word focus-fades in. Bonus: the answer is actually useful.\n\nShorter one if you just want the fade on a longer body of text:\n\n> **Summarize the locked architecture decisions in 5 bullets.**\n\nSend one and watch — then tell me if the cadence/blur feels right or needs tuning. If by \"do something\" you meant a specific task (a Buildprint edit, a progress update, something else), say the word and we'll do that instead.",
       "ts": "2026-07-17T19:33:20.335Z"
+    },
+    {
+      "role": "user",
+      "content": "Oh one more thing i want to add timestamp when message started date and time and completed",
+      "ts": "2026-07-17T19:33:47.885Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Done. Timestamps are wired end-to-end and both files pass syntax checks.\n\n**What you'll see**\n- Under your message: the send time (e.g. `Jul 17, 2026, 03:42:11 PM`).\n- Under each reply: `Started Jul 17, 2026, 03:42:12 PM · Completed 03:42:40 PM · 28s`. The \"Started\" stamp appears the instant generation begins; \"Completed\" + duration fill in when it finishes.\n\n**How it persists** (`crs-brain/server.js`): the server now stamps `startedAt` when the run begins and `completedAt` when it ends, stores both on the saved message, and sends them over the `meta`/`done`/`stopped` SSE events — so live and reloaded chats render identically. Aborted/errored replies also carry timing.\n\n**Client** (`crs-brain/public/index.html`): new `.msg-time` row + `setReplyTime()`/`fmtStamp*` helpers; wired into history render, the live user message, and the meta/done/finalize handlers. Same-day completions show just the time; cross-day show the full date. Old messages without the new fields fall back to `Completed <ts>` (no duration).\n\nTo see it: restart the app (server change) and hard-refresh. The change will auto-commit on your next chat message.",
+      "ts": "2026-07-17T19:45:18.829Z"
     }
   ]
 }
