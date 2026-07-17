@@ -32,3 +32,9 @@
 | 26 | Mobile board = full-width takeover (54vh half-sheet removed) | map.html ≤720px | Matches the existing embed behavior; galaxy rAF paused while covered. | §19 mobile TBD — nearest existing pattern. |
 | 27 | Hover routing edge starts at the drawer's left edge at card center | map.html canvas | Spec allowed drawer edge or card position; edge reads cleaner across the canvas. | §2.8 motion language. |
 | 28 | Hub hover highlights ALL descendant cards (prefix match) | map.html | Direct-children-only felt arbitrary from the map side; descendants match the dim-cluster behavior. | Consistency with existing matches-dimming. |
+| 29 | Explorer stays a singleton; shared window chrome extracted instead | index.html P9.3 | The prompt's "cap-4 multi-window explorer" doesn't exist in code — doc windows now share the explorer's drag/snap/resize via one adapter rather than inventing explorer multiplicity. | Program contract: gate decides what exists; P3.12 rolled into P9.3. |
+| 30 | Doc-window layer always stacks above the explorer (no z interleave) | index.html | Preserves the old popup's relationship (z96>70); simpler mental model. | §5. |
+| 31 | Esc/Ctrl+W target the doc layer only when the last mousedown was in a doc window/chip | index.html | Focus-scoped keys per the pass-2 pattern; clicking explorer/app hands Esc back. | §14 focus discipline. |
+| 32 | Old center-pane openFile viewer orphaned as entry point | index.html | Edit/save flows still reference it internally; edit-in-window returns properly in P9.4 Tier-1 editors. | Hand-off, not a loss. |
+| 33 | Chip bar wraps to full width, 140px ellipsized labels | index.html | 12 windows = 3 tidy rows; scrolling chip strip felt worse. | §20.7 chips. |
+| 34 | Cmd+W not interceptable in Chrome — Ctrl+W everywhere, tooltip documents it | index.html | Browser-reserved shortcut; honest label beats broken promise. | Honest-limits. |

@@ -193,7 +193,7 @@
   .ninbox-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 16px}
 
   /* generic modal (settings) */
-  .modal-wrap{position:fixed;inset:0;background:var(--overlay);z-index:70;display:none;align-items:center;justify-content:center;padding:24px}
+  .modal-wrap{position:fixed;inset:0;background:var(--overlay);z-index:380;display:none;align-items:center;justify-content:center;padding:24px}
   .modal-wrap.show{display:flex}
   .modal-box{background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius-modal);width:740px;max-width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:var(--shadow-modal);overflow:hidden}
   .modal-head{display:flex;align-items:center;gap:10px;padding:16px 20px;border-bottom:1px solid var(--line)}
@@ -476,7 +476,7 @@
   .matt-dl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
   /* quick-open palette (Cmd/Ctrl+K) */
-  .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:60;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
+  .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:390;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
   .pal-wrap.show{display:flex}
   .pal{width:520px;max-width:92vw;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);overflow:hidden}
   .pal input{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--primary);padding:14px 16px;font-size:14px;font-family:inherit;outline:none}
@@ -704,22 +704,28 @@
   .winctl a.dl:hover{background:var(--panel2);color:var(--primary)!important}
   .winctl a.dl:active{background:var(--line3)}
   .winctl svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  #minBar{position:fixed;left:10px;bottom:10px;z-index:99;display:flex;gap:8px}
-  .minchip{display:flex;align-items:center;gap:8px;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);padding:7px 11px;font-size:12px;color:var(--secondary);cursor:pointer;box-shadow:var(--shadow-dropdown)}
+  #minBar{position:fixed;left:10px;right:10px;bottom:10px;z-index:300;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+  .minchip{display:flex;align-items:center;gap:8px;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);padding:7px 11px;font-size:12px;color:var(--secondary);cursor:pointer;box-shadow:var(--shadow-dropdown);pointer-events:auto}
+  .minchip>span{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .minchip:hover{color:var(--primary);border-color:var(--line3)}
   .minchip .cx{border:0;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:0 2px}
   .minchip .cx:hover{color:var(--danger)}
+  /* taskbar chip states: every open document window keeps a chip; minimized reads
+     dimmed, the focused window reads active (bg + text only — no border change) */
+  .minchip .fic svg{width:15px;height:15px}
+  .minchip.dmin{opacity:.6}
+  .minchip.act{background:var(--accent-tint);color:var(--primary);border-color:transparent}
   /* CRS cursor + caret: dark arrow (outlined for dark surfaces) scoped to the
      explorer + popup; native hand kept for pointer targets (a custom hand glyph
      reads janky cross-platform — deliberate partial fallback). Accent caret. */
-  .expl, .docpop .dp-box{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M4.5 2.5L17.5 11.4 11.2 12.4 14.7 18.9 12.1 20.3 8.6 13.8 4.5 16.9z' fill='%231E1E1E' stroke='%23E0E0E0' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, default}
-  .expl input, .expl-rename, .docpop input, .docpop textarea{caret-color:var(--accent)}
+  .expl, .docwin{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='22' height='22'%3E%3Cpath d='M4.5 2.5L17.5 11.4 11.2 12.4 14.7 18.9 12.1 20.3 8.6 13.8 4.5 16.9z' fill='%231E1E1E' stroke='%23E0E0E0' stroke-width='1.5' stroke-linejoin='round'/%3E%3C/svg%3E") 4 2, default}
+  .expl input, .expl-rename, .docwin input, .docwin textarea{caret-color:var(--accent)}
   .expl-status{grid-area:status;border-top:1px solid var(--line);padding:6px 14px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;gap:14px}
   .expl-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:13px;pointer-events:none}
   .expl-skel{height:24px;margin:7px 14px;border-radius:6px;background:linear-gradient(90deg,var(--panel2),var(--elev),var(--panel2));background-size:200% 100%;animation:shimmer 1.2s infinite}
   @keyframes shimmer{to{background-position:-200% 0}}
   @media (prefers-reduced-motion:reduce){.expl-skel{animation:none}.expl-tree .en .tw,.expl-item,.expl-row{transition:none!important}}
-  .expl-menu{position:fixed;z-index:90;min-width:194px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:var(--shadow-dropdown);padding:5px;font-size:12.5px;display:none}
+  .expl-menu{position:fixed;z-index:320;min-width:194px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:var(--shadow-dropdown);padding:5px;font-size:12.5px;display:none}
   .expl-menu.show{display:block}
   .expl-menu button{display:flex;align-items:center;gap:9px;width:100%;background:none;border:0;color:var(--muted);padding:6px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:12.5px;text-align:left;outline:none;transition:background .16s ease-in-out,color .16s ease-in-out}
   /* sidebar hover language — bg-tertiary + text-primary; NO accent fill. Focused (arrow keys) = identical. */
@@ -732,9 +738,9 @@
   .expl-menu .mi-sub>.submenu{display:none;position:absolute;left:calc(100% - 4px);top:-5px;min-width:170px;background:var(--panel);border:1px solid var(--line2);border-radius:9px;box-shadow:var(--shadow-dropdown);padding:5px}
   .expl-menu .mi-sub:hover>.submenu{display:block}
   .expl-menu .mi-sub>button .sh{font-family:inherit}
-  .expl-drag{position:fixed;z-index:95;pointer-events:none;background:var(--elev);border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--primary);box-shadow:var(--shadow-dropdown);display:none;align-items:center;gap:7px}
+  .expl-drag{position:fixed;z-index:330;pointer-events:none;background:var(--elev);border:1px solid var(--accent);border-radius:7px;padding:5px 11px;font-size:12px;color:var(--primary);box-shadow:var(--shadow-dropdown);display:none;align-items:center;gap:7px}
   /* hover file preview ("quick look") — square card that pops beside the tile */
-  .filepeek{position:fixed;z-index:80;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-dropdown);overflow:hidden;opacity:0;transition:opacity .1s ease;pointer-events:none;display:none}
+  .filepeek{position:fixed;z-index:310;width:300px;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-dropdown);overflow:hidden;opacity:0;transition:opacity .1s ease;pointer-events:none;display:none}
   .filepeek.show{display:block;opacity:1}
   .filepeek .pk-media{width:100%;height:210px;background:var(--panel2);display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
   .filepeek .pk-media img{max-width:100%;max-height:100%;object-fit:contain;display:block}
@@ -763,49 +769,49 @@
   .filepeek .pk-foot .nm{color:var(--primary);font-weight:600;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
   .filepeek .pk-foot .pk-ext{font-size:10px;color:var(--muted);border:1px solid var(--line2);border-radius:4px;padding:1px 6px;letter-spacing:.5px}
   /* document popup — modern in-app viewer */
-  .docpop{position:fixed;inset:0;z-index:96;background:var(--overlay);display:none;align-items:center;justify-content:center}
-  .docpop.show{display:flex}
-  .docpop .dp-box{width:80vw;height:84vh;max-width:1100px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden}
-  .docpop .dp-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
-  .docpop .dp-head .tico{width:20px;height:20px}.docpop .dp-head .tico svg{width:20px;height:20px}
-  .docpop .dp-t{flex:1;min-width:0}
-  .docpop .dp-name{color:var(--primary);font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .docpop .dp-path{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .docpop .dp-head button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;flex:0 0 auto}
-  .docpop .dp-head button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
-  .docpop .dp-head button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-  .docpop .dp-body{flex:1;overflow:auto;padding:0}
-  .docpop .dp-md{padding:22px 28px;max-width:840px;margin:0 auto;font-size:14px;line-height:1.7;color:var(--secondary)}
-  .docpop .dp-md h1,.docpop .dp-md h2,.docpop .dp-md h3{color:var(--primary);line-height:1.3}
-  .docpop .dp-md code{font-family:var(--mono);font-size:.9em;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
-  .docpop .dp-md pre{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto}
-  .docpop .dp-md pre code{background:none;border:0;padding:0}
+  /* Document windows — first-class OS windows (§5 container: panel bg, 1px border,
+     radius 12, --shadow-modal). Instantiable: one .docwin per open document. */
+  .docwin{position:fixed;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);display:flex;flex-direction:column;overflow:hidden;font-family:var(--sans);outline:none}
+  .docwin.focus{border-color:var(--line3)}
+  .docwin .dp-head{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--line);flex:0 0 auto;cursor:grab}
+  .docwin .dp-head:active{cursor:grabbing}
+  .docwin .dp-md a[target="_blank"]::after{content:"↗";font-size:.8em;margin-left:3px;opacity:.55}   /* external links read as leaving the app */
+  .docwin .dp-head .tico{width:20px;height:20px}.docwin .dp-head .tico svg{width:20px;height:20px}
+  .docwin .dp-t{flex:1;min-width:0}
+  .docwin .dp-name{color:var(--primary);font-weight:600;font-size:13.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docwin .dp-path{color:var(--muted);font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .docwin .dp-body{flex:1;overflow:auto;padding:0;position:relative}
+  .docwin .dp-md{padding:22px 28px;max-width:840px;margin:0 auto;font-size:14px;line-height:1.7;color:var(--secondary)}
+  .docwin .dp-md h1,.docwin .dp-md h2,.docwin .dp-md h3{color:var(--primary);line-height:1.3}
+  .docwin .dp-md code{font-family:var(--mono);font-size:.9em;background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .docwin .dp-md pre{background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:12px 14px;overflow:auto}
+  .docwin .dp-md pre code{background:none;border:0;padding:0}
   /* CRS-token audit (spec list): links, blockquote bar, hr, full table grid */
-  .docpop .dp-md a{color:var(--accent2);text-decoration:none}
-  .docpop .dp-md a:hover{color:var(--accent-hover);text-decoration:underline}
-  .docpop .dp-md blockquote{border-left:3px solid var(--line3);color:var(--muted);margin:1em 0;padding:2px 0 2px 14px}
-  .docpop .dp-md hr{border:0;border-top:1px solid var(--line2);margin:1.2em 0}
-  .docpop .dp-md thead th{background:var(--panel2)}
-  .docpop .dp-md th,.docpop .dp-md td{border:1px solid var(--line2)}
-  .docpop .dp-md tbody tr:first-child td{border-top:1px solid var(--line2)}   /* chat style zeroes it; popup wants a full grid */
-  .docpop .dp-md pre,.docpop .dp-md code{border-color:var(--line2)}
-  .docpop pre.dp-code{margin:0;padding:20px 24px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--code-fg);white-space:pre;overflow:auto;min-height:100%}
+  .docwin .dp-md a{color:var(--accent2);text-decoration:none}
+  .docwin .dp-md a:hover{color:var(--accent-hover);text-decoration:underline}
+  .docwin .dp-md blockquote{border-left:3px solid var(--line3);color:var(--muted);margin:1em 0;padding:2px 0 2px 14px}
+  .docwin .dp-md hr{border:0;border-top:1px solid var(--line2);margin:1.2em 0}
+  .docwin .dp-md thead th{background:var(--panel2)}
+  .docwin .dp-md th,.docwin .dp-md td{border:1px solid var(--line2)}
+  .docwin .dp-md tbody tr:first-child td{border-top:1px solid var(--line2)}   /* chat style zeroes it; popup wants a full grid */
+  .docwin .dp-md pre,.docwin .dp-md code{border-color:var(--line2)}
+  .docwin pre.dp-code{margin:0;padding:20px 24px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--code-fg);white-space:pre;overflow:auto;min-height:100%}
   .h-c{color:var(--muted);font-style:italic}.h-s{color:var(--hl-str)}.h-n{color:var(--hl-num)}.h-k{color:var(--hl-kw)}
-  .docpop .dp-tblwrap{padding:18px 22px;overflow:auto}
-  .docpop .dp-tblwrap table{border-collapse:collapse;font-size:12.5px;min-width:60%}
-  .docpop .dp-tblwrap th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.6px;text-align:left;padding:7px 11px;border:1px solid var(--line2)}
-  .docpop .dp-tblwrap td{padding:6px 11px;border:1px solid var(--line);color:var(--secondary)}
-  .docpop .dp-imgwrap{height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
-  .docpop .dp-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
-  .docpop .dp-embed{width:100%;height:100%;border:0}
-  .docpop .dp-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--secondary)}
-  .docpop .dp-card .tico{width:64px;height:64px}.docpop .dp-card .tico svg{width:64px;height:64px}
-  .docpop .dp-card .meta{color:var(--muted);font-size:12.5px}
-  .docpop .dp-card .acts{display:flex;gap:10px}
-  .docpop .dp-card .acts a,.docpop .dp-card .acts button{background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
-  .docpop .dp-card .acts a:hover,.docpop .dp-card .acts button:hover{border-color:var(--line3)}
+  .docwin .dp-tblwrap{padding:18px 22px;overflow:auto}
+  .docwin .dp-tblwrap table{border-collapse:collapse;font-size:12.5px;min-width:60%}
+  .docwin .dp-tblwrap th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.6px;text-align:left;padding:7px 11px;border:1px solid var(--line2)}
+  .docwin .dp-tblwrap td{padding:6px 11px;border:1px solid var(--line);color:var(--secondary)}
+  .docwin .dp-imgwrap{height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
+  .docwin .dp-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
+  .docwin .dp-embed{width:100%;height:100%;border:0}
+  .docwin .dp-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--secondary)}
+  .docwin .dp-card .tico{width:64px;height:64px}.docwin .dp-card .tico svg{width:64px;height:64px}
+  .docwin .dp-card .meta{color:var(--muted);font-size:12.5px}
+  .docwin .dp-card .acts{display:flex;gap:10px}
+  .docwin .dp-card .acts a,.docwin .dp-card .acts button{background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:9px 16px;font:inherit;font-size:13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:7px}
+  .docwin .dp-card .acts a:hover,.docwin .dp-card .acts button:hover{border-color:var(--line3)}
   /* fullscreen HTML overlay (sandboxed) */
-  .htmlfull{position:fixed;inset:0;z-index:97;background:var(--bg);display:none;flex-direction:column}
+  .htmlfull{position:fixed;inset:0;z-index:350;background:var(--bg);display:none;flex-direction:column}
   .htmlfull.show{display:flex}
   .htmlfull .hf-bar{display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
   .htmlfull .hf-name{color:var(--primary);font-size:13px;font-weight:600;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -813,12 +819,12 @@
   .htmlfull .hf-bar button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .htmlfull iframe{flex:1;border:0;background:#fff}
   /* undo toast (interactive, unlike .toast) */
-  .utoast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:9px 10px 9px 16px;border-radius:11px;font-size:13px;display:none;align-items:center;gap:12px;z-index:98;box-shadow:var(--shadow-dropdown)}
+  .utoast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:9px 10px 9px 16px;border-radius:11px;font-size:13px;display:none;align-items:center;gap:12px;z-index:370;box-shadow:var(--shadow-dropdown)}
   .utoast.show{display:flex}
   .utoast button{background:var(--accent);border:0;color:#fff;border-radius:7px;padding:6px 13px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
   .utoast button:hover{background:var(--accent-hover)}
   /* properties popup */
-  .proppop{position:fixed;inset:0;z-index:96;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+  .proppop{position:fixed;inset:0;z-index:360;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
   .proppop.show{display:flex}
   .proppop .pp-box{width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;box-shadow:var(--shadow-modal);overflow:hidden}
   .proppop .pp-head{display:flex;align-items:center;gap:11px;padding:16px 16px 12px}
@@ -882,7 +888,7 @@
   .conndot{width:8px;height:8px;border-radius:50%;align-self:center;flex:none;background:var(--good)}
   .conndot.warn{background:var(--warn)}
   .conndot.err{background:var(--danger)}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:400;box-shadow:var(--shadow-dropdown)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 
@@ -1297,7 +1303,7 @@ function mdInline(s){
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g,(m,t,href)=>/^https?:/.test(href)
-      ?`<a href="${href}" target="_blank" rel="noreferrer">${t}</a>`
+      ?`<a href="${href}" target="_blank" rel="noopener noreferrer">${t}</a>`
       :`<a href="#" data-path="${href}">${t}</a>`)
     .replace(FILE_RE,'$1<a href="#" data-path="$2">$2</a>');
 }
@@ -1352,7 +1358,7 @@ async function apiOpen(p){ if(!p) return;
   try{ await api('/api/open',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({path:p})}); toast('Opened in your browser  ·  '+p.split('/').pop()); }
   catch(e){ toast('Could not open: '+e.message); } }
 // Route any file reference to the right opener.
-function smartOpen(p){ if(isHtml(p)) apiOpen(p); else { setTab('files'); openFile(p); } }
+function smartOpen(p){ if(isHtml(p)) apiOpen(p); else openDocWindow(p); }
 // Open the embedded galaxy map straight to the folder kanban board.
 function openKanban(){ showMap('board'); }
 // ---------- resizable left sidebar ----------
@@ -1593,7 +1599,7 @@ function continueGen(){
 async function openReplyDoc(text, title){
   try{
     const r=await api('/api/savedoc',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:title||'brain-doc',content:text})});
-    await loadFiles(); setTab('files'); openFile(r.path); toast('Saved & opened  ·  '+r.path);
+    await loadFiles(); openDocWindow(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
 function showChat(){ $('chatView').style.display='flex'; $('fileView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); $('editToggle').style.display='none'; $('saveBtn').style.display='none'; $('downloadBtn').style.display='none'; $('backBtn').style.display='none'; markView('chat'); }
@@ -1644,7 +1650,7 @@ function kbColumns(){
   return q ? cols.filter(c=>c.files.length) : cols;
 }
 function kbCardHtml(f){ return `<button class="kb-card" onclick="kbOpen('${f.path.replace(/'/g,"\\'")}')" title="${esc(f.path)}"><svg class="kf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-doc-sm"/></svg><span class="knm">${esc(f.name)}</span><span class="kbadge">${esc(f.ext||'')}</span></button>`; }
-function kbOpen(p){ if(isHtml(p)) apiOpen(p); else openFile(p); }
+function kbOpen(p){ if(isHtml(p)) apiOpen(p); else openDocWindow(p); }
 function renderKanban(){
   const board=$('kbBoard'); if(!kbTree) return;
   const cols=kbColumns();
@@ -1741,7 +1747,7 @@ async function renderDashboard(){
       ${kpi(nFiles.toLocaleString(),'files',c.purple,"openExpl('')")}
       ${kpi(chats.length,'conversations',c.accent,"setTab('chats')")}
       ${kpi(ideaCount,'ideas',c.amber,"showMap('ideas')")}
-      ${kpi(done.length,'shipped',c.green,"openFile('brain/changelog.md')")}
+      ${kpi(done.length,'shipped',c.green,"openDocWindow('brain/changelog.md')")}
       ${kpi((bubble+build+forum).toLocaleString(),'manual pages',c.cyan,"openExpl('brain/bubble')")}
     </div></section>
 
@@ -2051,6 +2057,7 @@ async function runDigest(){
 // ---------- files ----------
 async function loadFiles(){
   const {root,tree}=await api('/api/files'); $('repoName').textContent=root; state.repoName=root;
+  DW.allPaths=new Set(); (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):DW.allPaths.add(n.path); } })(tree);   // FULL tree — doc-window links check existence here
   const shown=filterTree(tree);
   const box=$('paneFiles'); box.innerHTML=''; box.appendChild(renderTree(shown,true));
   state.allFiles=[]; (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):state.allFiles.push(n.path); } })(shown);
@@ -2068,7 +2075,7 @@ function renderTree(nodes,open){
     }else{
       const f=document.createElement('div'); f.className='node file'; f.dataset.path=n.path;
       f.innerHTML=`${svg('i-doc-sm','sm')}${esc(n.name)}${isHtml(n.name)?' <span style="color:var(--muted);font-size:10px">↗</span>':''}`;
-      f.onclick=()=>isHtml(n.path)?apiOpen(n.path):openFile(n.path);   // html → default browser
+      f.onclick=()=>isHtml(n.path)?apiOpen(n.path):openDocWindow(n.path);   // html → default browser
       wrap.appendChild(f);
     }
   }
@@ -2079,7 +2086,7 @@ function agoTxt(ms){ const s=Math.round((Date.now()-ms)/1000); if(s<60)return s+
 function rfEl(pth, ago){ const d=document.createElement('div'); d.className='rf'; d.title=pth;
   const nm=pth.split('/').pop();
   d.innerHTML=`${fileTileFor(pth)}<span class="nm">${esc(nm)}</span>${ago?`<span class="ago">${ago}</span>`:''}`;
-  d.onclick=()=>{ if(isHtml(pth)) apiOpen(pth); else openFile(pth); };
+  d.onclick=()=>{ if(isHtml(pth)) apiOpen(pth); else openDocWindow(pth); };
   return d; }
 function pushRecentOpened(p){ let a=[]; try{ a=JSON.parse(localStorage.getItem('recentOpened')||'[]'); }catch{}
   a=a.filter(x=>x!==p); a.unshift(p); a=a.slice(0,12); localStorage.setItem('recentOpened',JSON.stringify(a)); }
@@ -2213,73 +2220,144 @@ function explFsToggle(){
     EX.rect={x:0,y:0,w:innerWidth,h:innerHeight}; explApplyRect(); }
   else { EX.snap=EX.fs.snap; EX.rect=EX.fs.snap?explZoneRect(EX.fs.snap.zone):{...EX.fs.rect}; EX.fs=null; explApplyRect(); }
   explMaxBtnIcon(); }
-// document-popup window state
-const DP={pre:null,max:false,fs:false,min:false,path:null};
-function dpApply(rect){ const b=$('docPop')?.querySelector('.dp-box'); if(!b) return;
-  if(rect){ b.style.position='fixed'; b.style.left=rect.x+'px'; b.style.top=rect.y+'px'; b.style.width=rect.w+'px'; b.style.height=rect.h+'px'; b.style.maxWidth='none'; }
-  else { b.style.position=''; b.style.left=''; b.style.top=''; b.style.width=''; b.style.height=''; b.style.maxWidth=''; } }
-function dpMaxToggle(){ if(DP.fs) dpFsToggle(); DP.max=!DP.max; dpApply(DP.max?explWorkArea():null); dpMaxIcon(); }
-function dpMaxIcon(){ const b=$('dpMaxBtn'); if(!b) return;
-  b.innerHTML=DP.max
-    ? '<svg viewBox="0 0 24 24"><path d="M8.5 8.5V6a2 2 0 0 1 2-2H18a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-2.5"/><rect x="4" y="8.5" width="11.5" height="11.5" rx="2"/></svg>'
-    : '<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg>'; }
-function dpFsToggle(){ DP.fs=!DP.fs; dpApply(DP.fs?{x:0,y:0,w:innerWidth,h:innerHeight}:(DP.max?explWorkArea():null)); }
-function dpMinimize(){ DP.min=true; $('docPop').classList.remove('show');
-  const nm=(DP.path||'document').split('/').pop();
-  addMinChip('doc', fic(nm,16), nm,
-    ()=>{ DP.min=false; $('docPop').classList.add('show'); $('docPop').querySelector('.dp-box')?.focus(); },
-    ()=>{ DP.min=false; closeDocPopup(); }); }
-// Esc order: context menu closes first, then fullscreen (capture phase), then
-// each window's normal Esc behavior.
-document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
-  if($('explMenu')?.classList.contains('show')){ e.stopPropagation(); explCloseMenu(); return; }
-  if(DP.fs && $('docPop')?.classList.contains('show')){ e.stopPropagation(); dpFsToggle(); return; }
-  if(EX.fs && $('explWrap')?.classList.contains('show') && !EX.min){ e.stopPropagation(); explFsToggle(); }
-}, true);
-function explInitWindow(){
-  try{ EX.rect=JSON.parse(sessionStorage.getItem('exWinRect'))||explDefaultRect(); }catch{ EX.rect=explDefaultRect(); }
-  explApplyRect();
-  const win=$('explWin'); if(win._chrome) return; win._chrome=true;
-  // drag by the toolbar (not its controls)
-  win.querySelector('.expl-tb').addEventListener('mousedown',(e)=>{
-    if(e.target.closest('button,input,a,label,select')) return;
-    e.preventDefault(); explCloseMenu(); hidePeek(); document.body.classList.add('no-select');
-    let sx=e.clientX-EX.rect.x, sy=e.clientY-EX.rect.y, dragged=false, zone=null;
-    const prev=explSnapPrevEl();
-    const unsnapIfNeeded=(ev)=>{   // dragging a snapped window restores pre-snap size under the cursor
-      if(!EX.snap) return;
-      const pre=EX.snap.pre, fx=(ev.clientX-EX.rect.x)/EX.rect.w;
-      EX.snap=null;
-      EX.rect={x:Math.round(ev.clientX-pre.w*Math.min(Math.max(fx,.05),.95)), y:ev.clientY-14, w:pre.w, h:pre.h};
-      sx=ev.clientX-EX.rect.x; sy=ev.clientY-EX.rect.y; explApplyRect(); };
-    const mv=(ev)=>{ dragged=true; unsnapIfNeeded(ev);
-      EX.rect.x=ev.clientX-sx; EX.rect.y=ev.clientY-sy; explApplyRect();
-      const wa=explWorkArea(), t=8;
-      zone = ev.clientY<=wa.y+t?'top' : ev.clientX<=wa.x+t?'left' : ev.clientX>=wa.x+wa.w-t?'right' : null;
-      if(zone){ const z=explZoneRect(zone); prev.style.cssText=`display:block;left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px`; }
-      else prev.style.display='none'; };
-    const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
-      document.body.classList.remove('no-select'); prev.style.display='none';
-      if(dragged && zone) explSnapTo(zone); else explSaveRect(); };
-    document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
-  });
-  win.querySelector('.expl-tb').addEventListener('dblclick',(e)=>{ if(e.target.closest('button,input,a,label,select')) return; explMaxToggle(); });
-  // resize from all edges + corners
+// ----- shared window chrome (explorer + document windows use the SAME mechanics) -----
+// An adapter A exposes {rect, snap, apply(), snapTo(zone), save()} over the
+// window's own state; drag, edge-snap preview, and edge/corner resize are
+// implemented once here.
+function winDragStart(e, A){
+  e.preventDefault(); document.body.classList.add('no-select');
+  let sx=e.clientX-A.rect.x, sy=e.clientY-A.rect.y, dragged=false, zone=null;
+  const prev=explSnapPrevEl(); prev.style.zIndex=A.prevZ?A.prevZ():'';
+  const unsnapIfNeeded=(ev)=>{   // dragging a snapped window restores pre-snap size under the cursor
+    if(!A.snap) return;
+    const pre=A.snap.pre, fx=(ev.clientX-A.rect.x)/A.rect.w;
+    A.snap=null;
+    A.rect={x:Math.round(ev.clientX-pre.w*Math.min(Math.max(fx,.05),.95)), y:ev.clientY-14, w:pre.w, h:pre.h};
+    sx=ev.clientX-A.rect.x; sy=ev.clientY-A.rect.y; A.apply(); };
+  const mv=(ev)=>{ dragged=true; unsnapIfNeeded(ev);
+    A.rect.x=ev.clientX-sx; A.rect.y=ev.clientY-sy; A.apply();
+    const wa=explWorkArea(), t=8;
+    zone = ev.clientY<=wa.y+t?'top' : ev.clientX<=wa.x+t?'left' : ev.clientX>=wa.x+wa.w-t?'right' : null;
+    if(zone){ const z=explZoneRect(zone); prev.style.cssText=`display:block;z-index:${prev.style.zIndex||''};left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px`; }
+    else prev.style.display='none'; };
+  const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up);
+    document.body.classList.remove('no-select'); prev.style.display='none';
+    if(dragged && zone) A.snapTo(zone); else A.save(); };
+  document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
+}
+function winResizeAttach(win, A, minW, minH){
   for(const dir of ['n','s','e','w','ne','nw','se','sw']){
     const h=document.createElement('div'); h.className='expl-rs expl-rs-'+dir; win.appendChild(h);
     h.addEventListener('mousedown',(e)=>{
-      e.preventDefault(); e.stopPropagation(); const sx=e.clientX, sy=e.clientY, o={...EX.rect};
-      const MINW=Math.min(720,innerWidth-16), MINH=Math.min(480,innerHeight-16);
-      const mv=(ev)=>{ const dx=ev.clientX-sx, dy=ev.clientY-sy, r=EX.rect;
+      e.preventDefault(); e.stopPropagation(); const sx=e.clientX, sy=e.clientY, o={...A.rect};
+      const MINW=minW(), MINH=minH();
+      const mv=(ev)=>{ const dx=ev.clientX-sx, dy=ev.clientY-sy, r=A.rect;
         if(dir.includes('e')) r.w=Math.max(MINW,o.w+dx);
         if(dir.includes('s')) r.h=Math.max(MINH,o.h+dy);
         if(dir.includes('w')){ const nw=Math.max(MINW,o.w-dx); r.x=o.x+(o.w-nw); r.w=nw; }
         if(dir.includes('n')){ const nh=Math.max(MINH,o.h-dy); r.y=o.y+(o.h-nh); r.h=nh; }
-        explApplyRect(); };
-      const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); explSaveRect(); };
+        A.apply(); };
+      const up=()=>{ document.removeEventListener('mousemove',mv); document.removeEventListener('mouseup',up); A.save(); };
       document.addEventListener('mousemove',mv); document.addEventListener('mouseup',up);
     });
   }
+}
+// ===================== document windows (multi-instance) =====================
+// Documents are first-class OS windows: drag by title bar, edge snap, minimize
+// to a taskbar chip, maximize (work area), direct fullscreen, cascade + z-order.
+// Soft cap 12 — opening #13 retires the oldest unfocused window with a toast.
+const DW={ wins:new Map(), z:120, seq:0, active:null, focusIsDoc:false, cascade:null, CAP:12, allPaths:new Set() };
+const WIN_MAX_SVG='<svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg>';
+const WIN_RESTORE_SVG='<svg viewBox="0 0 24 24"><path d="M8.5 8.5V6a2 2 0 0 1 2-2H18a2 2 0 0 1 2 2v7.5a2 2 0 0 1-2 2h-2.5"/><rect x="4" y="8.5" width="11.5" height="11.5" rx="2"/></svg>';
+function dwList(){ return [...DW.wins.values()]; }
+function dwFind(p){ for(const w of DW.wins.values()) if(w.path===p) return w; return null; }
+function dwTop(){ let t=null; for(const w of DW.wins.values()) if(!w.min&&(!t||w.z>t.z)) t=w; return t; }
+// The FOCUSED doc window — only while the doc layer owns focus (last mousedown
+// landed in a doc window or its chip). Esc / Ctrl+W target exactly this one.
+function dwActive(){ if(!DW.focusIsDoc) return null; const w=DW.wins.get(DW.active); return (w&&!w.min)?w:null; }
+function dwApply(w){ const r=w.rect;
+  if(!w.snap){   // same free-window clamps as the explorer
+    r.w=Math.max(Math.min(420,innerWidth-16), Math.min(r.w, innerWidth-16));
+    r.h=Math.max(Math.min(300,innerHeight-16), Math.min(r.h, innerHeight-16));
+    r.x=Math.min(Math.max(r.x, 8-r.w+120), innerWidth-120);
+    r.y=Math.min(Math.max(r.y, 0), innerHeight-48);
+  }
+  w.el.style.left=r.x+'px'; w.el.style.top=r.y+'px'; w.el.style.width=r.w+'px'; w.el.style.height=r.h+'px'; }
+function dwAdapter(w){ return { get rect(){return w.rect}, set rect(r){w.rect=r}, get snap(){return w.snap}, set snap(s){w.snap=s},
+  apply:()=>dwApply(w), snapTo:(z)=>dwSnapTo(w,z), save:()=>{}, prevZ:()=>w.z-1 }; }
+function dwSnapTo(w,zone){ const pre=w.snap?w.snap.pre:{...w.rect}; w.snap={zone,pre}; w.rect=explZoneRect(zone); dwApply(w); dwMaxIcon(w); }
+function dwMaxToggle(w){ if(dwIsFs(w)) dwFsToggle(w);
+  if(w.snap&&w.snap.zone==='top'){ w.rect={...w.snap.pre}; w.snap=null; dwApply(w); } else dwSnapTo(w,'top');
+  dwMaxIcon(w); }
+function dwMaxIcon(w){ const b=w.el.querySelector('[data-act="max"]'); if(b) b.innerHTML=(w.snap&&w.snap.zone==='top')?WIN_RESTORE_SVG:WIN_MAX_SVG; }
+// fullscreen is a DIRECT state (same truth-test as the explorer: the actual rect)
+function dwIsFs(w){ return !!w.fs && w.rect.x===0 && w.rect.y===0 && w.rect.w===innerWidth && w.rect.h===innerHeight; }
+function dwFsToggle(w){
+  if(!dwIsFs(w)){
+    w.fs={rect:(w.snap&&w.snap.zone!=='fs')?{...w.snap.pre}:{...w.rect}, snap:(w.snap&&w.snap.zone!=='fs')?w.snap:null};
+    w.snap={zone:'fs', pre:w.fs.rect};
+    w.rect={x:0,y:0,w:innerWidth,h:innerHeight}; dwApply(w); }
+  else { w.snap=w.fs.snap; w.rect=w.fs.snap?explZoneRect(w.fs.snap.zone):{...w.fs.rect}; w.fs=null; dwApply(w); }
+  dwMaxIcon(w); }
+function dwFocus(w){ if(w.min){ w.min=false; w.el.style.display='flex'; }
+  w.z=++DW.z; w.el.style.zIndex=w.z; w.lastFocus=Date.now();
+  DW.active=w.id; DW.focusIsDoc=true;
+  if(DW.z>290){ let base=120; for(const x of dwList().sort((a,b)=>a.z-b.z)){ x.z=++base; x.el.style.zIndex=x.z; } DW.z=base; }   // stay under the chip-bar tier (300)
+  document.querySelectorAll('.docwin.focus').forEach(el=>el.classList.remove('focus')); w.el.classList.add('focus');
+  dwChipsPaint(); try{ w.el.focus({preventScroll:true}); }catch{} }
+function dwMinimize(w){ w.min=true; w.el.style.display='none';
+  if(DW.active===w.id){ const t=dwTop(); DW.active=t?t.id:null; if(!t) DW.focusIsDoc=false; }
+  dwChipsPaint(); }
+function dwClose(w){ if(!DW.wins.has(w.id)) return; DW.wins.delete(w.id); w.el.remove(); if(w.chip) w.chip.remove();
+  if(DW.active===w.id){ const t=dwTop(); DW.active=t?t.id:null; if(t) t.el.classList.add('focus'); else DW.focusIsDoc=false; }
+  dwChipsPaint(); }
+// taskbar: ONE bar (#minBar) carries a chip per open doc window — minimized is a
+// visual state, not a separate list. Click = focus/restore · middle-click / ✕ = close.
+function dwChipAdd(w){ const c=document.createElement('div'); c.className='minchip dchip'; c.dataset.win='dw'+w.id; c.title=w.path;
+  c.innerHTML=fic(w.name,15)+`<span>${esc(w.name)}</span><button class="cx" title="Close">✕</button>`;
+  c.addEventListener('click',(e)=>{ if(e.target.closest('.cx')) dwClose(w); else dwFocus(w); });
+  c.addEventListener('auxclick',(e)=>{ if(e.button===1){ e.preventDefault(); dwClose(w); } });
+  minBarEl().appendChild(c); w.chip=c; }
+function dwChipsPaint(){ for(const w of DW.wins.values()){ if(!w.chip) continue;
+  w.chip.classList.toggle('dmin',w.min); w.chip.classList.toggle('act',DW.active===w.id&&!w.min); } }
+// cascade +24/+24 from the last opened window; wrap at the work-area edge
+function dwNextRect(){ const wa=explWorkArea();
+  const w=Math.min(880,wa.w-32), h=Math.min(640,wa.h-32);
+  let x=wa.x+Math.max(16,Math.round((wa.w-w)/4)), y=wa.y+20;
+  if(DW.cascade){ x=DW.cascade.x+24; y=DW.cascade.y+24; }
+  if(x+w>wa.x+wa.w+8 || y+h>wa.y+wa.h+8){ x=wa.x+16; y=wa.y+16; }
+  DW.cascade={x,y}; return {x,y,w,h}; }
+// Esc order: context menu closes first, then fullscreen (capture phase), then
+// each window's normal Esc behavior.
+document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
+  if($('explMenu')?.classList.contains('show')){ e.stopPropagation(); explCloseMenu(); return; }
+  const fw=dwActive(); if(fw && dwIsFs(fw)){ e.stopPropagation(); dwFsToggle(fw); return; }
+  if(EX.fs && $('explWrap')?.classList.contains('show') && !EX.min){ e.stopPropagation(); explFsToggle(); }
+}, true);
+// the doc layer owns keyboard focus only while the last mousedown landed inside it
+document.addEventListener('mousedown',(e)=>{ if(!e.target.closest('.docwin') && !e.target.closest('#minBar')) DW.focusIsDoc=false; },true);
+// Ctrl/Cmd+W closes the focused doc window (Cmd+W may be reserved by the browser; Ctrl+W always reaches us)
+document.addEventListener('keydown',(e)=>{ if(!(e.ctrlKey||e.metaKey)||e.altKey||e.shiftKey||e.key.toLowerCase()!=='w') return;
+  const w=dwActive(); if(w){ e.preventDefault(); e.stopPropagation(); dwClose(w); } });
+// snapped/maximized/fullscreen doc windows track viewport changes
+addEventListener('resize',()=>{ for(const w of DW.wins.values()){ if(!w.snap) continue;
+  w.rect = w.snap.zone==='fs' ? {x:0,y:0,w:innerWidth,h:innerHeight} : explZoneRect(w.snap.zone); dwApply(w); } });
+function explInitWindow(){
+  try{ EX.rect=JSON.parse(sessionStorage.getItem('exWinRect'))||explDefaultRect(); }catch{ EX.rect=explDefaultRect(); }
+  explApplyRect();
+  const win=$('explWin'); if(win._chrome) return; win._chrome=true;
+  // explorer adapter over EX state — drag/snap/resize come from the SHARED chrome
+  const EXA={ get rect(){return EX.rect}, set rect(r){EX.rect=r}, get snap(){return EX.snap}, set snap(s){EX.snap=s},
+    apply:()=>explApplyRect(), snapTo:(z)=>explSnapTo(z), save:()=>explSaveRect() };
+  // drag by the toolbar (not its controls)
+  win.querySelector('.expl-tb').addEventListener('mousedown',(e)=>{
+    if(e.target.closest('button,input,a,label,select')) return;
+    explCloseMenu(); hidePeek();
+    winDragStart(e, EXA);
+  });
+  win.querySelector('.expl-tb').addEventListener('dblclick',(e)=>{ if(e.target.closest('button,input,a,label,select')) return; explMaxToggle(); });
+  // resize from all edges + corners
+  winResizeAttach(win, EXA, ()=>Math.min(720,innerWidth-16), ()=>Math.min(480,innerHeight-16));
 }
 // The explorer ALWAYS browses the full repo tree. The app's crsOnly project
 // filter hid non-project paths here too — so files created at root (or anywhere
@@ -2317,7 +2395,7 @@ function explUp(){ if(EX.path) explGoto(EX.path.split('/').slice(0,-1).join('/')
 function explSetView(v){ EX.view=v; localStorage.setItem('exView',v); renderExpl(); $('explMain').focus(); }
 function explDoSort(k){ if(EX.sortKey===k) EX.sortDir=-EX.sortDir; else { EX.sortKey=k; EX.sortDir=1; } localStorage.setItem('exSortK',EX.sortKey); localStorage.setItem('exSortD',EX.sortDir); renderExpl(); }
 // ----- document popup (opens over the explorer; one at a time) -----
-function explOpenFile(p){ if(isHtml(p)){ openHtmlOverlay(p); return; } openDocPopup(p); }
+function explOpenFile(p){ openDocWindow(p); }
 // tiny hand-rolled highlighter: comments / strings / numbers / keywords
 function hlCode(src){
   const out=[]; let i=0; const push=(cls,txt)=>out.push(cls?`<span class="h-${cls}">${esc(txt)}</span>`:esc(txt));
@@ -2333,57 +2411,116 @@ function csvTable(txt){
   return '<div class="dp-tblwrap"><table><thead><tr>'+rows[0].map(c=>'<th>'+esc(c)+'</th>').join('')+'</tr></thead><tbody>'
     + rows.slice(1).map(r=>'<tr>'+r.map(c=>'<td>'+esc(c)+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>';
 }
-function ensureDocPop(){ let d=$('docPop'); if(d) return d;
-  d=document.createElement('div'); d.className='docpop'; d.id='docPop'; document.body.appendChild(d);
-  d.addEventListener('click',(e)=>{ if(e.target===d) closeDocPopup(); });
-  d.addEventListener('dblclick',(e)=>{ if(e.target.closest('.dp-head') && !e.target.closest('button,a')) dpMaxToggle(); });
-  // focus-scoped select-all: Ctrl/Cmd+A selects the DOCUMENT's content, never the
-  // page behind; inputs inside the popup keep native select-all behavior.
-  d.addEventListener('keydown',(e)=>{
+// ---- THE single document-open entry point (all open paths route here) ----
+async function openDocWindow(p, opts){
+  opts=opts||{};
+  if(!p) return null;
+  p=String(p).replace(/^\.\//,'').replace(/^\/+/,'');
+  if(typeof hidePeek==='function') hidePeek();
+  if(isHtml(p)){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer
+  const dup=dwFind(p); if(dup){ dwFocus(dup); return dup; }   // same path already open → focus, never duplicate
+  if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window
+    const v=dwList().filter(x=>x.id!==DW.active).sort((a,b)=>a.lastFocus-b.lastFocus)[0]||dwList()[0];
+    if(v){ toast(`Closing “${v.name}” — window limit`); dwClose(v); }
+  }
+  const id=++DW.seq, name=p.split('/').pop();
+  const el=document.createElement('div'); el.className='docwin'; el.tabIndex=-1; el.dataset.path=p;
+  const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null};
+  el.innerHTML=dwHeadHtml(w)+'<div class="dp-body"><div class="dp-card"><span class="pk-load">Loading…</span></div></div>';
+  document.body.appendChild(el); DW.wins.set(id,w);
+  dwApply(w); dwWire(w); dwChipAdd(w); dwFocus(w);
+  pushRecentOpened(p); loadRecentOpened();
+  await dwFill(w);
+  return w;
+}
+function dwHeadHtml(w){ const raw='/api/raw?path='+encodeURIComponent(w.path);
+  return `<div class="dp-head">${fic(w.name,20)}<div class="dp-t"><div class="dp-name">${esc(w.name)}</div><div class="dp-path">${esc(w.path)}</div></div>
+    <div class="winctl">
+      <a class="dl" title="Download" href="${raw}" download="${esc(w.name)}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;color:var(--muted)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
+      <button title="Minimize" data-act="min"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
+      <button title="Maximize / Restore" data-act="max">${WIN_MAX_SVG}</button>
+      <button title="Fullscreen (Esc exits)" data-act="fs"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button class="close" title="Close (Esc · Ctrl+W)" data-act="close"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+    </div></div>`; }
+function dwWire(w){ const el=w.el;
+  el.addEventListener('mousedown',()=>dwFocus(w),true);   // click anywhere raises
+  const head=el.querySelector('.dp-head');
+  head.addEventListener('mousedown',(e)=>{ if(e.target.closest('button,a,input,select')) return; winDragStart(e, dwAdapter(w)); });
+  head.addEventListener('dblclick',(e)=>{ if(e.target.closest('button,a,input,select')) return; dwMaxToggle(w); });
+  el.querySelector('[data-act="min"]').onclick=()=>dwMinimize(w);
+  el.querySelector('[data-act="max"]').onclick=()=>dwMaxToggle(w);
+  el.querySelector('[data-act="fs"]').onclick=()=>dwFsToggle(w);
+  el.querySelector('[data-act="close"]').onclick=()=>dwClose(w);
+  winResizeAttach(el, dwAdapter(w), ()=>Math.min(420,innerWidth-16), ()=>Math.min(300,innerHeight-16));
+  // focus-scoped select-all: Ctrl/Cmd+A selects the DOCUMENT's content, never the page behind
+  el.addEventListener('keydown',(e)=>{
     if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='a'){
       if(e.target.closest('input,textarea,[contenteditable="true"]')) return;
       e.preventDefault();
-      const body=d.querySelector('.dp-body'); if(!body) return;
+      const body=el.querySelector('.dp-body'); if(!body) return;
       const r=document.createRange(); r.selectNodeContents(body);
       const s=getSelection(); s.removeAllRanges(); s.addRange(r);
     }
   });
-  return d; }
-function closeDocPopup(){ const d=$('docPop'); if(d){ d.classList.remove('show'); d.innerHTML=''; }
-  DP.max=false; DP.fs=false; DP.min=false; $('minBar')?.querySelector('[data-win="doc"]')?.remove(); }
-async function openDocPopup(p){
-  hidePeek(); const d=ensureDocPop(); const name=p.split('/').pop(), ext=extOf(name);
-  const node=explNodeByPath(p)||{type:'file',name,path:p};
-  const raw='/api/raw?path='+encodeURIComponent(p);
-  DP.path=p; DP.max=false; DP.fs=false; DP.min=false;   // fresh window state per document
-  const head=`<div class="dp-head">${fic(name,20)}<div class="dp-t"><div class="dp-name">${esc(name)}</div><div class="dp-path">${esc(p)}</div></div>
-    <div class="winctl">
-      <a class="dl" title="Download" href="${raw}" download="${esc(name)}" style="display:flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:7px;color:var(--muted)"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>
-      <button title="Minimize" onclick="dpMinimize()"><svg viewBox="0 0 24 24"><path d="M5 16.5h14"/></svg></button>
-      <button title="Maximize / Restore" id="dpMaxBtn" onclick="dpMaxToggle()"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1.8"/></svg></button>
-      <button title="Fullscreen (Esc exits)" onclick="dpFsToggle()"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
-      <button class="close" title="Close (Esc)" onclick="closeDocPopup()"><svg viewBox="0 0 24 24"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
-    </div></div>`;
-  const show=(body)=>{ d.innerHTML=`<div class="dp-box" tabindex="-1">${head}<div class="dp-body">${body}</div></div>`; d.classList.add('show'); d.querySelector('.dp-box').focus(); };
+  el.addEventListener('click',(e)=>dwLinkClick(w,e));   // OS-style link routing
+}
+async function dwFill(w){
+  const p=w.path, name=w.name, ext=extOf(name), raw='/api/raw?path='+encodeURIComponent(p);
+  const body=w.el.querySelector('.dp-body'); const show=(h)=>{ body.innerHTML=h; };
   if(isImg(name)) return show(`<div class="dp-imgwrap"><img src="${raw}" alt=""></div>`);
   if(ext==='pdf') return show(`<embed class="dp-embed" src="${raw}" type="application/pdf">`);
   if(/^(xlsx?|xlsm|docx?|zip|7z|rar|woff2?|ttf|bin|dat)$/.test(ext) ){
+    const node=explNodeByPath(p)||{type:'file',name,path:p};
     const meta=[node.size!=null?fmtSize(node.size):null, node.mtime?new Date(node.mtime).toLocaleString():null].filter(Boolean).join('  ·  ');
     return show(`<div class="dp-card">${fileIcon(name,64)}<div><b style="color:var(--primary)">${esc(name)}</b></div><div class="meta">${esc(meta)}No inline preview for this type.</div>
       <div class="acts"><a href="${raw}" download="${esc(name)}">⤓ Download</a><button onclick="apiOpen('${jsq(p)}')">↗ Open externally</button></div></div>`);
   }
-  show('<div class="dp-card"><span class="pk-load">Loading…</span></div>');
   let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
   if(/^(md|markdown)$/.test(ext)) show(`<div class="dp-md md">${renderMd(content)}</div>`);
   else if(ext==='csv'||ext==='tsv') show(csvTable(content));
   else show(`<pre class="dp-code">${hlCode(content.slice(0,300000))}</pre>`);
+}
+// ---- OS-style links inside rendered document bodies ----
+function dwExists(p){ return DW.allPaths.has(p) || (state.allFiles||[]).includes(p); }
+function dwSlug(t){ return String(t).toLowerCase().trim().replace(/[^\w\s-]/g,'').replace(/\s+/g,'-'); }
+function dwAnchorScroll(w,frag){ if(!frag) return;
+  let f=frag; try{ f=decodeURIComponent(frag); }catch{}
+  f=dwSlug(f);
+  const h=[...w.el.querySelectorAll('.dp-md h1,.dp-md h2,.dp-md h3,.dp-md h4,.dp-md h5,.dp-md h6')].find(x=>dwSlug(x.textContent)===f);
+  if(h) h.scrollIntoView({block:'start'}); }
+// relative links resolve against the SOURCE file's folder; repo-root is the fallback
+function dwResolve(href, srcPath){
+  let [p,frag]=String(href).split('#'); frag=frag||'';
+  p=(p||'').trim().replace(/^\.\//,'');
+  if(!p) return {path:srcPath, frag};   // pure #anchor → same doc
+  if(p.startsWith('/')) p=p.replace(/^\/+/,'');   // repo-absolute
+  else{
+    const stack=srcPath.split('/').slice(0,-1);
+    for(const s of p.split('/')){ if(s==='..') stack.pop(); else if(s&&s!=='.') stack.push(s); }
+    const rel=stack.join('/');
+    if(dwExists(rel)||!dwExists(p)) p=rel;
+  }
+  return {path:p, frag}; }
+function dwLinkClick(w,e){
+  const a=e.target.closest('a'); if(!a||!w.el.contains(a)) return;
+  if(a.closest('.winctl')||a.hasAttribute('download')) return;   // window controls / downloads stay native
+  const href=a.getAttribute('href')||'';
+  const ref=(a.dataset&&a.dataset.path!=null)?a.dataset.path:href;
+  if(/^https?:/i.test(ref)){ a.target='_blank'; a.rel='noopener noreferrer'; e.stopPropagation(); return; }   // external → new browser tab
+  if(/^(mailto:|tel:)/i.test(ref)){ e.stopPropagation(); return; }
+  e.preventDefault(); e.stopPropagation();   // internal: we route it (never the global chat-link handler)
+  const {path,frag}=dwResolve(ref,w.path);
+  if(path===w.path){ if(frag) dwAnchorScroll(w,frag); return; }   // same doc + #anchor → scroll in place
+  const open=dwFind(path); if(open){ dwFocus(open); return; }     // already open → focus that window
+  if(!dwExists(path)){ toast('Not in the repo: '+path); return; } // broken → toast, no dead window
+  openDocWindow(path).then(t=>{ if(t&&frag) dwAnchorScroll(t,frag); });
 }
 // fullscreen sandboxed HTML overlay — scripts run isolated (no same-origin access)
 function ensureHtmlFull(){ let h=$('htmlFull'); if(h) return h;
   h=document.createElement('div'); h.className='htmlfull'; h.id='htmlFull'; document.body.appendChild(h); return h; }
 function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } }
 function openHtmlOverlay(p){
-  hidePeek(); closeDocPopup(); const h=ensureHtmlFull(); const name=p.split('/').pop();
+  hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
   h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>
     <button title="Open externally" onclick="apiOpen('${jsq(p)}')">↗</button>
     <button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
@@ -2391,9 +2528,11 @@ function openHtmlOverlay(p){
   h.classList.add('show');
 }
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
+  if(e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
   if($('htmlFull')?.classList.contains('show')){ closeHtmlOverlay(); return; }
-  if($('docPop')?.classList.contains('show')){ closeDocPopup(); return; }
-  if($('propPop')?.classList.contains('show')){ $('propPop').classList.remove('show'); return; } });
+  if($('propPop')?.classList.contains('show')){ $('propPop').classList.remove('show'); return; }
+  if($('settingsWrap')?.classList.contains('show')||$('palWrap')?.classList.contains('show')) return;
+  const w=dwActive(); if(w){ e.stopPropagation(); dwClose(w); return; } });   // Esc closes the FOCUSED doc window (one per press)
 
 // ----- search -----
 let explSearchT=null;
@@ -3428,7 +3567,7 @@ async function bpTrack(){
 function openFromHash(){
   if(location.hash.startsWith('#file=')){
     const p=decodeURIComponent(location.hash.slice(6));
-    setTab('files'); openFile(p);
+    openDocWindow(p);   // galaxy-map click-to-open lands here
   } else if(location.hash.startsWith('#explore=')){
     openExpl(decodeURIComponent(location.hash.slice(9)));
   } else if(location.hash==='#bp-compose'){
