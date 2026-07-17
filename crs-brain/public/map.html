@@ -90,6 +90,7 @@
   body.board-open .dock{bottom:calc(var(--board-h) + 14px)}
   body.board-open .hint{display:none}
   body.board-open .pv{bottom:calc(var(--board-h) + 12px)}
+  body.board-open .panel{max-height:calc(100dvh - var(--board-h) - 70px);overflow-y:auto;z-index:13}
   .bhead .bseg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
   .bhead .bseg button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
   .bhead .bseg button.on{background:var(--bg-elevated);color:var(--text-primary)}

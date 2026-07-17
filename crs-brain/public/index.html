@@ -490,7 +490,7 @@
   .matt-dl svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
   /* quick-open palette (Cmd/Ctrl+K) */
-  .pal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:390;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
+  .pal-wrap{position:fixed;inset:0;background:var(--overlay);z-index:390;display:none;align-items:flex-start;justify-content:center;padding-top:14vh}
   .pal-wrap.show{display:flex}
   .pal{width:520px;max-width:92vw;background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);overflow:hidden}
   .pal input{width:100%;background:none;border:none;border-bottom:1px solid var(--line);color:var(--primary);padding:14px 16px;font-size:14px;font-family:inherit;outline:none}
@@ -599,7 +599,7 @@
   .recent .rempty{color:var(--muted);font-size:11.5px;padding:5px 8px;font-style:italic}
 
   /* file-type icon tiles */
-  .ftile{display:inline-flex;align-items:center;justify-content:center;width:18px;height:22px;border-radius:3px;font-size:7px;font-weight:800;color:#fff;letter-spacing:.2px;flex:0 0 auto;line-height:1;box-shadow:inset 0 -1px 0 rgba(0,0,0,.25)}
+  .ftile{display:inline-flex;align-items:center;justify-content:center;width:18px;height:22px;border-radius:3px;font-size:7px;font-weight:800;color:#fff;letter-spacing:.2px;flex:0 0 auto;line-height:1;box-shadow:inset 0 -1px 0 rgba(0,0,0,.25)} /* approved literal — badge depth cue on colored fills, theme-independent */
   .ftile.lg{width:46px;height:56px;border-radius:7px;font-size:13px}
   .ftile.folder{background:none;box-shadow:none;color:var(--accent2)}
   .ftile.folder svg{width:100%;height:100%;fill:none;stroke:currentColor;stroke-width:1.6}
@@ -912,7 +912,7 @@
   .utoast button{background:var(--accent);border:0;color:#fff;border-radius:7px;padding:6px 13px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
   .utoast button:hover{background:var(--accent-hover)}
   /* properties popup */
-  .proppop{position:fixed;inset:0;z-index:360;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center}
+  .proppop{position:fixed;inset:0;z-index:360;background:var(--overlay);display:none;align-items:center;justify-content:center}
   .proppop.show{display:flex}
   .proppop .pp-box{width:360px;background:var(--panel);border:1px solid var(--line2);border-radius:13px;box-shadow:var(--shadow-modal);overflow:hidden}
   .proppop .pp-head{display:flex;align-items:center;gap:11px;padding:16px 16px 12px}
@@ -952,7 +952,7 @@
     .composer-wrap{padding:8px 10px 12px}
     .ingest-btn.show{padding:0 10px;font-size:11px}
     .doc{padding:16px 14px}
-    .mscrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:35}
+    .mscrim{display:none;position:fixed;inset:0;background:var(--overlay);z-index:35}
     .mscrim.show{display:block}
   }
 
@@ -1394,6 +1394,7 @@ function renderMd(src){
     let l=lines[i];
     if(/^```/.test(l)){ let code=''; i++; while(i<lines.length && !/^```/.test(lines[i])){code+=lines[i]+'\n';i++;} i++; html+='<pre><code>'+esc(code)+'</code></pre>'; continue; }
     if(/^#{1,6}\s/.test(l)){ const n=l.match(/^#+/)[0].length; html+=`<h${n}>${mdInline(l.replace(/^#+\s/,''))}</h${n}>`; i++; continue; }
+    if(/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(l)){ html+='<hr>'; i++; continue; }
     if(/^\s*>/.test(l)){ let q=''; while(i<lines.length && /^\s*>/.test(lines[i])){q+=lines[i].replace(/^\s*>\s?/,'')+' ';i++;} html+='<blockquote>'+mdInline(q)+'</blockquote>'; continue; }
     if(/^\s*[-*+]\s/.test(l)){ html+='<ul>'; while(i<lines.length && /^\s*[-*+]\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*[-*+]\s/,''))+'</li>';i++;} html+='</ul>'; continue; }
     if(/^\s*\d+\.\s/.test(l)){ html+='<ol>'; while(i<lines.length && /^\s*\d+\.\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*\d+\.\s/,''))+'</li>';i++;} html+='</ol>'; continue; }
