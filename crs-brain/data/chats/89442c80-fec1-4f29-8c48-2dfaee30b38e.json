@@ -1,0 +1,21 @@
+{
+  "id": "89442c80-fec1-4f29-8c48-2dfaee30b38e",
+  "title": "i dropped the ultimate guide to bubble performance pdf into ",
+  "sessionId": "fef59bf4-7326-4b4e-a8e8-f7790c43248c",
+  "bp": false,
+  "created": "2026-07-17T10:45:23.003Z",
+  "updated": "2026-07-17T10:45:34.564Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "i dropped the ultimate guide to bubble performance pdf into the file explorer here can you see it",
+      "ts": "2026-07-17T10:45:23.003Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "`The Ultimate Guide to Bubble Performance Revision-3.pdf` — 6.2 MB, at the repo root, untracked (shows as `??` in git status).\n\nTwo things worth noting:\n\n1. **It's sitting loose at the root**, not in a domain folder. If you want it in the brain, the natural home is `brain/bubble/` (alongside the official manual) or a new `brain/bubble-performance/` — say the word and I'll move it and add an INDEX pointer.\n\n2. **Want me to actually read it?** I can extract it and either (a) summarize the key performance rules, or (b) cross-check them against your locked CRS decisions (Pattern A privacy rules, hybrid search, async audit writes) and flag anything that conflicts or that you're already violating.\n\nWhat do you want done with it?",
+      "ts": "2026-07-17T10:45:34.564Z"
+    }
+  ]
+}
