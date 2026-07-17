@@ -4,11 +4,13 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain — Map</title>
+<link rel="stylesheet" href="/tokens.css">
+<script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
+  /* Canonical tokens + legacy aliases from tokens.css (§2.10). Surfaces now use
+   * the canonical palette (the old #0A0A0C off-palette darks were NON-COMPLIANT). */
   :root{
-    --bg:#0A0A0C; --panel:#141417; --panel2:#1C1C21; --line:#26262C; --line2:#35353D;
-    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
-    --accent:#3B82F6; --accent2:#60A5FA; --error:#EF4444; /* --error matches design/tokens.css */
+    /* galaxy constellation category colors — data-viz literals, no canonical token (judgment-calls.md #6) */
     --c-mem1:#8B5CF6; --c-mem2:#C084FC; --c-mem3:#A78BFA; --c-mem4:#D8B4FE; --c-mem5:#7C3AED;
     --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;

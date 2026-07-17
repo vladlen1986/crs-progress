@@ -4,34 +4,24 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain</title>
+<link rel="stylesheet" href="tokens.css">
 <style>
-  /* CRS design tokens — mirrors design/tokens.css (source of truth). */
+  /* Canonical tokens + legacy aliases live in tokens.css (design system §2.10).
+   * This block holds app-specific extras only. */
   :root{
-    --bg:#181818; --panel:#1E1E1E; --panel2:#242424; --elev:#2A2A2A;
-    --line:#242424; --line2:#333333; --line3:#3D3D3D;
-    --primary:#E0E0E0; --secondary:#A6A6A6; --muted:#6B6B6B;
-    --accent:#3B82F6; --accent2:#60A5FA; --accent-soft:rgba(59,130,246,.13); --accent-tint:rgba(59,130,246,.08);
-    --good:#22C55E; --warn:#F59E0B; --danger:#EF4444;
-    --grad:#3B82F6; /* flat — CRS is border-only, no gradients or glows */
-    --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    /* themeable veils (were hardcoded rgba-white) so light mode reads correctly */
-    --veil:rgba(255,255,255,.05); --veil-2:rgba(255,255,255,.03); --code-bg:#0b0b0e; --code-fg:var(--code-fg);
-    --head-bg:rgba(24,24,24,.62); --prose:var(--prose);
+    --grad:var(--accent); /* flat — CRS is border-only, no gradients or glows (§17) */
+    /* themeable veils + code/prose surfaces — approved literals, no canonical token exists (judgment-calls.md #4) */
+    --veil:rgba(255,255,255,.05); --veil-2:rgba(255,255,255,.03);
+    --code-bg:#0b0b0e; --code-fg:#D4D4D8; --prose:#C9C9CE;
+    --head-bg:rgba(24,24,24,.62);
   }
-  /* ── Light theme (design.md §3: Soft-Grey light; accent kept, accent-text darkens for AA) ── */
   :root[data-theme="light"]{
-    --bg:#F4F4F3; --panel:#FFFFFF; --panel2:#F1F1F0; --elev:#E9E9E7;
-    --line:#E4E4E2; --line2:#D6D6D3; --line3:#C4C4C1;
-    --primary:#1A1A1A; --secondary:#4B4B4B; --muted:#8A8A88;
-    --accent:#3B82F6; --accent2:#1D4ED8; --accent-soft:rgba(59,130,246,.12); --accent-tint:rgba(59,130,246,.08);
-    --good:#16A34A; --warn:#D97706; --danger:#DC2626; --grad:#3B82F6;
-    --veil:rgba(0,0,0,.04); --veil-2:rgba(0,0,0,.025); --code-bg:#F5F5F3; --code-fg:#2A2A2A;
-    --head-bg:rgba(250,250,249,.78); --prose:#232323;
+    --veil:rgba(0,0,0,.04); --veil-2:rgba(0,0,0,.025);
+    --code-bg:#F5F5F3; --code-fg:#2A2A2A; --prose:#232323;
+    --head-bg:rgba(250,250,250,.78);
   }
   :root[data-theme="light"] body{ -webkit-font-smoothing:auto }
-  html{transition:background-color .2s ease}
-  body,.col,.center-head,.composer,.card,.action,.kpi,.tool,.dcard,.stat,.item,.upop,.modal-box{transition:background-color .2s ease,border-color .2s ease,color .2s ease}
   *{box-sizing:border-box}
   .ic{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;display:inline-block;vertical-align:middle;flex:0 0 auto}
   .ic.sm{width:13px;height:13px}
@@ -115,7 +105,7 @@
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
   .side-set{width:100%;display:flex;align-items:center;gap:10px;background:none;border:1px solid transparent;color:var(--secondary);border-radius:9px;padding:9px 11px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.12s;text-align:left}
   .side-set:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
-  .side-set.on{background:var(--accent-soft);color:var(--primary)}
+  .side-set.on{background:var(--accent-glow);color:var(--primary)}
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
   .newbtn{margin:0 12px 6px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:11px;font-size:12.5px;font-weight:500;width:calc(100% - 24px);text-align:left;display:flex;align-items:center;gap:8px;transition:.15s}
@@ -123,7 +113,7 @@
 
   .item{padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:.12s;margin:1px 0}
   .item:hover{background:var(--panel2)}
-  .item.on{background:var(--accent-soft);color:var(--primary)}
+  .item.on{background:var(--accent-glow);color:var(--primary)}
   .item .meta{margin-left:auto;color:var(--muted);font-size:11px;background:var(--veil);border-radius:20px;padding:0 7px;line-height:17px}
   .item .bpi{color:var(--accent2);flex:0 0 auto;width:14px;height:14px}
   .item .x{opacity:0;color:var(--muted);font-size:13px;transition:.15s}
@@ -132,7 +122,7 @@
 
   .tree .node{padding:4px 7px;border-radius:7px;font-size:13px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;transition:.1s}
   .tree .node:hover{background:var(--panel2)}
-  .tree .node.file.on{background:var(--accent-soft);color:var(--primary)}
+  .tree .node.file.on{background:var(--accent-glow);color:var(--primary)}
   .tree .dir{color:var(--primary);font-weight:600}
   .tree .children{margin-left:11px;border-left:1px solid var(--line);padding-left:5px}
   .tree .chev{display:inline-flex;color:var(--muted);transition:transform .15s;flex:0 0 auto}
@@ -152,7 +142,7 @@
   .viewseg button.on{background:var(--accent);color:#fff}
   .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:.15s}
   .ghost:hover{border-color:var(--line3);color:var(--primary)}
-  .ghost.on{color:var(--primary);background:var(--accent-soft)} /* active = bg+text only (CRS rule) */
+  .ghost.on{color:var(--primary);background:var(--accent-glow)} /* active = bg+text only (CRS rule) */
   .sel{background:var(--panel2) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="%236c6c78" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 9px center;border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 26px 6px 10px;font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;transition:.15s;-webkit-appearance:none;appearance:none}
   .sel:hover{border-color:var(--line3);color:var(--primary)}
   .sel:focus{outline:none;border-color:var(--accent)}
@@ -210,7 +200,7 @@
   .modal-nav{flex:0 0 180px;border-right:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:2px;background:var(--panel2)}
   .modal-nav button{display:flex;align-items:center;gap:10px;background:none;border:none;color:var(--secondary);text-align:left;padding:9px 11px;border-radius:8px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.12s}
   .modal-nav button:hover{background:var(--elev);color:var(--primary)}
-  .modal-nav button.on{background:var(--accent-soft);color:var(--primary)}
+  .modal-nav button.on{background:var(--accent-glow);color:var(--primary)}
   .modal-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 16px}
   .modal-nav button.on svg{color:var(--accent2)}
   .modal-pane{flex:1;overflow:auto;padding:18px 24px 24px}
@@ -234,6 +224,10 @@
   .seg button{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:.15s}
   .seg button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
   .seg button.on{background:var(--elev);color:var(--primary)}
+  /* header theme toggle — §6 theme-toggle pattern at §20.1 28px size */
+  .hseg{padding:2px;border-radius:8px}
+  .hseg button{padding:4px 8px;border-radius:6px}
+  [data-theme="light"] .seg button.on{box-shadow:0 1px 3px rgba(0,0,0,.08)} /* §3.3: elevation = shadow in light */
   .tinput{background:var(--panel2);border:1px solid var(--line2);color:var(--primary);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px;outline:none;min-width:210px}
   .tinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-tint)}
   .mbtn2{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:8px;padding:8px 13px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:.15s;white-space:nowrap}
@@ -386,7 +380,7 @@
   .stopped-note{color:var(--muted);font-size:12px;font-style:italic;margin-top:6px}
   .ingest-btn{display:none;align-items:center;gap:7px;background:var(--accent-tint);border:1px solid var(--line2);color:var(--accent2);font-weight:600;border-radius:8px;height:38px;padding:0 14px;font-size:12.5px;flex:0 0 auto;transition:.15s;white-space:nowrap}
   .ingest-btn.show{display:inline-flex}
-  .ingest-btn:hover{background:var(--accent-soft);color:var(--primary)}
+  .ingest-btn:hover{background:var(--accent-glow);color:var(--primary)}
   .ingest-btn:disabled{opacity:.4;cursor:default}
   .attach-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 22px 10px;max-width:830px;margin:0 auto}
   .attach-chips:empty{display:none}
@@ -476,7 +470,7 @@
   .pal .results{max-height:46vh;overflow:auto;padding:6px}
   .pal .res{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--secondary)}
   .pal .res .k{margin-left:auto;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
-  .pal .res.on{background:var(--accent-soft);color:var(--primary)}
+  .pal .res.on{background:var(--accent-glow);color:var(--primary)}
   .pal .none{padding:14px;color:var(--muted);font-size:12.5px;text-align:center}
 
   .composer.dropping{border-color:var(--accent);background:var(--accent-tint)}
@@ -532,7 +526,7 @@
   .np-title{color:var(--primary);font-size:13px;font-weight:600;line-height:1.4}
   .np-verify{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.45}
   .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:var(--accent-tint);border:1px solid rgba(59,130,246,.25);color:var(--accent2);border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s}
-  .np-draft:hover{background:var(--accent-soft);color:#fff;border-color:var(--accent)}
+  .np-draft:hover{background:var(--accent-glow);color:#fff;border-color:var(--accent)}
   .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
   @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr 1fr}}
   @media (max-width:760px){.dash{padding:22px 16px}.dash-cols,.actions{grid-template-columns:1fr}}
@@ -1105,6 +1099,10 @@
       <button class="uchip" id="usageChip" onclick="toggleUsagePop(event)" title="Usage & limits — click for detail"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gauge"/></svg><span id="usageChipTxt" class="dim">Usage</span></button>
       <span class="conndot ok" id="connDot" title="Connection: online"></span>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
+      <div class="seg hseg" id="themeSeg" title="Theme — Dark / Light">
+        <button id="thDark" onclick="setTheme('dark')" aria-label="Dark theme"><svg viewBox="0 0 24 24"><use href="#i-moon"/></svg></button>
+        <button id="thLight" onclick="setTheme('light')" aria-label="Light theme"><svg viewBox="0 0 24 24"><use href="#i-sun"/></svg></button>
+      </div>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
         <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
@@ -3421,7 +3419,10 @@ addEventListener('hashchange',openFromHash);
 let SETTINGS=null;
 function themeParam(){ try{ return new URLSearchParams(location.search).get('theme'); }catch{ return null; } }
 try{ document.documentElement.setAttribute('data-theme', themeParam()||localStorage.getItem('crs-theme')||'dark'); }catch{}
-function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{} }
+function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{}
+  const d=$('thDark'),l=$('thLight'); if(d&&l){ d.classList.toggle('on',th==='dark'); l.classList.toggle('on',th==='light'); } }
+// Cross-window theme sync: standalone pages (map/tree/wishlist/queue/…) follow via the storage event.
+addEventListener('storage',e=>{ if(e.key==='crs-theme'&&e.newValue) applyTheme(e.newValue); });
 async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); return SETTINGS; }
 async function saveSettingsPatch(patch){ try{ SETTINGS=await api('/api/settings',{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(patch)}); }catch(e){ toast('Save failed: '+e.message); } return SETTINGS; }
 
