@@ -13,3 +13,6 @@ crs-brain/data/bp-guard-settings.json
 crs-brain/data/screenshots/
 crs-brain/data/action-log.jsonl
 crs-brain/node_modules/
+
+# QA test scratch (created by verification runs)
+qa-scratch/
