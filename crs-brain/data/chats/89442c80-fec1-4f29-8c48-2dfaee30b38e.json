@@ -4,7 +4,7 @@
   "sessionId": "fef59bf4-7326-4b4e-a8e8-f7790c43248c",
   "bp": false,
   "created": "2026-07-17T10:45:23.003Z",
-  "updated": "2026-07-17T10:53:33.592Z",
+  "updated": "2026-07-17T10:59:27.738Z",
   "messages": [
     {
       "role": "user",
@@ -38,6 +38,17 @@
       "role": "assistant",
       "content": "The commands aren't auto-approving in this permission mode — each `git add`/`commit` will prompt you. Here's exactly what I'll run once you approve; I've scoped it to only the performance-manual work (leaving your unrelated `crs-brain/data/settings.json` untouched):\n\n```\ngit add brain/bubble-performance brain/INDEX.md brain/bubble/INDEX.md brain/changelog.md\ngit commit -m \"brain: add Bubble performance manual (Amlie Rev 3) as new domain\"\n```\n\nApprove the staging command above (and the commit that follows) and I'll finish it. Or if you'd rather I just include everything (settings.json too) in one commit, say so.",
       "ts": "2026-07-17T10:53:33.592Z"
+    },
+    {
+      "role": "user",
+      "content": "do we have a bubble knowledge tutorials manuals directory ?",
+      "ts": "2026-07-17T10:59:11.338Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "No single umbrella directory — Bubble knowledge is spread across **three sibling folders** directly under `brain/`, each a distinct source type:\n\n| Directory | What it is | Type |\n|---|---|---|\n| `brain/bubble/` | The **complete official manual** (583 pages, verbatim) | Official |\n| `brain/bubble-forum/` | 87 curated community threads | Community |\n| `brain/bubble-performance/` | *The Ultimate Guide to Bubble Performance* (the one we just added) | Third-party expert |\n\nThey're all mapped in `brain/INDEX.md` and cross-linked, so routing works — but there's no parent `brain/bubble-knowledge/` grouping them.\n\nIf you want one, I can consolidate them under a single directory (e.g. `brain/bubble/` with `manual/`, `forum/`, `performance/` subfolders) and fix every reference in `brain/INDEX.md`, `CLAUDE.md`, and the app's file filters. That's a fair bit of path-rewriting for mostly cosmetic gain, and it'd touch the not-yet-committed performance manual. My recommendation: **leave the three flat** — the INDEX already gives you the routing an umbrella folder would. Want me to consolidate anyway, or leave as-is?",
+      "ts": "2026-07-17T10:59:27.738Z"
     }
   ]
 }
