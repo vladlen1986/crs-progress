@@ -1,0 +1,92 @@
+{
+  "tasks": [
+    {
+      "id": "0aaa10a8",
+      "title": "Queue smoke test 1",
+      "prompt": "Reply with exactly this single word and nothing else: QUEUE-OK-1",
+      "status": "done",
+      "created": "2026-07-17T00:24:47.159Z",
+      "started": "2026-07-17T00:24:47.178Z",
+      "finished": "2026-07-17T00:24:51.039Z",
+      "log": [
+        {
+          "ts": "2026-07-17T00:24:47.159Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-17T00:24:47.178Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-17T00:24:51.039Z",
+          "msg": "done"
+        }
+      ],
+      "sessionId": "d6a17f43-ad24-4857-892d-213ee4b111e0",
+      "result": "QUEUE-OK-1"
+    },
+    {
+      "id": "619bbceb",
+      "title": "Queue smoke test 2",
+      "prompt": "Reply with exactly this single word and nothing else: QUEUE-OK-2",
+      "status": "done",
+      "created": "2026-07-17T00:24:47.169Z",
+      "started": "2026-07-17T00:24:51.041Z",
+      "finished": "2026-07-17T00:24:54.090Z",
+      "log": [
+        {
+          "ts": "2026-07-17T00:24:47.169Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-17T00:24:51.041Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-17T00:24:54.090Z",
+          "msg": "done"
+        }
+      ],
+      "sessionId": "cdb16b28-d244-4860-acc5-c8a00c21be09",
+      "result": "QUEUE-OK-2"
+    },
+    {
+      "id": "8d324763",
+      "title": "Limit resume test",
+      "prompt": "Reply with exactly this single word and nothing else: RESUMED-OK",
+      "status": "done",
+      "created": "2026-07-17T00:26:22.330Z",
+      "started": "2026-07-17T00:28:42.325Z",
+      "finished": "2026-07-17T00:28:48.615Z",
+      "log": [
+        {
+          "ts": "2026-07-17T00:26:22.330Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-17T00:26:22.338Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-17T00:26:22.339Z",
+          "msg": "usage limit: usage limit reached (stub)"
+        },
+        {
+          "ts": "2026-07-17T00:28:42.323Z",
+          "msg": "auto-resume after limit reset"
+        },
+        {
+          "ts": "2026-07-17T00:28:42.325Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-17T00:28:48.615Z",
+          "msg": "done"
+        }
+      ],
+      "sessionId": "ca3abe54-9026-4e84-976d-c400c9bc68e1",
+      "result": "RESUMED-OK"
+    }
+  ],
+  "resumeAt": null
+}

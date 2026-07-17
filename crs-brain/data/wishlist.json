@@ -59,9 +59,9 @@
       "id": "w-bugfix",
       "section": "Automation / agent behavior",
       "title": "Auto-check + fix Bubble.io-reported issues",
-      "detail": "Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying.",
+      "detail": "Periodically pull issues Bubble reports (Issue Checker / editor / logs) and, where safe, fix them via the Buildprint CLI + brain knowledge under the guardrails (test branch, savepoint per step, check before apply). Start read-only (report issues + proposed fixes) before ever auto-applying. — READ-ONLY pass shipped 2026-07-17: daily buildprint sync+check on test → dated report with PROPOSED fixes in brain/bubble/issue-reports/. AUTO-FIX stays out of scope until a separate design is approved.",
       "priority": "P2",
-      "status": "idea",
+      "status": "in-progress",
       "order": 5,
       "ts": "2026-07-16T01:44:16.489Z"
     },
