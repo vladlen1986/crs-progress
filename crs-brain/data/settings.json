@@ -10,8 +10,19 @@
   "notify": {
     "inApp": true,
     "sound": true,
-    "soundName": "chime",
     "email": false,
     "emailTo": ""
+  },
+  "sounds": {
+    "volume": 80,
+    "events": {
+      "new-notification": "s03",
+      "task-complete": "s02",
+      "warning": "s19",
+      "error": "s21",
+      "process-start": "s12",
+      "connection-lost": "s22",
+      "connection-restored": "s07"
+    }
   }
 }
