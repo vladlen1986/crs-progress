@@ -140,6 +140,7 @@ Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day:
 | [cli-running-an-audit.md](cli-running-an-audit.md) | buildprint audit security scan: 6 checks (public data types, public backend workflows, public uploaders, temp passwords, missed server-side redirects, gitleaks), severity report |
 | [cli-installing-and-packaging-components.md](cli-installing-and-packaging-components.md) | buildprint components list/search/categories/add/package with flags |
 | [cli-plugins.md](cli-plugins.md) | buildprint plugin clone/upload/publish, plugin workspace layout, draft save vs manual publish handoff |
+| [cli-help-reference.md](cli-help-reference.md) | **As-shipped `--help` dump, v4.2.6 (2026-07-17)** — all 35 commands + 74 subcommands with every flag. Wins over the docs-site CLI pages on conflict (CLI auto-updates). Includes commands the docs site lacks: `versions`, `migration` (Bubble → code suite), `docs buildprint\|bubble`, `mcp install`, `file`, `test-user`, `secret`, `screenshot`, `login`, `utils generate-ids`, `data create/update/delete` (writes!) |
 
 ## API reference
 
@@ -149,7 +150,7 @@ Captured 2026-07-14 from https://docs.buildprint.ai/ in two passes the same day:
 
 ## CLI agent guidelines (guidelines/)
 
-The 29 internal manuals the Buildprint agent itself fetches (`buildprint guidelines get <path>`) before touching a Bubble app — NOT on the docs site. Captured 2026-07-17 verbatim from the linked CLI. These are the authoritative editing contract for the worktree: exact JSON schemas, layout system, expression node model, and operational recipes. When a docs-site page and a guideline conflict on worktree editing detail, the guideline wins (it is what the agent actually obeys).
+The 29 internal manuals the Buildprint agent itself fetches (`buildprint guidelines get <path>`) before touching a Bubble app — NOT on the docs site. Captured 2026-07-17 verbatim from the linked CLI; `buildprint guidelines list` confirms the catalog is exactly these 29 paths, and `buildprint quickstart` output ≡ [guidelines/general.md](guidelines/general.md) + the live catalog. These are the authoritative editing contract for the worktree: exact JSON schemas, layout system, expression node model, and operational recipes. When a docs-site page and a guideline conflict on worktree editing detail, the guideline wins (it is what the agent actually obeys).
 
 | Path | File | Answers |
 |---|---|---|

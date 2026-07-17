@@ -4,6 +4,17 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-07-17 — CLI self-inventory: as-shipped help reference captured; `data` WRITE capability confirmed
+
+Interrogated the linked Buildprint CLI (now v4.2.6, was v4.1.6 on 2026-07-14) for everything it can provide beyond the docs site and the 29 guidelines.
+
+- **New file `brain/buildprint/cli-help-reference.md`** — verbatim `--help` dump of all 35 top-level commands + 74 subcommands with every flag. Wins over docs-site CLI pages on conflict. Reveals docs-site-absent commands: `versions` (snapshot restore), `migration` (a full semi-automated Bubble → code migration suite), `docs buildprint|bubble`, `mcp install`, `file` (File Manager: uploads PUBLIC unless `--attach-to` + privacy rules), `test-user`, `secret get`, `screenshot`, `login`, `utils generate-ids`, `migrate`.
+- **RESOLVED the flagged `buildprint data` discrepancy: it CAN write.** `data create|update|delete` performs immediate DB writes (v4.2.6 help + `guidelines/general.md` + our own 2026-07-16 test-user write). Docs site is stale on "read-only". Playbook §1 table + callout updated, §8 flag closed, new §9 (CLI surface beyond docs); ops file "does not touch DB records" line corrected — **CRS rule: test DB only, live writes need explicit approval**.
+- Verified: guideline catalog = exactly our 29 captured paths; `buildprint quickstart` ≡ `guidelines/general.md` + live catalog (nothing new); `components categories` = the 6 known; `docs bubble` = manual.bubble.io llms index (full manual already local in brain/bubble/). `schema` is a live query tool — use on demand, not worth freezing.
+- INDEX.md: cli-help-reference row + guideline-catalog completeness note. Ops file: version bump v4.2.6.
+
+---
+
 ## 2026-07-17 — Ingested the 29 Buildprint CLI agent guidelines (new domain: brain/buildprint/guidelines/)
 
 Vlad supplied a compilation of the internal manuals the Buildprint agent fetches via `buildprint guidelines get <path>` (`crs-brain/data/attachments/ef512e1a-buildprint-guidelines.md`) — content NOT on the docs site and previously absent from the brain.

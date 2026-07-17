@@ -1,7 +1,7 @@
 # Operating Buildprint from CRS Brain
 
 > How the CRS Brain assistant drives Buildprint directly via the CLI. Written 2026-07-14.
-> The CLI is installed at `~/.local/bin/buildprint` (v4.1.6, auto-updates daily).
+> The CLI is installed at `~/.local/bin/buildprint` (v4.2.6 as of 2026-07-17; auto-updates daily — as-shipped command/flag reference: `cli-help-reference.md`).
 > CLI runs locally and consumes NO Buildprint agent runtime.
 
 ## Connection status
@@ -46,4 +46,4 @@ exposed uploaders, temp-password leaks, missing redirects, secrets) · savepoint
 
 - Replaces: pasting Claude-written prompts into the Buildprint web chat for routine schema/workflow edits.
 - Complements: Buildprint web agents (still fine for big exploratory work); `buildprint audit` becomes a routine pre-session check.
-- Does not touch: Bubble database records (CLI/Build mode cannot edit Things — see permissions-and-data-safety.md).
+- Database records: `buildprint data create/update/delete` DOES write Things immediately (confirmed v4.2.6 + agent guidelines; docs site is stale on this). **Test DB only; any live-DB write needs Vlad's explicit approval in that conversation.**

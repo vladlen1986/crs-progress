@@ -40,7 +40,8 @@
 | Run Manual / API **automations** | ❌ *(no CLI command)* | ✅ | MCP-only from a Claude session |
 | Manage log **monitors** | ❌ *(no CLI command)* | ✅ | MCP/web-only |
 | **Edit** app structure (pages/WF/DT/OS/styles/settings/API-connector) | ✅ edit files → `apply` | ❌ *data tools can't edit* | MCP can *start agents* that edit (= web runtime) |
-| Edit Bubble **database Things** | ❌ | ❌ | neither can create/modify/delete Things |
+| Edit Bubble **database Things** | ✅ `data create/update/delete` | ✅ `create_thing`/`update_thing`/`delete_thing` | **writes are immediate**; needs Build-mode/MCP-edit access; live-DB writes require explicit user approval (agent guideline rule) |
+| Bubble **File Manager** (test/live realm) | ✅ `file list/search/upload/delete` | — | uploads are **public** unless `--attach-to <thing-id>` + that Thing's privacy rules restrict it |
 | Validate edits | ✅ `check` | — | the gate before `apply` |
 | Push to Bubble | ✅ `apply` | — | requires a passing `check` (unless `--force-apply`) |
 | Savepoints (Bubble restore points) | ✅ `savepoint create/list/restore` | — | goes through Bubble, per branch |
@@ -50,10 +51,13 @@
 | Fetch private secrets | ✅ `secret` (explicit) | ❌ (filtered from snapshots) | you can pull them; don't paste them anywhere |
 | Diff two branches | ✅ `changelog <a> <b>` | — | markdown or `--json` |
 
-> **`buildprint data` discrepancy (flagged):** the CLI's own `--help` says *"Read **and write** Bubble
-> database records,"* but `permissions-and-data-safety.md`, `connect-via-mcp.md`, and the agents doc all say
-> Buildprint database tools are **read-only** ("cannot create, modify, or delete Things"). **Treat `data` as
-> read-only** until you confirm otherwise; don't build a workflow that depends on writing Things via `data`.
+> **`buildprint data` writes — RESOLVED 2026-07-17:** the docs site (`permissions-and-data-safety.md`,
+> `connect-via-mcp.md`, `how-buildprint-works.md`) still says database tools are read-only, but that is
+> **stale**: CLI v4.2.6 `data create|update|delete --help` documents immediate writes with full flag
+> semantics (`--set`/`--set-json`/`--clear`/`--values-json`), the agent guideline `guidelines/general.md`
+> confirms it (plus MCP `create_thing`/`update_thing`/`delete_thing`), and we used it in practice on
+> 2026-07-16 (10 test users written). See `cli-help-reference.md`. **CRS rule: test DB only; any live-DB
+> write needs Vlad's explicit approval** (also the guideline's own rule for agents).
 
 ---
 
@@ -183,5 +187,15 @@ security, logs/APL, tests-as-code) are captured verbatim under `guidelines/` —
 ## 8. Not documented / verify before relying on
 - Whether the **Basic (free)** plan permits unlimited `apply` and how many projects/logs it includes (image-
   only in the capture).
-- Whether `buildprint data` can **write** Things (CLI help says yes; safety docs say read-only — assume no).
+- ~~Whether `buildprint data` can **write** Things~~ — **resolved 2026-07-17: it can** (see §1 callout).
 - Whether local Agent-Browser **tests** avoid runtime entirely, or only web-hosted test *runs* are metered.
+
+## 9. CLI surface beyond the docs site (v4.2.6, 2026-07-17)
+
+The installed CLI ships commands the docs site never mentions — full as-shipped flags in
+[cli-help-reference.md](cli-help-reference.md): `versions` (list/restore synced snapshots), `migration`
+(semi-automated Bubble → code migration suite: create/configure/init/database/data/attachment/criterion/task),
+`docs buildprint|bubble` (live docs search; `docs bubble` serves the manual.bubble.io llms index — we hold the
+full manual locally in `brain/bubble/`), `mcp install --client <name>`, `file` (File Manager),
+`test-user`, `secret get`, `screenshot`, `login`, `utils generate-ids`, `update`, `migrate` (workspace
+projection migrations). `buildprint quickstart` output ≡ `guidelines/general.md` + the live guideline catalog.
