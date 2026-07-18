@@ -94,7 +94,7 @@
         ".card-subtitle",
         ".card-body"
       ],
-      "status": "pending"
+      "status": "sent"
     },
     {
       "id": "c3",
@@ -138,7 +138,7 @@
         ".sidebar-item",
         ".sidebar-item.active"
       ],
-      "status": "pending"
+      "status": "sent"
     },
     {
       "id": "c4",
@@ -175,7 +175,7 @@
         ".input",
         ".property-list-item.selected"
       ],
-      "status": "pending"
+      "status": "sent"
     },
     {
       "id": "c5",

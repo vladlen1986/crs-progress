@@ -581,6 +581,75 @@
       "auto": {
         "key": "state-drift:mod-status:casino_settings"
       }
+    },
+    {
+      "id": "6d5da975",
+      "title": "Decision needed: Pattern A rollout order & batching",
+      "status": "todo",
+      "created": "2026-07-18T08:44:50.207Z",
+      "notes": "raised by queue intent \"[GUARD PROBE] blocked intent — must fail DECISION-NEEDED\"",
+      "link": {
+        "kind": "decision",
+        "ref": "Pattern A rollout order & batching"
+      },
+      "auto": {
+        "key": "decision:Pattern A rollout order & batching"
+      }
+    },
+    {
+      "id": "bc634ee9",
+      "title": "Await BP report: casino-settings/c2",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c2"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c2"
+      }
+    },
+    {
+      "id": "edf88a67",
+      "title": "Await BP report: casino-settings/c3",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c3"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c3"
+      }
+    },
+    {
+      "id": "a5ab82e3",
+      "title": "Await BP report: casino-settings/c4",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c4"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c4"
+      }
+    },
+    {
+      "id": "8b3fa08a",
+      "title": "Enable Tailscale Serve for the remote command post: open https://login.tailscale.com/f/serve?node=nsJn6BSpk111CNTRL (one click, your tailnet), then run: /Applications/Tailscale.app/Contents/MacOS/Tail",
+      "status": "todo",
+      "created": "2026-07-18T09:43:05.011Z",
+      "notes": "P10 tunnel ENV-LIMITED: serve not enabled on the tailnet (account action). Auth gate + mobile command post are live and locally proven."
     }
   ]
 }
