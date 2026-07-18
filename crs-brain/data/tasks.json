@@ -548,9 +548,9 @@
     {
       "id": "bd77a453",
       "title": "Await BP report: buttons/c1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T08:22:00.391Z",
-      "notes": "",
+      "notes": "auto-closed: chunk is reported (2026-07-18T08:22:01.754Z)",
       "followUp": true,
       "due": "2026-07-19T08:22:00.391Z",
       "link": {
@@ -559,6 +559,20 @@
       },
       "auto": {
         "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "832bf17c",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "todo",
+      "created": "2026-07-18T08:22:01.771Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\")",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
       }
     }
   ]
