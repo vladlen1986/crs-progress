@@ -69,6 +69,14 @@ if (claude && claude !== 'cmd.exe /c claude') pass(`claude CLI found at ${claude
 else if (process.platform === 'win32') warn('claude not found on PATH directly (win32 uses cmd.exe shim — verify `claude` runs in a terminal)');
 else fail('claude CLI not found on PATH — install it and ensure ~/.local/bin is on PATH');
 
+// 3b. Optional CLIs for Buildprint work — warn-only (app runs without them).
+const bp = resolveBin('buildprint');
+if (bp) pass(`buildprint CLI found at ${bp}`);
+else warn('buildprint not found on PATH — Bubble work stays on the copy path until `npm install -g buildprint` + `buildprint link <token>`');
+const ab = resolveBin('agent-browser');
+if (ab) pass(`agent-browser CLI found at ${ab}`);
+else warn('agent-browser not found on PATH — run-mode screenshots/visual verification disabled until `npm install -g agent-browser`');
+
 // 4. Correct launcher for this OS exists.
 const launcher = process.platform === 'win32' ? 'start.bat' : 'start.command';
 const launcherPath = path.join(BRAIN_DIR, launcher);

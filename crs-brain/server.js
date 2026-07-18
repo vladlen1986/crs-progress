@@ -38,6 +38,17 @@ if (process.platform !== 'win32') {
     if (!process.env.USER) process.env.USER = uname;
     if (!process.env.LOGNAME) process.env.LOGNAME = uname;
   } catch {}
+} else {
+  // Windows: same belt for stripped launch contexts — npm global shims
+  // (buildprint) + WinGet links (claude) must be reachable by every child,
+  // including the bash shells inside spawned claude sessions.
+  const extra = [
+    process.env.APPDATA ? path.join(process.env.APPDATA, 'npm') : null,
+    process.env.LOCALAPPDATA ? path.join(process.env.LOCALAPPDATA, 'Microsoft', 'WinGet', 'Links') : null,
+  ].filter(Boolean);
+  const cur = (process.env.PATH || '').split(';').filter(Boolean);
+  const curLower = new Set(cur.map((p) => p.toLowerCase()));
+  process.env.PATH = [...cur, ...extra.filter((p) => !curLower.has(p.toLowerCase()))].join(';');
 }
 // Resolve a binary to its full path across the extended PATH (for pty/exec that
 // don't do their own PATH lookup reliably).
@@ -1445,6 +1456,7 @@ const BP_PROMPT = (ws) => [
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
   '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
   '- `--viewport mobile` / `tablet` to check responsive.',
+  `- SAVE FOR REUSE: on audits/UI reviews capture the module's key views to \`${SCREENSHOTS_DIR}/<module-id>/<view>-<dark|light>-<desktop|mobile>.png\` (predictable names — these feed later UI analysis and design prototyping), and list every captured file at the end of your report.`,
   `Then READ the PNG (you see images) to inspect it, and when it helps the user, EMBED it in your reply as \`![what it shows](crs-brain/data/screenshots/<name>.png)\` — the chat renders it inline. Report what you SAW (pass/fail per item), not just that you captured it.`,
   'INTERACTIVE checks (click a flow, verify behavior, read console/errors): use `agent-browser` — `agent-browser open <run-mode-url>`, `agent-browser snapshot -i` (clickable refs), click/fill via refs, `agent-browser console` / `errors`. If either `buildprint screenshot` or `agent-browser` reports "agent-browser not found", tell Vlad it needs a one-time install (`npm install -g agent-browser`) — do not try to work around it.',
   'RESPONSE FORMAT (important — keep replies readable, not walls of text): put your step-by-step reasoning in',
@@ -1587,6 +1599,33 @@ function runBuildprint(args, ws) {
     c.on('error', (e) => resolve({ ok: false, out: '', err: e.message }));
     c.on('close', (code) => resolve({ ok: code === 0, out: out.trim(), err: err.trim() }));
   });
+}
+// Absorb Buildprint self-updates BEFORE a model session depends on the CLI.
+// The CLI auto-updates on the first invocation of a new release, replacing the
+// npm shim files mid-call — concurrent shells then hit a half-replaced shim
+// ("command not found", full-path fallbacks that break the Bash(buildprint:*)
+// allowlist). Running --version here lets any update finish inside ONE server
+// call; the spawned session then starts against a stable, linked CLI.
+let bpPreflightCache = { at: 0, res: null };
+async function bpPreflight(force) {
+  if (!force && bpPreflightCache.res && Date.now() - bpPreflightCache.at < 10 * 60 * 1000) return bpPreflightCache.res;
+  const ws = findBpWorkspace();
+  const dir = ws || { dir: REPO_ROOT };
+  const ver = await runBuildprint(['--version'], dir);
+  // Auto-update chatter precedes the version on stdout — the version is the last line.
+  const version = ver.ok ? (ver.out.split('\n').pop() || '').trim() : null;
+  let linked = null;
+  if (ver.ok) {
+    const pl = await runBuildprint(['project', 'list'], dir);
+    linked = pl.ok && !/unauthorized/i.test(pl.out + '\n' + pl.err);
+  }
+  const res = {
+    ok: ver.ok, version, linked,
+    err: ver.ok ? (linked === false ? 'CLI not linked — run: buildprint link <token>' : null)
+                : (ver.err || ver.out || 'buildprint not found on PATH').split('\n')[0],
+  };
+  bpPreflightCache = { at: Date.now(), res };
+  return res;
 }
 function bpGit(ws, args) {
   return new Promise((resolve) => {
@@ -2882,6 +2921,21 @@ const server = http.createServer(async (req, res) => {
       let usedBuildprint = false;   // set if any tool block this turn is a buildprint call → auto-tags the chat bp
       const oneLineSrv = (t) => (t || '').trim().replace(/\s+/g, ' ');
       const capBody = (t) => { t = (t || '').trim(); return t.length > 1600 ? t.slice(0, 1600) + '…' : t; };
+      // Lane attribution: which ACTOR a work step belongs to. 'buildprint' = work
+      // on the Bubble side (buildprint CLI, agent-browser run-mode, files in the
+      // cloned crs-bubble worktree); 'brain' = everything else (thinking, brain/
+      // analysis, report writing, lifecycle). Persisted per step → lane view.
+      const BP_ACTOR_RE = /(^|[\s"'`\\/;(&|])(buildprint|agent-browser)([\s"'`).:;&|]|$)|crs-bubble/i;
+      const stepActor = (tool, text) => (/buildprint/i.test(tool || '') || BP_ACTOR_RE.test(text || '')) ? 'buildprint' : null;
+      // Brain-side lifecycle steps (prompt sent → CLI ready → connected) so the
+      // flow reads "what Brain did / what Buildprint did" end to end.
+      const lifeStep = (label, body) => {
+        const s = { kind: 'note', tool: null, label, body: body || '', actor: 'brain' };
+        steps.push(s);
+        sse({ type: 'block', kind: 'note', tool: null, actor: 'brain', label, body: body || '' });
+      };
+      let connectedMark = true;   // flipped ON for bp chats below; first stream event stamps "Connected"
+      const markConnected = () => { if (connectedMark) return; connectedMark = true; lifeStep('Connected — model session live'); };
       try {
         const cfg = loadSettings();
         const runOpts = {
@@ -2900,6 +2954,14 @@ const server = http.createServer(async (req, res) => {
           runOpts.cwd = ws.dir;
           runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
           runOpts.addDirs = [REPO_ROOT];
+          // Brain lane: hand-off is explicit + the CLI is preflighted HERE so any
+          // buildprint self-update finishes inside this server call — the model
+          // session never hits a half-replaced npm shim ("not found" mid-audit).
+          lifeStep('Prompt sent — preparing Buildprint session');
+          const pf = await bpPreflight();
+          if (pf.ok && pf.linked) lifeStep(`Buildprint CLI ready — v${pf.version}, linked`);
+          else lifeStep('Buildprint CLI problem — ' + (pf.err || 'unknown'), 'The session will fall back to manual paths where possible. Fix, then retry: ' + (pf.err || 'check `buildprint --version` in a terminal.'));
+          connectedMark = false;   // next stream event stamps "Connected — model session live"
         } else {
           const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
           runOpts.systemPrompt = withMemory(brief ? SYSTEM_PROMPT + '\n\n' + brief : SYSTEM_PROMPT);   // general assistant, optionally grounded on a focus module
@@ -2915,13 +2977,15 @@ const server = http.createServer(async (req, res) => {
             }).catch(() => [])
           : Promise.resolve([]);
         const result = await runClaudeWithFallback(promptToClaude, chat.sessionId, {
-          onDelta: (t) => { streamed += t; answerSeg += t; sse({ type: 'delta', text: t }); },
+          onDelta: (t) => { markConnected(); streamed += t; answerSeg += t; sse({ type: 'delta', text: t }); },
           onThink: (t) => {
-            if (!curStep || curStep.kind !== 'thinking') { curStep = { kind: 'thinking', tool: null, label: 'Thinking', body: '' }; steps.push(curStep); }
+            markConnected();
+            if (!curStep || curStep.kind !== 'thinking') { curStep = { kind: 'thinking', tool: null, label: 'Thinking', body: '', actor: 'brain' }; steps.push(curStep); }
             curStep.body = capBody(curStep.body + t);
             sse({ type: 'think', text: t });
           },
           onBlock: (b) => {
+            markConnected();
             if (b.kind === 'tool') {
               // Auto-tag: a general chat that actually invoked buildprint is a
               // Buildprint conversation (feeds the sidebar terminal icon from REAL
@@ -2930,14 +2994,22 @@ const server = http.createServer(async (req, res) => {
               // (arriving via onDetail) is also checked below.
               if (/buildprint/i.test(b.tool || '')) usedBuildprint = true;
               const note = answerSeg.trim();   // interim narration between tools → a finished note step
-              if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '' });
+              if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '', actor: 'brain' });
               answerSeg = '';
             }
-            curStep = { kind: b.kind, tool: b.tool || null, label: null, body: '' };
+            const actor = stepActor(b.tool, '') || 'brain';
+            curStep = { kind: b.kind, tool: b.tool || null, label: null, body: '', actor };
             steps.push(curStep);
-            sse({ type: 'block', kind: b.kind, tool: b.tool || null });
+            sse({ type: 'block', kind: b.kind, tool: b.tool || null, actor });
           },
-          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); if (curStep && curStep.kind === 'tool' && /buildprint/i.test(t || '')) usedBuildprint = true; sse({ type: 'detail', text: t }); },
+          onDetail: (t) => {
+            if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t);
+            if (curStep && curStep.kind === 'tool' && /buildprint/i.test(t || '')) usedBuildprint = true;
+            // A Bash block's actor is only knowable once the command text arrives —
+            // upgrade the live step's lane and tell the client to re-tag its card.
+            if (curStep && curStep.actor !== 'buildprint' && stepActor(curStep.tool, t) === 'buildprint') { curStep.actor = 'buildprint'; sse({ type: 'actor', actor: 'buildprint' }); }
+            sse({ type: 'detail', text: t });
+          },
           onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),

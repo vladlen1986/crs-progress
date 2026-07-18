@@ -413,6 +413,11 @@
   .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
   .wgroup.open .wsteps{display:flex}
   .wstep{display:flex;flex-direction:column}
+  /* actor lanes: who did this step — Brain (app/analysis) vs Buildprint (Bubble side) */
+  .wlane{display:flex;align-items:center;gap:8px;margin:7px 2px 2px;font:600 9px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  .wlane.bp{color:var(--accent)}
+  .wlane::after{content:'';flex:1;height:1px;background:var(--line2);opacity:.6}
+  .wstep[data-actor=buildprint] .wstep-head{box-shadow:inset 2px 0 0 var(--accent)}
   .wstep-head{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:7px;color:var(--secondary);font-size:12.5px;line-height:1.45;cursor:default}
   .wstep.has-body .wstep-head{cursor:pointer}
   .wstep.has-body .wstep-head:hover{background:var(--veil)}
@@ -1834,16 +1839,25 @@ function botMsgEl(){
 // Rebuild the folded "Worked for Xs" tree from a persisted steps[] timeline so the
 // thinking / tool / narration steps survive a reload — static + already collapsed,
 // same DOM the live builder produces (ensureGroup / startCard / addNoteStep).
+// Lane attribution: 'buildprint' = Bubble-side work (CLI / agent-browser /
+// crs-bubble worktree files), 'brain' = everything else (thinking, analysis,
+// lifecycle). Steps saved before actors existed are inferred from tool/label/body.
+function stepActorOf(s){ return s.actor || (/buildprint|agent-browser|crs-bubble/i.test((s.tool||'')+' '+(s.label||'')+' '+(s.body||''))?'buildprint':'brain'); }
+function laneDivEl(actor){ const d=document.createElement('div'); d.className='wlane'+(actor==='buildprint'?' bp':''); d.textContent=actor==='buildprint'?'›_ Buildprint — Bubble':'Brain'; return d; }
 function stepsGroupEl(steps, workMs){
   if(!Array.isArray(steps) || !steps.length) return null;
   const el=document.createElement('div'); el.className='wgroup';   // no .run, no .open = finished + collapsed
   el.innerHTML='<button class="wghead" type="button"><svg class="wgchev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="wgears"><svg class="g1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><use href="#i-gear"/></svg><svg class="g2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><use href="#i-gear"/></svg></span><span class="wglabel">'+esc('Worked for '+fmtDur(workMs||0))+'</span></button><div class="wsteps"></div>';
   el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
   const stepsEl=el.querySelector('.wsteps');
+  let lastActor=null;
   for(const s of steps){
+    const actor=stepActorOf(s);
+    if(actor!==lastActor && !(lastActor===null && actor==='brain')) stepsEl.appendChild(laneDivEl(actor));
+    lastActor=actor;
     const lbl=s.label || wLabel(s.kind, s.tool);
     const body=(s.body||'').trim();
-    const st=document.createElement('div'); st.className='wstep'+(body?' has-body':'');
+    const st=document.createElement('div'); st.className='wstep'+(body?' has-body':''); st.dataset.actor=actor;
     st.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(s.kind, s.tool||lbl)+'</span><span class="wstep-lbl">'+esc(lbl)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
     if(body) st.querySelector('.wstep-body').textContent=body;
     st.querySelector('.wstep-head').onclick=()=>{ if(st.classList.contains('has-body')) st.classList.toggle('open'); };
@@ -2443,16 +2457,39 @@ async function streamChat(text, opts={}){
     el.querySelector('.wghead').onclick=()=>el.classList.toggle('open');
     blocksEl.appendChild(el);
     try{ brainEl.remove(); }catch{}   // thinking-step brain takes over from the top placeholder
-    group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),start:performance.now(),run:true};
+    group={el,labelEl:el.querySelector('.wglabel'),stepsEl:el.querySelector('.wsteps'),start:performance.now(),run:true,lastActor:null};
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
-  function startCard(kind,tool){   // start a NEW step within the current group (name kept for call sites)
+  // Insert a lane divider when the ACTOR flips (brain ⇄ buildprint). The leading
+  // brain segment stays unlabeled — lanes only appear once Buildprint enters.
+  function laneMark(actor, beforeEl){
+    ensureGroup();
+    if(group.lastActor===actor || (group.lastActor===null && actor==='brain')){ group.lastActor=actor; return; }
+    group.lastActor=actor;
+    const d=laneDivEl(actor);
+    if(beforeEl) group.stepsEl.insertBefore(d, beforeEl); else group.stepsEl.appendChild(d);
+  }
+  function startCard(kind,tool,actor){   // start a NEW step within the current group (name kept for call sites)
     endStep(); ensureGroup();
-    const el=document.createElement('div'); el.className='wstep run';
+    actor=actor||'brain';
+    laneMark(actor);
+    const el=document.createElement('div'); el.className='wstep run'; el.dataset.actor=actor;
     el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco(kind,tool)+'</span><span class="wstep-lbl">'+esc(wLabel(kind,tool))+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
     el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
     group.stepsEl.appendChild(el);
     activeStep={el,icoEl:el.querySelector('.wstep-ico'),labelEl:el.querySelector('.wstep-lbl'),bodyEl:el.querySelector('.wstep-body'),kind,text:''};
+    if(nearBottom()) log.scrollTop=log.scrollHeight;
+  }
+  // Finished lifecycle/handoff step pushed by the SERVER (brain lane: prompt
+  // sent, CLI preflight, connected) — rendered complete, never spinning.
+  function addLifeNote(label, bodyText, actor){
+    endStep(); ensureGroup();
+    laneMark(actor||'brain');
+    const el=document.createElement('div'); el.className='wstep'; el.dataset.actor=actor||'brain';
+    el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco('note')+'</span><span class="wstep-lbl">'+esc(label)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
+    if((bodyText||'').trim()){ el.classList.add('has-body'); el.querySelector('.wstep-body').textContent=bodyText.trim(); }
+    el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
+    group.stepsEl.appendChild(el);
     if(nearBottom()) log.scrollTop=log.scrollHeight;
   }
   function setStepBody(t){
@@ -2472,7 +2509,8 @@ async function streamChat(text, opts={}){
   function addNoteStep(text){
     const one=oneLine(text); if(!one) return;
     endStep(); ensureGroup();
-    const el=document.createElement('div'); el.className='wstep';   // already complete — no .run
+    laneMark('brain');   // narration = the model talking = brain lane
+    const el=document.createElement('div'); el.className='wstep'; el.dataset.actor='brain';   // already complete — no .run
     el.innerHTML='<div class="wstep-head"><span class="wstep-ico">'+stepIco('note')+'</span><span class="wstep-lbl">'+esc(one)+'</span><svg class="wstep-exp" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></div><div class="wstep-body"></div>';
     if(one.length>72||/\n/.test(text.trim())){ el.classList.add('has-body'); el.querySelector('.wstep-body').textContent=text.trim(); }
     el.querySelector('.wstep-head').onclick=()=>{ if(el.classList.contains('has-body')) el.classList.toggle('open'); };
@@ -2537,10 +2575,20 @@ async function streamChat(text, opts={}){
         if(ev.type==='meta'){ live.chatId=ev.id; live.startedAt=ev.startedAt; if(ev.startedAt) setTurnStart(turn, ev.startedAt); if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; }
           if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
         else if(ev.type==='block'){
-          // A new TOOL block means the text streamed so far was interim narration —
-          // reclaim it from the answer body into a timeline note, then start the tool step.
-          if(ev.kind==='tool' && full.trim()){ addNoteStep(full); full=''; revealed=0; answerEl.innerHTML=''; answerEl.appendChild(caret); }
-          startCard(ev.kind, ev.tool);
+          // Server-pushed lifecycle notes (prompt sent / CLI preflight / connected)
+          // arrive complete with label+actor — render finished, never spinning.
+          if(ev.kind==='note'){ addLifeNote(ev.label||'', ev.body||'', ev.actor); }
+          else{
+            // A new TOOL block means the text streamed so far was interim narration —
+            // reclaim it from the answer body into a timeline note, then start the tool step.
+            if(ev.kind==='tool' && full.trim()){ addNoteStep(full); full=''; revealed=0; answerEl.innerHTML=''; answerEl.appendChild(caret); }
+            startCard(ev.kind, ev.tool, ev.actor);
+          }
+        }
+        else if(ev.type==='actor'){
+          // Lane upgrade: a Bash step turned out to be a buildprint/agent-browser
+          // command once its input streamed in — re-tag the live card + divider.
+          if(activeStep && activeStep.el.dataset.actor!==ev.actor){ activeStep.el.dataset.actor=ev.actor; laneMark(ev.actor, activeStep.el); }
         }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
