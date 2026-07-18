@@ -6,7 +6,8 @@
   "created": "2026-07-18T10:46:17.348Z",
   "notes": [
     "scaffolded (template: form)",
-    "2026-07-18T10:46:36.245Z — restored v1 (prior current preserved as v3)"
+    "2026-07-18T10:46:36.245Z — restored v1 (prior current preserved as v3)",
+    "2026-07-18T10:47:51.542Z — restored v1 (prior current preserved as v6)"
   ],
   "versions": [
     {
@@ -33,6 +34,11 @@
       "v": 5,
       "note": "second snap — rig note two",
       "ts": "2026-07-18T10:47:51.492Z"
+    },
+    {
+      "v": 6,
+      "note": "auto — before restore of v1",
+      "ts": "2026-07-18T10:47:51.542Z"
     }
   ]
 }

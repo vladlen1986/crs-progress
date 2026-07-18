@@ -1,12 +1,13 @@
 {
   "name": "qa-st-cards",
   "module": "casino_settings",
-  "status": "settled",
+  "status": "draft",
   "settledHash": "113a32c846b9aaf63563d42d49bab69fafe11351395bebacd7f4daaa5f5d5061",
   "created": "2026-07-18T10:46:17.338Z",
   "notes": [
     "scaffolded (template: cards)",
-    "2026-07-18T10:47:35.613Z — settled @ 113a32c846b9"
+    "2026-07-18T10:47:35.613Z — settled @ 113a32c846b9",
+    "2026-07-18T10:47:51.560Z — reverted settled → draft: html changed after settle (hash mismatch)"
   ],
   "versions": [
     {
