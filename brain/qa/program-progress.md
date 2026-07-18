@@ -5,7 +5,17 @@
 ## Position
 
 - **Current phase:** BRAIN PROGRAM 3 — Phase 0 (comprehension refresh) → then P1 chat-v2. Prompt: brain/qa/program3-prompt.md. Governance from Programs 1/2 carries over verbatim.
-- **Current task:** P3-P0 — refresh app-map to as-built (Program-2 + polish changed a lot), reconcile P3 phases 1–5 vs current app, write P3-Phase-1 plan, verify.
+- **Current task:** P3-P0 DONE (recon in brain/qa/program3-recon.md — 3 agents, chat verdict PROVEN by execution) → P3-Phase-1 plan below → verify → implement.
+- **P3 VERDICT (Phase 1):** chat ALREADY runs on Claude Code (`claude -p`, subagents proven live). NOT a migration. Phase 1 = (1) re-run parallel-files test as acceptance, (2) session-start context injection (focus-module engine bundle + CLAUDE.md), (3) operator slash-commands /settle /chunk /send /todo /decide /gen through existing APIs (no client slash parser today — only sendMsg "add todo" intercept), (4) finish/verify turn UI (f609abb=HEAD, already wired), (5) flag allowedTools-widening to Vlad (don't silently broaden). Ceiling: Bash prefix-restricted, writes cwd-bound, Skills off.
+
+## P3-PHASE-1 PLAN (written before first edit)
+
+1. **T1 slash-command parser (client):** sendMsg intercept `^/(settle|chunk|send|todo|decide|gen)\b` → structured command with a confirm step (crsConfirm memo for state-mutating ones) → routed to the EXISTING endpoint (never freelance): /settle→/api/protos/settle · /chunk <proto>→/api/protos/map+plan (or open the panel) · /send <proto/chunk>→/api/protos/chunk-status sent (copy path; bridge ENV-LIMITED) · /todo <text>→/api/tasks (already exists — fold in) · /decide <stub>→open decisions.md doc window + typed-confirm /api/decisions/lock · /gen <intent>→/api/modules/edit-prompt for the focus module. A `/help` lists them. All confirm before mutating.
+2. **T2 session-start context injection:** when a chat is created with a focus module (or /gen names one), prepend the engine bundle (assemble(moduleId)) + a CLAUDE.md-conventions pointer to the first message's system context — via the existing --append-system-prompt path (server-side, opts.systemPrompt) so the session starts grounded. Keep it OPT-IN per chat (don't bloat every general chat).
+3. **T3 BP auto-tag:** a chat that invokes buildprint (bp-guard/bp-log already logs it) → set chat.bp=true from real history (feeds the sidebar terminal icon — currently bp is set at creation for bp-mode chats; extend to detect actual buildprint tool use in a general chat). Server-side on turn completion.
+4. **T4 turn UI finish/verify:** the work-tree is wired; ADD model-fallback note rendering (model-switch event → a visible "switched <from>→<to>" line) + per-turn timestamps if missing; VERIFY it reflects real events (kill a subagent mid-run → UI shows it) — this is mostly acceptance, not build.
+5. **T5 acceptance CHATV2.1-4 + verify:** parallel-files test IN-chat (3 concurrent subagents, files land) · one /chunk→/send flow from chat · turn UI reflects a real kill · slash commands confirm-then-route (no freelance). Both themes, zero console errors.
+Risks: slash parser must not eat legitimate messages starting with / (require known verb + space); confirm steps for mutations; context injection size (bundle is ~96KB — inject a POINTER + on-demand, or only for /gen, not every chat — decide at impl, lean minimal); don't widen allowedTools without Vlad's ok (flag).
 - **POLISH PASS COMPLETE** — gate PASS 8/8 + loop c1+c2 CLEAN 145/12/0 over 157 rows (checkpoint brain/qa/checkpoints/polish.md, commits c6e4ec2, f4fbd8d). Two greens met.
 - (older polish position notes below, superseded)
 
