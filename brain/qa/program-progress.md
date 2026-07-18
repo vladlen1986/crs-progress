@@ -5,10 +5,10 @@
 ## Position
 
 - **Current phase:** PHASE 1 — Prototype → BP chunker
-- **Current task:** T1 — prototype store + lifecycle endpoints (server)
-- **Just completed:** PHASE 0 COMPLETE — gate PASS (verify cycle 2 after one fix cycle); checkpoint at brain/qa/checkpoints/phase-0.md
-- **Next:** T1 implement → T2 style-inventory + mapping → T3 plan → T4 emission → T5 UI → T6 verify/checklist/checkpoint (plan details in §P0.4 below)
-- **App server:** RUNNING on :4317 but STALE (404s /api/version which exists in code) — restart required before testing new endpoints. Restart via start.command/node; state is restart-safe.
+- **Current task:** T2 — style inventory + mapping pass
+- **Just completed:** T1 prototype lifecycle (server): PROTOS_DIR + helpers, GET /api/protos(+/detail), POST /api/protos/register|settle, byte-hash drift check auto-reverting settled/built → draft + warning notification; autoCommit add-list extended with prototypes/ (dir mkdir'd at boot so pathspec always resolves). Tested live: register buttons (module user_management) → settle b1d003ad… → 1-byte append → auto-revert + notification. Sample proto at prototypes/buttons/buttons.html (currently draft with a trailing extra newline from the drift test — harmless; settle again at T2 test time).
+- **Next:** T2 style-inventory.js + chunk.js mapping stage → T3 plan/validator → T4 emission → T5 UI → T6 verify/checklist/checkpoint (plan details in §P0.4 below)
+- **App server:** restarted 2026-07-18 (fresh code, /api/version ok). Two stale processes killed (60679, 41898). Runs via nohup, log /tmp/crs-brain-server.log.
 - **P6 note:** archive has `2026-07-16-user-management-audit.md` + `-as-built-section-audit.md`, no `um-audit-combined` — combine/regenerate at P6.
 
 ## Inherited context (verified 2026-07-18)

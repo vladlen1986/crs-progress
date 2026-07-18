@@ -359,6 +359,76 @@ function addNotification(n) {
   maybeEmailNotification(rec);
   return rec;
 }
+// ---- prototypes: design-prototype lifecycle (draft → settled → built) --------
+// prototypes/<name>/<name>.html + proto.json {name, module, status, settledHash,
+// created, notes[]}. Chunks generate ONLY from a settled hash; editing a settled
+// (or built) file auto-reverts it to draft with a warning — every read path runs
+// the drift check, so the freeze holds no matter which editor touched the file.
+const PROTOS_DIR = path.join(REPO_ROOT, 'prototypes');
+try { fs.mkdirSync(PROTOS_DIR, { recursive: true }); } catch {}
+const PROTO_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const PROTO_STATUSES = ['draft', 'settled', 'built'];
+function protoDir(name) { return path.join(PROTOS_DIR, name); }
+function protoHtmlPath(name) { return path.join(protoDir(name), name + '.html'); }
+function protoHtmlRel(name) { return 'prototypes/' + name + '/' + name + '.html'; }
+function protoJsonPath(name) { return path.join(protoDir(name), 'proto.json'); }
+// Hash the exact file bytes — no newline normalization, so the settled hash is
+// byte-truth (matches the engine's byte-identical bundle discipline).
+function protoHash(name) {
+  return crypto.createHash('sha256').update(fs.readFileSync(protoHtmlPath(name))).digest('hex');
+}
+function loadProto(name) {
+  const j = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8'));
+  j.name = name;
+  if (!PROTO_STATUSES.includes(j.status)) j.status = 'draft';
+  if (!Array.isArray(j.notes)) j.notes = j.notes ? [String(j.notes)] : [];
+  return j;
+}
+function saveProto(name, j) { fs.writeFileSync(protoJsonPath(name), JSON.stringify(j, null, 2)); }
+// Settled-integrity: settled/built html whose bytes no longer match the frozen
+// hash reverts to draft. Reports drift, keeps settledHash for the audit trail.
+function protoDriftCheck(name, j) {
+  if (j.status !== 'settled' && j.status !== 'built') return j;
+  let cur = null;
+  try { cur = protoHash(name); } catch { cur = null; }   // missing html = drift too
+  if (cur === j.settledHash) return j;
+  const was = j.status;
+  j.status = 'draft';
+  j.notes.push(nowIso() + ' — reverted ' + was + ' → draft: html changed after settle (hash mismatch)');
+  saveProto(name, j);
+  addNotification({
+    type: 'warning', level: 'warning', title: 'Prototype reverted to draft',
+    body: name + ': the html was edited after "' + was + '" — re-settle before chunking.',
+    target: protoHtmlRel(name),
+  });
+  return j;
+}
+function listProtos() {
+  let names = [];
+  try { names = fs.readdirSync(PROTOS_DIR).filter((n) => { try { return fs.existsSync(protoJsonPath(n)); } catch { return false; } }); } catch {}
+  const out = [];
+  for (const name of names.sort()) {
+    let j;
+    try { j = protoDriftCheck(name, loadProto(name)); } catch { continue; }
+    const dir = protoDir(name);
+    const plan = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'build-plan.json'), 'utf8')); } catch { return null; } })();
+    const chunks = plan && Array.isArray(plan.chunks) ? plan.chunks : [];
+    out.push({
+      ...j, html: protoHtmlRel(name),
+      mappingExists: fs.existsSync(path.join(dir, 'mapping.md')),
+      planExists: !!plan,
+      chunkCounts: chunks.length ? {
+        total: chunks.length,
+        sent: chunks.filter((c) => c.status === 'sent').length,
+        reported: chunks.filter((c) => c.status === 'reported').length,
+        verified: chunks.filter((c) => c.status === 'verified').length,
+        failed: chunks.filter((c) => c.status === 'failed').length,
+      } : null,
+    });
+  }
+  return out;
+}
+
 // Best-effort email: pipes through the local `sendmail` if present. No external
 // deps; silently no-ops when email is off, unconfigured, or sendmail is missing.
 function maybeEmailNotification(rec) {
@@ -1227,7 +1297,9 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
 function autoCommit(title) {
   if (process.env.CRS_BRAIN_AUTOCOMMIT === '0') return;
   const msg = 'brain: ' + String(title || 'update').replace(/[\r\n]+/g, ' ').slice(0, 60);
-  const add = spawn('git', ['add', 'crs-brain/data', 'brain'], { cwd: REPO_ROOT, windowsHide: true });
+  // prototypes/ is program state too (must survive machine moves / the restore
+  // drill); dir is mkdir'd at boot so the pathspec always resolves.
+  const add = spawn('git', ['add', 'crs-brain/data', 'brain', 'prototypes'], { cwd: REPO_ROOT, windowsHide: true });
   add.on('error', () => {});
   add.on('close', () => {
     const commit = spawn('git', ['commit', '-q', '--no-verify', '-m', msg], { cwd: REPO_ROOT, windowsHide: true });
@@ -2550,6 +2622,64 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(IDEAS_FILE, JSON.stringify(body, null, 2));
       autoCommit('ideas board');
       return send(res, 200, { ok: true });
+    }
+
+    // ---- Prototypes: lifecycle (draft → settled → built) ----
+    // List with live drift check. Everything the prototype cards render.
+    if (p === '/api/protos' && req.method === 'GET') {
+      return send(res, 200, { protos: listProtos() });
+    }
+    if (p === '/api/protos/detail' && req.method === 'GET') {
+      const name = u.searchParams.get('name') || '';
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = protoDriftCheck(name, loadProto(name));
+      const dir = protoDir(name);
+      let mapping = null, plan = null;
+      try { mapping = fs.readFileSync(path.join(dir, 'mapping.md'), 'utf8'); } catch {}
+      try { plan = JSON.parse(fs.readFileSync(path.join(dir, 'build-plan.json'), 'utf8')); } catch {}
+      const reports = {};
+      try {
+        for (const f of fs.readdirSync(path.join(dir, 'chunks'))) {
+          const m = f.match(/^(.+)-report\.md$/);
+          if (m) reports[m[1]] = 'prototypes/' + name + '/chunks/' + f;
+        }
+      } catch {}
+      return send(res, 200, { proto: j, html: protoHtmlRel(name), mapping, plan, reports });
+    }
+    // Adopt an existing repo html file as a prototype (the Phase-3 studio scaffolds
+    // new ones; this registers already-existing design html).
+    if (p === '/api/protos/register' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const src = safeRepoPath((body && body.path) || '');
+      if (!fs.existsSync(src) || !/\.html?$/i.test(src)) return send(res, 400, { error: 'source must be an existing .html file' });
+      const name = String((body && body.name) || path.basename(src).replace(/\.html?$/i, '')).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+      if (!PROTO_NAME_RE.test(name)) return send(res, 400, { error: 'bad prototype name' });
+      if (fs.existsSync(protoJsonPath(name))) return send(res, 409, { error: 'prototype "' + name + '" already exists' });
+      const modId = String((body && body.module) || '');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+      if (!mod) return send(res, 400, { error: 'module required — must be a real modules.json id' });
+      fs.mkdirSync(protoDir(name), { recursive: true });
+      fs.copyFileSync(src, protoHtmlPath(name));
+      const j = { name, module: mod.id, status: 'draft', settledHash: null, created: nowIso(), notes: ['registered from ' + path.relative(REPO_ROOT, src)] };
+      saveProto(name, j);
+      autoCommit('prototype register ' + name);
+      return send(res, 200, { ok: true, proto: j, html: protoHtmlRel(name) });
+    }
+    // Freeze the current html bytes as the settled hash. Chunking requires this.
+    if (p === '/api/protos/settle' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (j.status === 'built') return send(res, 409, { error: 'prototype is built — edit the html first (it will revert to draft), then settle again' });
+      let hash;
+      try { hash = protoHash(name); } catch (e) { return send(res, 500, { error: 'cannot hash html: ' + e.message }); }
+      j.status = 'settled';
+      j.settledHash = hash;
+      j.notes.push(nowIso() + ' — settled @ ' + hash.slice(0, 12));
+      saveProto(name, j);
+      autoCommit('prototype settle ' + name);
+      return send(res, 200, { ok: true, proto: j });
     }
 
     // ---- Build packets: plan → Buildprint prompt pipeline ----
