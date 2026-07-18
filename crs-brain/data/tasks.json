@@ -176,6 +176,13 @@
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "56acaf0b",
+      "title": "Link the buildprint CLI on this Mac: run `buildprint link <token>` (token: Buildprint web app → Integrations → CLI). Unblocks Phase-4 bridge (--send) + 2 standing ENV-LIMITED QA rows.",
+      "status": "todo",
+      "created": "2026-07-18T05:27:32.491Z",
+      "notes": "Precondition check 2026-07-18: buildprint 4.1.6 installed, `buildprint project list` → Unauthorized. CLI update 4.1.6→4.2.5 also still pending."
     }
   ]
 }
