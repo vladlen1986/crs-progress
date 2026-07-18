@@ -678,6 +678,27 @@
   .trow:hover .tdel{opacity:1}
   .tdel:hover{color:var(--danger);background:var(--panel2)}
   .envlist{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 2px;line-height:1.7}
+  /* P10 — phone-width command post: reading + ruling only */
+  @media (max-width:480px){
+    .col.left, #input, .composer, .chatbar, .dash-head .subline{display:none !important}
+    .actions, .tools, .lbl{display:none !important}
+    .dash-inner{padding:12px}
+    .dash-cols{grid-template-columns:1fr}
+    .trow{min-height:44px}
+    .tchk{width:26px;height:26px}
+    .tst,.tchip{min-height:32px;display:inline-flex;align-items:center}
+    .hicon{width:44px;height:44px}
+  }
+  .mpo{position:fixed;inset:0;z-index:380;background:var(--bg);display:none;flex-direction:column}
+  .mpo.show{display:flex}
+  .mpo .mpo-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .mpo .mpo-bar b{flex:1;color:var(--primary);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mpo .mpo-bar button{min-width:44px;min-height:44px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:var(--radius-btn);font:inherit;cursor:pointer}
+  .mpo .mpo-body{flex:1;overflow:auto;padding:16px;color:var(--secondary);font-size:13.5px;line-height:1.65;white-space:pre-wrap;font-family:var(--mono)}
+  .mpo .mpo-acts{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .mpo .mpo-acts button{flex:1;min-height:48px;border-radius:var(--radius-btn);font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--secondary)}
+  .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
+  .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
   .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:var(--transition);text-align:left;font-family:inherit;cursor:pointer}
   .kpi:hover{border-color:var(--line2);background:var(--elev)}
@@ -2191,6 +2212,7 @@ async function renderDashboard(){
         ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
       </div>
       <div class="dcard"><h3>${svg('i-terminal','sm')} Factory throughput</h3>
+        ${(dash.throughput&&dash.throughput.awaitingVerify.length)?dash.throughput.awaitingVerify.map(cv=>`<div class="drow" style="cursor:pointer" onclick="mobileChunkReview('${esc(cv)}')"><span class="rt">${esc(cv)}</span><span class="rmeta"><span class="tchip">review ▸</span></span></div>`).join(''):''}
         <div class="drow"><span class="rt">Intents processed</span><span class="rmeta">${num(dash.throughput?dash.throughput.processed:0)}</span></div>
         <div class="drow"><span class="rt">Awaiting my verify</span><span class="rmeta">${num(dash.throughput?dash.throughput.awaitingVerify.length:0)}</span></div>
         <div class="drow"><span class="rt">Avg intent → staged</span><span class="rmeta"><span class="dnum">${dash.throughput&&dash.throughput.avgIntentToStagedMs?Math.round(dash.throughput.avgIntentToStagedMs/1000)+'s':'—'}</span></span></div>
@@ -2200,7 +2222,7 @@ async function renderDashboard(){
 
     <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">
       <div class="dcard"><h3>${svg('i-flag','sm')} Decisions needed <span class="cnt">${dash.decisionsOpen.length}</span></h3>
-        ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt">${esc(d)}</span>
+        ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileDecisionView('${esc(d).replace(/'/g,"\\'")}')">${esc(d)}</span>
           <button class="tchip" onclick="openDocWindow('decisions.md')">open decisions.md</button></div>`).join('')
           :'<div class="dempty">No open decisions — the guard has nothing to block on.</div>'}
       </div>
@@ -2280,6 +2302,52 @@ async function renderDashboard(){
       ${T('i-doc','Prototypes',"openPageWindow('/protos.html','Prototypes')",c.cyan)}
     </div></section>
   </div>`;
+}
+function mpoShow(title, body, acts){
+  let el=$('mpo'); if(!el){ el=document.createElement('div'); el.className='mpo'; el.id='mpo'; document.body.appendChild(el); }
+  el.innerHTML=`<div class="mpo-bar"><b>${esc(title)}</b><button onclick="$('mpo').classList.remove('show')">✕</button></div>
+    <div class="mpo-body">${esc(body)}</div><div class="mpo-acts">${acts}</div>`;
+  el.classList.add('show');
+}
+async function mobileChunkReview(cv){
+  const [name,cid]=cv.split('/');
+  let report='(no BP report pasted yet — paste it from the desktop panel, or run the chunk in Buildprint first)';
+  try{ const r=await api('/api/file?path='+encodeURIComponent('prototypes/'+name+'/chunks/'+cid+'-report.md')); report=r.content; }catch{}
+  mpoShow('Review '+cv, report,
+    `<button class="ok" onclick="mobileChunkVerdict('${esc(name)}','${esc(cid)}','verified')">Verified ✓</button>
+     <button class="bad" onclick="mobileChunkVerdict('${esc(name)}','${esc(cid)}','failed')">Failed ✗</button>`);
+}
+async function mobileChunkVerdict(name,cid,st){
+  if(!await crsConfirm('Mark '+name+'/'+cid+' as '+st+'?')) return;
+  try{ await api('/api/protos/chunk-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,chunkId:cid,status:st})}); toast(cid+' → '+st); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
+}
+async function mobileDecisionView(title){
+  let body='(could not load decisions.md)';
+  try{ const r=await api('/api/file?path=decisions.md');
+    const m=r.content.split(/^## /m).find(b=>b.startsWith('[OPEN] '+title));
+    body=m?('## '+m):'(stub not found — it may have been resolved)';
+  }catch{}
+  mpoShow(title, body,
+    `<button onclick="mobileDecisionNote('${esc(title).replace(/'/g,"\\'")}')">Note to self</button>
+     <button class="ok" onclick="mobileDecisionLock('${esc(title).replace(/'/g,"\\'")}')">Lock decision…</button>`);
+}
+async function mobileDecisionNote(title){
+  const note=prompt('Note to self about: '+title);
+  if(!note) return;
+  try{ await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Decision note: '+note.slice(0,150),link:{kind:'decision',ref:title}})}); toast('Note saved as todo'); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
+}
+async function mobileDecisionLock(title){
+  const ruling=prompt('Your ruling for: '+title+'\n(This becomes the dated LOCKED entry in decisions.md)');
+  if(!ruling) return;
+  const confirm1=prompt('Type exactly:  LOCK '+title);
+  if(confirm1!=='LOCK '+title){ toast('Confirmation phrase mismatch — nothing changed'); return; }
+  try{ const r=await api('/api/decisions/lock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,ruling,confirm:confirm1})}); toast('Locked (via '+r.via+')'); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
 }
 async function runHandoff(){
   toast('Generating handoff…');

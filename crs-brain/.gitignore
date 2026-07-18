@@ -9,3 +9,4 @@ data/bubble-release-notes.snapshot
 .env
 secrets.json
 data/smtp.json
+.remote-token

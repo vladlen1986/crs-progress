@@ -1083,6 +1083,35 @@ const PIN_PAGE = (wrong) => `<!doctype html><meta name="viewport" content="width
 <input name="pin" inputmode="numeric" autofocus style="background:#242424;border:1px solid #333;border-radius:8px;color:#E0E0E0;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:6px;width:170px;outline:none">
 </form></body>`;
 
+// ---- P10: remote bearer/cookie auth (the tunnel is transport, NOT auth) -----
+// Every request that is not the physically-local workshop browser (bare
+// loopback socket with no proxy headers — tailscale serve always adds
+// X-Forwarded-For, so tunnel traffic can never masquerade as local) must carry
+// the remote token: Authorization: Bearer <t> or the crsbrain_rt cookie.
+// Token: env CRS_BRAIN_TOKEN → else persisted crs-brain/.remote-token
+// (gitignored). Rotate: POST /api/auth/rotate-remote (local-only) — the old
+// token/cookies die instantly; re-login from /remote?token=<new>.
+function resolveRemoteToken() {
+  if (process.env.CRS_BRAIN_TOKEN) return process.env.CRS_BRAIN_TOKEN;
+  const f = path.join(__dirname, '.remote-token');
+  try { const v = fs.readFileSync(f, 'utf8').trim(); if (/^[a-f0-9]{32,}$/.test(v)) return v; } catch {}
+  const v = crypto.randomBytes(24).toString('hex');
+  try { fs.writeFileSync(f, v); } catch {}
+  return v;
+}
+let REMOTE_TOKEN = resolveRemoteToken();
+function isRemoteReq(req) {
+  if (!isLocalReq(req)) return true;
+  // loopback socket but proxied (tailscale serve / any reverse proxy) = remote
+  return !!(req.headers['x-forwarded-for'] || req.headers['tailscale-user-login'] || req.headers['x-forwarded-host']);
+}
+function remoteAuthOk(req) {
+  const h = req.headers.authorization || '';
+  if (h === 'Bearer ' + REMOTE_TOKEN) return true;
+  const cookies = Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=')));
+  return cookies.crsbrain_rt === REMOTE_TOKEN;
+}
+
 function lanIps() {
   const out = [];
   for (const ifs of Object.values(os.networkInterfaces()))
@@ -2173,6 +2202,23 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://localhost:${PORT}`);
   const p = u.pathname;
 
+  // P10 remote gate: EVERY endpoint requires the token on any remote path.
+  // Uniform 401 with zero information leak; /remote?token= bootstraps the cookie.
+  if (isRemoteReq(req)) {
+    const u0 = new URL(req.url, 'http://x');
+    if (u0.pathname === '/remote' && req.method === 'GET') {
+      if (u0.searchParams.get('token') === REMOTE_TOKEN) {
+        res.writeHead(302, { 'Set-Cookie': 'crsbrain_rt=' + REMOTE_TOKEN + '; Path=/; Max-Age=7776000; HttpOnly; SameSite=Lax', Location: '/' });
+        return res.end();
+      }
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end('{"error":"unauthorized"}');
+    }
+    if (!remoteAuthOk(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end('{"error":"unauthorized"}');
+    }
+  }
   // PIN gate for non-localhost clients (mobile/LAN mode)
   if (!pinOk(req)) {
     const tryPin = u.searchParams.get('pin');
@@ -3093,6 +3139,36 @@ const server = http.createServer(async (req, res) => {
       try { const r = await generateHandoff(); return send(res, 200, r); }
       catch (e) { return send(res, 500, { error: e.message }); }
     }
+    // P10: rotate the remote token (workshop-only — never from a remote path).
+    if (p === '/api/auth/rotate-remote' && req.method === 'POST') {
+      if (isRemoteReq(req)) return send(res, 401, { error: 'unauthorized' });
+      const v = crypto.randomBytes(24).toString('hex');
+      fs.writeFileSync(path.join(BRAIN_DIR, '.remote-token'), v);
+      REMOTE_TOKEN = v;
+      return send(res, 200, { ok: true, note: 'token rotated — previous cookies/bearers are dead; re-login via /remote?token=<new>' });
+    }
+    // P10: rule a decision remotely — typed confirmation, full audit trail.
+    if (p === '/api/decisions/lock' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const title = String((body && body.title) || '');
+      const ruling = String((body && body.ruling) || '').trim();
+      if (String((body && body.confirm) || '') !== 'LOCK ' + title) return send(res, 400, { error: 'typed confirmation required: "LOCK <exact stub title>"' });
+      if (!ruling) return send(res, 400, { error: 'ruling text required' });
+      const decPath = path.join(REPO_ROOT, 'decisions.md');
+      let md = fs.readFileSync(decPath, 'utf8');
+      const stubRe = new RegExp('^## \\[OPEN\\] ' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\n[\\s\\S]*?(?=^## |\\Z)', 'm');
+      if (!stubRe.test(md)) return send(res, 404, { error: 'no [OPEN] stub with that exact title' });
+      const via = isRemoteReq(req) ? 'remote' : 'desktop';
+      const entry = '## ' + nowIso().slice(0, 10) + ' — ' + title + '\n\n' + ruling + '\n\n(ruled via: ' + via + ')\n\n';
+      md = md.replace(stubRe, '');
+      const anchor = md.indexOf('\n## ');
+      md = anchor > 0 ? md.slice(0, anchor + 1) + entry + md.slice(anchor + 1) : md + '\n' + entry;
+      fs.writeFileSync(decPath, md);
+      try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'decision-locked', title, via }) + '\n'); } catch {}
+      addNotification({ type: 'success', level: 'success', title: 'Decision locked' + (via === 'remote' ? ' (remote)' : ''), body: title, target: 'decisions.md' });
+      autoCommit('decision locked: ' + title.slice(0, 40));
+      return send(res, 200, { ok: true, via });
+    }
     // ---- P7: manual triggers for the scheduled read-only jobs ----
     if (p === '/api/state-audit/run' && req.method === 'POST') {
       const r = runStateAudit();
@@ -3142,6 +3218,7 @@ const server = http.createServer(async (req, res) => {
       if (body.due !== undefined) { if (body.due) t.due = String(body.due); else delete t.due; delete t.notifiedDue; }
       if (body.notes !== undefined) t.notes = String(body.notes).slice(0, 1000);
       saveTasks(tasks);
+      try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'task-update', id: t.id, status: t.status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
       autoCommit('task update');
       return send(res, 200, { ok: true, task: t });
     }
@@ -3440,6 +3517,7 @@ const server = http.createServer(async (req, res) => {
       try {
         const chunkEngine = freshChunkEngine();
         const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), status);
+        try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'chunk-status', chunk: name + '/' + body.chunkId, status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
         autoCommit('prototype chunk ' + name + ' ' + body.chunkId + ' ' + status);
         return send(res, 200, { ok: true, chunk: r.chunk, protoStatus: r.proto.status });
       } catch (e) { return send(res, 400, { error: e.message }); }
