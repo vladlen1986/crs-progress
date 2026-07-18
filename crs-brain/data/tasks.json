@@ -842,9 +842,9 @@
     {
       "id": "c496c873",
       "title": "Smoke QA FAIL: checklist-parse-sane — 165 rows",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T12:45:57.488Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-18T16:10:59.552Z)",
       "auto": {
         "key": "smoke:checklist-parse-sane"
       }
@@ -975,6 +975,46 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "e207b7c4",
+      "title": "State drift: open todo \"Await BP report: chatv2probe/c1\" links a missing chunk (chatv2probe/c1)",
+      "status": "todo",
+      "created": "2026-07-18T16:10:59.482Z",
+      "notes": "",
+      "auto": {
+        "key": "state-drift:dead-link:b7c2b5ab"
+      }
+    },
+    {
+      "id": "dfe73e75",
+      "title": "Smoke QA FAIL: plan-validate-buttons — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-07-18T16:10:59.552Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:plan-validate-buttons"
+      }
+    },
+    {
+      "id": "b0cb5aa5",
+      "title": "Smoke QA FAIL: plan-validate-pilot — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-07-18T16:10:59.552Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:plan-validate-pilot"
+      }
+    },
+    {
+      "id": "75969b84",
+      "title": "Smoke QA FAIL: scaffold-token-markers — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-07-18T16:10:59.552Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:scaffold-token-markers"
       }
     }
   ]
