@@ -4,8 +4,9 @@
 
 ## Position
 
-- **Current phase:** PHASE 4 — Buildprint CLI bridge (--send)
-- **Current task:** P4 precondition check (buildprint --version + auth read) — hard-stop honesty gate
+- **Current phase:** PHASE 5 — End-to-end pilot + loop-to-green (COPY PATH — bridge ENV-LIMITED)
+- **Current task:** P5 plan → pilot prototype through the whole pipe
+- **PHASE 4 = ENV-LIMITED STOP** (checkpoint phase-4.md): CLI 4.1.6 installed, `buildprint project list` → Unauthorized. BRIDGE.1 PASS (honest stop) · BRIDGE.2/3 ENV-LIMITED. Needs-eyes todo 56acaf0b: `buildprint link <token>`. NO bridge code built (never mock). P5+P6 use the copy path.
 - **PHASE 3 COMPLETE** — gate PASS (24/24 rig checks; checkpoint brain/qa/checkpoints/phase-3.md; STUDIO.1–4 PASS appended). prototypes/ = buttons + studio-sample only.
 - P3 pointers: scaffold injects CRS-design-system.md §2.10 blocks verbatim (script-assembled); live-reload = PARENT-driven poll + iframe.src ?v= cache-buster (sandbox allow-scripts only — reconciliation F); prototype bar = parent chrome like .hf-bar; versions/ + snapshot/restore w/ auto-snapshot-before-restore; settled protos refuse studio edits (Phase-1 drift rule holds); Tier-1 editor (dwEditToggle/dwSave) is THE editor — studio adds reload trigger only (overlap 11); stale-token diff = chunk.js localTokens verdicts (STALE/UNKNOWN flags).
 - **T4 DONE:** emission — buildChunkIntent (settle-gated, plan re-validated on load, WHOLE-plan guard: any chunk scope hitting an [OPEN] stub → DECISION-NEEDED, zero chunks, exit 2/HTTP 409 + decision-attention notification); intent embeds scope/dependsOn/producedNames; appendVerbatimContract() mechanically appends verbatim mapping rows + byte-exact producedNames AFTER the model output (model can't drift it — fixed after first emission paraphrased rows); gen.js archive() extended w/ Prototype-SHA256 + Chunk-Id stamps, callModel exported; CLI `chunk.js emit <name> <id>`; server POST /api/protos/emit + /chunk-status + /chunk-report (report paste → chunks/<id>-report.md + status reported; all-verified → proto built). PROVEN: planted "privacy rule on Company" scope → whole-plan stop citing own-table stub; real c1 emission archived w/ both hashes; TEST wrapper/[NEG]/bUfVN0/verbatim rows all present in prototypes/buttons/chunks/c1-prompt.md.
