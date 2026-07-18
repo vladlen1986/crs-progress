@@ -1,3 +1,5 @@
 {"ts":"2026-07-18T13:37:25.985Z","action":"chunk-status","target":"buttons/c1=sent","via":"desktop","meta":null}
 {"ts":"2026-07-18T13:37:25.995Z","action":"chunk-status","target":"buttons/c1=pending","via":"desktop","meta":null}
 {"ts":"2026-07-18T13:37:26.616Z","action":"backup-snapshot","target":"state-2026-07-18.zip","via":"scheduler","meta":null}
+{"ts":"2026-07-18T13:42:04.853Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-18T13:42:05.498Z","action":"backup-snapshot","target":"state-2026-07-18.zip","via":"scheduler","meta":null}

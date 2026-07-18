@@ -1,3 +1,6 @@
 {"ts":"2026-07-18T13:37:25.925Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
 {"ts":"2026-07-18T13:37:25.935Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
 {"ts":"2026-07-18T13:37:25.943Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
+{"ts":"2026-07-18T13:47:42.033Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T13:47:42.043Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T13:47:42.052Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
