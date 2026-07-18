@@ -647,7 +647,7 @@
     {
       "id": "8b3fa08a",
       "title": "Enable Tailscale Serve for the remote command post: open https://login.tailscale.com/f/serve?node=nsJn6BSpk111CNTRL (one click, your tailnet), then run: /Applications/Tailscale.app/Contents/MacOS/Tail",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T09:43:05.011Z",
       "notes": "P10 tunnel ENV-LIMITED: serve not enabled on the tailnet (account action). Auth gate + mobile command post are live and locally proven."
     }
