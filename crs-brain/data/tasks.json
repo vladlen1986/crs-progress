@@ -571,6 +571,13 @@
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "5fdc90d0",
+      "title": "QA guide walkthrough todo A",
+      "status": "todo",
+      "created": "2026-07-18T08:25:04.254Z",
+      "notes": ""
     }
   ]
 }
