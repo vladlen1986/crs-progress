@@ -1092,6 +1092,9 @@
   /* immersive fullscreen for image windows: chrome hidden, image only + ✕ (Esc exits) */
   .docwin.dw-imgfs{border-radius:0;border:none}
   .docwin.dw-imgfs .dp-head{display:none}
+  /* native browser fullscreen: beat the inline rect styles so the element truly
+     covers the monitor (inline width/height would otherwise win over UA styles) */
+  .docwin.dw-imgfs:fullscreen{left:0 !important;top:0 !important;width:100vw !important;height:100vh !important}
   .iv-close{display:none;position:absolute;top:14px;right:16px;z-index:5;width:40px;height:40px;border:0;border-radius:10px;background:rgba(18,18,22,.6);color:#E0E0E0;cursor:pointer;align-items:center;justify-content:center;transition:background .16s ease-in-out}
   .iv-close:hover{background:rgba(18,18,22,.92)}
   .docwin.dw-imgfs .iv-close{display:flex}
@@ -2941,8 +2944,22 @@ function dwFsToggle(w){
     w.rect={x:0,y:0,w:innerWidth,h:innerHeight}; dwApply(w); }
   else { w.snap=w.fs.snap; w.rect=w.fs.snap?explZoneRect(w.fs.snap.zone):{...w.fs.rect}; w.fs=null; dwApply(w); }
   // image windows: fullscreen = IMMERSIVE (chrome hidden, image only + ✕/Esc)
-  w.el.classList.toggle('dw-imgfs', !!w.iv && dwIsFs(w));
+  // + NATIVE browser fullscreen so the image covers the entire monitor.
+  const imgFs = !!w.iv && dwIsFs(w);
+  w.el.classList.toggle('dw-imgfs', imgFs);
+  if (w.iv) {
+    // promise-safe: a denied request (no user gesture) must not throw or log —
+    // the viewport-immersive mode remains as the graceful fallback.
+    if (imgFs) { try{ const p=w.el.requestFullscreen&&w.el.requestFullscreen(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
+    else if (document.fullscreenElement===w.el) { try{ const p=document.exitFullscreen(); if(p&&p.catch) p.catch(()=>{}); }catch{} }
+  }
   dwMaxIcon(w); }
+// In NATIVE fullscreen the browser handles Esc itself (the page may never see the
+// keydown) — when it exits while an image window is still immersive, restore it.
+document.addEventListener('fullscreenchange', ()=>{
+  if(document.fullscreenElement) return;
+  for(const w of DW.wins.values()){ if(w.iv && w.el.classList.contains('dw-imgfs') && dwIsFs(w)) dwFsToggle(w); }
+});
 function dwFocus(w){ if(w.min){ w.min=false; w.el.style.display='flex'; }
   w.z=++DW.z; w.el.style.zIndex=w.z; w.lastFocus=Date.now();
   DW.active=w.id; DW.focusIsDoc=true;
