@@ -134,7 +134,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 
 | id | kind | value | location | nearest token | status | resolution |
 |---|---|---|---|---|---|---|
-| f1 | literal | `#B91C1C` | <div style=""> · color · L88 | --error | unresolved |  |
+| f1 | literal | `#B91C1C` | <div style=""> · color · L88 | --error | approved-literal | approved as literal by vlad |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -1069,8 +1069,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 88,
       "nearest": "--error",
       "id": "f1",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     }
   ],
   "matched": [],
