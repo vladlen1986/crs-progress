@@ -345,6 +345,26 @@
         "kind": "module",
         "ref": "user_management"
       }
+    },
+    {
+      "id": "8c3f67b0",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T06:56:54.734Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T06:56:54.827Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
+    },
+    {
+      "id": "60149b64",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T06:59:02.978Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T06:59:20.223Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
     }
   ]
 }
