@@ -4,8 +4,9 @@
 
 ## Position
 
-- **Current phase:** PHASE 8 — Self-documentation + resilience
-- **Current task:** P8 plan (handoff cmd · USER-GUIDE · restore drill · review digest)
+- **Current phase:** PHASE 9 — Production throughput (queue-driven, limit-aware)
+- **Current task:** P9 plan — honest scoping: Pattern A still [OPEN], bridge ENV-LIMITED
+- **PHASE 8 COMPLETE** — gate PASS 4/4 + loop c3+c4 both CLEAN 132/10/0 over 142 rows (checkpoint phase-8.md). Guide walkthrough found+fixed 2 real app bugs (autoGrow ghost, bad notification targets). Handoff/USER-GUIDE/restore-drill/review-digest all shipped.
 - **PHASE 7 COMPLETE** — gate PASS 5/5 (checkpoint phase-7.md): state audit (read-only, proven), weekly digest 2026-W29 real, smoke QA 22 checks daily, scheduler restart-safe.
 - **PHASE 6 COMPLETE** — gate PASS, copy-path variant (checkpoint phase-6.md): audit prompt engine-generated + archived; guard blocks proven on 3 paths; Pattern-A decision todo linked+notified via real mechanism; drafts file written; P6.2 report/ingest ENV-LIMITED (Vlad's BP session — follow-up todo has the steps).
 - **PHASE 5 COMPLETE** — gate PASS (checkpoint phase-5.md): pilot casino-settings settled dd65bf73 → 12 real flags resolved (vlad resolver) → 12-chunk plan → c1 emitted (dual-hash archive) → sent + live follow-up; report capture = Vlad's homework (PILOT.3 ENV-LIMITED, honest deviation). LOOP GOAL MET: two consecutive clean runs c1+c2, both 119 PASS / 9 ENV-LIMITED / 0 FAIL over 128 rows (commits 5db0d65, 8e669b5). Quarantine empty. Needs-eyes: 9 rows (see checkpoint).
