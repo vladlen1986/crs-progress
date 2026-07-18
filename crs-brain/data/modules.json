@@ -69,66 +69,6 @@
       "order": 1
     },
     {
-      "id": "roles_permissions",
-      "name": "Roles & Permissions",
-      "section": "Admin / Core",
-      "route": "roles",
-      "icon": "shield-check",
-      "status": "done",
-      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
-      "checklist": [
-        {
-          "key": "ui",
-          "label": "UI elements built",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "ux",
-          "label": "UX / workflows working",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "db",
-          "label": "Data types as planned (company + property)",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "os",
-          "label": "Option sets in place",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "privacy",
-          "label": "Privacy rules (Pattern A) in place",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "perms",
-          "label": "Backend protection (permission-based)",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "theme",
-          "label": "Theme (dark + light)",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "tested",
-          "label": "Security [NEG] tested",
-          "state": "done",
-          "detail": ""
-        }
-      ],
-      "order": 2
-    },
-    {
       "id": "user_management",
       "name": "User Management",
       "section": "Admin / Core",
@@ -184,6 +124,66 @@
           "label": "Security [NEG] tested",
           "state": "todo",
           "detail": "security NEG not started"
+        }
+      ],
+      "order": 2
+    },
+    {
+      "id": "roles_permissions",
+      "name": "Roles & Permissions",
+      "section": "Admin / Core",
+      "route": "roles",
+      "icon": "shield-check",
+      "status": "done",
+      "note": "COMPLETE & verified (2026-06-07). Three-tier security, dark+light, mobile.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "done",
+          "detail": ""
         }
       ],
       "order": 3
