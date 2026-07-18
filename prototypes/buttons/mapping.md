@@ -1,7 +1,7 @@
 # Mapping — buttons
 
 Prototype: prototypes/buttons/buttons.html
-Settled-SHA256: 48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658
+Settled-SHA256: a5cb27de83fca567a0bd3e674bfb3487786ca032cdabee1d00a2111ce1cec214
 Module: user_management
 Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98 (design-system-export.md ABSENT — curated attested set)
 
@@ -107,7 +107,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 {
   "name": "buttons",
   "module": "user_management",
-  "settledHash": "48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658",
+  "settledHash": "a5cb27de83fca567a0bd3e674bfb3487786ca032cdabee1d00a2111ce1cec214",
   "inventorySha": "0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98",
   "tokenRows": [
     {
