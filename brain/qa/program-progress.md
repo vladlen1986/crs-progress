@@ -26,6 +26,14 @@
 - QA verification: in-session browser pane ruled unusable for verification (background-throttled) per Vlad's 2026-07-17 directive — verification rig = puppeteer-core driving system Chrome headless:'new' with throttling disabled; rig is machine-local, rebuild on this Mac at first browser-verify need (sanity-prove on a known-PASS row first). Both themes always.
 - Commits auto-fire from server saves (autoCommit on crs-brain/data + brain) — expect interleaved `data:`-style commits; phase commits stay `<phase>: <task>`.
 
+## P6 PLAN (written before first edit)
+
+1. **Audit prompt:** `um-audit-combined` absent from the archive — per program, regenerate via the engine from its intent (combined read-only UM audit: general + as-built sections). Run gen.js CLI with the combined intent; if retrievalCheck fires (≥0.8 vs the 2026-07-16 UM audit prompts) take the retrieved doc per transparency rules (labeled, never presented as generated); intent phrased read-only and avoiding literal guard-trigger phrases (an audit resolves nothing). Archive beside the existing prompts.
+2. **Send = copy path** (bridge ENV-LIMITED): raise a follow-up todo "Run the UM audit in Buildprint" with instructions (copy archived prompt → BP TEST → paste report via Ingest attach). REPORT CANNOT EXIST WITHOUT VLAD'S SESSION → steps 6.2 (capture) + ingest deltas + scorecard/[NEG] todos from the report = ENV-LIMITED with written root cause (same honesty as Phase 4).
+3. **Guard block proof:** gen CLI with a UM-scoping intent touching Pattern-A triggers → exit 2 DECISION-NEEDED, zero model spend. The server-side guard path (emit) already auto-raises the LINKED decision todo + decision-attention notification — trigger it via the API so the todo+notification land through the REAL mechanism (program: "Pattern A decision todo present, linked, notified").
+4. **Post-decision gen intent drafts** (written, NOT generated): drafts file brain/buildprint/drafts-post-decision-um.md from the [OPEN] stubs + STATUS §4/§5 gaps, labeled pre-report (refine after the audit lands).
+5. Rows P6.1–5 (mixed PASS/ENV-LIMITED per above) + independent verification of the executable items + checkpoint telling Vlad exactly what awaits his ruling.
+
 ## P5 PLAN (written before first edit)
 
 **Pilot subject: demos/casino_property_settings.html → prototype `casino-settings` (module `casino_settings`).** Why: the smallest real prototype that maps to a REAL modules.json module (37.9KB; Coming_Soon is smaller but belongs to no module — a module-less pilot would hollow out the engine's MODULE BLOCK + STATUS grounding; buttons is already consumed as the Phase-1 acceptance sample; BreakList is bigger). casino_settings is a done module with real STATUS §3 content — the richest honest bundle.
