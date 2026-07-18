@@ -1,0 +1,32 @@
+{
+  "id": "c785349f-0643-4226-8142-0445829f1170",
+  "title": "Count 1 to 50 slowly, one per line with commentary.",
+  "sessionId": "10c203ce-bc90-41e8-8024-6211c844b4e2",
+  "bp": false,
+  "created": "2026-07-18T12:37:35.228Z",
+  "updated": "2026-07-18T12:37:41.781Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Count 1 to 50 slowly, one per line with commentary.",
+      "ts": "2026-07-18T12:37:35.228Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "1 — starting at",
+      "ts": "2026-07-18T12:37:41.781Z",
+      "startedAt": "2026-07-18T12:37:35.228Z",
+      "completedAt": "2026-07-18T12:37:41.781Z",
+      "steps": [
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": ""
+        }
+      ],
+      "partial": true
+    }
+  ]
+}
