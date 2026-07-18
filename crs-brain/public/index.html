@@ -562,7 +562,8 @@
   .md blockquote{border-left:3px solid var(--accent);margin:1em 0;padding:2px 0 2px 14px;color:var(--muted)}
   .md ul,.md ol{padding-left:22px}
   .md li{margin:.25em 0}
-  .md .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block}
+  .md .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block;cursor:zoom-in;transition:border-color .15s ease,filter .15s ease}
+  .md .md-img:hover{border-color:var(--accent);filter:brightness(1.05)}
   .md a[data-path]{color:var(--accent2);border-bottom:1px dashed var(--accent-border-active)}
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
 

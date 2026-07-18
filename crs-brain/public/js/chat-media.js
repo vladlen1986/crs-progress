@@ -146,7 +146,21 @@ function autoLinkEntities(body){
 }
 // one delegated handler: a chat thumbnail opens the P9.5 viewer seeded with its message's gallery
 document.addEventListener('click',(e)=>{
-  const shot=e.target.closest('.cm-shot'); if(!shot) return;
-  const g=shot.closest('.cm-grid'); const imgs=(g&&g._imgs)||[]; const i=+shot.dataset.i||0;
-  if(imgs.length) openDocWindow(imgs[i],{ivImgs:imgs,ivIdx:i});
+  const shot=e.target.closest('.cm-shot');
+  if(shot){
+    const g=shot.closest('.cm-grid'); const imgs=(g&&g._imgs)||[]; const i=+shot.dataset.i||0;
+    if(imgs.length) openDocWindow(imgs[i],{ivImgs:imgs,ivIdx:i});
+    return;
+  }
+  // markdown-embedded repo images (![…](path) → img.md-img) get the SAME viewer,
+  // seeded with every md-img in the same reply as its gallery. External http
+  // images are left alone (no repo path to open).
+  const mi=e.target.closest('img.md-img'); if(!mi) return;
+  const m=/[?&]path=([^&]+)/.exec(mi.getAttribute('src')||''); if(!m) return;
+  const scope=mi.closest('.body')||document;
+  const imgs=[...scope.querySelectorAll('img.md-img')]
+    .map(im=>{ const mm=/[?&]path=([^&]+)/.exec(im.getAttribute('src')||''); return mm?decodeURIComponent(mm[1]):null; })
+    .filter(Boolean);
+  const p=decodeURIComponent(m[1]);
+  openDocWindow(p,{ivImgs:imgs,ivIdx:Math.max(0,imgs.indexOf(p))});
 });
