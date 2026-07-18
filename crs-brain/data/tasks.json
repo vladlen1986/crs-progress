@@ -199,6 +199,13 @@
       "auto": {
         "key": "chunk-report:casino-settings/c1"
       }
+    },
+    {
+      "id": "fc02885f",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T05:40:34.759Z",
+      "notes": ""
     }
   ]
 }
