@@ -182,18 +182,22 @@ function computeMapping(name) {
   const idx = buildTokenIndex(inv);
   const rules = cssRules(html);
 
-  // 1. The file's own :root token declarations — the stale-token check.
+  // 1. The file's own token declarations (:root AND [data-theme] blocks) — the
+  // stale-token check, theme-aware: light-block values diff against canon LIGHT.
+  const isTokenBlock = (sel) => /:root|\[data-theme/.test(sel);
   const localTokens = [];
-  for (const r of rules.filter((r) => /:root/.test(r.selector))) {
+  for (const r of rules.filter((r) => isTokenBlock(r.selector))) {
+    const theme = /data-theme="light"/.test(r.selector) ? 'light' : 'dark';
     for (const d of r.decls) {
       if (!d.prop.startsWith('--')) continue;
       const canonical = canonicalName(d.prop, inv, idx);
       const canon = canonical ? idx.byName.get(canonical) : null;
+      const canonVal = canon ? (theme === 'light' ? (canon.light != null ? canon.light : canon.dark) : canon.dark) : null;
       const nrm = (s) => String(s).replace(/\s*,\s*/g, ',').replace(/\s+/g, ' ').replace(/["']/g, '').trim();
       const fileNorm = normColor(d.value) || nrm(d.value);
-      const canonNorm = canon ? (normColor(canon.dark) || nrm(canon.dark)) : null;
+      const canonNorm = canonVal != null ? (normColor(canonVal) || nrm(canonVal)) : null;
       localTokens.push({
-        declared: d.prop, value: d.value, canonical, canonDark: canon ? canon.dark : null,
+        declared: d.prop, value: d.value, canonical, theme, canonDark: canonVal,
         verdict: !canonical ? 'UNKNOWN' : (fileNorm === canonNorm ? 'MATCH' : 'STALE'),
         line: r.line,
       });
@@ -203,7 +207,7 @@ function computeMapping(name) {
   // 2. Every var(--x) usage outside the declarations.
   const varUse = new Map();
   for (const r of rules) {
-    if (/:root/.test(r.selector)) continue;
+    if (isTokenBlock(r.selector)) continue;
     for (const d of r.decls) {
       for (const m of d.value.matchAll(/var\((--[a-z0-9-]+)\)/gi)) {
         const v = m[1];
@@ -218,8 +222,9 @@ function computeMapping(name) {
   const flags = [];
   const matched = [];
   for (const r of rules) {
-    if (/:root/.test(r.selector)) continue;
+    if (isTokenBlock(r.selector)) continue;
     for (const d of r.decls) {
+      if (d.prop.startsWith('--')) continue;   // token definitions are the stale-check's job
       const values = [];
       for (const cm of d.value.matchAll(/#[0-9a-f]{3,6}\b|rgba?\([^)]*\)/gi)) values.push({ kind: 'color', raw: cm[0] });
       if (/^border-radius$/i.test(d.prop)) {
@@ -296,7 +301,7 @@ function computeMapping(name) {
   const compRows = [];
   const seenFam = new Map();
   for (const r of rules) {
-    if (/:root|^html$|^body$|^\*$/.test(r.selector)) continue;
+    if (isTokenBlock(r.selector) || /^html$|^body$|^\*$/.test(r.selector)) continue;
     const det = COMPONENT_DETECTORS.find((d) => d.re.test(r.selector));
     if (!det) continue;
     const base = r.selector.split(/[:\s>]/)[0];

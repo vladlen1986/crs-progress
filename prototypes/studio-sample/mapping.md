@@ -71,6 +71,48 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 | `--radius-modal` | 12px | `--radius-modal` | 12px | MATCH |
 | `--radius-badge` | 5px | `--radius-badge` | 5px | MATCH |
 | `--radius-pill` | 20px | `--radius-pill` | 20px | MATCH |
+| `--bg-primary` | #FAFAFA | `--bg-primary` | #FAFAFA | MATCH |
+| `--bg-secondary` | #FFFFFF | `--bg-secondary` | #FFFFFF | MATCH |
+| `--bg-tertiary` | #F4F4F5 | `--bg-tertiary` | #F4F4F5 | MATCH |
+| `--bg-elevated` | #FFFFFF | `--bg-elevated` | #FFFFFF | MATCH |
+| `--border-default` | #EAEAEB | `--border-default` | #EAEAEB | MATCH |
+| `--border-hover` | #DCDCDE | `--border-hover` | #DCDCDE | MATCH |
+| `--border-active` | #C8C8CB | `--border-active` | #C8C8CB | MATCH |
+| `--input-border` | #E4E4E6 | `--input-border` | #E4E4E6 | MATCH |
+| `--accent` | #3B82F6 | `--accent` | #3B82F6 | MATCH |
+| `--accent-hover` | #2563EB | `--accent-hover` | #2563EB | MATCH |
+| `--accent-active` | #1D4ED8 | `--accent-active` | #1D4ED8 | MATCH |
+| `--accent-text` | #1D4ED8 | `--accent-text` | #1D4ED8 | MATCH |
+| `--accent-soft` | #2563EB | `--accent-soft` | #2563EB | MATCH |
+| `--accent-glow` | rgba(59,130,246,0.13) | `--accent-glow` | rgba(59,130,246,0.13) | MATCH |
+| `--accent-tint` | rgba(59,130,246,0.08) | `--accent-tint` | rgba(59,130,246,0.08) | MATCH |
+| `--accent-border-active` | rgba(59,130,246,0.55) | `--accent-border-active` | rgba(59,130,246,0.55) | MATCH |
+| `--text-primary` | #18181B | `--text-primary` | #18181B | MATCH |
+| `--text-secondary` | #5F5F66 | `--text-secondary` | #5F5F66 | MATCH |
+| `--text-muted` | #8E8E95 | `--text-muted` | #8E8E95 | MATCH |
+| `--text-disabled` | #B6B6BB | `--text-disabled` | #B6B6BB | MATCH |
+| `--success` | #16A34A | `--success` | #16A34A | MATCH |
+| `--success-soft` | #22C55E | `--success-soft` | #22C55E | MATCH |
+| `--error` | #DC2626 | `--error` | #DC2626 | MATCH |
+| `--error-soft` | #DC2626 | `--error-soft` | #DC2626 | MATCH |
+| `--warning` | #D97706 | `--warning` | #D97706 | MATCH |
+| `--purple` | #7C3AED | `--purple` | #7C3AED | MATCH |
+| `--purple-accent` | #9333EA | `--purple-accent` | #9333EA | MATCH |
+| `--cyan` | #0891B2 | `--cyan` | #0891B2 | MATCH |
+| `--na` | #E6E6E8 | `--na` | #E6E6E8 | MATCH |
+| `--success-tint` | rgba(22,163,74,0.10) | `--success-tint` | rgba(22,163,74,0.10) | MATCH |
+| `--warning-tint` | rgba(217,119,6,0.10) | `--warning-tint` | rgba(217,119,6,0.10) | MATCH |
+| `--error-tint` | rgba(220,38,38,0.10) | `--error-tint` | rgba(220,38,38,0.10) | MATCH |
+| `--shadow-modal` | 0 16px 40px rgba(0,0,0,0.10) | `--shadow-modal` | 0 16px 40px rgba(0,0,0,0.10) | MATCH |
+| `--shadow-dropdown` | 0 12px 40px rgba(0,0,0,0.08) | `--shadow-dropdown` | 0 12px 40px rgba(0,0,0,0.08) | MATCH |
+| `--transition` | 160ms cubic-bezier(.4,0,.2,1) | `--transition` | 160ms cubic-bezier(.4,0,.2,1) | MATCH |
+| `--transition-colors` | 200ms ease-in | `--transition-colors` | 200ms ease-in | MATCH |
+| `--radius-card` | 10px | `--radius-card` | 10px | MATCH |
+| `--radius-btn` | 7px | `--radius-btn` | 7px | MATCH |
+| `--radius-input` | 7px | `--radius-input` | 7px | MATCH |
+| `--radius-modal` | 12px | `--radius-modal` | 12px | MATCH |
+| `--radius-badge` | 5px | `--radius-badge` | 5px | MATCH |
+| `--radius-pill` | 20px | `--radius-pill` | 20px | MATCH |
 
 ## Components detected (→ family, find-first existing)
 
@@ -90,47 +132,11 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 
 ## FLAGGED — blocking until each is resolved (map / approve-as-literal / fix prototype)
 
-| id | kind | value | location | nearest token | status | resolution |
-|---|---|---|---|---|---|---|
-| f1 | literal | `rgba(0,0,0,0.08)` | [data-theme="light"] · --shadow-dropdown · L23 | --black | unresolved |  |
-| f2 | literal | `rgba(0,0,0,0.10)` | [data-theme="light"] · --shadow-modal · L23 | --black | unresolved |  |
+(none — clean)
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
-| value | location | matches token (theme) | suggested fix |
-|---|---|---|---|
-| `#FAFAFA` | [data-theme="light"] · --bg-primary · L23 | `--bg-primary` (light) | replace with var(--bg-primary) — NOTE: matched the LIGHT value; verify intent |
-| `#FFFFFF` | [data-theme="light"] · --bg-secondary · L23 | `--white` (dark) | replace with var(--white) |
-| `#F4F4F5` | [data-theme="light"] · --bg-tertiary · L23 | `--bg-tertiary` (light) | replace with var(--bg-tertiary) — NOTE: matched the LIGHT value; verify intent |
-| `#FFFFFF` | [data-theme="light"] · --bg-elevated · L23 | `--white` (dark) | replace with var(--white) |
-| `#EAEAEB` | [data-theme="light"] · --border-default · L23 | `--border-default` (light) | replace with var(--border-default) — NOTE: matched the LIGHT value; verify intent |
-| `#DCDCDE` | [data-theme="light"] · --border-hover · L23 | `--border-hover` (light) | replace with var(--border-hover) — NOTE: matched the LIGHT value; verify intent |
-| `#C8C8CB` | [data-theme="light"] · --border-active · L23 | `--border-active` (light) | replace with var(--border-active) — NOTE: matched the LIGHT value; verify intent |
-| `#E4E4E6` | [data-theme="light"] · --input-border · L23 | `--input-border` (light) | replace with var(--input-border) — NOTE: matched the LIGHT value; verify intent |
-| `#3B82F6` | [data-theme="light"] · --accent · L23 | `--accent` (dark) | replace with var(--accent) |
-| `#2563EB` | [data-theme="light"] · --accent-hover · L23 | `--accent-hover` (dark) | replace with var(--accent-hover) |
-| `#1D4ED8` | [data-theme="light"] · --accent-active · L23 | `--accent-active` (dark) | replace with var(--accent-active) |
-| `#1D4ED8` | [data-theme="light"] · --accent-text · L23 | `--accent-active` (dark) | replace with var(--accent-active) |
-| `#2563EB` | [data-theme="light"] · --accent-soft · L23 | `--accent-hover` (dark) | replace with var(--accent-hover) |
-| `rgba(59,130,246,0.13)` | [data-theme="light"] · --accent-glow · L23 | `--accent-glow` (dark) | replace with var(--accent-glow) |
-| `rgba(59,130,246,0.08)` | [data-theme="light"] · --accent-tint · L23 | `--accent-tint` (dark) | replace with var(--accent-tint) |
-| `rgba(59,130,246,0.55)` | [data-theme="light"] · --accent-border-active · L23 | `--accent-border-active` (dark) | replace with var(--accent-border-active) |
-| `#18181B` | [data-theme="light"] · --text-primary · L23 | `--text-primary` (light) | replace with var(--text-primary) — NOTE: matched the LIGHT value; verify intent |
-| `#5F5F66` | [data-theme="light"] · --text-secondary · L23 | `--text-secondary` (light) | replace with var(--text-secondary) — NOTE: matched the LIGHT value; verify intent |
-| `#8E8E95` | [data-theme="light"] · --text-muted · L23 | `--text-muted` (light) | replace with var(--text-muted) — NOTE: matched the LIGHT value; verify intent |
-| `#B6B6BB` | [data-theme="light"] · --text-disabled · L23 | `--text-disabled` (light) | replace with var(--text-disabled) — NOTE: matched the LIGHT value; verify intent |
-| `#16A34A` | [data-theme="light"] · --success · L23 | `--success` (light) | replace with var(--success) — NOTE: matched the LIGHT value; verify intent |
-| `#22C55E` | [data-theme="light"] · --success-soft · L23 | `--success` (dark) | replace with var(--success) |
-| `#DC2626` | [data-theme="light"] · --error · L23 | `--error` (light) | replace with var(--error) — NOTE: matched the LIGHT value; verify intent |
-| `#DC2626` | [data-theme="light"] · --error-soft · L23 | `--error` (light) | replace with var(--error) — NOTE: matched the LIGHT value; verify intent |
-| `#D97706` | [data-theme="light"] · --warning · L23 | `--warning` (light) | replace with var(--warning) — NOTE: matched the LIGHT value; verify intent |
-| `#7C3AED` | [data-theme="light"] · --purple · L23 | `--purple` (light) | replace with var(--purple) — NOTE: matched the LIGHT value; verify intent |
-| `#9333EA` | [data-theme="light"] · --purple-accent · L23 | `--purple-accent` (light) | replace with var(--purple-accent) — NOTE: matched the LIGHT value; verify intent |
-| `#0891B2` | [data-theme="light"] · --cyan · L23 | `--cyan` (light) | replace with var(--cyan) — NOTE: matched the LIGHT value; verify intent |
-| `#E6E6E8` | [data-theme="light"] · --na · L23 | `--na` (light) | replace with var(--na) — NOTE: matched the LIGHT value; verify intent |
-| `rgba(22,163,74,0.10)` | [data-theme="light"] · --success-tint · L23 | `--success-tint` (light) | replace with var(--success-tint) — NOTE: matched the LIGHT value; verify intent |
-| `rgba(217,119,6,0.10)` | [data-theme="light"] · --warning-tint · L23 | `--warning-tint` (light) | replace with var(--warning-tint) — NOTE: matched the LIGHT value; verify intent |
-| `rgba(220,38,38,0.10)` | [data-theme="light"] · --error-tint · L23 | `--error-tint` (light) | replace with var(--error-tint) — NOTE: matched the LIGHT value; verify intent |
+(none)
 
 ```json crs-mapping
 {
@@ -272,6 +278,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--bg-primary",
       "value": "#181818",
       "canonical": "--bg-primary",
+      "theme": "dark",
       "canonDark": "#181818",
       "verdict": "MATCH",
       "line": 7
@@ -280,6 +287,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--bg-secondary",
       "value": "#1E1E1E",
       "canonical": "--bg-secondary",
+      "theme": "dark",
       "canonDark": "#1E1E1E",
       "verdict": "MATCH",
       "line": 7
@@ -288,6 +296,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--bg-tertiary",
       "value": "#242424",
       "canonical": "--bg-tertiary",
+      "theme": "dark",
       "canonDark": "#242424",
       "verdict": "MATCH",
       "line": 7
@@ -296,6 +305,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--bg-elevated",
       "value": "#2A2A2A",
       "canonical": "--bg-elevated",
+      "theme": "dark",
       "canonDark": "#2A2A2A",
       "verdict": "MATCH",
       "line": 7
@@ -304,6 +314,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border-default",
       "value": "#242424",
       "canonical": "--border-default",
+      "theme": "dark",
       "canonDark": "#242424",
       "verdict": "MATCH",
       "line": 7
@@ -312,6 +323,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border-hover",
       "value": "#333333",
       "canonical": "--border-hover",
+      "theme": "dark",
       "canonDark": "#333333",
       "verdict": "MATCH",
       "line": 7
@@ -320,6 +332,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border-active",
       "value": "#3D3D3D",
       "canonical": "--border-active",
+      "theme": "dark",
       "canonDark": "#3D3D3D",
       "verdict": "MATCH",
       "line": 7
@@ -328,6 +341,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--input-border",
       "value": "#2A2A2A",
       "canonical": "--input-border",
+      "theme": "dark",
       "canonDark": "#2A2A2A",
       "verdict": "MATCH",
       "line": 7
@@ -336,6 +350,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent",
       "value": "#3B82F6",
       "canonical": "--accent",
+      "theme": "dark",
       "canonDark": "#3B82F6",
       "verdict": "MATCH",
       "line": 7
@@ -344,6 +359,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-hover",
       "value": "#2563EB",
       "canonical": "--accent-hover",
+      "theme": "dark",
       "canonDark": "#2563EB",
       "verdict": "MATCH",
       "line": 7
@@ -352,6 +368,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-active",
       "value": "#1D4ED8",
       "canonical": "--accent-active",
+      "theme": "dark",
       "canonDark": "#1D4ED8",
       "verdict": "MATCH",
       "line": 7
@@ -360,6 +377,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-text",
       "value": "#3B82F6",
       "canonical": "--accent-text",
+      "theme": "dark",
       "canonDark": "#3B82F6",
       "verdict": "MATCH",
       "line": 7
@@ -368,6 +386,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-soft",
       "value": "#60A5FA",
       "canonical": "--accent-soft",
+      "theme": "dark",
       "canonDark": "#60A5FA",
       "verdict": "MATCH",
       "line": 7
@@ -376,6 +395,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-glow",
       "value": "rgba(59,130,246,0.13)",
       "canonical": "--accent-glow",
+      "theme": "dark",
       "canonDark": "rgba(59,130,246,0.13)",
       "verdict": "MATCH",
       "line": 7
@@ -384,6 +404,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-tint",
       "value": "rgba(59,130,246,0.08)",
       "canonical": "--accent-tint",
+      "theme": "dark",
       "canonDark": "rgba(59,130,246,0.08)",
       "verdict": "MATCH",
       "line": 7
@@ -392,6 +413,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-border-active",
       "value": "rgba(59,130,246,0.55)",
       "canonical": "--accent-border-active",
+      "theme": "dark",
       "canonDark": "rgba(59,130,246,0.55)",
       "verdict": "MATCH",
       "line": 7
@@ -400,6 +422,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-primary",
       "value": "#E0E0E0",
       "canonical": "--text-primary",
+      "theme": "dark",
       "canonDark": "#E0E0E0",
       "verdict": "MATCH",
       "line": 7
@@ -408,6 +431,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-secondary",
       "value": "#A6A6A6",
       "canonical": "--text-secondary",
+      "theme": "dark",
       "canonDark": "#A6A6A6",
       "verdict": "MATCH",
       "line": 7
@@ -416,6 +440,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-muted",
       "value": "#6B6B6B",
       "canonical": "--text-muted",
+      "theme": "dark",
       "canonDark": "#6B6B6B",
       "verdict": "MATCH",
       "line": 7
@@ -424,6 +449,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-disabled",
       "value": "#565656",
       "canonical": "--text-disabled",
+      "theme": "dark",
       "canonDark": "#565656",
       "verdict": "MATCH",
       "line": 7
@@ -432,6 +458,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--success",
       "value": "#22C55E",
       "canonical": "--success",
+      "theme": "dark",
       "canonDark": "#22C55E",
       "verdict": "MATCH",
       "line": 7
@@ -440,6 +467,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--success-soft",
       "value": "#4ADE80",
       "canonical": "--success-soft",
+      "theme": "dark",
       "canonDark": "#4ADE80",
       "verdict": "MATCH",
       "line": 7
@@ -448,6 +476,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--error",
       "value": "#EF4444",
       "canonical": "--error",
+      "theme": "dark",
       "canonDark": "#EF4444",
       "verdict": "MATCH",
       "line": 7
@@ -456,6 +485,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--error-soft",
       "value": "#F87171",
       "canonical": "--error-soft",
+      "theme": "dark",
       "canonDark": "#F87171",
       "verdict": "MATCH",
       "line": 7
@@ -464,6 +494,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--warning",
       "value": "#F59E0B",
       "canonical": "--warning",
+      "theme": "dark",
       "canonDark": "#F59E0B",
       "verdict": "MATCH",
       "line": 7
@@ -472,6 +503,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--purple",
       "value": "#8B5CF6",
       "canonical": "--purple",
+      "theme": "dark",
       "canonDark": "#8B5CF6",
       "verdict": "MATCH",
       "line": 7
@@ -480,6 +512,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--purple-accent",
       "value": "#A855F7",
       "canonical": "--purple-accent",
+      "theme": "dark",
       "canonDark": "#A855F7",
       "verdict": "MATCH",
       "line": 7
@@ -488,6 +521,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--cyan",
       "value": "#06B6D4",
       "canonical": "--cyan",
+      "theme": "dark",
       "canonDark": "#06B6D4",
       "verdict": "MATCH",
       "line": 7
@@ -496,6 +530,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--na",
       "value": "#2B2B2B",
       "canonical": "--na",
+      "theme": "dark",
       "canonDark": "#2B2B2B",
       "verdict": "MATCH",
       "line": 7
@@ -504,6 +539,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--success-tint",
       "value": "rgba(34,197,94,0.13)",
       "canonical": "--success-tint",
+      "theme": "dark",
       "canonDark": "rgba(34,197,94,0.13)",
       "verdict": "MATCH",
       "line": 7
@@ -512,6 +548,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--warning-tint",
       "value": "rgba(245,158,11,0.13)",
       "canonical": "--warning-tint",
+      "theme": "dark",
       "canonDark": "rgba(245,158,11,0.13)",
       "verdict": "MATCH",
       "line": 7
@@ -520,6 +557,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--error-tint",
       "value": "rgba(239,68,68,0.13)",
       "canonical": "--error-tint",
+      "theme": "dark",
       "canonDark": "rgba(239,68,68,0.13)",
       "verdict": "MATCH",
       "line": 7
@@ -528,6 +566,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--white",
       "value": "#FFFFFF",
       "canonical": "--white",
+      "theme": "dark",
       "canonDark": "#FFFFFF",
       "verdict": "MATCH",
       "line": 7
@@ -536,6 +575,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--black",
       "value": "#000000",
       "canonical": "--black",
+      "theme": "dark",
       "canonDark": "#000000",
       "verdict": "MATCH",
       "line": 7
@@ -544,6 +584,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--transparent",
       "value": "rgba(255,255,255,0)",
       "canonical": "--transparent",
+      "theme": "dark",
       "canonDark": "rgba(255,255,255,0)",
       "verdict": "MATCH",
       "line": 7
@@ -552,6 +593,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--shadow-modal",
       "value": "0 24px 60px rgba(0,0,0,0.6)",
       "canonical": "--shadow-modal",
+      "theme": "dark",
       "canonDark": "0 24px 60px rgba(0,0,0,0.6)",
       "verdict": "MATCH",
       "line": 7
@@ -560,6 +602,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--shadow-dropdown",
       "value": "0 12px 40px rgba(0,0,0,0.55)",
       "canonical": "--shadow-dropdown",
+      "theme": "dark",
       "canonDark": "0 12px 40px rgba(0,0,0,0.55)",
       "verdict": "MATCH",
       "line": 7
@@ -568,6 +611,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--transition",
       "value": "160ms cubic-bezier(.4,0,.2,1)",
       "canonical": "--transition",
+      "theme": "dark",
       "canonDark": "160ms cubic-bezier(.4,0,.2,1)",
       "verdict": "MATCH",
       "line": 7
@@ -576,6 +620,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--transition-colors",
       "value": "200ms ease-in",
       "canonical": "--transition-colors",
+      "theme": "dark",
       "canonDark": "200ms ease-in",
       "verdict": "MATCH",
       "line": 7
@@ -584,6 +629,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-card",
       "value": "10px",
       "canonical": "--radius-card",
+      "theme": "dark",
       "canonDark": "10px",
       "verdict": "MATCH",
       "line": 7
@@ -592,6 +638,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-btn",
       "value": "7px",
       "canonical": "--radius-btn",
+      "theme": "dark",
       "canonDark": "7px",
       "verdict": "MATCH",
       "line": 7
@@ -600,6 +647,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-input",
       "value": "7px",
       "canonical": "--radius-input",
+      "theme": "dark",
       "canonDark": "7px",
       "verdict": "MATCH",
       "line": 7
@@ -608,6 +656,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-modal",
       "value": "12px",
       "canonical": "--radius-modal",
+      "theme": "dark",
       "canonDark": "12px",
       "verdict": "MATCH",
       "line": 7
@@ -616,6 +665,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-badge",
       "value": "5px",
       "canonical": "--radius-badge",
+      "theme": "dark",
       "canonDark": "5px",
       "verdict": "MATCH",
       "line": 7
@@ -624,325 +674,392 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--radius-pill",
       "value": "20px",
       "canonical": "--radius-pill",
+      "theme": "dark",
       "canonDark": "20px",
       "verdict": "MATCH",
       "line": 7
-    }
-  ],
-  "flags": [
-    {
-      "kind": "literal",
-      "value": "rgba(0,0,0,0.08)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--shadow-dropdown",
-      "line": 23,
-      "nearest": "--black",
-      "id": "f1",
-      "status": "unresolved",
-      "resolution": ""
     },
     {
-      "kind": "literal",
-      "value": "rgba(0,0,0,0.10)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--shadow-modal",
-      "line": 23,
-      "nearest": "--black",
-      "id": "f2",
-      "status": "unresolved",
-      "resolution": ""
-    }
-  ],
-  "matched": [
-    {
+      "declared": "--bg-primary",
       "value": "#FAFAFA",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--bg-primary",
-      "line": 23,
-      "token": "--bg-primary",
+      "canonical": "--bg-primary",
       "theme": "light",
-      "fix": "replace with var(--bg-primary) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#FAFAFA",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--bg-secondary",
       "value": "#FFFFFF",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--bg-secondary",
-      "line": 23,
-      "token": "--white",
-      "theme": "dark",
-      "fix": "replace with var(--white)"
+      "canonical": "--bg-secondary",
+      "theme": "light",
+      "canonDark": "#FFFFFF",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--bg-tertiary",
       "value": "#F4F4F5",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--bg-tertiary",
-      "line": 23,
-      "token": "--bg-tertiary",
+      "canonical": "--bg-tertiary",
       "theme": "light",
-      "fix": "replace with var(--bg-tertiary) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#F4F4F5",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--bg-elevated",
       "value": "#FFFFFF",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--bg-elevated",
-      "line": 23,
-      "token": "--white",
-      "theme": "dark",
-      "fix": "replace with var(--white)"
+      "canonical": "--bg-elevated",
+      "theme": "light",
+      "canonDark": "#FFFFFF",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--border-default",
       "value": "#EAEAEB",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--border-default",
-      "line": 23,
-      "token": "--border-default",
+      "canonical": "--border-default",
       "theme": "light",
-      "fix": "replace with var(--border-default) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#EAEAEB",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--border-hover",
       "value": "#DCDCDE",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--border-hover",
-      "line": 23,
-      "token": "--border-hover",
+      "canonical": "--border-hover",
       "theme": "light",
-      "fix": "replace with var(--border-hover) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#DCDCDE",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--border-active",
       "value": "#C8C8CB",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--border-active",
-      "line": 23,
-      "token": "--border-active",
+      "canonical": "--border-active",
       "theme": "light",
-      "fix": "replace with var(--border-active) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#C8C8CB",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--input-border",
       "value": "#E4E4E6",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--input-border",
-      "line": 23,
-      "token": "--input-border",
+      "canonical": "--input-border",
       "theme": "light",
-      "fix": "replace with var(--input-border) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#E4E4E6",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent",
       "value": "#3B82F6",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent",
-      "line": 23,
-      "token": "--accent",
-      "theme": "dark",
-      "fix": "replace with var(--accent)"
+      "canonical": "--accent",
+      "theme": "light",
+      "canonDark": "#3B82F6",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-hover",
       "value": "#2563EB",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-hover",
-      "line": 23,
-      "token": "--accent-hover",
-      "theme": "dark",
-      "fix": "replace with var(--accent-hover)"
+      "canonical": "--accent-hover",
+      "theme": "light",
+      "canonDark": "#2563EB",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-active",
       "value": "#1D4ED8",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-active",
-      "line": 23,
-      "token": "--accent-active",
-      "theme": "dark",
-      "fix": "replace with var(--accent-active)"
+      "canonical": "--accent-active",
+      "theme": "light",
+      "canonDark": "#1D4ED8",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-text",
       "value": "#1D4ED8",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-text",
-      "line": 23,
-      "token": "--accent-active",
-      "theme": "dark",
-      "fix": "replace with var(--accent-active)"
+      "canonical": "--accent-text",
+      "theme": "light",
+      "canonDark": "#1D4ED8",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-soft",
       "value": "#2563EB",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-soft",
-      "line": 23,
-      "token": "--accent-hover",
-      "theme": "dark",
-      "fix": "replace with var(--accent-hover)"
+      "canonical": "--accent-soft",
+      "theme": "light",
+      "canonDark": "#2563EB",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-glow",
       "value": "rgba(59,130,246,0.13)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-glow",
-      "line": 23,
-      "token": "--accent-glow",
-      "theme": "dark",
-      "fix": "replace with var(--accent-glow)"
+      "canonical": "--accent-glow",
+      "theme": "light",
+      "canonDark": "rgba(59,130,246,0.13)",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-tint",
       "value": "rgba(59,130,246,0.08)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-tint",
-      "line": 23,
-      "token": "--accent-tint",
-      "theme": "dark",
-      "fix": "replace with var(--accent-tint)"
+      "canonical": "--accent-tint",
+      "theme": "light",
+      "canonDark": "rgba(59,130,246,0.08)",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--accent-border-active",
       "value": "rgba(59,130,246,0.55)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--accent-border-active",
-      "line": 23,
-      "token": "--accent-border-active",
-      "theme": "dark",
-      "fix": "replace with var(--accent-border-active)"
+      "canonical": "--accent-border-active",
+      "theme": "light",
+      "canonDark": "rgba(59,130,246,0.55)",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--text-primary",
       "value": "#18181B",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--text-primary",
-      "line": 23,
-      "token": "--text-primary",
+      "canonical": "--text-primary",
       "theme": "light",
-      "fix": "replace with var(--text-primary) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#18181B",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--text-secondary",
       "value": "#5F5F66",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--text-secondary",
-      "line": 23,
-      "token": "--text-secondary",
+      "canonical": "--text-secondary",
       "theme": "light",
-      "fix": "replace with var(--text-secondary) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#5F5F66",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--text-muted",
       "value": "#8E8E95",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--text-muted",
-      "line": 23,
-      "token": "--text-muted",
+      "canonical": "--text-muted",
       "theme": "light",
-      "fix": "replace with var(--text-muted) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#8E8E95",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--text-disabled",
       "value": "#B6B6BB",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--text-disabled",
-      "line": 23,
-      "token": "--text-disabled",
+      "canonical": "--text-disabled",
       "theme": "light",
-      "fix": "replace with var(--text-disabled) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#B6B6BB",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--success",
       "value": "#16A34A",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--success",
-      "line": 23,
-      "token": "--success",
+      "canonical": "--success",
       "theme": "light",
-      "fix": "replace with var(--success) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#16A34A",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--success-soft",
       "value": "#22C55E",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--success-soft",
-      "line": 23,
-      "token": "--success",
-      "theme": "dark",
-      "fix": "replace with var(--success)"
-    },
-    {
-      "value": "#DC2626",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--error",
-      "line": 23,
-      "token": "--error",
+      "canonical": "--success-soft",
       "theme": "light",
-      "fix": "replace with var(--error) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#22C55E",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--error",
       "value": "#DC2626",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--error-soft",
-      "line": 23,
-      "token": "--error",
+      "canonical": "--error",
       "theme": "light",
-      "fix": "replace with var(--error) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#DC2626",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--error-soft",
+      "value": "#DC2626",
+      "canonical": "--error-soft",
+      "theme": "light",
+      "canonDark": "#DC2626",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--warning",
       "value": "#D97706",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--warning",
-      "line": 23,
-      "token": "--warning",
+      "canonical": "--warning",
       "theme": "light",
-      "fix": "replace with var(--warning) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#D97706",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--purple",
       "value": "#7C3AED",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--purple",
-      "line": 23,
-      "token": "--purple",
+      "canonical": "--purple",
       "theme": "light",
-      "fix": "replace with var(--purple) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#7C3AED",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--purple-accent",
       "value": "#9333EA",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--purple-accent",
-      "line": 23,
-      "token": "--purple-accent",
+      "canonical": "--purple-accent",
       "theme": "light",
-      "fix": "replace with var(--purple-accent) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#9333EA",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--cyan",
       "value": "#0891B2",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--cyan",
-      "line": 23,
-      "token": "--cyan",
+      "canonical": "--cyan",
       "theme": "light",
-      "fix": "replace with var(--cyan) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#0891B2",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--na",
       "value": "#E6E6E8",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--na",
-      "line": 23,
-      "token": "--na",
+      "canonical": "--na",
       "theme": "light",
-      "fix": "replace with var(--na) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "#E6E6E8",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--success-tint",
       "value": "rgba(22,163,74,0.10)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--success-tint",
-      "line": 23,
-      "token": "--success-tint",
+      "canonical": "--success-tint",
       "theme": "light",
-      "fix": "replace with var(--success-tint) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "rgba(22,163,74,0.10)",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--warning-tint",
       "value": "rgba(217,119,6,0.10)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--warning-tint",
-      "line": 23,
-      "token": "--warning-tint",
+      "canonical": "--warning-tint",
       "theme": "light",
-      "fix": "replace with var(--warning-tint) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "rgba(217,119,6,0.10)",
+      "verdict": "MATCH",
+      "line": 23
     },
     {
+      "declared": "--error-tint",
       "value": "rgba(220,38,38,0.10)",
-      "selector": "[data-theme=\"light\"]",
-      "prop": "--error-tint",
-      "line": 23,
-      "token": "--error-tint",
+      "canonical": "--error-tint",
       "theme": "light",
-      "fix": "replace with var(--error-tint) — NOTE: matched the LIGHT value; verify intent"
+      "canonDark": "rgba(220,38,38,0.10)",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--shadow-modal",
+      "value": "0 16px 40px rgba(0,0,0,0.10)",
+      "canonical": "--shadow-modal",
+      "theme": "light",
+      "canonDark": "0 16px 40px rgba(0,0,0,0.10)",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--shadow-dropdown",
+      "value": "0 12px 40px rgba(0,0,0,0.08)",
+      "canonical": "--shadow-dropdown",
+      "theme": "light",
+      "canonDark": "0 12px 40px rgba(0,0,0,0.08)",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--transition",
+      "value": "160ms cubic-bezier(.4,0,.2,1)",
+      "canonical": "--transition",
+      "theme": "light",
+      "canonDark": "160ms cubic-bezier(.4,0,.2,1)",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--transition-colors",
+      "value": "200ms ease-in",
+      "canonical": "--transition-colors",
+      "theme": "light",
+      "canonDark": "200ms ease-in",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-card",
+      "value": "10px",
+      "canonical": "--radius-card",
+      "theme": "light",
+      "canonDark": "10px",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-btn",
+      "value": "7px",
+      "canonical": "--radius-btn",
+      "theme": "light",
+      "canonDark": "7px",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-input",
+      "value": "7px",
+      "canonical": "--radius-input",
+      "theme": "light",
+      "canonDark": "7px",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-modal",
+      "value": "12px",
+      "canonical": "--radius-modal",
+      "theme": "light",
+      "canonDark": "12px",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-badge",
+      "value": "5px",
+      "canonical": "--radius-badge",
+      "theme": "light",
+      "canonDark": "5px",
+      "verdict": "MATCH",
+      "line": 23
+    },
+    {
+      "declared": "--radius-pill",
+      "value": "20px",
+      "canonical": "--radius-pill",
+      "theme": "light",
+      "canonDark": "20px",
+      "verdict": "MATCH",
+      "line": 23
     }
   ],
+  "flags": [],
+  "matched": [],
   "compRows": [
     {
       "selector": ".theme-toggle",

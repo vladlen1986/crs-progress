@@ -335,6 +335,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--bg",
       "value": "#181818",
       "canonical": "--bg-primary",
+      "theme": "dark",
       "canonDark": "#181818",
       "verdict": "MATCH",
       "line": 7
@@ -343,6 +344,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--surface-1",
       "value": "#1E1E1E",
       "canonical": "--bg-secondary",
+      "theme": "dark",
       "canonDark": "#1E1E1E",
       "verdict": "MATCH",
       "line": 7
@@ -351,6 +353,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--surface-2",
       "value": "#242424",
       "canonical": "--bg-tertiary",
+      "theme": "dark",
       "canonDark": "#242424",
       "verdict": "MATCH",
       "line": 7
@@ -359,6 +362,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--surface-3",
       "value": "#2A2A2A",
       "canonical": "--bg-elevated",
+      "theme": "dark",
       "canonDark": "#2A2A2A",
       "verdict": "MATCH",
       "line": 7
@@ -367,6 +371,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border",
       "value": "#242424",
       "canonical": "--border-default",
+      "theme": "dark",
       "canonDark": "#242424",
       "verdict": "MATCH",
       "line": 7
@@ -375,6 +380,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border-hover",
       "value": "#333333",
       "canonical": "--border-hover",
+      "theme": "dark",
       "canonDark": "#333333",
       "verdict": "MATCH",
       "line": 7
@@ -383,6 +389,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--border-active",
       "value": "#3D3D3D",
       "canonical": "--border-active",
+      "theme": "dark",
       "canonDark": "#3D3D3D",
       "verdict": "MATCH",
       "line": 7
@@ -391,6 +398,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent",
       "value": "#3B82F6",
       "canonical": "--accent",
+      "theme": "dark",
       "canonDark": "#3B82F6",
       "verdict": "MATCH",
       "line": 7
@@ -399,6 +407,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-hover",
       "value": "#2563EB",
       "canonical": "--accent-hover",
+      "theme": "dark",
       "canonDark": "#2563EB",
       "verdict": "MATCH",
       "line": 7
@@ -407,6 +416,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-active",
       "value": "#1D4ED8",
       "canonical": "--accent-active",
+      "theme": "dark",
       "canonDark": "#1D4ED8",
       "verdict": "MATCH",
       "line": 7
@@ -415,6 +425,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--accent-soft",
       "value": "#60A5FA",
       "canonical": "--accent-soft",
+      "theme": "dark",
       "canonDark": "#60A5FA",
       "verdict": "MATCH",
       "line": 7
@@ -423,6 +434,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-primary",
       "value": "#E0E0E0",
       "canonical": "--text-primary",
+      "theme": "dark",
       "canonDark": "#E0E0E0",
       "verdict": "MATCH",
       "line": 7
@@ -431,6 +443,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-secondary",
       "value": "#A6A6A6",
       "canonical": "--text-secondary",
+      "theme": "dark",
       "canonDark": "#A6A6A6",
       "verdict": "MATCH",
       "line": 7
@@ -439,6 +452,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--text-muted",
       "value": "#6B6B6B",
       "canonical": "--text-muted",
+      "theme": "dark",
       "canonDark": "#6B6B6B",
       "verdict": "MATCH",
       "line": 7
@@ -447,6 +461,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--error",
       "value": "#EF4444",
       "canonical": "--error",
+      "theme": "dark",
       "canonDark": "#EF4444",
       "verdict": "MATCH",
       "line": 7
@@ -455,6 +470,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--font-sans",
       "value": "'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif",
       "canonical": "--font-sans",
+      "theme": "dark",
       "canonDark": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
       "verdict": "MATCH",
       "line": 7
@@ -463,6 +479,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--font-mono",
       "value": "'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace",
       "canonical": "--font-mono",
+      "theme": "dark",
       "canonDark": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
       "verdict": "MATCH",
       "line": 7
@@ -471,6 +488,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--r-button",
       "value": "6px",
       "canonical": "--radius-btn",
+      "theme": "dark",
       "canonDark": "7px",
       "verdict": "STALE",
       "line": 7
@@ -479,6 +497,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--h-btn-sm",
       "value": "28px",
       "canonical": "--h-button-sm",
+      "theme": "dark",
       "canonDark": "28px",
       "verdict": "MATCH",
       "line": 7
@@ -487,6 +506,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--h-btn",
       "value": "32px",
       "canonical": "--h-button",
+      "theme": "dark",
       "canonDark": "32px",
       "verdict": "MATCH",
       "line": 7
@@ -495,6 +515,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--h-btn-lg",
       "value": "40px",
       "canonical": "--h-button-lg",
+      "theme": "dark",
       "canonDark": "40px",
       "verdict": "MATCH",
       "line": 7
@@ -503,6 +524,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "declared": "--ease",
       "value": "160ms cubic-bezier(.4,0,.2,1)",
       "canonical": "--transition",
+      "theme": "dark",
       "canonDark": "160ms cubic-bezier(.4,0,.2,1)",
       "verdict": "MATCH",
       "line": 7
