@@ -415,6 +415,8 @@ function detailHTML(id){
   }
   const flink=(p,label)=>`<a class="flink" href="/api/file?path=${encodeURIComponent(p)}" data-path="${esc(p)}" target="_blank">${label} ↗</a>`;
   const links=[];
+  // Entity overview page (Program 3 Phase 3) — everything the brain knows, aggregated.
+  links.push(`<a class="flink" href="#" onclick="event.preventDefault();(window.parent&&window.parent.openTarget?window.parent.openTarget('/entity.html#module=${esc(id)}',{title:'${esc(m.name)}'}):location.href='/entity.html#module=${esc(id)}')">Brain overview ↗</a>`);
   if(d.techRef) links.push(flink(d.techRef,'Technical reference'));
   if(d.userManual) links.push(flink(d.userManual,'User manual'));
   links.push(flink('brain/STATUS.md','STATUS.md'));

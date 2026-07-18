@@ -4326,7 +4326,7 @@ const PAL_COMMANDS=[
 ];
 const PAL_OPEN={   // how each result kind opens, honoring the window policy
   file:r=>smartOpen(r.ref), chat:r=>openChat(r.ref),
-  module:r=>openTarget('/tree.html#module='+r.ref,{title:'Progress Tree'}),
+  module:r=>openTarget('/entity.html#module='+r.ref,{title:r.label}),
   decision:r=>openDocWindow('decisions.md'),
   prompt:r=>openDocWindow(r.ref), report:r=>openDocWindow(r.ref),
   checklist:r=>openDocWindow('brain/qa/master-checklist.md'),
