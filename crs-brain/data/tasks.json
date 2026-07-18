@@ -76,6 +76,13 @@
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "e8dea154",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T05:02:18.897Z",
+      "notes": ""
     }
   ]
 }
