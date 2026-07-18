@@ -1,0 +1,27 @@
+{
+  "note": "Daily smoke QA — the critical subset that is SERVER-runnable (read-only, never auto-fixes). Browser-interaction rows (window system drag/snap, explorer gestures) stay on-demand via the dev-machine rig — a headless browser is deliberately not an app dependency. Each check cites the master-checklist row(s) it guards.",
+  "checks": [
+    { "id": "engine-determinism", "rows": ["P1-promptgen.1"], "kind": "fn", "fn": "assemble-determinism" },
+    { "id": "guard-blocks-open-decision", "rows": ["P6.4", "CHUNKER.4"], "kind": "fn", "fn": "guard-blocks" },
+    { "id": "plan-validate-buttons", "rows": ["CHUNKER.2"], "kind": "fn", "fn": "plan-validate", "proto": "buttons" },
+    { "id": "plan-validate-pilot", "rows": ["PILOT.1"], "kind": "fn", "fn": "plan-validate", "proto": "casino-settings" },
+    { "id": "scaffold-token-markers", "rows": ["STUDIO.1"], "kind": "fn", "fn": "scaffold-markers" },
+    { "id": "notify-registry-types", "rows": ["P10-notify-sync.1"], "kind": "fn", "fn": "registry-types" },
+    { "id": "sounds-24-wavs", "rows": ["P8-sounds-wishlist.1"], "kind": "fn", "fn": "sounds-count" },
+    { "id": "checklist-parse-sane", "rows": ["P11-kanban-loop.5"], "kind": "fn", "fn": "checklist-parse" },
+    { "id": "api-ping", "rows": ["P8-sounds-wishlist.2"], "kind": "endpoint", "path": "/api/ping", "contains": "\"ok\":true" },
+    { "id": "api-dash", "rows": ["DASH.1"], "kind": "endpoint", "path": "/api/dash", "contains": "decisionsOpen" },
+    { "id": "api-tasks", "rows": ["DASH.2"], "kind": "endpoint", "path": "/api/tasks", "contains": "\"tasks\"" },
+    { "id": "api-protos", "rows": ["CHUNKER.1"], "kind": "endpoint", "path": "/api/protos", "contains": "\"protos\"" },
+    { "id": "api-sync-status", "rows": ["P10-notify-sync.6"], "kind": "endpoint", "path": "/api/sync/status", "contains": "forum" },
+    { "id": "api-notifications", "rows": ["P10-notify-sync.2"], "kind": "endpoint", "path": "/api/notifications", "contains": "unread" },
+    { "id": "api-modules-46", "rows": ["PTREE.1"], "kind": "endpoint", "path": "/api/modules", "contains": "\"user_management\"" },
+    { "id": "api-sounds-list", "rows": ["P8-sounds-wishlist.1"], "kind": "endpoint", "path": "/api/sounds/list", "contains": "s01" },
+    { "id": "tokens-css-served", "rows": ["P9-os-grade.1"], "kind": "endpoint", "path": "/tokens.css", "contains": "--bg-primary" },
+    { "id": "protos-page-served", "rows": ["CHUNKER.5"], "kind": "endpoint", "path": "/protos.html", "contains": "Prototypes" },
+    { "id": "design-system-doc", "rows": ["STUDIO.1"], "kind": "file", "path": "brain/design/CRS-design-system.md" },
+    { "id": "decisions-registry", "rows": ["P6.3"], "kind": "file", "path": "decisions.md" },
+    { "id": "master-checklist", "rows": ["P11-kanban-loop.5"], "kind": "file", "path": "brain/qa/master-checklist.md" },
+    { "id": "audit-prompt-archived", "rows": ["P6.1"], "kind": "file", "path": "brain/buildprint/generated/2026-07-18-user_management-read-only-combined-audit-of-the-user-managem.md" }
+  ]
+}
