@@ -12,6 +12,11 @@
       "v": 1,
       "note": "first snap — rig note one",
       "ts": "2026-07-18T05:42:15.724Z"
+    },
+    {
+      "v": 2,
+      "note": "second snap — rig note two",
+      "ts": "2026-07-18T05:42:15.837Z"
     }
   ]
 }
