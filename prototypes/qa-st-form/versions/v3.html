@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>qa-st-blank — CRS prototype</title>
+<title>qa-st-form — CRS prototype</title>
 <style>
 /* §2.10 BEGIN (verbatim) */
 :root, [data-theme="dark"] {
@@ -51,12 +51,29 @@ body{margin:0;min-height:100vh}
 .theme-toggle:hover{color:var(--text-primary);border-color:var(--border-hover)}
 .stage{padding:28px 20px;max-width:960px;margin:0 auto}
 
+.panel{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:22px;max-width:420px}
+.panel h2{font-size:14px;color:var(--text-primary);margin:0 0 16px;font-weight:700}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:11px;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.06em;font-weight:600;margin-bottom:6px}
+.field input{width:100%;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--text-primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;outline:none}
+.field input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.btnrow{display:flex;gap:8px;margin-top:18px}
+.btn-primary{background:var(--accent);border:none;color:var(--white);border-radius:var(--radius-btn);padding:9px 16px;font:inherit;font-weight:700;cursor:pointer}
+.btn-primary:hover{background:var(--accent-hover)}
+.btn-primary:active{background:var(--accent-active)}
+.btn-secondary{background:var(--transparent);border:1px solid var(--border-active);color:var(--text-secondary);border-radius:var(--radius-btn);padding:9px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn-secondary:hover{background:var(--bg-tertiary);color:var(--text-primary)}
 </style>
 </head>
 <body>
-<header class="proto-head"><h1>qa-st-blank</h1><button class="theme-toggle" onclick="toggleTheme()">Theme</button></header>
+<header class="proto-head"><h1>qa-st-form</h1><button class="theme-toggle" onclick="toggleTheme()">Theme</button></header>
 <main class="stage">
-  <!-- empty stage — design here -->
+  <div class="panel">
+    <h2>Sample form</h2>
+    <div class="field"><label>Name</label><input placeholder="Value…"></div>
+    <div class="field"><label>Detail</label><input placeholder="Value…"></div>
+    <div class="btnrow"><button class="btn-primary">Save</button><button class="btn-secondary">Cancel</button></div>
+  </div>
 </main>
 <script>
 // Theme: data-theme on <html>. Sources: ?theme= param, the toggle button, and
@@ -75,7 +92,6 @@ addEventListener('message', function(e){
     document.documentElement.setAttribute('data-theme', e.data.theme);
 });
 </script>
-<div id="live-marker-a1">LIVE-RELOAD-MARKER-A1</div>
-<div id="editor-marker-b2">EDITOR-MARKER-B2</div>
+<div id="form-marker-v2">FORM-MARKER-V2</div>
 </body>
 </html>
