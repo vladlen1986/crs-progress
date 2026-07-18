@@ -239,10 +239,10 @@ function computeMapping(name) {
   // Inline style="…" attributes — same literal discipline as <style> rules
   // (off-canon colors must not ride into a settled prototype through inline
   // styles; found by CHUNKER.1 acceptance).
-  for (const im of html.matchAll(/<([a-z][a-z0-9-]*)\b[^>]*\bstyle\s*=\s*"([^"]*)"/gi)) {
+  for (const im of html.matchAll(/<([a-z][a-z0-9-]*)\b[^>]*\bstyle\s*=\s*("([^"]*)"|'([^']*)')/gi)) {
     const line = html.slice(0, im.index).split('\n').length;
     const sel = '<' + im[1] + ' style="">';
-    for (const draw of im[2].split(';')) {
+    for (const draw of (im[3] != null ? im[3] : im[4] || '').split(';')) {
       const ci = draw.indexOf(':');
       if (ci < 1) continue;
       const dprop = draw.slice(0, ci).trim(), dval = draw.slice(ci + 1).trim();
