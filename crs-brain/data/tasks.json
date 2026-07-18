@@ -832,12 +832,19 @@
     {
       "id": "7ad6721c",
       "title": "QA FAIL: CHATV2.3",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T12:29:28.588Z",
-      "notes": "",
+      "notes": "auto-closed: row now PASS (2026-07-18T12:40:00.291Z)",
       "auto": {
         "key": "qa:CHATV2.3"
       }
+    },
+    {
+      "id": "99d97bbe",
+      "title": "ZZ-palette-freshprobe-marker",
+      "status": "todo",
+      "created": "2026-07-18T12:41:37.818Z",
+      "notes": ""
     }
   ]
 }
