@@ -1456,7 +1456,7 @@ const BP_PROMPT = (ws) => [
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
   '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
   '- Responsive checks: the screenshot subcommand has NO --viewport flag. Set the viewport first, reload, then capture. QUALITY STANDARD — ALWAYS applied, even to a bare "screenshot X" request, without being asked: desktop = `agent-browser set viewport 1920 1080 2` (2x retina → 3840×2160 PNG), mobile = `set viewport 390 844 2`, then `agent-browser reload`, then `agent-browser screenshot --full <ABSOLUTE path>` (full page, never viewport-cropped; the daemon resolves relative paths against ITS OWN cwd, so always pass absolute output paths — embed in replies with the repo-relative path).',
-  `- Ad-hoc screenshot requests ("screenshot the index page"): no questions, just capture at the desktop standard (add mobile only if asked), save to \`${SCREENSHOTS_DIR}/adhoc/<page>-<theme>-<desktop|mobile>.png\` (absolute), READ it, describe what you see in 2-3 bullets, and embed it in the reply. State the pixel dimensions you got.`,
+  `- Ad-hoc screenshot requests ("screenshot the index page"): no questions, just capture at the desktop standard (add mobile only if asked), save to \`${SCREENSHOTS_DIR}/adhoc/<page>-<theme>-<desktop|mobile>.png\` (absolute), embed it in the reply, and state the pixel dimensions. CAPTURE-ONLY IS THE DEFAULT — do NOT read/analyze/describe the image unless analysis is explicitly requested (vision-reading a 4K PNG is the most expensive step; Vlad's standing rule is never to spend tokens on work he didn't ask for).`,
   '- WINDOWS git-bash gotcha: a leading-slash argument like `buildprint screenshot "/"` gets MANGLED by MSYS path conversion into a C:/Program Files/Git/… path. Prefix the command with `MSYS_NO_PATHCONV=1` (it is allowlisted) whenever an argument starts with `/`: `MSYS_NO_PATHCONV=1 buildprint screenshot "/" --output …`. Do not stop to ask about this — it is pre-approved.',
   '- ONE COMMAND PER Bash CALL for buildprint/agent-browser: chaining (`&& echo EXIT:$?`, `;`, pipes) breaks the command allowlist and stalls for approval. The tool result already shows the exit status. For page captures prefer `agent-browser screenshot --full <path>` — the default crops to the viewport and can hide below-the-fold UI.',
   `- SAVE FOR REUSE: on audits/UI reviews capture the module's key views to \`${SCREENSHOTS_DIR}/<module-id>/<view>-<dark|light>-<desktop|mobile>.png\` (predictable names — these feed later UI analysis and design prototyping), and list every captured file at the end of your report.`,
@@ -1603,6 +1603,21 @@ function runBuildprint(args, ws) {
     c.on('close', (code) => resolve({ ok: code === 0, out: out.trim(), err: err.trim() }));
   });
 }
+// Task-type model routing (Vlad's token-economy rule, 2026-07-19): mechanical
+// asks must not burn Opus+Max. When the composer model is 'auto', route by the
+// message shape; picking a concrete model in the dropdown always overrides.
+// The decision is surfaced as a Brain-lane lifecycle step — never silent.
+const ROUTE_QUICK_RE = /screenshot|capture|\bsync\b|\bversion\b|status\s*(check)?\b|\blist\b|\bopen\b.+\bpage\b|\bping\b|copy|rename|move\b/i;
+const ROUTE_DEEP_RE = /audit|analy[sz]e|review|investigat|security|design|architect|plan\b|implement|build\b|refactor|migrat|why\b|debug|root cause|compare|verify/i;
+function routeTaskModel(message, cfg) {
+  const m = String(message || '');
+  const deep = ROUTE_DEEP_RE.test(m);
+  const quick = !deep && m.length < 500 && ROUTE_QUICK_RE.test(m);
+  if (quick) return { model: 'claude-sonnet-5', effort: 'low', label: 'quick mechanical task → Sonnet 5, low effort' };
+  if (deep) return { model: cfg.model || 'claude-opus-4-8', effort: cfg.effort || 'max', label: 'deep task → ' + (cfg.model || 'claude-opus-4-8') + ', ' + (cfg.effort || 'max') + ' effort' };
+  return { model: 'claude-sonnet-5', effort: 'medium', label: 'standard task → Sonnet 5, medium effort' };
+}
+
 // Absorb Buildprint self-updates BEFORE a model session depends on the CLI.
 // The CLI auto-updates on the first invocation of a new release, replacing the
 // npm shim files mid-call — concurrent shells then hit a half-replaced shim
@@ -1934,7 +1949,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
-    if (opts.model) args.push('--model', opts.model);
+    if (opts.model && opts.model !== 'auto') args.push('--model', opts.model);   // 'auto' is a ROUTING token, never a CLI model id
     if (opts.effort) args.push('--effort', opts.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
@@ -2941,14 +2956,17 @@ const server = http.createServer(async (req, res) => {
       const markConnected = () => { if (connectedMark) return; connectedMark = true; lifeStep('Connected — model session live'); };
       try {
         const cfg = loadSettings();
+        // 'auto' = task-routed model+effort (token economy); a concrete model pins both.
+        const routed = String(body.model || cfg.model || '') === 'auto' ? routeTaskModel(message, cfg.model === 'auto' ? { ...cfg, model: '' } : cfg) : null;
         const runOpts = {
-          model: (body.model || cfg.model || '').toString() || undefined,
-          effort: (body.effort || cfg.effort || '').toString() || undefined,
+          model: routed ? routed.model : (body.model || cfg.model || '').toString() || undefined,
+          effort: routed ? routed.effort : (body.effort || cfg.effort || '').toString() || undefined,
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
           purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
+        if (routed) lifeStep('Auto-routing: ' + routed.label);   // visible, never silent
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
         if (chat.bp) {

@@ -508,9 +508,20 @@
   .chip .rm{cursor:pointer;color:var(--muted);font-weight:700}
   .chip .rm:hover{color:var(--danger)}
   .chip.up{opacity:.6}
+  /* composer image attachments: small preview tiles with ✕ (left of input start) */
+  .chip-th{position:relative;width:54px;height:54px;border:1px solid var(--line2);border-radius:9px;overflow:hidden;background:var(--panel2);flex:0 0 auto}
+  .chip-th img{width:100%;height:100%;object-fit:cover;display:block}
+  .chip-th .rm{position:absolute;top:3px;right:3px;width:17px;height:17px;border:0;border-radius:6px;background:rgba(18,18,22,.75);color:#E0E0E0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .chip-th .rm:hover{background:var(--danger)}
+  .chip-th.up{opacity:.6}
+  .chip-th.up .spin{position:absolute;inset:0;margin:auto}
 
   .msg-atts{margin-bottom:8px;display:flex;flex-wrap:wrap;gap:6px}
   .matt{font-size:11px;background:var(--veil);border:1px solid var(--line);border-radius:6px;padding:3px 9px;color:var(--primary)}
+  /* sent-message image attachments: clickable thumbs → same viewer as replies */
+  .matt-th{width:76px;height:76px;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2);cursor:zoom-in;flex:0 0 auto;transition:border-color .15s ease,filter .15s ease}
+  .matt-th img{width:100%;height:100%;object-fit:cover;display:block}
+  .matt-th:hover{border-color:var(--accent);filter:brightness(1.06)}
   /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
   .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
@@ -1461,7 +1472,8 @@
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
           <div class="composer-row">
             <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
-            <select class="sel mini" id="modelSel" title="Model" onchange="applyModelSettings()">
+            <select class="sel mini" id="modelSel" title="Model — Auto routes by task: quick/mechanical → Sonnet low, deep audits → Opus max" onchange="applyModelSettings()">
+              <option value="auto">Auto (by task)</option>
               <option value="claude-opus-4-8">Opus 4.8</option>
               <option value="claude-opus-4-7">Opus 4.7</option>
               <option value="claude-sonnet-5">Sonnet 5</option>
@@ -1789,12 +1801,23 @@ async function delChat(id){
 
 function attsHtml(atts){
   if(!atts||!atts.length) return '';
+  const isImgPath=p=>p.includes('/')&&/\.(png|jpe?g|gif|webp|svg)$/i.test(p);
   return `<div class="msg-atts">${atts.map(x=>{
     const p=(''+x), name=p.split('/').pop();
+    // image attachments render as clickable thumbnails → same viewer as replies
+    if(isImgPath(p)) return `<button type="button" class="matt-th" data-path="${esc(p)}" title="${esc(name)}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(p)}" alt="${esc(name)}"></button>`;
     return `<span class="matt" title="${esc(name)}">${svg('i-clip','sm')}<span class="matt-name">${esc(name)}</span>`
       +`<a class="matt-dl" href="/api/raw?path=${encodeURIComponent(p)}" download="${esc(name)}" title="Download ${esc(name)}" onclick="event.stopPropagation()"><svg viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a></span>`;
   }).join('')}</div>`;
 }
+// clicking a user-message image attachment opens the P9.5 viewer, seeded with
+// that message's image attachments as the gallery (same behavior as reply images)
+document.addEventListener('click',(e)=>{
+  const th=e.target.closest('.matt-th'); if(!th) return;
+  const box=th.closest('.msg-atts');
+  const imgs=[...(box||document).querySelectorAll('.matt-th')].map(b=>b.dataset.path);
+  openDocWindow(th.dataset.path,{ivImgs:imgs,ivIdx:Math.max(0,imgs.indexOf(th.dataset.path))});
+});
 // ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
 const T24_={hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
 function fmtClock(iso){ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleTimeString([], T24_); }
@@ -2281,6 +2304,7 @@ function sendMsg(ingest){
   ensureChatView();  // sending from map/file/dashboard drops into the conversation
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   input.value=''; input.style.height='auto';
+  atts.forEach(a=>{ if(a.blob) try{ URL.revokeObjectURL(a.blob); }catch{} });
   state.pending=[]; renderChips();
   const job={text,attachments,attachmentNames,ingest:ingest===true};
   // Busy? queue it instead of dropping it — sends automatically when the current reply finishes.
@@ -2340,22 +2364,36 @@ function renderChips(){
   $('ingestBtn').classList.toggle('show',(state.pending||[]).some(a=>a.path));
   const box=$('attachChips'); box.innerHTML='';
   (state.pending||[]).forEach((a,i)=>{
-    const c=document.createElement('span'); c.className='chip'+(a.path?'':' up');
-    c.innerHTML=`${svg('i-clip','sm')} ${esc(a.name)} ${a.path?`<span class="rm" title="Remove">${svg('i-x','sm')}</span>`:'<span class="spin"></span>'}`;
-    if(a.path) c.querySelector('.rm').onclick=()=>{ state.pending.splice(i,1); renderChips(); };
-    box.appendChild(c);
+    const rm=()=>{ if(a.blob) try{ URL.revokeObjectURL(a.blob); }catch{} state.pending.splice(i,1); renderChips(); };
+    if(a.blob || (a.path&&/\.(png|jpe?g|gif|webp|svg)$/i.test(a.name))){
+      // image → small preview tile with ✕ (spinner overlay while uploading)
+      const c=document.createElement('span'); c.className='chip-th'+(a.path?'':' up'); c.title=a.name;
+      c.innerHTML=`<img src="${a.blob||('/api/raw?path='+encodeURIComponent(a.path))}" alt="${esc(a.name)}">`
+        +(a.path?`<button type="button" class="rm" title="Remove">${svg('i-x','sm')}</button>`:'<span class="spin"></span>');
+      if(a.path) c.querySelector('.rm').onclick=rm;
+      box.appendChild(c);
+    }else{
+      const c=document.createElement('span'); c.className='chip'+(a.path?'':' up');
+      c.innerHTML=`${svg('i-clip','sm')} ${esc(a.name)} ${a.path?`<span class="rm" title="Remove">${svg('i-x','sm')}</span>`:'<span class="spin"></span>'}`;
+      if(a.path) c.querySelector('.rm').onclick=rm;
+      box.appendChild(c);
+    }
   });
 }
 async function uploadFiles(files){
   if(!state.pending) state.pending=[];
   for(const f of files){
     const name=f.name||('pasted-'+Date.now()+'.png');
-    const entry={name,path:null}; state.pending.push(entry); renderChips();
+    // images get an instant local preview (object URL) while the upload runs
+    const entry={name,path:null,blob:(f.type&&f.type.startsWith('image/'))?URL.createObjectURL(f):null};
+    state.pending.push(entry); renderChips();
     try{
       const dataBase64=await new Promise((res,rej)=>{ const r=new FileReader(); r.onload=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(f); });
       const out=await api('/api/attach',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,dataBase64})});
       entry.path=out.path;
-    }catch(e){ toast('Attach failed: '+e.message); state.pending=state.pending.filter(x=>x!==entry); }
+      // if the message was sent mid-upload, this entry was dropped from pending — release its preview blob
+      if(!(state.pending||[]).includes(entry) && entry.blob){ try{ URL.revokeObjectURL(entry.blob); }catch{} entry.blob=null; }
+    }catch(e){ toast('Attach failed: '+e.message); if(entry.blob) try{ URL.revokeObjectURL(entry.blob); }catch{} state.pending=state.pending.filter(x=>x!==entry); }
     renderChips();
   }
 }
@@ -2420,7 +2458,7 @@ async function streamChat(text, opts={}){
     turn=[...log.querySelectorAll('.turn')].pop() || newTurn(log);
     const oe=turn.querySelector(':scope > .turn-end'); if(oe) oe.remove();   // drop the previous reply's Completed stamp
   }else{
-    turn=newTurn(log); turn.appendChild(userMsgEl(text, opts.attachmentNames));
+    turn=newTurn(log); turn.appendChild(userMsgEl(text, (opts.attachments&&opts.attachments.length)?opts.attachments:opts.attachmentNames));   // paths → image thumbs render live
   }
   const a=botMsgEl(); const body=a.querySelector('.body');
   body.innerHTML='';
@@ -2443,7 +2481,7 @@ async function streamChat(text, opts={}){
   const meterIv=setInterval(paintMeter, 250);
   // Register this stream so it can be re-attached if the user switches chats and
   // returns, and so it stops touching the composer once it's no longer the view.
-  const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, turn, userText:text, atts:opts.attachmentNames, bp:state.bp===true };
+  const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, turn, userText:text, atts:(opts.attachments&&opts.attachments.length)?opts.attachments:opts.attachmentNames, bp:state.bp===true };
   state.live=live;
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
