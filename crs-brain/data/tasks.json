@@ -243,9 +243,9 @@
     {
       "id": "a879a26b",
       "title": "Sync failing: forum",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T05:40:42.972Z",
-      "notes": "planted fixture (loop-c1 rig)",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T05:41:13.941Z)",
       "auto": {
         "key": "sync:forum"
       }
