@@ -561,6 +561,260 @@ function reconcileAutoTasks() {
   return tasks;
 }
 
+// ---- P7: state self-audit + weekly digest + smoke QA -------------------------
+// All three are READ-ONLY over app state: they report drift, write digests/logs/
+// todos/notifications, and never reconcile or auto-fix anything.
+const DIGESTS_DIR = path.join(REPO_ROOT, 'brain', 'digests');
+const SMOKE_SUBSET_FILE = path.join(REPO_ROOT, 'brain', 'qa', 'smoke-subset.json');
+const SMOKE_LOG_FILE = path.join(DATA_DIR, 'smoke-qa-log.jsonl');
+
+// STATUS.md §2 per-module dimension cells (7 emoji columns). Conservative use.
+function statusSection2Map() {
+  const out = {};
+  try {
+    const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'STATUS.md'), 'utf8');
+    const sec = md.split(/^## /m).find((b) => b.startsWith('2.')) || '';
+    for (const line of sec.split('\n')) {
+      const m = line.match(/^\|\s*([^|]+?)\s*\|(.*)\|$/);
+      if (!m || /^Module$|^---/.test(m[1])) continue;
+      const cells = m[2].split('|').map((c) => c.trim());
+      if (cells.length < 7) continue;
+      out[m[1].toLowerCase()] = cells.slice(0, 7);
+    }
+  } catch {}
+  return out;
+}
+// The daily cross-check: modules.json ↔ STATUS §2 ↔ build plans ↔ open todos'
+// links ↔ prototype hashes. Reports only — a finding becomes a `state-drift:`
+// auto todo (What's-wrong row) + one warning notification with the count.
+function runStateAudit() {
+  const findings = [];
+  const mods = loadModulesDoc().modules || [];
+  const modIds = new Set(mods.map((m) => m.id));
+  const st2 = statusSection2Map();
+  for (const m of mods) {
+    const row = st2[(m.name || '').toLowerCase()];
+    if (!row) continue;
+    const reds = row.filter((c) => c.includes('🔴')).length;
+    const greens = row.filter((c) => c.includes('✅')).length;
+    if (m.status === 'done' && reds >= 2) findings.push({ key: 'mod-status:' + m.id, msg: 'modules.json says DONE but STATUS §2 shows ' + reds + '/7 dimensions 🔴 — ' + m.name });
+    if ((m.status === 'roadmap' || m.status === 'not-started') && greens >= 5) findings.push({ key: 'mod-status:' + m.id, msg: 'modules.json says ' + m.status + ' but STATUS §2 shows ' + greens + '/7 dimensions ✅ — ' + m.name });
+  }
+  const tasks = loadTasks();
+  let protoNames = [];
+  try { protoNames = fs.readdirSync(PROTOS_DIR).filter((n) => fs.existsSync(protoJsonPath(n))); } catch {}
+  const planChunks = {};
+  for (const name of protoNames) {
+    try {
+      const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8'));
+      planChunks[name] = new Map((plan.chunks || []).map((c) => [c.id, c.status]));
+      for (const [cid, cst] of planChunks[name]) {
+        if (cst === 'verified' && tasks.some((t) => t.auto && t.auto.key === 'chunk-report:' + name + '/' + cid && t.status !== 'done')) {
+          findings.push({ key: 'chunk-todo:' + name + '/' + cid, msg: 'chunk ' + name + '/' + cid + ' is verified but its await-report todo is still open' });
+        }
+      }
+      // (d) settled/built hash integrity — RAW read (the audit never mutates;
+      // protoDriftCheck would auto-revert, which is the read-path's job).
+      const j = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8'));
+      if ((j.status === 'settled' || j.status === 'built') && j.settledHash) {
+        const cur = crypto.createHash('sha256').update(fs.readFileSync(path.join(PROTOS_DIR, name, name + '.html'))).digest('hex');
+        if (cur !== j.settledHash) findings.push({ key: 'proto-hash:' + name, msg: 'prototype ' + name + ' is ' + j.status + ' but its html no longer matches the settled hash' });
+      }
+    } catch {}
+  }
+  const openStubs = new Set(openDecisionTitles());
+  let wishlistIds = new Set();
+  try { wishlistIds = new Set((loadWishlist().items || []).map((i) => i.id)); } catch {}
+  for (const t of tasks) {
+    if (t.status === 'done' || !t.link) continue;
+    const { kind, ref } = t.link;
+    let dead = false;
+    if (kind === 'module') dead = !modIds.has(ref);
+    else if (kind === 'prototype') dead = !protoNames.includes(ref);
+    else if (kind === 'chunk') { const [pn, cid] = String(ref).split('/'); dead = !(planChunks[pn] && planChunks[pn].has(cid)); }
+    else if (kind === 'decision') dead = !openStubs.has(ref);
+    else if (kind === 'wishlist') dead = !wishlistIds.has(ref);
+    if (dead) findings.push({ key: 'dead-link:' + t.id, msg: 'open todo "' + t.title.slice(0, 60) + '" links a missing ' + kind + ' (' + String(ref).slice(0, 60) + ')' });
+  }
+  // Raise/close the drift todos (todos + notification are the audit's OUTPUT,
+  // not a reconciliation of the drifted files themselves).
+  let changed = false;
+  const activeKeys = new Set(findings.map((f) => 'state-drift:' + f.key));
+  for (const f of findings) changed = ensureAutoTask(tasks, 'state-drift:' + f.key, { title: 'State drift: ' + f.msg.slice(0, 180) }) || changed;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('state-drift:') && t.status !== 'done' && !activeKeys.has(t.auto.key)) {
+      changed = closeAutoTask(tasks, t.auto.key, 'drift no longer present') || changed;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  if (findings.length) addNotification({ type: 'warning', level: 'warning', title: 'State audit: ' + findings.length + ' mismatch' + (findings.length === 1 ? '' : 'es'), body: findings.slice(0, 3).map((f) => f.msg).join(' · ').slice(0, 900), target: '/#dashboard' });
+  saveState({ stateAuditAt: Date.now(), stateAuditFindings: findings.length });
+  return { findings };
+}
+
+// Weekly digest — a real file in brain/digests/YYYY-Www.md, five sections from
+// real data. Decisions have no dates by design → age = first-seen tracking.
+function isoWeekId(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  dt.setUTCDate(dt.getUTCDate() + 4 - (dt.getUTCDay() || 7));
+  const y = dt.getUTCFullYear();
+  const w = Math.ceil((((dt - Date.UTC(y, 0, 1)) / 86400000) + 1) / 7);
+  return y + '-W' + String(w).padStart(2, '0');
+}
+function latestDigestFile() {
+  try { return fs.readdirSync(DIGESTS_DIR).filter((f) => /^\d{4}-W\d{2}\.md$/.test(f)).sort().pop() || null; } catch { return null; }
+}
+async function runWeeklyDigest() {
+  fs.mkdirSync(DIGESTS_DIR, { recursive: true });
+  const prevFile = latestDigestFile();
+  let prevCounts = null, prevDate = null;
+  if (prevFile) {
+    try {
+      const prev = fs.readFileSync(path.join(DIGESTS_DIR, prevFile), 'utf8');
+      const cm = prev.match(/<!-- counts: (\{.*?\}) -->/);
+      if (cm) prevCounts = JSON.parse(cm[1]);
+      const dm = prev.match(/<!-- generated: ([0-9T:.Z-]+) -->/);
+      if (dm) prevDate = dm[1];
+    } catch {}
+  }
+  const commits = await gitLog(prevDate ? Math.max(1, Math.ceil((Date.now() - Date.parse(prevDate)) / 86400000)) : 7);
+  const byPrefix = {};
+  for (const line of commits.split('\n').filter(Boolean)) {
+    const m = line.match(/\d{4}-\d\d-\d\d\s+([a-z0-9-]+):/i);
+    byPrefix[m ? m[1].toLowerCase() : '(other)'] = (byPrefix[m ? m[1].toLowerCase() : '(other)'] || 0) + 1;
+  }
+  const rows = checklistRows();
+  const counts = {};
+  for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
+  const st = loadState();
+  const seen = { ...(st.decisionFirstSeen || {}) };
+  const stubs = openDecisionTitles();
+  for (const t of stubs) if (!seen[t]) seen[t] = Date.now();
+  for (const k of Object.keys(seen)) if (!stubs.includes(k)) delete seen[k];
+  saveState({ decisionFirstSeen: seen });
+  const tasks = loadTasks().filter((t) => t.status !== 'done');
+  const oldest = [...tasks].sort((a, b) => (a.created || '').localeCompare(b.created || '')).slice(0, 5);
+  const week = isoWeekId(new Date());
+  const trend = (s) => prevCounts ? (counts[s] || 0) - (prevCounts[s] || 0) : null;
+  const L = [];
+  L.push('# CRS weekly digest — ' + week);
+  L.push('');
+  L.push('<!-- generated: ' + nowIso() + ' -->');
+  L.push('<!-- counts: ' + JSON.stringify(counts) + ' -->');
+  L.push('');
+  L.push('## What shipped (commits since ' + (prevDate ? prevDate.slice(0, 10) : 'last 7 days') + ')');
+  const totalCommits = Object.values(byPrefix).reduce((a, b) => a + b, 0);
+  L.push('');
+  L.push(totalCommits + ' commits: ' + Object.entries(byPrefix).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ×' + v).join(' · '));
+  L.push('');
+  L.push('## Checklist trend');
+  L.push('');
+  for (const s of ['PASS', 'FAIL', 'ENV-LIMITED', 'QUARANTINE', 'UNTESTED']) {
+    const d = trend(s);
+    L.push('- ' + s + ': ' + (counts[s] || 0) + (d === null ? ' (no prior week)' : d === 0 ? ' (±0)' : d > 0 ? ' (+' + d + ')' : ' (' + d + ')'));
+  }
+  L.push('');
+  L.push('## Open decisions (age = tracked-since; stubs are undated by design)');
+  L.push('');
+  if (!stubs.length) L.push('(none — nothing blocks generation)');
+  for (const t of stubs) {
+    const days = Math.floor((Date.now() - seen[t]) / 86400000);
+    L.push('- ' + (days > 14 ? '⚠ **OPEN >14d tracked** — ' : '') + t + ' (tracked ' + days + 'd)');
+  }
+  L.push('');
+  L.push('## Sync highlights');
+  L.push('');
+  const stamp = (n, v) => '- ' + n + ': ' + (v ? new Date(v).toISOString().slice(0, 16).replace('T', ' ') : 'never');
+  L.push(stamp('forum digest', st.forumCheckedAt));
+  L.push(stamp('release notes', st.relnotesCheckedAt));
+  L.push(stamp('issue check', st.issueCheckedAt) + (st.issueLastCount ? ' (' + st.issueLastCount + ' found)' : ''));
+  L.push(stamp('state audit', st.stateAuditAt) + (st.stateAuditFindings ? ' — ' + st.stateAuditFindings + ' finding(s)' : ''));
+  L.push(stamp('smoke QA', st.smokeQaAt));
+  L.push('');
+  L.push('## Oldest untouched todos');
+  L.push('');
+  if (!oldest.length) L.push('(no open todos)');
+  for (const t of oldest) L.push('- [' + t.status + '] ' + t.title.slice(0, 100) + ' (since ' + (t.created || '').slice(0, 10) + ')');
+  L.push('');
+  const file = path.join(DIGESTS_DIR, week + '.md');
+  fs.writeFileSync(file, L.join('\n'));
+  saveState({ weeklyDigestAt: Date.now() });
+  addNotification({ type: 'info', level: 'info', title: 'Weekly digest ready — ' + week, body: totalCommits + ' commits · checklist ' + (counts.PASS || 0) + ' PASS · ' + stubs.length + ' open decisions', target: 'brain/digests/' + week + '.md' });
+  autoCommit('weekly digest ' + week);
+  return { file: 'brain/digests/' + week + '.md', week };
+}
+
+// Daily smoke QA — the ~20-row critical subset that is server-runnable
+// (brain/qa/smoke-subset.json). Read-only; failures raise todos + one
+// notification; the FULL loop stays on-demand.
+async function runSmokeQa() {
+  let subset = [];
+  try { subset = JSON.parse(fs.readFileSync(SMOKE_SUBSET_FILE, 'utf8')).checks || []; } catch { return { error: 'smoke-subset.json missing' }; }
+  const results = [];
+  for (const c of subset) {
+    let ok = false, detail = '';
+    try {
+      if (c.kind === 'file') { ok = fs.existsSync(path.join(REPO_ROOT, c.path)); detail = c.path; }
+      else if (c.kind === 'fn') {
+        if (c.fn === 'assemble-determinism') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js'))];
+          const asm = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js'));
+          const a = asm.assemble('casino_settings').sha256, b = asm.assemble('casino_settings').sha256;
+          ok = a === b; detail = a.slice(0, 12);
+        } else if (c.fn === 'guard-blocks') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js'))];
+          const hits = require(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js')).guard('01 Company own-table shape', 'smoke');
+          ok = hits.length > 0; detail = hits.length + ' hit(s)';
+        } else if (c.fn === 'plan-validate') {
+          const eng = freshChunkEngine();
+          eng.loadPlan(c.proto); ok = true; detail = c.proto + ' valid';
+        } else if (c.fn === 'registry-types') {
+          const src = fs.readFileSync(path.join(PUBLIC_DIR, 'notify-registry.js'), 'utf8');
+          const n = (src.match(/^\s*T\(/gm) || []).length;
+          ok = n >= 17; detail = n + ' types';
+        } else if (c.fn === 'sounds-count') {
+          const n = fs.readdirSync(SOUNDS_DIR).filter((f) => f.endsWith('.wav')).length;
+          ok = n === 24; detail = n + ' wavs';
+        } else if (c.fn === 'checklist-parse') {
+          const rows = checklistRows();
+          ok = rows.length >= 100 && !rows.some((r) => r.status === 'UNTESTED');
+          detail = rows.length + ' rows';
+        } else if (c.fn === 'scaffold-markers') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js'))];
+          const sc = require(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js'));
+          const html = sc.buildScaffold('smoke', 'blank');
+          ok = sc.extractTokenBlock(html) !== null; detail = 'markers ok';
+        }
+      } else if (c.kind === 'endpoint') {
+        const r = await new Promise((resolve) => {
+          http.get({ host: '127.0.0.1', port: PORT, path: c.path }, (res) => {
+            let body = '';
+            res.on('data', (d) => (body += d));
+            res.on('end', () => resolve({ status: res.statusCode, body }));
+          }).on('error', (e) => resolve({ status: 0, body: String(e.message) }));
+        });
+        ok = r.status === (c.expect || 200) && (!c.contains || r.body.includes(c.contains));
+        detail = 'HTTP ' + r.status;
+      }
+    } catch (e) { ok = false; detail = e.message.slice(0, 120); }
+    results.push({ id: c.id, ok, detail });
+  }
+  const fails = results.filter((r) => !r.ok);
+  try { fs.appendFileSync(SMOKE_LOG_FILE, JSON.stringify({ ts: nowIso(), total: results.length, pass: results.length - fails.length, fail: fails.length, failures: fails }) + '\n'); } catch {}
+  const tasks = loadTasks();
+  let changed = false;
+  for (const f of fails) changed = ensureAutoTask(tasks, 'smoke:' + f.id, { title: 'Smoke QA FAIL: ' + f.id + ' — ' + f.detail.slice(0, 120) }) || changed;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('smoke:') && t.status !== 'done' && !fails.some((f) => 'smoke:' + f.id === t.auto.key)) {
+      changed = closeAutoTask(tasks, t.auto.key, 'smoke check green again') || changed;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  if (fails.length) addNotification({ type: 'warning', level: 'warning', title: 'Smoke QA: ' + fails.length + ' failure(s)', body: fails.map((f) => f.id).join(' · ').slice(0, 900), target: '/#dashboard' });
+  saveState({ smokeQaAt: Date.now(), smokeQaFails: fails.length });
+  return { total: results.length, pass: results.length - fails.length, fail: fails.length, results };
+}
+
 // Engine modules are re-required per request WITHOUT the require cache — a
 // running server must always execute the current on-disk engine (a stale cached
 // chunk.js silently no-oped an engine fix during Phase-1 acceptance).
@@ -2769,6 +3023,24 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true });
     }
 
+    // ---- P7: manual triggers for the scheduled read-only jobs ----
+    if (p === '/api/state-audit/run' && req.method === 'POST') {
+      const r = runStateAudit();
+      return send(res, 200, { ok: true, findings: r.findings });
+    }
+    if (p === '/api/smoke/run' && req.method === 'POST') {
+      const r = await runSmokeQa();
+      return send(res, 200, r);
+    }
+    if (p === '/api/digest/weekly' && req.method === 'POST') {
+      try { const r = await runWeeklyDigest(); return send(res, 200, { ok: true, ...r }); }
+      catch (e) { return send(res, 500, { error: e.message }); }
+    }
+    if (p === '/api/digest/latest' && req.method === 'GET') {
+      const f2 = latestDigestFile();
+      return send(res, 200, { file: f2 ? 'brain/digests/' + f2 : null });
+    }
+
     // ---- Tasks: chief-of-staff todos & follow-ups ----
     if (p === '/api/tasks' && req.method === 'GET') {
       return send(res, 200, { tasks: reconcileAutoTasks(), statuses: TASK_STATUSES, linkKinds: TASK_LINK_KINDS });
@@ -2867,6 +3139,7 @@ const server = http.createServer(async (req, res) => {
           bubbleDigest: { lastSync: cfgS.bubbleCheckedAt || 0 }, manuals: { lastSync: cfgS.manualsCheckedAt || 0 },
         },
         wishlist: wl,
+        ops: { stateAuditAt: st.stateAuditAt || 0, stateAuditFindings: st.stateAuditFindings || 0, smokeQaAt: st.smokeQaAt || 0, smokeQaFails: st.smokeQaFails || 0, weeklyDigestAt: st.weeklyDigestAt || 0 },
       });
     }
 
@@ -3681,6 +3954,31 @@ function maybeIssueCheck() {
     .finally(() => { issueChecking = false; });
 }
 setTimeout(maybeIssueCheck, 240 * 1000);           // ~4 min after boot
+
+// ---- P7 scheduler: daily state audit + smoke QA, weekly digest --------------
+// Same stamp-gated hourly-tick pattern as every other watcher → restart-safe.
+let dailyOpsRunning = false;
+async function maybeDailyOps() {
+  if (dailyOpsRunning) return;
+  dailyOpsRunning = true;
+  try {
+    const st = loadState();
+    if (Date.now() - (st.stateAuditAt || 0) >= BUBBLE_DAY) {
+      try { const r = runStateAudit(); console.log('  ⟳ state audit: ' + r.findings.length + ' finding(s)'); }
+      catch (e) { console.log('  ⟳ state audit failed:', e.message); }
+    }
+    if (Date.now() - (st.smokeQaAt || 0) >= BUBBLE_DAY) {
+      try { const r = await runSmokeQa(); console.log('  ⟳ smoke QA: ' + r.pass + '/' + r.total); }
+      catch (e) { console.log('  ⟳ smoke QA failed:', e.message); }
+    }
+    if (Date.now() - (st.weeklyDigestAt || 0) >= 7 * BUBBLE_DAY) {
+      try { const r = await runWeeklyDigest(); console.log('  ⟳ weekly digest → ' + r.file); }
+      catch (e) { console.log('  ⟳ weekly digest failed:', e.message); }
+    }
+  } finally { dailyOpsRunning = false; }
+}
+setTimeout(maybeDailyOps, 300 * 1000);             // ~5 min after boot
+setInterval(maybeDailyOps, 3600 * 1000);           // hourly gate check
 setInterval(maybeIssueCheck, 3600 * 1000);         // hourly gate, daily action
 
 // ---- w-loops MVP: durable task queue with limit-aware auto-resume ------------

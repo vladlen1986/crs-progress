@@ -2239,6 +2239,8 @@ async function renderDashboard(){
         <div class="drow"><span class="rt">ENV-LIMITED</span><span class="rmeta">${num(q['ENV-LIMITED'])}</span></div>
         <div class="drow"><span class="rt">FAIL / quarantine</span><span class="rmeta">${num(q.FAIL+(q.QUARANTINE||0))}</span></div>
         <div class="drow"><span class="rt">Last run</span><span class="rmeta"><span class="dnum">${esc(dash.qa.lastRun||'—')}</span></span></div>
+        <div class="drow"><span class="rt">State audit</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.stateAuditAt)}</span>${dash.ops&&dash.ops.stateAuditFindings?` · ${num(dash.ops.stateAuditFindings)} drift`:''}</span></div>
+        <div class="drow"><span class="rt">Smoke QA</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.smokeQaAt)}</span>${dash.ops&&dash.ops.smokeQaFails?` · ${num(dash.ops.smokeQaFails)} fail`:''}</span></div>
       </div>
       <div class="dcard"><h3>${svg('i-gauge','sm')} Progress Tree</h3>
         <div class="drow"><span class="rt">Done</span><span class="rmeta">${num(dash.modules.counts['done']||0)} / ${num(dash.modules.total)}</span></div>
@@ -2258,7 +2260,7 @@ async function renderDashboard(){
       ${A('i-ingest','Ingest a report','Route a Buildprint update into the brain','startIngest()',c.amber)}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')',c.green)}
       ${A('i-map','Galaxy map','Explore the brain visually','showMap()',c.soft)}
-      ${A('i-sparkle','Weekly digest','Summarize the week from git + progress','runDigest()',c.soft)}
+      ${A('i-sparkle','Weekly digest','Open the latest weekly digest (generates if none)','openWeeklyDigest()',c.soft)}
       ${A('i-refresh','Sync Buildprint → brain','Pull the latest Bubble changes into the ledger','bpTrack()',c.cyan)}
     </div></section>
 
@@ -2271,6 +2273,13 @@ async function renderDashboard(){
       ${T('i-doc','Prototypes',"openPageWindow('/protos.html','Prototypes')",c.cyan)}
     </div></section>
   </div>`;
+}
+async function openWeeklyDigest(){
+  try{
+    let r=await api('/api/digest/latest');
+    if(!r.file){ toast('Generating the first weekly digest…'); r=await api('/api/digest/weekly',{method:'POST'}); }
+    openDocWindow(r.file);
+  }catch(e){ toast('⚠ '+e.message); }
 }
 async function dashTaskAdd(){
   const el=$('dashTaskInput'); const title=(el&&el.value||'').trim();
