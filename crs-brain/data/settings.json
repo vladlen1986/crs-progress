@@ -10,7 +10,7 @@
     "sonnet",
     "haiku"
   ],
-  "theme": "dark",
+  "theme": "light",
   "bpAutoTrack": false,
   "notify": {
     "inApp": true,
