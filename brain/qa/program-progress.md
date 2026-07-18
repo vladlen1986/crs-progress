@@ -25,6 +25,17 @@
 - QA verification: in-session browser pane ruled unusable for verification (background-throttled) per Vlad's 2026-07-17 directive — verification rig = puppeteer-core driving system Chrome headless:'new' with throttling disabled; rig is machine-local, rebuild on this Mac at first browser-verify need (sanity-prove on a known-PASS row first). Both themes always.
 - Commits auto-fire from server saves (autoCommit on crs-brain/data + brain) — expect interleaved `data:`-style commits; phase commits stay `<phase>: <task>`.
 
+## P5 PLAN (written before first edit)
+
+**Pilot subject: demos/casino_property_settings.html → prototype `casino-settings` (module `casino_settings`).** Why: the smallest real prototype that maps to a REAL modules.json module (37.9KB; Coming_Soon is smaller but belongs to no module — a module-less pilot would hollow out the engine's MODULE BLOCK + STATUS grounding; buttons is already consumed as the Phase-1 acceptance sample; BreakList is bigger). casino_settings is a done module with real STATUS §3 content — the richest honest bundle.
+
+1. Register (copy into prototypes/) → snapshot v1 ("as registered") → settle → map.
+2. Resolve REAL flags with vlad listed as resolver (program 5.1 explicitly instructs this; each resolution logged in the checkpoint for ratification; plant NOTHING).
+3. Plan → emit chunk 1 through the engine (one boxed model call) → Copy path: chunk-status sent (bridge is ENV-LIMITED) → auto follow-up "Await BP report" appears on the board.
+4. HONEST DEVIATION (documented): "BP report captured" requires a real Buildprint session — CLI is Unauthorized and BP-web is Vlad's; the pilot trail therefore ends at `sent` + open follow-up + `verified` pending. Report capture + verdict = Vlad's homework (exactly what the follow-up chases). No fake report in the pilot.
+5. PILOT rows appended to checklist; dashboard shows plan progress + follow-up live (rig-checked in the loop).
+6. **P5.2 loop-to-green:** full checklist re-verify (c2-recipe: parallel domain verifier fan-out — static + browser domains via the rig; serial fixes; full re-verify per cycle) until two consecutive 100%-clean runs (ENV-LIMITED excluded + listed). Quarantine after 3 cycles w/ root cause.
+
 ## P3 PLAN (written before first edit)
 
 1. **T1 scaffold engine:** style-inventory.js exports `rawCss210()` (the §2.10 css fence text, byte-verbatim). NEW brain/engine/proto-scaffold.js: `buildScaffold(name, template)` → html with the fence wrapped in `/* §2.10 BEGIN (verbatim) */ … /* §2.10 END */` markers (diffable byte-exact), minimal var-only shell (header + theme toggle wired to data-theme, ?theme param, postMessage {type:'crs-theme'} listener, empty stage), templates blank | cards (§20.4 tiles) | form (§14/§2 inputs+buttons) | table (§20.6) — ZERO literals so mapping runs clean. Server POST /api/protos/create {name,module,template} → scaffold + proto.json draft.
