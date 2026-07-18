@@ -1,0 +1,22 @@
+{
+  "name": "smoke-draft",
+  "module": "user_management",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T05:13:39.463Z",
+  "notes": [
+    "scaffolded (template: form)"
+  ],
+  "versions": [
+    {
+      "v": 1,
+      "note": "v1 original",
+      "ts": "2026-07-18T05:13:39.472Z"
+    },
+    {
+      "v": 2,
+      "note": "v2 after edit",
+      "ts": "2026-07-18T05:13:39.481Z"
+    }
+  ]
+}

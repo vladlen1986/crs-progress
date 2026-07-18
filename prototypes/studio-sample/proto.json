@@ -8,5 +8,11 @@
     "scaffolded (template: cards)",
     "2026-07-18T05:10:14.283Z — settled @ 3bcca213cef6"
   ],
-  "versions": []
+  "versions": [
+    {
+      "v": 1,
+      "note": "first snap",
+      "ts": "2026-07-18T05:13:39.442Z"
+    }
+  ]
 }
