@@ -379,8 +379,15 @@
     {
       "id": "6b1817cb",
       "title": "QA guide walkthrough todo A",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T07:23:16.014Z",
+      "notes": ""
+    },
+    {
+      "id": "919f8edc",
+      "title": "QA guide walkthrough todo B",
+      "status": "todo",
+      "created": "2026-07-18T07:23:16.092Z",
       "notes": ""
     }
   ]
