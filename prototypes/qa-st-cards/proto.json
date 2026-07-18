@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-cards",
+  "module": "casino_settings",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T10:46:17.338Z",
+  "notes": [
+    "scaffolded (template: cards)"
+  ],
+  "versions": []
+}
