@@ -29,6 +29,16 @@
 - QA verification: in-session browser pane ruled unusable for verification (background-throttled) per Vlad's 2026-07-17 directive — verification rig = puppeteer-core driving system Chrome headless:'new' with throttling disabled; rig is machine-local, rebuild on this Mac at first browser-verify need (sanity-prove on a known-PASS row first). Both themes always.
 - Commits auto-fire from server saves (autoCommit on crs-brain/data + brain) — expect interleaved `data:`-style commits; phase commits stay `<phase>: <task>`.
 
+## P9 PLAN (written before first edit)
+
+**Preconditions stated (program 9 head):** Pattern A = still [OPEN] → the P6 UM-fix drafts stay blocked (correctly); the run uses UNBLOCKED work only. Bridge = ENV-LIMITED → per-intent "send" = copy-path staging; report capture/verified remain Vlad's (same honest boundary as P5/P6). No nagging mid-run.
+
+1. **T1 queue extension (rides the proven limit-aware queue — overlap 2):** task-queue tasks gain optional `intent` object: {kind:'chunk-emit', proto, chunkId} | {kind:'gen', module, text}. runQueue processes intent tasks through the ENGINE paths (buildChunkIntent→assemble→guard→runClaudeStream→archive→prompt staged→chunk sent | gen pipeline→archive) instead of a generic chat turn — limit errors bubble into the existing looksLikeLimit → blocked-limit → resumeAt machinery unchanged. Guard hit → task `failed` with DECISION-NEEDED (never bypassed; decision todo raised via the existing hook). Queue log (qlog) records per-intent t-start/t-staged.
+2. **T2 telemetry:** /api/dash gains `throughput` {processed, awaitingVerify, avgIntentToStagedMs, limitBlocksSurvived} derived from data/task-queue.json log entries; Now-row tile, JBMono figures.
+3. **T3 real backlog (≥5 intents):** casino-settings chunks c2, c3, c4 (chunk-emit — real pilot continuation) + 2 FWM kickoff gen intents (data model/OS + permissions notes, grounded by the engine's FWM bundle — brain detail through gen, nothing imagined). Enqueue → run sequentially.
+4. **T4 guard-bypass proof:** enqueue 1 intent touching Pattern A → task must fail DECISION-NEEDED with zero emission (listed as still-blocked).
+5. **T5:** limit crossing = ENV-LIMITED unless a REAL limit window occurs during the run (QUEUE_STUB is a mock — forbidden for this acceptance; stated). Pending-verify list vs reported chunks reconciliation + telemetry↔log reconciliation by the verifier. P9.1–5 rows + checkpoint. Final P9/P10 loop happens at P10 per program.
+
 ## P8 PLAN (written before first edit)
 
 1. **T1 handoff:** `generateHandoff()` in server.js → brain/qa/handoff-YYYY-MM-DD.md (position from program-progress head, git log -8 + status, checklist counts + ENV-LIMITED list, open tasks, env caveats [buildprint --version + recorded Unauthorized state, node version, rig note], resume-reading order, conventions pointer) → autoCommit + `git push` (graceful failure surfaced). POST /api/handoff + dashboard Quick action button. Modeled on resume-2026-07-17.md.
