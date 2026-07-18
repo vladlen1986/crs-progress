@@ -1,0 +1,15 @@
+{
+  "tasks": [
+    {
+      "id": "9b23fd99",
+      "title": "Test manual todo",
+      "status": "todo",
+      "created": "2026-07-18T04:46:00.018Z",
+      "notes": "",
+      "link": {
+        "kind": "module",
+        "ref": "user_management"
+      }
+    }
+  ]
+}
