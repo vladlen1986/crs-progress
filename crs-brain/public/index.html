@@ -592,6 +592,14 @@
   .cm-more:hover{border-color:var(--border-hover);color:var(--text-primary)}
   .cm-more:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
   .cm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 6px;border:1px solid var(--border-default);border-radius:var(--radius-pill);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;text-decoration:none;vertical-align:baseline;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+  .ent-chip{display:inline;color:var(--accent-text);text-decoration:none;border-bottom:1px dotted var(--accent-border-active);cursor:pointer}
+  .ent-chip:hover{color:var(--accent);border-bottom-style:solid}
+  .dp-backlinks{margin:22px 0 6px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .dp-backlinks .bl-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-right:4px}
+  .dp-backlinks .bl-orphan{font-size:12px;color:var(--warning);background:var(--warning-tint);border:1px solid var(--warning);border-radius:var(--radius-btn);padding:5px 9px}
+  .dp-backlinks .bl-chip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 9px;font-size:11px;font-family:var(--mono);cursor:pointer}
+  .dp-backlinks .bl-chip:hover{color:var(--primary);border-color:var(--line2)}
+  .dp-backlinks .bl-k{font-size:9px;color:var(--muted);text-transform:uppercase;margin-right:5px}
   .cm-chip:hover{border-color:var(--border-hover);color:var(--text-primary)}
   .cm-chip .cm-ic{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
   .cm-chip .cm-ic svg{width:16px;height:16px}
@@ -1657,6 +1665,32 @@ function enhanceChatMedia(body){
   // isConnected): renderChat enhances the body BEFORE appending it, so the
   // subtree is detached — contains() still tells us if step 4 removed a token.
   for(const t of toks){ if(t.info.kind==='img') continue; if(!body.contains(t.el)) continue; t.el.replaceWith(cmChipEl(t.info)); }
+}
+// Program 3 Phase 3: auto-link known entity NAMES (module names) in rendered
+// bodies → entity chips opening their entity page. Cached module list; no
+// per-render server scan. Only outside <pre>/<code>/<a>, whole-word, once per node.
+let _entities=null;
+async function loadEntities(){ try{ _entities=(await api('/api/entities')).modules||[]; }catch{ _entities=[]; } }
+function autoLinkEntities(body){
+  if(!_entities||!_entities.length||!body||body.dataset.el==='1') return; body.dataset.el='1';
+  const mods=_entities.filter(m=>(m.name||'').length>=5).sort((a,b)=>b.name.length-a.name.length);
+  const rx=new RegExp('\\b('+mods.map(m=>m.name.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|')+')\\b','g');
+  const byName={}; mods.forEach(m=>byName[m.name]=m.id);
+  const walk=document.createTreeWalker(body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{
+    if(n.parentElement.closest('pre,code,a,.cm-chip,.ent-chip')) return NodeFilter.FILTER_REJECT;
+    return rx.test(n.nodeValue)?NodeFilter.FILTER_ACCEPT:NodeFilter.FILTER_REJECT; }});
+  const texts=[]; let n; while(n=walk.nextNode()) texts.push(n);
+  for(const t of texts){
+    rx.lastIndex=0; const frag=document.createDocumentFragment(); const str=t.nodeValue; let last=0, m;
+    while(m=rx.exec(str)){
+      if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
+      const id=byName[m[1]]; const chip=document.createElement('a'); chip.className='ent-chip'; chip.href='#'; chip.textContent=m[1];
+      chip.onclick=e=>{ e.preventDefault(); openTarget('/entity.html#module='+id,{title:m[1]}); };
+      frag.appendChild(chip); last=m.index+m[1].length;
+    }
+    if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last)));
+    t.replaceWith(frag);
+  }
 }
 // one delegated handler: a chat thumbnail opens the P9.5 viewer seeded with its message's gallery
 document.addEventListener('click',(e)=>{
@@ -3189,7 +3223,21 @@ async function dwFill(w){
   let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
   w.text=content;
   dwRenderView(w);
+  dwBacklinks(w);   // Program 3 Phase 3: "Referenced by" footer for text/md docs
 }
+// Compute + render a compact backlinks strip for a document window.
+async function dwBacklinks(w){
+  if(w.mode==='edit') return;
+  try{
+    const {links,orphan}=await api('/api/backlinks?ref='+encodeURIComponent(w.path));
+    const body=w.el&&w.el.querySelector('.dp-body'); if(!body||w.htmlView) return;
+    const strip=document.createElement('div'); strip.className='dp-backlinks';
+    if(orphan) strip.innerHTML='<span class="bl-orphan">Orphan — nothing in the brain references this file.</span>';
+    else strip.innerHTML='<span class="bl-h">Referenced by '+links.length+'</span>'+links.slice(0,12).map(l=>`<button class="bl-chip" onclick="dwBacklinkOpen('${jsq(l.from)}')"><span class="bl-k">${esc(l.kind)}</span>${esc(l.from.replace(/^chat:/,'chat ').split('/').pop())}</button>`).join('');
+    body.appendChild(strip);
+  }catch{}
+}
+function dwBacklinkOpen(from){ if(from.startsWith('chat:')) openChat(from.slice(5)); else if(from.startsWith('module:')) openTarget('/entity.html#module='+from.slice(7),{title:'Module'}); else openDocWindow(from); }
 function dwRenderView(w){
   const body=w.el.querySelector('.dp-body'), ext=extOf(w.name), t=w.text==null?'':w.text;
   if(/^(md|markdown)$/.test(ext)) body.innerHTML=`<div class="dp-md md">${renderMd(t)}</div>`;
@@ -3394,7 +3442,7 @@ async function dwDocxFill(w){
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
 // Window policy (polish): ONE router decides by target type. App surfaces open
 // full-area with a ← back; files open in their popup window/viewer.
-const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html'];
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html'];
 function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
 function openTarget(target, opts){
   opts=opts||{};
@@ -4682,7 +4730,7 @@ async function bpTrack(){
         else if(ev.type==='error'){ body.classList.add('err'); body.textContent='⚠ '+ev.error; }
       }
     }
-    if(full && !body.classList.contains('err')){ body.innerHTML=renderMd(full); enhanceChatMedia(body); }
+    if(full && !body.classList.contains('err')){ body.innerHTML=renderMd(full); enhanceChatMedia(body); autoLinkEntities(body); }
     loadChats(); loadProgress(); loadFiles();
   }catch(e){ body.classList.add('err'); body.textContent='⚠ '+e.message; }
   finally{ state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight; }
@@ -5023,7 +5071,7 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 </body>

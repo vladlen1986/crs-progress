@@ -149,6 +149,116 @@ function memoryForPrompt() {
   return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
 }
 function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+// ---- Program 3 Phase 3: entity aggregation + backlinks ----------------------
+// Everything the brain knows about one module, aggregated from every store, each
+// section carrying a source ref. moduleDetail() is the backbone; this adds the
+// cross-store links (decisions, prompts, chunks+reports, todos, feedback, checklist).
+function moduleEntity(modId) {
+  const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+  if (!mod) return null;
+  const detail = moduleDetail(mod);
+  const nameLc = (mod.name || '').toLowerCase();
+  const idLc = modId.toLowerCase();
+  const hits = (s) => { s = (s || '').toLowerCase(); return s.includes(nameLc) || s.includes(idLc) || s.includes(idLc.replace(/_/g, ' ')); };
+  // Decisions (open stubs + dated locked entries) that mention the module.
+  const decisions = [];
+  try {
+    const dec = fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8');
+    for (const block of dec.split(/^## /m)) {
+      const title = block.split('\n')[0].trim();
+      if (!title) continue;
+      if (hits(block)) decisions.push({ title, open: /^\[OPEN\]/.test(title), ref: 'decisions.md' });
+    }
+  } catch {}
+  // Prompts generated for it.
+  const prompts = [];
+  try {
+    const gdir = path.join(REPO_ROOT, 'brain', 'buildprint', 'generated');
+    for (const f of fs.readdirSync(gdir)) {
+      if (!f.endsWith('.md')) continue;
+      if (f.toLowerCase().includes(idLc) || f.toLowerCase().includes(idLc.replace(/_/g, '-'))) prompts.push({ label: f.replace(/\.md$/, ''), ref: 'brain/buildprint/generated/' + f });
+    }
+  } catch {}
+  // Chunks + reports from prototypes whose proto.json module === this module.
+  const chunks = [];
+  try {
+    for (const name of fs.readdirSync(PROTOS_DIR)) {
+      let pj; try { pj = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8')); } catch { continue; }
+      if (pj.module !== modId) continue;
+      let plan; try { plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); } catch { plan = { chunks: [] }; }
+      for (const c of plan.chunks || []) {
+        const rep = 'prototypes/' + name + '/chunks/' + c.id + '-report.md';
+        chunks.push({ proto: name, id: c.id, title: c.title, status: c.status, ref: 'prototypes/' + name + '/chunks/' + c.id + '-prompt.md', report: fs.existsSync(path.join(REPO_ROOT, rep)) ? rep : null });
+      }
+    }
+  } catch {}
+  // Linked todos.
+  const todos = loadTasks().filter((t) => t.status !== 'done' && ((t.link && t.link.kind === 'module' && t.link.ref === modId) || hits(t.title)));
+  // Feedback (wishlist items mentioning it).
+  const feedback = [];
+  try { for (const it of (loadWishlist().items || [])) if (hits(it.title + ' ' + (it.detail || ''))) feedback.push({ title: it.title, status: it.status, ref: 'wishlist' }); } catch {}
+  // Checklist rows referencing it.
+  const checklist = [];
+  try {
+    for (const l of fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8').split('\n')) {
+      const m = l.match(/^\|\s*([A-Za-z0-9][^|]*?)\s*\|/);
+      if (m && !/^id$/i.test(m[1]) && hits(l)) checklist.push({ id: m[1], ref: 'brain/qa/master-checklist.md' });
+    }
+  } catch {}
+  return { module: mod, detail, decisions, prompts, chunks, todos: todos.map((t) => ({ id: t.id, title: t.title, status: t.status })), feedback, checklist };
+}
+
+// Backlinks index: which docs / chat messages / reports reference a given path or
+// entity name. mtime-gated cache. Orphan = zero inbound references.
+const BACKLINK_CACHE = { map: null, stamp: 0 };
+function backlinkStamp() {
+  // cheap: mtimes of the doc roots + chats dir + prototypes
+  let s = 0;
+  for (const p of [path.join(REPO_ROOT, 'decisions.md'), path.join(REPO_ROOT, 'CLAUDE.md'), CHATS_DIR, PROTOS_DIR, path.join(REPO_ROOT, 'brain')]) s += searchStamp(p);
+  return s;
+}
+function buildBacklinkMap() {
+  const st = backlinkStamp();
+  if (BACKLINK_CACHE.map && st === BACKLINK_CACHE.stamp) return BACKLINK_CACHE.map;
+  const map = {};   // target (lowercased path or entity) → [{from, kind}]
+  const modNames = (loadModulesDoc().modules || []).map((m) => ({ id: m.id, name: m.name }));
+  const addRef = (target, from, kind) => { const t = target.toLowerCase(); (map[t] = map[t] || []).push({ from, kind }); };
+  const scan = (text, from, kind) => {
+    if (!text) return;
+    // explicit repo paths in backticks or md links
+    for (const m of text.matchAll(/`([a-zA-Z0-9_./-]+\.[a-z]{2,5})`|\]\(([a-zA-Z0-9_./-]+\.[a-z]{2,5})\)/g)) addRef(m[1] || m[2], from, kind);
+    for (const m of text.matchAll(/prototypes\/[a-z0-9_-]+/gi)) addRef(m[0], from, kind);
+    // module names (word-boundary, ≥4 chars to avoid noise)
+    for (const mod of modNames) if (mod.name.length >= 4 && new RegExp('\\b' + mod.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(text)) addRef('module:' + mod.id, from, kind);
+  };
+  // docs
+  const docRoots = ['decisions.md', 'CLAUDE.md', 'brain/STATUS.md', 'brain/INDEX.md'];
+  for (const d of docRoots) { try { scan(fs.readFileSync(path.join(REPO_ROOT, d), 'utf8'), d, 'doc'); } catch {} }
+  try { for (const f of fs.readdirSync(path.join(REPO_ROOT, 'brain', 'modules'))) scan(fs.readFileSync(path.join(REPO_ROOT, 'brain', 'modules', f), 'utf8'), 'brain/modules/' + f, 'doc'); } catch {}
+  // chat messages
+  try {
+    for (const f of fs.readdirSync(CHATS_DIR)) {
+      if (!f.endsWith('.json')) continue;
+      let c; try { c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8')); } catch { continue; }
+      const txt = (c.messages || []).map((m) => m.content || '').join('\n');
+      scan(txt, 'chat:' + c.id, 'chat');
+    }
+  } catch {}
+  // chunk reports
+  try {
+    for (const name of fs.readdirSync(PROTOS_DIR)) {
+      const cdir = path.join(PROTOS_DIR, name, 'chunks');
+      try { for (const f of fs.readdirSync(cdir)) if (/-report\.md$/.test(f)) scan(fs.readFileSync(path.join(cdir, f), 'utf8'), 'prototypes/' + name + '/chunks/' + f, 'report'); } catch {}
+    }
+  } catch {}
+  BACKLINK_CACHE.map = map; BACKLINK_CACHE.stamp = st;
+  return map;
+}
+function backlinksFor(ref) {
+  const map = buildBacklinkMap();
+  return (map[(ref || '').toLowerCase()] || []);
+}
+
 // ---- Program 3 Phase 2: global search index (⌘K palette backing) ------------
 // Zero-dep, mtime-gated cache — the index rebuilds only the stores whose backing
 // file changed, so an edit shows up within seconds without a file-watcher.
@@ -3293,6 +3403,22 @@ const server = http.createServer(async (req, res) => {
     // ---- Program 3 Phase 2: global search (⌘K palette) ----
     if (p === '/api/search' && req.method === 'GET') {
       return send(res, 200, { results: searchQuery(u.searchParams.get('q') || '') });
+    }
+    // ---- Program 3 Phase 3: entity aggregation + backlinks ----
+    if (p === '/api/entity' && req.method === 'GET') {
+      const e = moduleEntity(u.searchParams.get('module') || '');
+      if (!e) return send(res, 404, { error: 'module not found' });
+      return send(res, 200, e);
+    }
+    if (p === '/api/backlinks' && req.method === 'GET') {
+      const ref = u.searchParams.get('ref') || '';
+      const links = backlinksFor(ref);
+      return send(res, 200, { ref, links, orphan: links.length === 0 });
+    }
+    // Entity resolver for auto-linking: module names + ids (cached via modules mtime).
+    if (p === '/api/entities' && req.method === 'GET') {
+      const mods = (loadModulesDoc().modules || []).map((m) => ({ id: m.id, name: m.name }));
+      return send(res, 200, { modules: mods });
     }
 
     // ---- Tasks: chief-of-staff todos & follow-ups ----
