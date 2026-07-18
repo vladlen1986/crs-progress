@@ -375,23 +375,6 @@
       "auto": {
         "key": "smoke:p7-fixture-missing-file"
       }
-    },
-    {
-      "id": "61d3cc37",
-      "title": "QA guide walkthrough todo A",
-      "status": "done",
-      "created": "2026-07-18T07:20:38.174Z",
-      "notes": ""
-    },
-    {
-      "id": "ecded651",
-      "title": "QA overdue drill (p8-accept)",
-      "status": "todo",
-      "created": "2026-07-18T07:20:43.878Z",
-      "notes": "",
-      "due": "2026-07-17T00:00:00.000Z",
-      "followUp": true,
-      "notifiedDue": "2026-07-18T07:20:43.887Z"
     }
   ]
 }
