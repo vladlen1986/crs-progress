@@ -2511,31 +2511,33 @@ const server = http.createServer(async (req, res) => {
     // Text-driven EDIT prompt: Vlad types what he wants; the brain writes a proper
     // Buildprint prompt from it, grounded in the module's brain context + live workspace.
     if (p === '/api/modules/edit-prompt' && req.method === 'POST') {
+      // Generation goes through the deterministic prompt engine (brain/engine/):
+      // retrieval check → assemble (verbatim bundle) → GUARD (pre-model hard stop) →
+      // ONE model call on the strict template → archive with bundle hash.
       const body = await readJsonBody(req);
       const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
       if (!mod) return send(res, 404, { error: 'module not found' });
       const text = (body && body.text || '').toString().trim();
       if (!text) return send(res, 400, { error: 'Describe what you want done first.' });
-      const d = moduleDetail(mod);
-      const ctx = [
-        `MODULE: ${mod.name} · section ${mod.section} · route ${mod.route || '(unset)'} · tracked status ${mod.status}${mod.note ? ' — ' + mod.note : ''}`,
-        d.statusBlock ? 'STATUS.md detail:\n' + d.statusBlock : '',
-        d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
-        d.perms ? 'Permissions:\n' + d.perms : '',
-        d.workflows ? 'Workflows:\n' + d.workflows : '',
-      ].filter(Boolean).join('\n\n');
-      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — write the task breakdown to accomplish this on this module:\n${text}`;
-      const cfg = loadSettings();
-      let tasks = '';
+      let engine, guardHits, bundle;
       try {
-        // Writing a task breakdown is a mechanical transform — low effort, and no workspace
-        // --add-dir (Task 0 tells Buildprint to inventory real elements when it runs). The
-        // ~25-30s floor is claude CLI startup, not inference, so model choice doesn't change it.
-        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: 'low', systemPrompt: EDIT_TASKS_PROMPT });
-        tasks = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
+        const retrieved = engine.retrievalCheck(text);
+        if (retrieved) return send(res, 200, { prompt: 'RETRIEVED from ' + retrieved.rel + ', not generated (similarity ' + retrieved.sim + '):\n\n' + retrieved.content, retrieved: true });
+        bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(mod.id);
+        guardHits = require(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js')).guard(text, mod.id + ' ' + mod.name);
+      } catch (e) { return send(res, 500, { error: 'prompt engine: ' + e.message }); }
+      if (guardHits.length) {
+        return send(res, 409, { decisionNeeded: true, error: 'DECISION-NEEDED: ' + guardHits.map((h) => h.title).join(' · ') + ' → decisions.md (open decision — make the call there, then regenerate)' });
+      }
+      const cfg = loadSettings();
+      try {
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+        const out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
+        const archived = engine.archive({ intent: text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
+        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256 });
       } catch (e) { return send(res, 502, { error: e.message }); }
-      if (!tasks) return send(res, 502, { error: 'the brain returned nothing — try again' });
-      return send(res, 200, { prompt: buildEditWrapper(mod, d, text, tasks) });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
