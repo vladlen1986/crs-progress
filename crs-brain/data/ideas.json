@@ -1,13 +1,7 @@
 {
   "columns": {
     "inbox": [],
-    "exploring": [
-      {
-        "id": "1784353519433154",
-        "text": "qa-c1 probe #qac1 !high",
-        "ts": "2026-07-18T05:45:19.433Z"
-      }
-    ],
+    "exploring": [],
     "planned": [],
     "done": []
   }
