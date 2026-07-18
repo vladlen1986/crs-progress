@@ -91,8 +91,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 
 | id | kind | value | location | nearest token | status | resolution |
 |---|---|---|---|---|---|---|
-| f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | unresolved |  |
-| f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | unresolved |  |
+| f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | approved-literal | approved as literal by vlad |
+| f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | approved-literal | approved as literal by vlad |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -539,8 +539,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 7,
       "nearest": "--radius-btn = 7px",
       "id": "f1",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     },
     {
       "kind": "literal",
@@ -550,8 +550,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 44,
       "nearest": "--error",
       "id": "f2",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     }
   ],
   "matched": [
