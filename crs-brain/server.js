@@ -373,7 +373,7 @@ async function compileMemory(userText) {
       'Each item: {"category": one of ' + MEMORY_CATEGORIES.join('|') + ', "title": "a <=8-word label", "fact": "one or two self-contained specific sentences"}. ' +
       'Category guide: Preferences = how the user wants things done; Product = CRS facts/scope; Decisions = choices made; Technical = implementation details; Workflow = process/tooling; People = person facts; Reminders = time-bound notes. ' +
       'If the note truly contains nothing durable to remember, output [].\n\nNOTE:\n<<<\n' + (userText || '') + '\n>>>';
-    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir() });
+    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'memory' });
     const txt = (res.text || '').trim();
     const match = txt.match(/\[[\s\S]*\]/);
     if (!match) return [];
@@ -1732,6 +1732,41 @@ function walk(dir, baseRel = '') {
 // ---- claude bridge ---------------------------------------------------------
 // Spawn the claude CLI WITHOUT a shell: shell:true concatenates args unescaped,
 // so any "(" in a system prompt becomes a /bin/sh syntax error. On Windows the
+// ---- Program 3 Phase 4: per-run cost & usage telemetry ----------------------
+// Published $/million-token rates (input, output) for cost ESTIMATION — the CLI's
+// account-wide cost is not per-run-attributable, so we compute from tokens×rates
+// and mark every row estimated:true. Update rates here if pricing changes.
+const MODEL_RATES = {
+  'claude-opus-4-8': { in: 15, out: 75 },
+  'claude-sonnet-5': { in: 3, out: 15 },
+  'claude-haiku-4-5-20251001': { in: 1, out: 5 },
+  _default: { in: 3, out: 15 },
+};
+function rateFor(model) {
+  if (MODEL_RATES[model]) return MODEL_RATES[model];
+  const m = String(model || '').toLowerCase();
+  if (m.includes('opus')) return MODEL_RATES['claude-opus-4-8'];
+  if (m.includes('haiku')) return MODEL_RATES['claude-haiku-4-5-20251001'];
+  if (m.includes('sonnet')) return MODEL_RATES['claude-sonnet-5'];
+  return MODEL_RATES._default;
+}
+function estCostUsd(model, tokIn, tokOut) {
+  const r = rateFor(model);
+  return +(((tokIn || 0) * r.in + (tokOut || 0) * r.out) / 1e6).toFixed(6);
+}
+const USAGE_LOG_FILE = path.join(DATA_DIR, 'usage-log.jsonl');
+function logUsage(rec) {
+  try {
+    const row = {
+      ts: nowIso(), purpose: rec.purpose || 'chat', model: rec.model || '',
+      in: rec.in || 0, out: rec.out || 0, ms: rec.ms || 0,
+      costUsd: estCostUsd(rec.model, rec.in, rec.out), estimated: true,
+      ...(rec.outcome ? { outcome: rec.outcome } : {}), ...(rec.aborted ? { aborted: true } : {}),
+    };
+    fs.appendFileSync(USAGE_LOG_FILE, JSON.stringify(row) + '\n');
+  } catch {}
+}
+
 // cmd.exe /c wrapper resolves the claude.cmd shim while node quotes args safely.
 function spawnClaude(args, opts = {}) {
   if (process.platform === 'win32') {
@@ -1797,6 +1832,7 @@ function isModelInaccessible(text) { return MODEL_INACCESSIBLE_RE.test(String(te
 // On failure rejects with an Error tagged { stage:'pre'|'mid', retryable:bool }
 // so a caller can decide whether switching models could rescue the run.
 function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
+  const _usageStart = Date.now();   // for the Phase-4 per-run cost log (opts.purpose)
   const onDelta = hooks.onDelta || (() => {});
   const onStatus = hooks.onStatus || (() => {});
   const onThink = hooks.onThink || (() => {});   // extended-thinking text
@@ -1916,6 +1952,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       clearTimeout(timer);
       flushTool();
       if (buf.trim()) { try { handleEvent(JSON.parse(buf.trim())); } catch {} }
+      // Phase-4: record per-run token/model/cost when the caller tagged a purpose.
+      if (opts.purpose) logUsage({ purpose: opts.purpose, model: opts.model || '', in: usageIn, out: usageOut, ms: Date.now() - _usageStart, aborted });
       if (aborted) return resolve({ text: finalText, sessionId, aborted: true });
       if (timedOut) {
         // Genuine hang — no output for IDLE_MS. Keep any partial we did get.
@@ -2812,6 +2850,7 @@ const server = http.createServer(async (req, res) => {
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
+          purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
@@ -2932,7 +2971,7 @@ const server = http.createServer(async (req, res) => {
           onDetail: (t) => sse({ type: 'detail', text: t }),
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
-        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
+        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
         chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         chat.sessionId = result.sessionId; saveChat(chat);
         // Advance the baseline ONLY on a completed ingest — an aborted run must stay
@@ -3252,7 +3291,7 @@ const server = http.createServer(async (req, res) => {
       const r = routeModel(cfg, 'generate prompt: ' + item.title, 'mechanical');
       let prompt = '';
       try {
-        const result = await runClaudeStream(buildWishlistPromptMsg(item), null, {}, { model: r.model, effort: r.effort, systemPrompt: WL_CC_PROMPT, cwd: os.tmpdir() });
+        const result = await runClaudeStream(buildWishlistPromptMsg(item), null, {}, { model: r.model, effort: r.effort, systemPrompt: WL_CC_PROMPT, cwd: os.tmpdir(), purpose: 'wishlist' });
         prompt = (result.text || '').trim();
         // Unwrap a single outer code fence if the model added one — the client copies raw prompt text.
         const fence = prompt.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i);
@@ -3328,7 +3367,7 @@ const server = http.createServer(async (req, res) => {
       }
       const cfg = loadSettings();
       try {
-        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
         const out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
         if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
         const archived = engine.archive({ intent: text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
@@ -3404,6 +3443,56 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/search' && req.method === 'GET') {
       return send(res, 200, { results: searchQuery(u.searchParams.get('q') || '') });
     }
+    // ---- Program 3 Phase 4: cost & usage analytics ----
+    if (p === '/api/usage-analytics' && req.method === 'GET') {
+      let rows = [];
+      try { rows = fs.readFileSync(USAGE_LOG_FILE, 'utf8').trim().split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch {}
+      const sum = (a) => a.reduce((x, y) => x + y, 0);
+      const byDay = {}, byPurpose = {}, byModel = {};
+      let totIn = 0, totOut = 0, totCost = 0;
+      for (const r of rows) {
+        const day = (r.ts || '').slice(0, 10);
+        (byDay[day] = byDay[day] || { cost: 0, in: 0, out: 0, runs: 0 });
+        byDay[day].cost += r.costUsd || 0; byDay[day].in += r.in || 0; byDay[day].out += r.out || 0; byDay[day].runs++;
+        (byPurpose[r.purpose] = byPurpose[r.purpose] || { cost: 0, runs: 0, in: 0, out: 0 });
+        byPurpose[r.purpose].cost += r.costUsd || 0; byPurpose[r.purpose].runs++; byPurpose[r.purpose].in += r.in || 0; byPurpose[r.purpose].out += r.out || 0;
+        (byModel[r.model] = byModel[r.model] || { cost: 0, runs: 0 });
+        byModel[r.model].cost += r.costUsd || 0; byModel[r.model].runs++;
+        totIn += r.in || 0; totOut += r.out || 0; totCost += r.costUsd || 0;
+      }
+      // cost-per-outcome: verified chunks across all prototype plans.
+      let verifiedChunks = 0;
+      try { for (const name of fs.readdirSync(PROTOS_DIR)) { try { const pl = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); verifiedChunks += (pl.chunks || []).filter((c) => c.status === 'verified').length; } catch {} } } catch {}
+      // Routing audit: runs whose PURPOSE the routing policy (classifyTask, via the
+      // LIGHT_RE mechanical set) treats as mechanical, but which ran on the premium
+      // Opus model — because gen/plan/queue bypass routeModel (wired to 1 site).
+      // Flag on the task's nature, not token size (the gen bundle is a large FIXED
+      // input; the TASK is deterministic prompt engineering = mechanical).
+      const MECHANICAL_PURPOSES = { gen: 'prompt generation', wishlist: 'prompt generation', digest: 'summarize', issue: 'read-only audit', memory: 'extract/summarize' };
+      const routingFlags = [];
+      for (const r of rows) {
+        const m = String(r.model || '').toLowerCase();
+        if (m.includes('opus') && MECHANICAL_PURPOSES[r.purpose]) {
+          const target = (r.in + r.out) < 40000 ? 'Haiku' : 'Sonnet';
+          routingFlags.push({ purpose: r.purpose, model: r.model, tokens: r.in + r.out, ts: r.ts, suggestion: r.purpose + ' is ' + MECHANICAL_PURPOSES[r.purpose] + ' (mechanical per the routing policy) but ran on Opus — route to ' + target + ' (classifyTask already classifies this LIGHT; it bypasses routeModel today)' });
+        }
+      }
+      // dedupe suggestions by purpose+model
+      const seen = new Set(); const suggestions = [];
+      for (const f of routingFlags) { const k = f.purpose + '|' + f.model; if (!seen.has(k)) { seen.add(k); suggestions.push({ ...f, count: routingFlags.filter((x) => x.purpose + '|' + x.model === k).length }); } }
+      const st = loadState ? {} : {};
+      const usageJson = loadUsage ? loadUsage() : {};
+      return send(res, 200, {
+        totals: { runs: rows.length, in: totIn, out: totOut, costUsd: +totCost.toFixed(4), estimated: true },
+        byDay, byPurpose, byModel,
+        costPerOutcome: { verifiedChunks, usdPerVerifiedChunk: verifiedChunks ? +(totCost / verifiedChunks).toFixed(4) : null },
+        windows: usageJson.rate_limits || null,
+        routingAudit: suggestions,
+        rates: MODEL_RATES,
+        note: 'costUsd is ESTIMATED (tokens × published rates). Verification-subagent tokens run in external claude processes and are not captured here.',
+      });
+    }
+
     // ---- Program 3 Phase 3: entity aggregation + backlinks ----
     if (p === '/api/entity' && req.method === 'GET') {
       const e = moduleEntity(u.searchParams.get('module') || '');
@@ -3731,7 +3820,7 @@ const server = http.createServer(async (req, res) => {
       }
       const cfg = loadSettings();
       try {
-        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
         let out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
         if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
         out = chunkEngine.appendVerbatimContract(name, b.chunk, out);
@@ -4152,7 +4241,7 @@ let bubbleWatching = false;
 async function runBubbleDigest(sinceIso) {
   const since = sinceIso || new Date(Date.now() - 7 * BUBBLE_DAY).toISOString().slice(0, 10);
   const msg = `Today is ${nowIso().slice(0, 10)}. Find Bubble platform changes NEW since ${since} that matter for building CRS, and write the dated digest section.`;
-  const result = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: BUBBLE_DIGEST_PROMPT, cwd: os.tmpdir() });
+  const result = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: BUBBLE_DIGEST_PROMPT, cwd: os.tmpdir(), purpose: 'digest' });
   let section = (result.text || '').trim();
   if (!section) throw new Error('watcher returned nothing');
   fs.mkdirSync(BUBBLE_WATCH_DIR, { recursive: true });
@@ -4316,7 +4405,7 @@ async function runIssueCheck() {
   if (!clean) {
     try {
       const msg = `buildprint check output from the CRS TEST branch (${ws.app}/${ws.branch}), ${date}:\n\n\`\`\`\n${raw.slice(0, 12000)}\n\`\`\`\n\nAnalyze per your rules.`;
-      const r = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: ISSUE_PROPOSAL_PROMPT, cwd: REPO_ROOT });
+      const r = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: ISSUE_PROPOSAL_PROMPT, cwd: REPO_ROOT, purpose: 'issue' });
       proposals = (r.text || '').trim();
     } catch (e) { proposals = '_Proposal agent unavailable: ' + e.message + '_'; }
   }
@@ -4431,7 +4520,7 @@ async function processIntentTask(t, cfg) {
     const eng = freshChunkEngine();
     const b = eng.buildChunkIntent(it.proto, it.chunkId, it.corrections || null);   // throws decisionNeeded on guard hit
     const bundle = assemble(b.plan.module);
-    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
     let out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
     if (!out) throw new Error('the brain returned nothing');
     out = eng.appendVerbatimContract(it.proto, b.chunk, out);
@@ -4452,7 +4541,7 @@ async function processIntentTask(t, cfg) {
       err.decisionNeeded = true; err.hits = hits;
       throw err;
     }
-    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, it.text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, it.text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
     const out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
     if (!out) throw new Error('the brain returned nothing');
     const archived = gen.archive({ intent: it.text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
@@ -4482,7 +4571,7 @@ async function runQueue() {
         } else {
         const r = await runClaudeStream(t.prompt, t.sessionId || null, {
           onLabel: (l) => { try { qlog(t, l); saveQueue(q); } catch {} },
-        }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT });
+        }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT, purpose: 'queue' });
         t.sessionId = r.sessionId;
         t.status = 'done'; t.finished = nowIso(); t.result = (r.text || '').slice(0, 4000); qlog(t, 'done'); saveQueue(q);
         }

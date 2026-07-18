@@ -2297,6 +2297,7 @@ async function renderDashboard(){
       ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
       ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
       ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
+      ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
     </div></section>
   </div>`;
 }
@@ -3442,7 +3443,7 @@ async function dwDocxFill(w){
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
 // Window policy (polish): ONE router decides by target type. App surfaces open
 // full-area with a ← back; files open in their popup window/viewer.
-const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html'];
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html'];
 function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
 function openTarget(target, opts){
   opts=opts||{};
