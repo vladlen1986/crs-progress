@@ -896,6 +896,29 @@
       "status": "todo",
       "created": "2026-07-18T14:08:21.131Z",
       "notes": ""
+    },
+    {
+      "id": "60aa80ea",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "todo",
+      "created": "2026-07-18T14:20:20.231Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T14:20:20.231Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "7fa86f87",
+      "title": "chatv2probe-todo-x",
+      "status": "todo",
+      "created": "2026-07-18T14:24:04.855Z",
+      "notes": ""
     }
   ]
 }
