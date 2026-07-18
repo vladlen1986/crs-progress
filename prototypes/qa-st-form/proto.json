@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-form",
+  "module": "user_management",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T08:22:47.513Z",
+  "notes": [
+    "scaffolded (template: form)"
+  ],
+  "versions": []
+}
