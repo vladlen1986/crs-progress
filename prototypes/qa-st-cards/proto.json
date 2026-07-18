@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-cards",
+  "module": "roles_permissions",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T11:40:01.668Z",
+  "notes": [
+    "scaffolded (template: cards)"
+  ],
+  "versions": []
+}

@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-blank",
+  "module": "casino_settings",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T11:40:01.654Z",
+  "notes": [
+    "scaffolded (template: blank)"
+  ],
+  "versions": []
+}
