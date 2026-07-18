@@ -1,6 +1,12 @@
 {
   "columns": {
-    "inbox": [],
+    "inbox": [
+      {
+        "id": "1784384267021870",
+        "text": "qa-polish probe #qapol !high",
+        "ts": "2026-07-18T14:17:47.021Z"
+      }
+    ],
     "exploring": [],
     "planned": [],
     "done": []
