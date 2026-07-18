@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-form",
+  "module": "casino_settings",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T14:07:46.470Z",
+  "notes": [
+    "scaffolded (template: form)"
+  ],
+  "versions": []
+}
