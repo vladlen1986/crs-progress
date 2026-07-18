@@ -654,9 +654,9 @@
     {
       "id": "a88436c7",
       "title": "Await BP report: casino-settings/c1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T10:18:53.604Z",
-      "notes": "",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:22:07.705Z)",
       "followUp": true,
       "due": "2026-07-19T10:18:53.603Z",
       "link": {
