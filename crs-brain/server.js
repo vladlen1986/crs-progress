@@ -3215,7 +3215,7 @@ const server = http.createServer(async (req, res) => {
             const intents = (q.tasks || []).filter((t) => t.intent);
             const done = intents.filter((t) => t.status === 'done' && t.started && t.finished);
             const avg = done.length ? Math.round(done.reduce((a, t) => a + (Date.parse(t.finished) - Date.parse(t.started)), 0) / done.length) : 0;
-            const limitBlocks = (q.tasks || []).reduce((a, t) => a + (t.log || []).filter((l) => /usage limit/.test(l.msg || '')).length, 0);
+            const limitBlocks = (q.tasks || []).reduce((a, t) => a + (t.log || []).filter((l) => /usage limit/.test(l.msg || '') && !/stub/.test(l.msg || '')).length, 0);
             const awaiting = [];
             try {
               for (const name of fs.readdirSync(PROTOS_DIR)) {
