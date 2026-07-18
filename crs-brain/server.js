@@ -1874,7 +1874,7 @@ function listChats() {
     .map((f) => {
       try {
         const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
-        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length, bp: c.bp === true };
+        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length, bp: c.bp === true, pinned: c.pinned === true };
       } catch { return null; }
     })
     .filter(Boolean)
@@ -2466,6 +2466,19 @@ const server = http.createServer(async (req, res) => {
 
     if (p === '/api/chats' && req.method === 'GET') {
       return send(res, 200, { chats: listChats() });
+    }
+    // Polish: per-conversation metadata (pin / rename) — persisted in the chat file.
+    if (p === '/api/chat/meta' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const id = String((body && body.id) || '');
+      const file = path.join(CHATS_DIR, id + '.json');
+      if (!/^[a-z0-9-]+$/i.test(id) || !fs.existsSync(file)) return send(res, 404, { error: 'chat not found' });
+      const c = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (body.pinned !== undefined) c.pinned = !!body.pinned;
+      if (body.title !== undefined) { const t = String(body.title).trim().slice(0, 140); if (t) c.title = t; }
+      fs.writeFileSync(file, JSON.stringify(c, null, 2));
+      autoCommit('chat meta');
+      return send(res, 200, { ok: true, id, pinned: c.pinned === true, title: c.title });
     }
 
     // Native search across chats (title + message content), returns a snippet.
