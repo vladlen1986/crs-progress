@@ -1,0 +1,23 @@
+{
+  "id": "1a82832a-a50e-4796-b07d-a4065b9f7e4d",
+  "title": "reply with OK",
+  "sessionId": "23347a12-1007-41f4-bc8a-403bb419d144",
+  "bp": false,
+  "created": "2026-07-18T13:29:30.948Z",
+  "updated": "2026-07-18T13:29:34.972Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "reply with OK",
+      "ts": "2026-07-18T13:29:30.948Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "OK",
+      "ts": "2026-07-18T13:29:34.972Z",
+      "startedAt": "2026-07-18T13:29:30.949Z",
+      "completedAt": "2026-07-18T13:29:34.972Z"
+    }
+  ]
+}

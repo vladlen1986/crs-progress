@@ -848,6 +848,26 @@
       "auto": {
         "key": "smoke:checklist-parse-sane"
       }
+    },
+    {
+      "id": "bd9493bf",
+      "title": "QA FAIL: ENTITY.3",
+      "status": "done",
+      "created": "2026-07-18T13:14:44.409Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T13:20:01.410Z)",
+      "auto": {
+        "key": "qa:ENTITY.3"
+      }
+    },
+    {
+      "id": "d143d415",
+      "title": "QA FAIL: ENTITY.5",
+      "status": "done",
+      "created": "2026-07-18T13:14:44.409Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T13:20:01.410Z)",
+      "auto": {
+        "key": "qa:ENTITY.5"
+      }
     }
   ]
 }
