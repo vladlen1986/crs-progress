@@ -468,6 +468,13 @@
       "status": "todo",
       "created": "2026-07-18T07:48:33.370Z",
       "notes": ""
+    },
+    {
+      "id": "b9fb29c5",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T07:48:33.435Z",
+      "notes": ""
     }
   ]
 }
