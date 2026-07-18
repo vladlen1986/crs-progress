@@ -1,0 +1,11 @@
+{
+  "name": "qa-tw-chk1",
+  "module": "user_management",
+  "status": "settled",
+  "settledHash": "48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658",
+  "created": "2026-07-18T05:38:18.027Z",
+  "notes": [
+    "registered from prototypes/buttons/buttons.html",
+    "2026-07-18T05:38:18.029Z — settled @ 48c14d6e2301"
+  ]
+}
