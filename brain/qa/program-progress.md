@@ -4,8 +4,10 @@
 
 ## Position
 
-- **Current phase:** PHASE 10 — Remote command post
-- **Current task:** P10 plan (bearer auth → mobile subset → tunnel recon)
+- **Current phase:** POLISH PASS (Vlad's 2026-07-18 prompt — brain/qa/polish-prompt.md; supersedes the P10 final loop in priority per his "program is done")
+- **Current task:** polish recon fan-out (tree rows/detail · header · map kanban · sidebar · window policy)
+- **PHASE 10 status:** auth gate + decision-lock + via-stamps + mobile command post IMPLEMENTED and committed (0fb33e8); security probes PASS locally through the tunnel-identical code path (P10.2 PASS); tunnel ENV-LIMITED — Tailscale Serve needs Vlad's one-click tailnet enable (todo raised w/ URL); P10.3 phone-flow verification UNTESTED, to run with the polish verification. Final P9–P10 loop NOT yet run — do it after the polish pass unless Vlad says otherwise (nothing skipped silently).
+- **STALE CHIP NOTE:** background task task_841958e5 (autoGrow/notification-target fix) duplicates commit 58e9661 — already fixed; that session will find no work. task_62463df2 (bpTrack bp-flag) still valid.
 - **PHASE 9 COMPLETE** — gate PASS (checkpoint phase-9.md): 5 real intents through the engine-queue (c2/c3/c4 staged + 2 FWM gens), guard probe refused w/ zero emission, telemetry recomputed byte-equal. P9.2 limit-crossing ENV-LIMITED honestly (no real window; mocking forbidden).
 - **PHASE 8 COMPLETE** — gate PASS 4/4 + loop c3+c4 both CLEAN 132/10/0 over 142 rows (checkpoint phase-8.md). Guide walkthrough found+fixed 2 real app bugs (autoGrow ghost, bad notification targets). Handoff/USER-GUIDE/restore-drill/review-digest all shipped.
 - **PHASE 7 COMPLETE** — gate PASS 5/5 (checkpoint phase-7.md): state audit (read-only, proven), weekly digest 2026-W29 real, smoke QA 22 checks daily, scheduler restart-safe.
