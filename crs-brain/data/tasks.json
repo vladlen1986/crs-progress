@@ -375,6 +375,13 @@
       "auto": {
         "key": "smoke:p7-fixture-missing-file"
       }
+    },
+    {
+      "id": "80a2280c",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T07:45:03.717Z",
+      "notes": ""
     }
   ]
 }
