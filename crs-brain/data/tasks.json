@@ -299,6 +299,26 @@
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "8dcbb081",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T06:42:55.059Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T06:43:46.978Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "63573334",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-18T06:42:55.059Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T06:43:46.978Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
     }
   ]
 }
