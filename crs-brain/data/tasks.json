@@ -323,9 +323,9 @@
     {
       "id": "dad11e7d",
       "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T06:49:07.852Z",
-      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\")",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
       "link": {
         "kind": "decision",
         "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
@@ -413,6 +413,16 @@
       },
       "auto": {
         "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "11c32e55",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "todo",
+      "created": "2026-07-18T07:45:10.582Z",
+      "notes": "",
+      "auto": {
+        "key": "qa:DASHFIX.1"
       }
     }
   ]
