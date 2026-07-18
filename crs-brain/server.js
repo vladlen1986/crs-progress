@@ -2495,6 +2495,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ---- sounds: local WAV store (data/sounds/) ----
+    // Browsers probe /favicon.ico automatically; without a route the first load
+    // logs a 404 console error on every fresh session (found by P2 acceptance).
+    if (p === '/favicon.ico') { res.writeHead(204); return res.end(); }
     if (p === '/api/ping') return send(res, 200, { ok: true, ts: Date.now() });
     if (p === '/api/version') return send(res, 200, { version: frontendVersion() });
     if (p === '/api/sounds/list' && req.method === 'GET') {
