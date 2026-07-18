@@ -868,6 +868,16 @@
       "auto": {
         "key": "qa:ENTITY.5"
       }
+    },
+    {
+      "id": "ce89fee8",
+      "title": "Client error ×3: TestError: harden probe",
+      "status": "todo",
+      "created": "2026-07-18T13:37:25.943Z",
+      "notes": "at foo (x:1)",
+      "auto": {
+        "key": "clienterr:TestError: harden probe"
+      }
     }
   ]
 }
