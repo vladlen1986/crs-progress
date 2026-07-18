@@ -93,6 +93,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 |---|---|---|---|---|---|---|
 | f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | unresolved |  |
 | f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | unresolved |  |
+| f3 | literal | `#FF00AA` | <div style=""> · color · L108 | --error | approved-literal | approved as literal by vlad |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -530,6 +531,17 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "id": "f2",
       "status": "unresolved",
       "resolution": ""
+    },
+    {
+      "kind": "literal",
+      "value": "#FF00AA",
+      "selector": "<div style=\"\">",
+      "prop": "color",
+      "line": 108,
+      "nearest": "--error",
+      "id": "f3",
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     }
   ],
   "matched": [
