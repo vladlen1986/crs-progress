@@ -1,0 +1,11 @@
+{
+  "name": "qa-guide-walk",
+  "module": "user_management",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T07:18:09.174Z",
+  "notes": [
+    "scaffolded (template: cards)"
+  ],
+  "versions": []
+}
