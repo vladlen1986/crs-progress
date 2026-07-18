@@ -180,7 +180,14 @@ function loadInventory() {
   return build();
 }
 
-module.exports = { build, writeInventory, loadInventory, ALIASES };
+// The §2.10 css fence text, byte-verbatim — the scaffold generator injects this
+// and the acceptance diff compares against it. Never reformatted.
+function rawCss210() {
+  const ds = fs.readFileSync(DS_FILE, 'utf8');
+  return section210(ds).css;
+}
+
+module.exports = { build, writeInventory, loadInventory, ALIASES, rawCss210 };
 
 if (require.main === module) {
   const r = writeInventory();
