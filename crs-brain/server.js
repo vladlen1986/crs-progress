@@ -2691,6 +2691,19 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, { ok: true, flag: f, unresolved: chunkEngine.unresolvedFlags(name).length });
       } catch (e) { return send(res, 400, { error: e.message }); }
     }
+    // Chunk plan — dependency-ordered BP-sized chunks; refuses on unresolved
+    // flags; validates the reference contract before writing.
+    if (p === '/api/protos/plan' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const plan = chunkEngine.writePlan(name);
+        autoCommit('prototype plan ' + name);
+        return send(res, 200, { ok: true, plan });
+      } catch (e) { return send(res, 409, { error: e.message }); }
+    }
     // Freeze the current html bytes as the settled hash. Chunking requires this.
     if (p === '/api/protos/settle' && req.method === 'POST') {
       const body = await readJsonBody(req);

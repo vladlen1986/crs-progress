@@ -407,7 +407,131 @@ function resolveFlag(name, flagId, action, token, who) {
   return f;
 }
 
-module.exports = { protoPaths, loadProto, htmlHash, requireSettled, computeMapping, writeMapping, readMappingData, unresolvedFlags, resolveFlag };
+// ---- chunk plan (T3) --------------------------------------------------------
+// Deterministic BP-sized chunks from the mapping, in the fixed dependency order:
+// (1) styles that must exist → (2) layout/containers → (3) components per
+// family → (4) states/conditionals (full swap only) → (5) workflows → (6) data
+// bindings. Sized err-small. A chunk may reference only attested inventory
+// names/IDs or producedNames of chunks it depends on — validatePlan enforces
+// that, and hand-broken plans are rejected on every load.
+function styleNameFor(selector) {
+  // .btn-primary → "CRS - Btn Primary" (§13: readable, CRS-prefixed).
+  const words = selector.replace(/^[.#]/, '').split(/[-_]/).filter(Boolean)
+    .map((w) => w[0].toUpperCase() + w.slice(1));
+  return 'CRS - ' + words.join(' ');
+}
+function attestedNames(inv) {
+  const s = new Set();
+  for (const st of inv.styles) s.add(st.name);
+  for (const r of inv.reusables) { s.add(r.name); for (const id of r.ids || []) s.add(id); }
+  return s;
+}
+function computePlan(name) {
+  const { proto, hash } = requireSettled(name);
+  const d = readMappingData(name);
+  if (!d) throw new Error('no mapping for "' + name + '" — run map first');
+  if (d.settledHash !== hash) throw new Error('mapping was made from a different settled hash — re-map first');
+  const open = (d.flags || []).filter((f) => f.status === 'unresolved');
+  if (open.length) throw new Error('chunking REFUSED — ' + open.length + ' unresolved FLAG row(s): ' + open.map((f) => f.id).join(', ') + ' (resolve each: map / approve-as-literal / fix prototype)');
+
+  const inv = inventory.loadInventory();
+  const chunks = [];
+  const creates = d.compRows.filter((c) => !c.existing);
+  const reuses = d.compRows.filter((c) => c.existing);
+  const layoutRows = d.compRows.filter((c) => c.family === 'layout');
+  const compFams = [...new Set(d.compRows.filter((c) => c.family !== 'layout').map((c) => c.family))];
+
+  if (creates.length) {
+    chunks.push({
+      id: 'c1', type: 'styles', title: 'Styles that must exist (create + showcase on bUfVN0)',
+      scope: { in: ['Create ' + creates.length + ' missing styles per §13 naming; add each to the Design System page (bUfVN0) showcase'], out: ['No element layout, no workflows'] },
+      dependsOn: [], producedNames: creates.map((c) => styleNameFor(c.selector)),
+      usesNames: ['bUfVN0'], mappingRows: creates.map((c) => c.selector), status: 'pending',
+    });
+  }
+  if (layoutRows.length) {
+    chunks.push({
+      id: 'c' + (chunks.length + 1), type: 'layout', title: 'Layout / containers',
+      scope: { in: layoutRows.map((c) => c.selector + ' → ' + (c.existing || styleNameFor(c.selector))), out: ['No component internals'] },
+      dependsOn: chunks.length ? ['c1'] : [], producedNames: layoutRows.map((c) => c.selector.replace(/^[.#]/, '') + ' container'),
+      usesNames: layoutRows.map((c) => c.existing ? c.existing.split(' — ')[0].replace(/\s*\([^)]*\)\s*$/, '') : styleNameFor(c.selector)),
+      mappingRows: layoutRows.map((c) => c.selector), status: 'pending',
+    });
+  }
+  for (const fam of compFams) {
+    const rows = d.compRows.filter((c) => c.family === fam);
+    const famName = (inv.families.find((f) => f.id === fam) || { name: fam }).name;
+    const deps = chunks.map((c) => c.id);
+    chunks.push({
+      id: 'c' + (chunks.length + 1), type: 'components', title: 'Components — ' + famName,
+      scope: { in: rows.map((c) => c.selector + ' → ' + (c.existing ? 'REUSE ' + c.existing.split(' — ')[0] : styleNameFor(c.selector))), out: ['No states/conditionals yet', 'No workflows'] },
+      dependsOn: deps, producedNames: rows.map((c) => c.selector.replace(/^[.#]/, '') + ' element'),
+      usesNames: rows.map((c) => c.existing ? c.existing.split(' — ')[0].replace(/\s*\([^)]*\)\s*$/, '') : styleNameFor(c.selector)),
+      mappingRows: rows.map((c) => c.selector), status: 'pending',
+    });
+  }
+  const stateIx = (d.interactions || []).filter((i) => /states:/.test(i));
+  if (stateIx.length) {
+    chunks.push({
+      id: 'c' + (chunks.length + 1), type: 'states', title: 'States & conditionals (full style swap only)',
+      scope: { in: stateIx, out: ['Zero property-level conditionals — full style swap per §3.2'] },
+      dependsOn: chunks.map((c) => c.id), producedNames: [],
+      usesNames: [], mappingRows: stateIx, status: 'pending',
+    });
+  }
+  const wfIx = (d.interactions || []).filter((i) => /script-driven/.test(i));
+  if (wfIx.length) {
+    chunks.push({
+      id: 'c' + (chunks.length + 1), type: 'workflows', title: 'Workflows (from demonstrated behavior)',
+      scope: { in: wfIx, out: ['No data bindings'] }, dependsOn: chunks.map((c) => c.id),
+      producedNames: [], usesNames: [], mappingRows: wfIx, status: 'pending',
+    });
+  }
+  const plan = { name, module: proto.module, protoHash: hash, inventorySha: d.inventorySha, chunks };
+  const errs = validatePlan(plan, inv);
+  if (errs.length) throw new Error('plan failed contract validation: ' + errs.join(' · '));
+  return plan;
+}
+function validatePlan(plan, inv) {
+  inv = inv || inventory.loadInventory();
+  const errs = [];
+  if (!plan || !Array.isArray(plan.chunks)) return ['no chunks array'];
+  const attested = attestedNames(inv);
+  const ids = new Set();
+  const produced = new Map(); // chunkId → Set(names)
+  for (const c of plan.chunks) {
+    if (!c.id || ids.has(c.id)) { errs.push('duplicate/missing chunk id ' + (c.id || '?')); continue; }
+    ids.add(c.id);
+    for (const dep of c.dependsOn || []) if (!produced.has(dep)) errs.push(c.id + ' depends on ' + dep + ' which is not an EARLIER chunk');
+    const reachable = new Set(attested);
+    for (const dep of c.dependsOn || []) for (const n of produced.get(dep) || []) reachable.add(n);
+    for (const n of c.usesNames || []) {
+      if (!reachable.has(n)) errs.push(c.id + ' references "' + n + '" — not attested and not produced by a dependency');
+    }
+    const st = ['pending', 'sent', 'reported', 'verified', 'failed'];
+    if (!st.includes(c.status)) errs.push(c.id + ' bad status "' + c.status + '"');
+    produced.set(c.id, new Set(c.producedNames || []));
+  }
+  return errs;
+}
+function writePlan(name) {
+  const plan = computePlan(name);
+  fs.writeFileSync(protoPaths(name).plan, JSON.stringify(plan, null, 2) + '\n');
+  return plan;
+}
+function loadPlan(name) {
+  const plan = JSON.parse(fs.readFileSync(protoPaths(name).plan, 'utf8'));
+  const errs = validatePlan(plan);
+  if (errs.length) throw new Error('build-plan.json rejected: ' + errs.join(' · '));
+  return plan;
+}
+function savePlan(name, plan) {
+  const errs = validatePlan(plan);
+  if (errs.length) throw new Error('refusing to save invalid plan: ' + errs.join(' · '));
+  fs.writeFileSync(protoPaths(name).plan, JSON.stringify(plan, null, 2) + '\n');
+}
+
+module.exports = { protoPaths, loadProto, htmlHash, requireSettled, computeMapping, writeMapping, readMappingData, unresolvedFlags, resolveFlag, computePlan, validatePlan, writePlan, loadPlan, savePlan, styleNameFor };
 
 // ---- CLI --------------------------------------------------------------------
 if (require.main === module) {
@@ -417,6 +541,15 @@ if (require.main === module) {
       const m = writeMapping(name);
       process.stderr.write('mapping: ' + m.tokenRows.length + ' tokens, ' + m.compRows.length + ' components, ' + m.flags.length + ' flags (' + m.flags.filter((f) => f.status === 'unresolved').length + ' unresolved) → prototypes/' + name + '/mapping.md\n');
       process.exit(m.flags.some((f) => f.status === 'unresolved') ? 4 : 0);
+    } else if (cmd === 'plan' && name) {
+      const plan = writePlan(name);
+      process.stderr.write('plan: ' + plan.chunks.length + ' chunks → prototypes/' + name + '/build-plan.json\n');
+      for (const c of plan.chunks) process.stderr.write('  ' + c.id + ' [' + c.type + '] ' + c.title + (c.producedNames.length ? ' → produces: ' + c.producedNames.join(', ') : '') + '\n');
+      process.exit(0);
+    } else if (cmd === 'validate' && name) {
+      loadPlan(name);
+      process.stderr.write('plan: VALID\n');
+      process.exit(0);
     } else if (cmd === 'resolve' && name && rest[0] && rest[1]) {
       const f = resolveFlag(name, rest[0], rest[1], rest[2]);
       process.stderr.write('flag ' + f.id + ' → ' + f.status + '\n');
