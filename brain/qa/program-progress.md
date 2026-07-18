@@ -30,6 +30,16 @@
 - QA verification: in-session browser pane ruled unusable for verification (background-throttled) per Vlad's 2026-07-17 directive — verification rig = puppeteer-core driving system Chrome headless:'new' with throttling disabled; rig is machine-local, rebuild on this Mac at first browser-verify need (sanity-prove on a known-PASS row first). Both themes always.
 - Commits auto-fire from server saves (autoCommit on crs-brain/data + brain) — expect interleaved `data:`-style commits; phase commits stay `<phase>: <task>`.
 
+## P10 PLAN (written before first edit)
+
+**Tunnel choice: Tailscale (`tailscale serve`)** — app installed, logged in (vladlen.biz@), and the phone nothing-phone-3a is ALREADY on the tailnet. Identity-based, tailnet-only, no public exposure — the program's stated preference, available for real. cloudflared rejected (public URL, not installed).
+
+1. **T1 auth (every remote path):** persisted remote token crs-brain/.remote-token (gitignored beside .pin; env override; POST /api/auth/rotate-remote — local-only — regenerates; rotation documented). Gate in the single handler: any request that is NOT bare-loopback-without-proxy-headers (i.e. anything via tailscale serve [always adds X-Forwarded-For], LAN, or any non-loopback socket) REQUIRES Bearer token or crsbrain_rt cookie; bootstrap GET /remote?token= sets the HttpOnly cookie; failures → uniform 401 {"error":"unauthorized"} (zero info leak). Physical-local browser (the workshop) stays exempt by socket test — stated honestly; a tunnel client cannot strip tailscale's XFF, so every remote path is token-gated on every endpoint.
+2. **T2 remote stamps:** requests with proxy headers/non-loopback → actionLog entries carry via:'remote' on verified/failed, decision lock, todo mutations. NEW POST /api/decisions/lock {title, ruling, confirm:"LOCK <title>"} → appends dated entry + deletes the [OPEN] stub + audit trail + autoCommit (typed confirmation enforced server-side).
+3. **T3 mobile command post (≤480px, read-and-rule only):** stacked Now/Needs-me/What's-wrong + bell + todo check-off; deep flow A: awaiting-verify chunk → report reader → Verified/Failed w/ confirm; deep flow B: decision → full stub text → typed-phrase Lock or note-to-self todo. OUT (not rendered at phone width): editors, studio actions, chunk sending/Generate, settings, explorer file ops, composer. Touch targets ≥44px, both themes.
+4. **T4 tunnel live:** `tailscale serve --bg http://127.0.0.1:4317`; probe from the tailnet address: unauth 401, bad token 401, good token 200, `../` traversal rejected — transcripts pasted.
+5. **T5:** P10.1–5 rows (phone testing = exact viewport emulation 375×812 via the rig, stated — the real phone is Vlad's to try) + independent verifier + final loop (two greens incl. P9/P10 rows) + checkpoint + FINAL REPORT.
+
 ## P9 PLAN (written before first edit)
 
 **Preconditions stated (program 9 head):** Pattern A = still [OPEN] → the P6 UM-fix drafts stay blocked (correctly); the run uses UNBLOCKED work only. Bridge = ENV-LIMITED → per-intent "send" = copy-path staging; report capture/verified remain Vlad's (same honest boundary as P5/P6). No nagging mid-run.
