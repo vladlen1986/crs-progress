@@ -76,11 +76,21 @@
     {
       "id": "8a068b2a",
       "title": "QA QUARANTINE: DASHFIX.1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T04:58:40.630Z",
-      "notes": "",
+      "notes": "auto-closed: row now PASS (2026-07-18T04:58:41.919Z)",
       "auto": {
         "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "19f1b0e8",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T04:58:41.930Z",
+      "notes": "planted fixture (p2 rig) · auto-closed: sync succeeded (2026-07-18T04:58:44.098Z)",
+      "auto": {
+        "key": "sync:forum"
       }
     }
   ]
