@@ -429,6 +429,16 @@ function listProtos() {
   return out;
 }
 
+// Engine modules are re-required per request WITHOUT the require cache — a
+// running server must always execute the current on-disk engine (a stale cached
+// chunk.js silently no-oped an engine fix during Phase-1 acceptance).
+function freshChunkEngine() {
+  for (const rel of [['brain', 'engine', 'chunk.js'], ['brain', 'engine', 'style-inventory.js']]) {
+    try { delete require.cache[require.resolve(path.join(REPO_ROOT, ...rel))]; } catch {}
+  }
+  return require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+}
+
 // Best-effort email: pipes through the local `sendmail` if present. No external
 // deps; silently no-ops when email is off, unconfigured, or sendmail is missing.
 function maybeEmailNotification(rec) {
@@ -2671,7 +2681,7 @@ const server = http.createServer(async (req, res) => {
       const name = String((body && body.name) || '');
       if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
       try {
-        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const chunkEngine = freshChunkEngine();
         const m = chunkEngine.writeMapping(name);
         autoCommit('prototype map ' + name);
         const unresolved = m.flags.filter((f) => f.status === 'unresolved').length;
@@ -2685,7 +2695,7 @@ const server = http.createServer(async (req, res) => {
       const name = String((body && body.name) || '');
       if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
       try {
-        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const chunkEngine = freshChunkEngine();
         const f = chunkEngine.resolveFlag(name, String(body.flagId || ''), String(body.action || ''), body.token ? String(body.token) : null, 'vlad');
         autoCommit('prototype flag ' + name + ' ' + f.id);
         return send(res, 200, { ok: true, flag: f, unresolved: chunkEngine.unresolvedFlags(name).length });
@@ -2698,7 +2708,7 @@ const server = http.createServer(async (req, res) => {
       const name = String((body && body.name) || '');
       if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
       try {
-        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const chunkEngine = freshChunkEngine();
         const plan = chunkEngine.writePlan(name);
         autoCommit('prototype plan ' + name);
         return send(res, 200, { ok: true, plan });
@@ -2713,7 +2723,7 @@ const server = http.createServer(async (req, res) => {
       if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
       let chunkEngine, engine, b, bundle;
       try {
-        chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        chunkEngine = freshChunkEngine();
         engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
         b = chunkEngine.buildChunkIntent(name, String(body.chunkId || ''), body.corrections ? String(body.corrections) : null);
         bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(b.plan.module);
@@ -2744,7 +2754,7 @@ const server = http.createServer(async (req, res) => {
       const status = String(body.status || '');
       if (!['pending', 'sent', 'reported', 'verified', 'failed'].includes(status)) return send(res, 400, { error: 'bad status' });
       try {
-        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const chunkEngine = freshChunkEngine();
         const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), status);
         autoCommit('prototype chunk ' + name + ' ' + body.chunkId + ' ' + status);
         return send(res, 200, { ok: true, chunk: r.chunk, protoStatus: r.proto.status });
@@ -2757,7 +2767,7 @@ const server = http.createServer(async (req, res) => {
       const report = String((body && body.report) || '').trim();
       if (!report) return send(res, 400, { error: 'report text required' });
       try {
-        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const chunkEngine = freshChunkEngine();
         fs.writeFileSync(chunkEngine.chunkReportPath(name, String(body.chunkId || '')), report + '\n');
         const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), 'reported');
         autoCommit('prototype report ' + name + ' ' + body.chunkId);
