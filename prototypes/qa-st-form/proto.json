@@ -23,6 +23,16 @@
       "v": 3,
       "note": "auto — before restore of v1",
       "ts": "2026-07-18T10:46:36.245Z"
+    },
+    {
+      "v": 4,
+      "note": "first snap — rig note one",
+      "ts": "2026-07-18T10:47:51.477Z"
+    },
+    {
+      "v": 5,
+      "note": "second snap — rig note two",
+      "ts": "2026-07-18T10:47:51.492Z"
     }
   ]
 }
