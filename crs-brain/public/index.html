@@ -1836,7 +1836,7 @@ function setChatMode(bp){ state.bp=!!bp; reflectMode();
   const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; }
   if(bp) bpStatus(); }
 function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; state.bp=true; setTab('chats'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
 const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
@@ -4510,7 +4510,10 @@ async function bpTrack(){
   if(state.sending) return;
   bumpView();
   bubChanged=null;   // the ingest owns these changes now — clear the Bubble-data banner
-  state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
+  // order matters: setTab()→newChat() (chatView hidden, chatId null) resets state.bp,
+  // so BP mode must be forced AFTER the view swap or follow-ups post bp:false
+  state.chatId=null; setTab('buildprint'); showChat();
+  state.bp=true; reflectMode(); bpStatus();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
   const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
