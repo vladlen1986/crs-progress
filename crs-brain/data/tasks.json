@@ -183,6 +183,22 @@
       "status": "todo",
       "created": "2026-07-18T05:27:32.491Z",
       "notes": "Precondition check 2026-07-18: buildprint 4.1.6 installed, `buildprint project list` → Unauthorized. CLI update 4.1.6→4.2.5 also still pending."
+    },
+    {
+      "id": "ba162e1d",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "todo",
+      "created": "2026-07-18T05:31:03.345Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T05:31:03.345Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
     }
   ]
 }
