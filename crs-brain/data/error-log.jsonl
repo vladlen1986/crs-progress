@@ -4,3 +4,6 @@
 {"ts":"2026-07-18T13:47:42.033Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
 {"ts":"2026-07-18T13:47:42.043Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
 {"ts":"2026-07-18T13:47:42.052Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T14:28:12.414Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
+{"ts":"2026-07-18T14:28:12.423Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
+{"ts":"2026-07-18T14:28:12.432Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
