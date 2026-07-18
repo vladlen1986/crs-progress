@@ -149,6 +149,65 @@ function memoryForPrompt() {
   return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
 }
 function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+// ---- Program 3 Phase 2: global search index (⌘K palette backing) ------------
+// Zero-dep, mtime-gated cache — the index rebuilds only the stores whose backing
+// file changed, so an edit shows up within seconds without a file-watcher.
+const SEARCH_CACHE = { entries: [], stamps: {} };
+function searchStamp(p) { try { return fs.statSync(p).mtimeMs; } catch { return 0; } }
+function buildSearchIndex() {
+  // Cheap change-detection: hash the mtimes of the store roots; rebuild on any change.
+  const roots = {
+    chats: CHATS_DIR, tasks: TASKS_FILE, modules: MODULES_FILE, wishlist: path.join(DATA_DIR, 'wishlist.json'),
+    decisions: path.join(REPO_ROOT, 'decisions.md'), checklist: path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'),
+    prompts: path.join(REPO_ROOT, 'brain', 'buildprint', 'generated'), protos: PROTOS_DIR,
+  };
+  const stamps = {};
+  for (const [k, p] of Object.entries(roots)) stamps[k] = searchStamp(p);
+  if (JSON.stringify(stamps) === JSON.stringify(SEARCH_CACHE.stamps) && SEARCH_CACHE.entries.length) return SEARCH_CACHE.entries;
+  const E = [];
+  const add = (kind, label, ref, text) => E.push({ kind, label: String(label).slice(0, 140), ref, text: (label + ' ' + (text || '')).toLowerCase() });
+  try { for (const c of listChats()) add('chat', c.title || 'Untitled', c.id, ''); } catch {}
+  try { for (const t of loadTasks()) if (t.status !== 'done') add('todo', t.title, t.id, t.notes || ''); } catch {}
+  try { for (const m of (loadModulesDoc().modules || [])) add('module', m.name, m.id, m.section + ' ' + (m.note || '')); } catch {}
+  try { for (const it of (loadWishlist().items || [])) add('wishlist', it.title, it.id, it.detail || ''); } catch {}
+  try {
+    const dec = fs.readFileSync(roots.decisions, 'utf8');
+    for (const m of dec.matchAll(/^## (\[OPEN\] )?(.+)$/gm)) add('decision', m[2].trim(), m[2].trim(), m[1] ? 'open' : 'locked');
+  } catch {}
+  try {
+    for (const l of fs.readFileSync(roots.checklist, 'utf8').split('\n')) {
+      const m = l.match(/^\|\s*([A-Za-z0-9][^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*)/);
+      if (m && !/^id$/i.test(m[1]) && !/^[-\s:]+$/.test(m[1])) add('checklist', m[1], m[1], m[3]);
+    }
+  } catch {}
+  try { for (const f of fs.readdirSync(roots.prompts)) if (f.endsWith('.md')) add('prompt', f.replace(/\.md$/, ''), 'brain/buildprint/generated/' + f, ''); } catch {}
+  try {
+    for (const name of fs.readdirSync(roots.protos)) {
+      const cdir = path.join(roots.protos, name, 'chunks');
+      try { for (const f of fs.readdirSync(cdir)) if (/-report\.md$/.test(f)) add('report', name + '/' + f.replace(/-report\.md$/, ''), 'prototypes/' + name + '/chunks/' + f, ''); } catch {}
+    }
+  } catch {}
+  SEARCH_CACHE.entries = E; SEARCH_CACHE.stamps = stamps;
+  return E;
+}
+// Rank: exact-prefix > word-prefix > substring; shorter labels first within a tier.
+function searchQuery(q) {
+  q = (q || '').toLowerCase().trim();
+  const E = buildSearchIndex();
+  if (!q) return [];
+  const scored = [];
+  for (const e of E) {
+    const lab = e.label.toLowerCase();
+    let score = -1;
+    if (lab.startsWith(q)) score = 0;
+    else if (new RegExp('\\b' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(e.text)) score = 1;
+    else if (e.text.includes(q)) score = 2;
+    if (score >= 0) scored.push({ ...e, score, tie: e.label.length });
+  }
+  scored.sort((a, b) => a.score - b.score || a.tie - b.tie);
+  return scored.slice(0, 40).map(({ kind, label, ref }) => ({ kind, label, ref }));
+}
+
 // Chat v2 (Program 3): a compact focus-module brief injected at session start when
 // a chat opts in (chat.focusModule). Groundedness without bloat — the FULL engine
 // bundle (~96KB) is reserved for /gen through the engine; the chat gets a brief.
@@ -3229,6 +3288,11 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/digest/latest' && req.method === 'GET') {
       const f2 = latestDigestFile();
       return send(res, 200, { file: f2 ? 'brain/digests/' + f2 : null });
+    }
+
+    // ---- Program 3 Phase 2: global search (⌘K palette) ----
+    if (p === '/api/search' && req.method === 'GET') {
+      return send(res, 200, { results: searchQuery(u.searchParams.get('q') || '') });
     }
 
     // ---- Tasks: chief-of-staff todos & follow-ups ----
