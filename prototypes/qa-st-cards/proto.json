@@ -1,11 +1,18 @@
 {
   "name": "qa-st-cards",
   "module": "casino_settings",
-  "status": "draft",
-  "settledHash": null,
+  "status": "settled",
+  "settledHash": "113a32c846b9aaf63563d42d49bab69fafe11351395bebacd7f4daaa5f5d5061",
   "created": "2026-07-18T10:46:17.338Z",
   "notes": [
-    "scaffolded (template: cards)"
+    "scaffolded (template: cards)",
+    "2026-07-18T10:47:35.613Z — settled @ 113a32c846b9"
   ],
-  "versions": []
+  "versions": [
+    {
+      "v": 1,
+      "note": "v1 baseline",
+      "ts": "2026-07-18T10:47:35.603Z"
+    }
+  ]
 }
