@@ -1454,6 +1454,7 @@ const BP_PROMPT = (ws) => [
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
+  `- AUTHENTICATED CAPTURE ON WINDOWS — known broken paths, do NOT spiral on them: \`buildprint login\` cookie auto-install fails here (cmd mangles its <userid> shell-out — reported CLI bug) and manual cookie injection does not stick against Bubble's session binding; \`buildprint screenshot <email>\` can hang (kill after ~2 min, don't wait longer). THE RELIABLE PATH: if \`${path.join(BRAIN_DIR, '.bp-test-user')}\` exists (JSON {"email","password"} — gitignored TEST-branch test account), sign in through the real form: agent-browser open the app → \`snapshot -i\` → fill the email+password refs → click Sign in → verify with a quick screenshot → then capture. NEVER print the password into your reply, logs, or commands that echo. If the file is missing: capture the anonymous states, ask Vlad ONCE for a test account, and stop — max 2 attempts on any auth route before moving on.`,
   '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
   '- Responsive checks: the screenshot subcommand has NO --viewport flag. Set the viewport first, reload, then capture. QUALITY STANDARD — ALWAYS applied, even to a bare "screenshot X" request, without being asked: desktop = `agent-browser set viewport 1920 1080 2` (2x retina → 3840×2160 PNG), mobile = `set viewport 390 844 2`, then `agent-browser reload`, then `agent-browser screenshot --full <ABSOLUTE path>` (full page, never viewport-cropped; the daemon resolves relative paths against ITS OWN cwd, so always pass absolute output paths — embed in replies with the repo-relative path).',
   `- Ad-hoc screenshot requests ("screenshot the index page"): no questions, just capture at the desktop standard (add mobile only if asked), save to \`${SCREENSHOTS_DIR}/adhoc/<page>-<theme>-<desktop|mobile>.png\` (absolute), embed it in the reply, and state the pixel dimensions. CAPTURE-ONLY IS THE DEFAULT — do NOT read/analyze/describe the image unless analysis is explicitly requested (vision-reading a 4K PNG is the most expensive step; Vlad's standing rule is never to spend tokens on work he didn't ask for).`,
@@ -2967,6 +2968,10 @@ const server = http.createServer(async (req, res) => {
           purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
         if (routed) lifeStep('Auto-routing: ' + routed.label);   // visible, never silent
+        // Which model is ACTUALLY running — shown live in the meter, stamped on the
+        // turn, updated if the fallback chain switches mid-run.
+        let liveModel = runOpts.model || '';
+        sse({ type: 'model', model: liveModel });
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
         if (chat.bp) {
@@ -3034,7 +3039,7 @@ const server = http.createServer(async (req, res) => {
           onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
-          onModelSwitch: (m) => sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }),
+          onModelSwitch: (m) => { liveModel = m.to || liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
         }, runOpts);
         // Prefer the clean final segment (everything after the last tool call); fall
         // back to the CLI's full result only if the model ended without final text.
@@ -3044,7 +3049,7 @@ const server = http.createServer(async (req, res) => {
         chat.updated = completedAt;
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
-        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
+        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(liveModel ? { model: liveModel } : {}), ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
         if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);

@@ -10,3 +10,4 @@ data/bubble-release-notes.snapshot
 secrets.json
 data/smtp.json
 .remote-token
+.bp-test-user

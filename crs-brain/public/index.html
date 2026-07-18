@@ -1836,6 +1836,8 @@ document.addEventListener('click',(e)=>{
   const imgs=[...(box||document).querySelectorAll('.matt-th')].map(b=>b.dataset.path);
   openDocWindow(th.dataset.path,{ivImgs:imgs,ivIdx:Math.max(0,imgs.indexOf(th.dataset.path))});
 });
+// human model names — used by the live meter, turn stamps and the ⚡ fallback note
+function modelNice(m){ return ({'auto':'Auto','claude-opus-4-8':'Opus 4.8','claude-opus-4-7':'Opus 4.7','claude-sonnet-5':'Sonnet 5','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-fable-5':'Fable 5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'})[m]||m||''; }
 // ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
 const T24_={hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
 function fmtClock(iso){ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleTimeString([], T24_); }
@@ -1863,7 +1865,7 @@ function turnActs(turnEl){
   if(!acts){ acts=document.createElement('div'); acts.className='turn-acts'; el.appendChild(acts); }
   return acts;
 }
-function setTurnEnd(turnEl, completedAt, startedAt){
+function setTurnEnd(turnEl, completedAt, startedAt, model){
   if(!turnEl) return; const c=completedAt?new Date(completedAt):null; if(!c||isNaN(c)) return;
   const s=startedAt?new Date(startedAt):null; const sOk=s&&!isNaN(s);
   const sameDay=sOk&&s.toDateString()===c.toDateString();
@@ -1871,7 +1873,8 @@ function setTurnEnd(turnEl, completedAt, startedAt){
   let meta=el.querySelector(':scope > .turn-meta');
   if(!meta){ meta=document.createElement('span'); meta.className='turn-meta'; el.insertBefore(meta, el.firstChild); }
   const dur=sOk?fmtSecs((c-s)/1000):'';
-  meta.innerHTML='<span class="k">Completed</span><span>'+esc(sameDay?fmtClock(completedAt):fmtDateClock(completedAt))+'</span>'+(dur?'<span class="dur">· '+esc(dur)+'</span>':'');
+  meta.innerHTML='<span class="k">Completed</span><span>'+esc(sameDay?fmtClock(completedAt):fmtDateClock(completedAt))+'</span>'+(dur?'<span class="dur">· '+esc(dur)+'</span>':'')
+    +(model?'<span class="dur">· '+esc(modelNice(model))+'</span>':'');
 }
 function userMsgEl(content, atts){
   const el=document.createElement('div'); el.className='msg user';
@@ -1929,7 +1932,7 @@ function renderChat(messages){
       if(grp){ const wb=document.createElement('div'); wb.className='wblocks'; wb.appendChild(grp); bd.insertBefore(wb, bd.firstChild); }
       curTurn.appendChild(el);
       setTurnStart(curTurn, m.startedAt||m.ts);
-      setTurnEnd(curTurn, m.completedAt||m.ts, m.startedAt);   // raw startedAt → no fake 0s duration on legacy replies
+      setTurnEnd(curTurn, m.completedAt||m.ts, m.startedAt, m.model);   // raw startedAt → no fake 0s duration on legacy replies
       if(m.content) addReplyActions(el, m.content);   // after append + turn-end so it lands in .turn-acts
       lastBot=el; lastBotMsg=m;
     }
@@ -2491,10 +2494,10 @@ async function streamChat(text, opts={}){
   const ac=new AbortController(); state.abort=ac;
   setGenerating(true);
   // ---- live generation meter: elapsed + running input/output tokens ----
-  const genStart=performance.now(); let genIn=0, genOut=0;
+  const genStart=performance.now(); let genIn=0, genOut=0, genModel='';
   const gm=$('genMeter');
   const fmtTok=(n)=>n>=1000?(n/1000).toFixed(n>=10000?0:1)+'k':(''+n);
-  function paintMeter(){ if(!gm||!mine())return; gm.innerHTML='<span class="gm-live"></span><span class="gm-t">'+fmtDur(performance.now()-genStart)+'</span>'+((genIn||genOut)?'<span class="gm-sep"></span><span class="gm-tok">↑ <b>'+fmtTok(genIn)+'</b> in · ↓ <b>'+fmtTok(genOut)+'</b> out</span>':''); }
+  function paintMeter(){ if(!gm||!mine())return; gm.innerHTML='<span class="gm-live"></span><span class="gm-t">'+fmtDur(performance.now()-genStart)+'</span>'+(genModel?'<span class="gm-sep"></span><span class="gm-tok">'+esc(modelNice(genModel))+'</span>':'')+((genIn||genOut)?'<span class="gm-sep"></span><span class="gm-tok">↑ <b>'+fmtTok(genIn)+'</b> in · ↓ <b>'+fmtTok(genOut)+'</b> out</span>':''); }
   if(gm){ gm.classList.add('show'); }
   const meterIv=setInterval(paintMeter, 250);
   // Register this stream so it can be re-attached if the user switches chats and
@@ -2616,7 +2619,7 @@ async function streamChat(text, opts={}){
       setTimeout(()=>{ answerEl.style.transition='opacity .28s ease'; answerEl.style.opacity='1'; }, 20);
     }
     if(stoppedReply && full.trim()){ const n=document.createElement('div'); n.className='stopped-note'; n.textContent='⏹ Stopped'; answerEl.after(n); }
-    setTurnEnd(turn, live.completedAt || new Date().toISOString(), live.startedAt);   // meta first, then acts to its right
+    setTurnEnd(turn, live.completedAt || new Date().toISOString(), live.startedAt, genModel);   // meta first, then acts to its right
     if(full.trim()) addReplyActions(a, full);
     addRetryBar(a, stoppedReply);
     if(nearBottom()) log.scrollTop=log.scrollHeight;
@@ -2657,10 +2660,11 @@ async function streamChat(text, opts={}){
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
         else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
+        else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); }
         else if(ev.type==='model-switch'){
-          const nice=(m)=>({'claude-opus-4-8':'Opus 4.8','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'}[m]||m);
+          genModel=ev.to||genModel; paintMeter();
           const note=document.createElement('div'); note.className='switch-note';
-          note.innerHTML='<span class="sw-bolt">⚡</span><span>'+esc(nice(ev.from))+' unavailable — switched to <b>'+esc(nice(ev.to))+'</b> to keep going</span>';
+          note.innerHTML='<span class="sw-bolt">⚡</span><span>'+esc(modelNice(ev.from))+' unavailable — switched to <b>'+esc(modelNice(ev.to))+'</b> to keep going</span>';
           body.insertBefore(note, blocksEl);
           if(nearBottom()) log.scrollTop=log.scrollHeight;
         }

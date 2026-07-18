@@ -1016,6 +1016,13 @@
       "auto": {
         "key": "smoke:scaffold-token-markers"
       }
+    },
+    {
+      "id": "e41811a4",
+      "title": "Report Buildprint CLI bug: Windows `buildprint login` cookie auto-install fails � its shell-out contains <userid> which cmd.exe parses as a redirect. Sessions now use the .bp-test-user form-login path",
+      "status": "todo",
+      "created": "2026-07-18T21:53:02.623Z",
+      "notes": "Seen 2026-07-19 during the UM screenshot session; buildprint screenshot <email> also hung ~7min. Workaround shipped in BP_PROMPT (form sign-in via crs-brain/.bp-test-user)."
     }
   ]
 }
