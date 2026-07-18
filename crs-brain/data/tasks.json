@@ -375,6 +375,13 @@
       "auto": {
         "key": "smoke:p7-fixture-missing-file"
       }
+    },
+    {
+      "id": "6b1817cb",
+      "title": "QA guide walkthrough todo A",
+      "status": "todo",
+      "created": "2026-07-18T07:23:16.014Z",
+      "notes": ""
     }
   ]
 }
