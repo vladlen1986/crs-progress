@@ -1,18 +1,11 @@
 {
   "name": "qa-guide-walk",
   "module": "user_management",
-  "status": "settled",
-  "settledHash": "19bc45ab9bde491b924163389899772f0ea9cf92263a81d91d062be119bb0ad5",
-  "created": "2026-07-18T07:20:33.501Z",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T07:23:11.348Z",
   "notes": [
-    "scaffolded (template: cards)",
-    "2026-07-18T07:20:34.602Z — settled @ 19bc45ab9bde"
+    "scaffolded (template: cards)"
   ],
-  "versions": [
-    {
-      "v": 1,
-      "note": "",
-      "ts": "2026-07-18T07:20:34.594Z"
-    }
-  ]
+  "versions": []
 }
