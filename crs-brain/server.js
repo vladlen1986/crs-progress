@@ -2620,7 +2620,7 @@ const server = http.createServer(async (req, res) => {
       // Abort the claude run if the browser hits Stop (fetch aborted → socket closes).
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       const startedAt = nowIso();
       sse({ type: 'meta', id: chat.id, title: chat.title, startedAt });
@@ -2675,9 +2675,11 @@ const server = http.createServer(async (req, res) => {
           },
           onBlock: (b) => {
             if (b.kind === 'tool') {
-              // Auto-tag: a general chat that actually invoked buildprint (Bash or
-              // MCP) is a Buildprint conversation (feeds the sidebar terminal icon
-              // from REAL history, not the title).
+              // Auto-tag: a general chat that actually invoked buildprint is a
+              // Buildprint conversation (feeds the sidebar terminal icon from REAL
+              // history). The MCP tool's name contains "buildprint"; a
+              // Bash(buildprint:*) call has tool name "Bash", so the command itself
+              // (arriving via onDetail) is also checked below.
               if (/buildprint/i.test(b.tool || '')) usedBuildprint = true;
               const note = answerSeg.trim();   // interim narration between tools → a finished note step
               if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '' });
@@ -2687,7 +2689,7 @@ const server = http.createServer(async (req, res) => {
             steps.push(curStep);
             sse({ type: 'block', kind: b.kind, tool: b.tool || null });
           },
-          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); sse({ type: 'detail', text: t }); },
+          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); if (curStep && curStep.kind === 'tool' && /buildprint/i.test(t || '')) usedBuildprint = true; sse({ type: 'detail', text: t }); },
           onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
@@ -2739,7 +2741,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       sse({ type: 'status', text: 'syncing from Bubble' });
       const r = await bpSyncDiff();
@@ -2787,7 +2789,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
       const chat = loadBpChat();
