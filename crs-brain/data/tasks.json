@@ -838,6 +838,23 @@
       "auto": {
         "key": "qa:CHATV2.3"
       }
+    },
+    {
+      "id": "c496c873",
+      "title": "Smoke QA FAIL: checklist-parse-sane — 165 rows",
+      "status": "todo",
+      "created": "2026-07-18T12:45:57.488Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:checklist-parse-sane"
+      }
+    },
+    {
+      "id": "5e5559d0",
+      "title": "PALPROBE-uniqmarker-1327219063",
+      "status": "todo",
+      "created": "2026-07-18T12:46:23.734Z",
+      "notes": ""
     }
   ]
 }
