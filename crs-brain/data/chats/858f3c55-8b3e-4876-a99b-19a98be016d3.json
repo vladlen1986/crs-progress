@@ -1,0 +1,23 @@
+{
+  "id": "858f3c55-8b3e-4876-a99b-19a98be016d3",
+  "title": "Spawn-fix verification turn. Reply with exactly: WINDOWS-SPA",
+  "sessionId": "13ae8d6c-623f-4ef5-8254-f5f60f279dd2",
+  "bp": false,
+  "created": "2026-07-18T16:21:46.806Z",
+  "updated": "2026-07-18T16:21:51.863Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Spawn-fix verification turn. Reply with exactly: WINDOWS-SPAWN-OK � nothing else, no tools.",
+      "ts": "2026-07-18T16:21:46.806Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "WINDOWS-SPAWN-OK",
+      "ts": "2026-07-18T16:21:51.863Z",
+      "startedAt": "2026-07-18T16:21:46.806Z",
+      "completedAt": "2026-07-18T16:21:51.863Z"
+    }
+  ]
+}

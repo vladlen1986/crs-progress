@@ -20,3 +20,5 @@
 {"ts":"2026-07-18T14:56:44.905Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
 {"ts":"2026-07-18T14:58:38.858Z","action":"chunk-status","target":"casino-settings/c1=verified","via":"desktop","meta":null}
 {"ts":"2026-07-18T14:58:39.289Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
+{"ts":"2026-07-18T16:10:59.686Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-18T16:11:00.299Z","action":"backup-snapshot","target":"state-2026-07-18.zip","via":"scheduler","meta":null}
