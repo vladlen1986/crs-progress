@@ -4,7 +4,12 @@
 
 ## Position
 
-- **Current phase:** POLISH PASS (Vlad's 2026-07-18 prompt — brain/qa/polish-prompt.md; supersedes the P10 final loop in priority per his "program is done")
+- **Current phase:** BRAIN PROGRAM 3 — Phase 0 (comprehension refresh) → then P1 chat-v2. Prompt: brain/qa/program3-prompt.md. Governance from Programs 1/2 carries over verbatim.
+- **Current task:** P3-P0 — refresh app-map to as-built (Program-2 + polish changed a lot), reconcile P3 phases 1–5 vs current app, write P3-Phase-1 plan, verify.
+- **POLISH PASS COMPLETE** — gate PASS 8/8 + loop c1+c2 CLEAN 145/12/0 over 157 rows (checkpoint brain/qa/checkpoints/polish.md, commits c6e4ec2, f4fbd8d). Two greens met.
+- (older polish position notes below, superseded)
+
+- **[superseded] POLISH PASS position**
 - **Current task:** polish FINAL LOOP — c1 CLEAN (145/12/0 over 157 rows, commit c6e4ec2); c2 IN FLIGHT (second green). All 6 polish tasks done + gate PASS 8/8 (checkpoint brain/qa/checkpoints/polish.md): T1 tree rows (c7cf24b), T2 exec detail (390c511), T3 header (f83fd5e), T4 map right-drawer (83e4a17) + kb-* delete/reconcile (ca745e4), T5 sidebar (47bfe72)+16px icons, T6 window-policy openTarget (5f9e0f3). judgment-calls 56-58. P10.3 verified PASS (folded in).
 - **ON POLISH c2 GREEN → START BRAIN PROGRAM 3** (brain/qa/program3-prompt.md). First: Phase-0 comprehension REFRESH (the app changed materially since the last app-map — kanban right-drawer, surfaces full-area/openTarget, sidebar pins/meta, remote auth gate, tasks/dash/protos/engine-queue/state-audit/digest/smoke, chat meta). Then P3-Phase-1: recon verdict (chat = API wrapper vs shells to Claude Code — the 3-parallel-files test EXECUTED as proof) BEFORE building.
 - **P3-P1 PRE-RECON SIGNAL (not yet proven):** the chat backend ALREADY shells to headless Claude Code — runClaudeStream (server.js:1610) → spawnClaude (:1547) → `claude -p --output-format stream-json --include-partial-messages --permission-mode acceptEdits --allowedTools … --settings BP_GUARD_SETTINGS`. Header comment L5/L9 says "Relays chat to claude -p". So Phase-1's expected wrapper→Claude-Code MIGRATION is likely ALREADY DONE at the engine-room level → Phase 1 probably pivots to (a) prove concurrency via the 3-parallel-files test in-chat, (b) managed resumable sessions + context injection at start, (c) operator slash commands routed through existing APIs, (d) finish the turn UI showing REAL tool/subagent events. CONFIRM with the executed test before concluding — grep is suggestive, the program wants proof.
