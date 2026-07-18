@@ -1,5 +1,5 @@
 {
-  "model": "claude-opus-4-8",
+  "model": "auto",
   "effort": "max",
   "manualsCheckedAt": 1784018753224,
   "autoRoute": false,
@@ -10,7 +10,7 @@
     "sonnet",
     "haiku"
   ],
-  "theme": "dark",
+  "theme": "light",
   "bpAutoTrack": false,
   "notify": {
     "inApp": true,
