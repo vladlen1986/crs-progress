@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-cards",
+  "module": "user_management",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T07:49:33.732Z",
+  "notes": [
+    "scaffolded (template: cards)"
+  ],
+  "versions": []
+}
