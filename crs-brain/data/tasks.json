@@ -807,6 +807,20 @@
       "status": "todo",
       "created": "2026-07-18T11:33:08.278Z",
       "notes": ""
+    },
+    {
+      "id": "4276ab0f",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T11:33:08.337Z",
+      "notes": ""
+    },
+    {
+      "id": "1558254b",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T11:33:51.122Z",
+      "notes": ""
     }
   ]
 }
