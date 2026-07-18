@@ -280,10 +280,13 @@ async function toggle(id){
 function sendToBp(text){
   if(!text || /^⏳|^⚠|Writing your Buildprint/.test(text)) return false;
   try{ localStorage.setItem('crs_bp_compose', text); }catch(e){}
+  if(EMBED){   // surface iframe: hand off to the host app — NEVER navigate this frame (app-in-app)
+    try{ window.parent.postMessage({type:'bp-compose'}, location.origin); return true; }catch(e){}
+  }
   if(window.opener && !window.opener.closed){
     try{ window.opener.postMessage({type:'bp-compose'}, location.origin); window.opener.focus(); return true; }catch(e){}
   }
-  location.href='/#bp-compose'; return true; // opened directly (no opener) → navigate this window
+  location.href='/#bp-compose'; return true; // opened directly (no opener/parent) → navigate this window
 }
 async function genEdit(id){
   const req=document.getElementById('req-'+id), text=(req.value||'').trim();

@@ -1920,7 +1920,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); openDocWindow(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('surfaceView').style.display='none'; surfaceReturn=null; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1945,6 +1945,7 @@ let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
+  $('surfaceView').style.display='none'; surfaceReturn=null;
   $('centerCol').classList.add('no-composer');
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
@@ -1976,7 +1977,7 @@ function setMapBoardOpen(open){
 function showDashboard(){
   bumpView();
   state.chatId=null;
-  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('surfaceView').style.display='none'; surfaceReturn=null; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
@@ -3329,6 +3330,12 @@ function openSurface(url, title){
   $('surfaceTitle').textContent=name; $('centerTitle').textContent=name; markView('');
   const fr=$('surfaceFrame');
   if(fr.dataset.url!==url){ fr.src=url; fr.dataset.url=url; }
+  else{
+    // Self-heal: if the frame navigated away from its assigned page (e.g. a legacy
+    // in-frame link loaded the app shell → app-in-app), reload the real surface.
+    try{ if(new URL(fr.contentWindow.location.href).pathname!==new URL(url,location.origin).pathname) fr.src=url; }
+    catch(e){ fr.src=url; }
+  }
   if(innerWidth<=900) mob(null);
 }
 function surfaceBack(){ $('surfaceView').style.display='none'; (surfaceReturn||(()=>showDashboard()))(); surfaceReturn=null; }
@@ -4233,6 +4240,7 @@ let bubState=null, bubTabName='dataTypes', bubChanged=null;
 async function showBubble(){
   bumpView();
   $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
+  $('surfaceView').style.display='none'; surfaceReturn=null;
   $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('bubbleView').style.display='flex';
   $('centerTitle').textContent='Bubble data'; markView('');

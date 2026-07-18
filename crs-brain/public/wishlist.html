@@ -100,7 +100,7 @@
     </div>
     <div class="hbtns">
       <span class="saved" id="saved"></span>
-      <button class="hbtn" onclick="location.href='/'" title="Back to app"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>App</button>
+      <button class="hbtn" onclick="(window.parent&&window.parent!==window&&window.parent.surfaceBack)?window.parent.surfaceBack():location.href='/'" title="Back to app"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>App</button>
     </div>
   </header>
 
