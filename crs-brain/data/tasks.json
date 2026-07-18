@@ -319,6 +319,32 @@
       "auto": {
         "key": "sync:release-notes"
       }
+    },
+    {
+      "id": "dad11e7d",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "todo",
+      "created": "2026-07-18T06:49:07.852Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\")",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "026f1b31",
+      "title": "Run the UM combined audit in Buildprint: copy brain/buildprint/generated/2026-07-18-user_management-read-only-combined-audit-….md into a BP session (TEST branch, read-only), then attach the returned r",
+      "status": "todo",
+      "created": "2026-07-18T06:49:40.396Z",
+      "notes": "P6 copy path — bridge ENV-LIMITED (CLI unauthorized). The ingest applies modules.json + STATUS.md deltas and raises scorecard/[NEG] todos.",
+      "followUp": true,
+      "link": {
+        "kind": "module",
+        "ref": "user_management"
+      }
     }
   ]
 }
