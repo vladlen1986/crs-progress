@@ -521,13 +521,6 @@
       "auto": {
         "key": "state-drift:mod-status:casino_settings"
       }
-    },
-    {
-      "id": "fac6ca85",
-      "title": "qa c3 cleanup sweep (throwaway)",
-      "status": "todo",
-      "created": "2026-07-18T08:02:54.695Z",
-      "notes": ""
     }
   ]
 }
