@@ -1732,6 +1732,33 @@ function walk(dir, baseRel = '') {
 // ---- claude bridge ---------------------------------------------------------
 // Spawn the claude CLI WITHOUT a shell: shell:true concatenates args unescaped,
 // so any "(" in a system prompt becomes a /bin/sh syntax error. On Windows the
+// ---- Program 3 Phase 5: error capture + audit ledger ------------------------
+const ERROR_LOG_FILE = path.join(DATA_DIR, 'error-log.jsonl');
+const AUDIT_LOG_FILE = path.join(DATA_DIR, 'audit.jsonl');
+function logError(rec) {
+  try { fs.appendFileSync(ERROR_LOG_FILE, JSON.stringify({ ts: nowIso(), source: rec.source || 'server', message: String(rec.message || '').slice(0, 500), stack: String(rec.stack || '').slice(0, 2000), url: rec.url }) + '\n'); } catch {}
+}
+// Append-only audit of server MUTATIONS: who/what/when incl. via:remote|desktop.
+function logAudit(rec) {
+  try { fs.appendFileSync(AUDIT_LOG_FILE, JSON.stringify({ ts: nowIso(), action: rec.action, target: rec.target || '', via: rec.via || 'desktop', meta: rec.meta || null }) + '\n'); } catch {}
+}
+// Client errors: N repeats of the same message → one What's-wrong todo with the stack.
+const CLIENT_ERR_COUNTS = {};
+function noteClientError(msg, stack, url) {
+  logError({ source: 'client', message: msg, stack, url });
+  const key = String(msg).slice(0, 120);
+  CLIENT_ERR_COUNTS[key] = (CLIENT_ERR_COUNTS[key] || 0) + 1;
+  if (CLIENT_ERR_COUNTS[key] === 3) {   // raise once, on the 3rd repeat
+    try {
+      const tasks = loadTasks();
+      if (ensureAutoTask(tasks, 'clienterr:' + key, { title: 'Client error ×3: ' + key, notes: String(stack || '').slice(0, 300) })) { saveTasks(tasks); addNotification({ type: 'error', level: 'error', title: 'Recurring client error', body: key }); }
+    } catch {}
+  }
+}
+// Server crash safety net — log, don't die silently.
+process.on('uncaughtException', (e) => { logError({ source: 'server-uncaught', message: e.message, stack: e.stack }); console.error('uncaughtException:', e.message); });
+process.on('unhandledRejection', (e) => { logError({ source: 'server-rejection', message: (e && e.message) || String(e), stack: e && e.stack }); });
+
 // ---- Program 3 Phase 4: per-run cost & usage telemetry ----------------------
 // Published $/million-token rates (input, output) for cost ESTIMATION — the CLI's
 // account-wide cost is not per-run-attributable, so we compute from tokens×rates
@@ -3417,6 +3444,7 @@ const server = http.createServer(async (req, res) => {
       md = anchor > 0 ? md.slice(0, anchor + 1) + entry + md.slice(anchor + 1) : md + '\n' + entry;
       fs.writeFileSync(decPath, md);
       try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'decision-locked', title, via }) + '\n'); } catch {}
+      logAudit({ action: 'decision-locked', target: title, via });
       addNotification({ type: 'success', level: 'success', title: 'Decision locked' + (via === 'remote' ? ' (remote)' : ''), body: title, target: 'decisions.md' });
       autoCommit('decision locked: ' + title.slice(0, 40));
       return send(res, 200, { ok: true, via });
@@ -3443,6 +3471,22 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/search' && req.method === 'GET') {
       return send(res, 200, { results: searchQuery(u.searchParams.get('q') || '') });
     }
+    // ---- Program 3 Phase 5: manual backup + error/audit reads ----
+    if (p === '/api/backup/snapshot' && req.method === 'POST') {
+      try { const file = await backupWeeklySnapshot(); return send(res, 200, { ok: true, file }); }
+      catch (e) { return send(res, 500, { error: e.message }); }
+    }
+    if (p === '/api/audit' && req.method === 'GET') {
+      let rows = []; try { rows = fs.readFileSync(AUDIT_LOG_FILE, 'utf8').trim().split('\n').filter(Boolean).slice(-100).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch {}
+      return send(res, 200, { audit: rows.reverse() });
+    }
+    // ---- Program 3 Phase 5: client error report ----
+    if (p === '/api/client-error' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      noteClientError(body.message || '', body.stack || '', body.url || '');
+      return send(res, 200, { ok: true });
+    }
+
     // ---- Program 3 Phase 4: cost & usage analytics ----
     if (p === '/api/usage-analytics' && req.method === 'GET') {
       let rows = [];
@@ -3542,6 +3586,7 @@ const server = http.createServer(async (req, res) => {
       if (body.notes !== undefined) t.notes = String(body.notes).slice(0, 1000);
       saveTasks(tasks);
       try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'task-update', id: t.id, status: t.status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
+      logAudit({ action: 'task-update', target: t.id + '=' + t.status, via: isRemoteReq(req) ? 'remote' : 'desktop' });
       autoCommit('task update');
       return send(res, 200, { ok: true, task: t });
     }
@@ -3841,6 +3886,7 @@ const server = http.createServer(async (req, res) => {
         const chunkEngine = freshChunkEngine();
         const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), status);
         try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'chunk-status', chunk: name + '/' + body.chunkId, status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
+        logAudit({ action: 'chunk-status', target: name + '/' + body.chunkId + '=' + status, via: isRemoteReq(req) ? 'remote' : 'desktop' });
         autoCommit('prototype chunk ' + name + ' ' + body.chunkId + ' ' + status);
         return send(res, 200, { ok: true, chunk: r.chunk, protoStatus: r.proto.status });
       } catch (e) { return send(res, 400, { error: e.message }); }
@@ -4464,7 +4510,55 @@ async function maybeDailyOps() {
       try { const r = await runWeeklyDigest(); console.log('  ⟳ weekly digest → ' + r.file); }
       catch (e) { console.log('  ⟳ weekly digest failed:', e.message); }
     }
+    // Program 3 Phase 5: automatic backups. Daily push (only if the tree is
+    // CLEAN — never sweep uncommitted work); weekly zip snapshot with rotation.
+    if (Date.now() - (st.backupPushAt || 0) >= BUBBLE_DAY) {
+      try { await backupDailyPush(); saveState({ backupPushAt: Date.now() }); } catch (e) { console.log('  ⟳ backup push failed:', e.message); }
+    }
+    if (Date.now() - (st.backupSnapAt || 0) >= 7 * BUBBLE_DAY) {
+      try { const f = await backupWeeklySnapshot(); console.log('  ⟳ weekly snapshot → ' + f); saveState({ backupSnapAt: Date.now() }); } catch (e) { console.log('  ⟳ weekly snapshot failed:', e.message); }
+    }
   } finally { dailyOpsRunning = false; }
+}
+// Daily push — ONLY when the working tree is clean, so we never commit/push over
+// uncommitted work-in-progress.
+function backupDailyPush() {
+  return new Promise((resolve) => {
+    const st = spawn('git', ['status', '--porcelain'], { cwd: REPO_ROOT, windowsHide: true });
+    let out = '';
+    st.stdout.on('data', (d) => (out += d));
+    st.on('error', () => resolve({ skipped: 'git' }));
+    st.on('close', () => {
+      if (out.trim()) { logAudit({ action: 'backup-push', target: 'skipped: dirty tree', via: 'scheduler' }); return resolve({ skipped: 'dirty' }); }
+      const push = spawn('git', ['push'], { cwd: REPO_ROOT, windowsHide: true });
+      let perr = '';
+      push.stderr.on('data', (d) => (perr += d));
+      push.on('error', () => resolve({ skipped: 'push' }));
+      push.on('close', (code) => { logAudit({ action: 'backup-push', target: code === 0 ? 'pushed' : 'push failed: ' + perr.slice(0, 120), via: 'scheduler' }); resolve({ pushed: code === 0 }); });
+    });
+  });
+}
+// Weekly zip snapshot into backups/, keeping the newest 8. Uses `git archive`
+// (zero-dep, cross-platform) — snapshots the COMMITTED state tree (uncommitted
+// WIP is deliberately not captured, consistent with the clean-tree push policy).
+function backupWeeklySnapshot() {
+  return new Promise((resolve, reject) => {
+    const dir = path.join(REPO_ROOT, 'backups');
+    fs.mkdirSync(dir, { recursive: true });
+    const name = 'state-' + nowIso().slice(0, 10) + '.zip';
+    const out = path.join(dir, name);
+    const ar = spawn('git', ['archive', '--format=zip', '-o', out, 'HEAD', 'crs-brain/data', 'brain', 'prototypes', 'decisions.md'], { cwd: REPO_ROOT, windowsHide: true });
+    let err = '';
+    ar.stderr.on('data', (d) => (err += d));
+    ar.on('error', reject);
+    ar.on('close', (code) => {
+      if (code !== 0) return reject(new Error('git archive: ' + err.slice(0, 200)));
+      const snaps = fs.readdirSync(dir).filter((f) => /^state-.*\.zip$/.test(f)).sort();
+      while (snaps.length > 8) { try { fs.unlinkSync(path.join(dir, snaps.shift())); } catch { break; } }
+      logAudit({ action: 'backup-snapshot', target: name, via: 'scheduler' });
+      resolve('backups/' + name);
+    });
+  });
 }
 setTimeout(maybeDailyOps, 300 * 1000);             // ~5 min after boot
 setInterval(maybeDailyOps, 3600 * 1000);           // hourly gate check

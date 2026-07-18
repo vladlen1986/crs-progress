@@ -4292,6 +4292,17 @@ async function loadProgress(){
   box.appendChild(m);
 }
 
+// ---------- Program 3 Phase 5: client error capture ----------
+(function(){
+  let sent=0;
+  function report(message,stack,url){
+    if(sent>50) return; sent++;   // don't flood on a render loop
+    try{ navigator.sendBeacon ? navigator.sendBeacon('/api/client-error', new Blob([JSON.stringify({message,stack,url})],{type:'application/json'}))
+      : fetch('/api/client-error',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,stack,url}),keepalive:true}); }catch{}
+  }
+  addEventListener('error',e=>{ if(e.message) report(e.message,(e.error&&e.error.stack)||'',location.hash||location.pathname); });
+  addEventListener('unhandledrejection',e=>{ const r=e.reason; report((r&&r.message)||String(r),(r&&r.stack)||'','promise'); });
+})();
 // ---------- input UX ----------
 const inp=$('input');
 inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,200)+'px';});
