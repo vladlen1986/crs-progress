@@ -9,66 +9,6 @@
   ],
   "modules": [
     {
-      "id": "user_management",
-      "name": "User Management",
-      "section": "Admin / Core",
-      "route": "users",
-      "icon": "person-gear",
-      "status": "in-progress",
-      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
-      "checklist": [
-        {
-          "key": "ui",
-          "label": "UI elements built",
-          "state": "done",
-          "detail": "list/card/detail/table (Jun 11)"
-        },
-        {
-          "key": "ux",
-          "label": "UX / workflows working",
-          "state": "done",
-          "detail": "quick-view drawer + profile"
-        },
-        {
-          "key": "db",
-          "label": "Data types as planned (company + property)",
-          "state": "done",
-          "detail": "real User DT wired"
-        },
-        {
-          "key": "os",
-          "label": "Option sets in place",
-          "state": "done",
-          "detail": "n/a"
-        },
-        {
-          "key": "privacy",
-          "label": "Privacy rules (Pattern A) in place",
-          "state": "todo",
-          "detail": "Pass-2"
-        },
-        {
-          "key": "perms",
-          "label": "Backend protection (permission-based)",
-          "state": "todo",
-          "detail": "Pass-2 — server-guarded CRUD"
-        },
-        {
-          "key": "theme",
-          "label": "Theme (dark + light)",
-          "state": "done",
-          "detail": "dark+light, ~280 conditionals"
-        },
-        {
-          "key": "tested",
-          "label": "Security [NEG] tested",
-          "state": "todo",
-          "detail": "security NEG not started"
-        }
-      ],
-      "order": 1
-    },
-    {
       "id": "casino_settings",
       "name": "Casino Settings",
       "section": "Admin / Core",
@@ -126,7 +66,7 @@
           "detail": "NEG-proven 2026-06-08"
         }
       ],
-      "order": 2
+      "order": 1
     },
     {
       "id": "roles_permissions",
@@ -184,6 +124,66 @@
           "label": "Security [NEG] tested",
           "state": "done",
           "detail": ""
+        }
+      ],
+      "order": 2
+    },
+    {
+      "id": "user_management",
+      "name": "User Management",
+      "section": "Admin / Core",
+      "route": "users",
+      "icon": "person-gear",
+      "status": "in-progress",
+      "note": "UI built + data-wired (Jun–Jul). Security Pass-2 + demo purge pending.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": "list/card/detail/table (Jun 11)"
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": "quick-view drawer + profile"
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": "real User DT wired"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": "n/a"
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "todo",
+          "detail": "Pass-2"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "todo",
+          "detail": "Pass-2 — server-guarded CRUD"
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "done",
+          "detail": "dark+light, ~280 conditionals"
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "todo",
+          "detail": "security NEG not started"
         }
       ],
       "order": 3
