@@ -212,15 +212,7 @@ function computeMapping(name) {
       }
     }
   }
-  const tokenRows = [...varUse.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([v, sels]) => {
-    const canonical = canonicalName(v, inv, idx);
-    const t = canonical ? idx.byName.get(canonical) : null;
-    return {
-      var: v, canonical, dark: t ? t.dark : null, light: t ? t.light : null,
-      selectors: [...new Set(sels)],
-      style: '(none attested for this token — style mapping happens at component rows)',
-    };
-  });
+  // (tokenRows is computed AFTER the inline-style scan below also feeds varUse.)
 
   // 3. Literals in declarations (colors + radius/height px) not written as var().
   const flags = [];
@@ -244,6 +236,42 @@ function computeMapping(name) {
       }
     }
   }
+  // Inline style="…" attributes — same literal discipline as <style> rules
+  // (off-canon colors must not ride into a settled prototype through inline
+  // styles; found by CHUNKER.1 acceptance).
+  for (const im of html.matchAll(/<([a-z][a-z0-9-]*)\b[^>]*\bstyle\s*=\s*"([^"]*)"/gi)) {
+    const line = html.slice(0, im.index).split('\n').length;
+    const sel = '<' + im[1] + ' style="">';
+    for (const draw of im[2].split(';')) {
+      const ci = draw.indexOf(':');
+      if (ci < 1) continue;
+      const dprop = draw.slice(0, ci).trim(), dval = draw.slice(ci + 1).trim();
+      for (const vm of dval.matchAll(/var\((--[a-z0-9-]+)\)/gi)) {
+        if (!varUse.has(vm[1])) varUse.set(vm[1], []);
+        varUse.get(vm[1]).push(sel);
+      }
+      const values = [];
+      for (const cm of dval.matchAll(/#[0-9a-f]{3,6}\b|rgba?\([^)]*\)/gi)) values.push({ kind: 'color', raw: cm[0] });
+      if (/^border-radius$/i.test(dprop)) for (const pm of dval.matchAll(/(\d+(?:\.\d+)?)px/g)) values.push({ kind: 'px', raw: pm[0] });
+      for (const v of values) {
+        const norm = v.kind === 'color' ? normColor(v.raw) : v.raw;
+        if (!norm || IGNORE_VALUES.has(String(norm).toLowerCase())) continue;
+        const hit = idx.byValue.get(norm);
+        const loc = { selector: sel, prop: dprop, line };
+        if (hit) matched.push({ value: v.raw, ...loc, token: hit.token, theme: hit.theme, fix: 'replace with var(' + hit.token + ')' + (hit.theme === 'light' ? ' — NOTE: matched the LIGHT value; verify intent' : '') });
+        else flags.push({ kind: 'literal', value: v.raw, ...loc, nearest: nearestToken(v.raw, inv, v.kind) });
+      }
+    }
+  }
+  const tokenRows = [...varUse.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([v, sels]) => {
+    const canonical = canonicalName(v, inv, idx);
+    const t = canonical ? idx.byName.get(canonical) : null;
+    return {
+      var: v, canonical, dark: t ? t.dark : null, light: t ? t.light : null,
+      selectors: [...new Set(sels)],
+      style: '(none attested for this token — style mapping happens at component rows)',
+    };
+  });
   // Stale/unknown local tokens are blocking drift too.
   for (const lt of localTokens) {
     if (lt.verdict === 'STALE') flags.push({ kind: 'stale-token', value: lt.declared + ':' + lt.value, selector: ':root', prop: lt.declared, line: lt.line, nearest: lt.canonical + ' = ' + lt.canonDark });
