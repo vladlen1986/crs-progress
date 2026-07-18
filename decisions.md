@@ -57,6 +57,11 @@ Triggers: soft-deleted, deleted data types, deleted DTs, restore or purge
 
 ---
 
+## 2026-07-19 — Sign-in (index) page: anonymous visitors always see DARK
+**Decision:** the pre-login index page renders dark for logged-out visitors — by design, not a bug. Per-element `bptheme` light-mode states (applied 2026-07-19) activate only for logged-in users with `dark_theme` = no; anonymous temp users have empty theme fields, so the dark defaults stand.
+**Why:** logged-out browsers have no user to carry a theme preference; options considered were always-light (inverts ~15 elements' defaults), OS `prefers-color-scheme` via HTML element (index `page.json` is un-editable — reserved-name check trap), and localStorage carry-over. Vlad ruled: keep dark, zero extra moving parts.
+**Consequence:** do NOT "fix" the dark anonymous sign-in in future sessions; light-mode verification on index is done logged-in. Recorded in CRS Brain persistent memory.
+
 ## 2026-07-16 — CRS Brain UI/UX overhaul (branch `ui-ux-overhaul`)
 
 **Decision:** Rework the CRS Brain app to executive, professional-grade SaaS on a dedicated branch,
