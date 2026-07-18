@@ -666,6 +666,22 @@
       "auto": {
         "key": "chunk-report:casino-settings/c1"
       }
+    },
+    {
+      "id": "cfa12b7d",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "todo",
+      "created": "2026-07-18T10:23:26.209Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T10:23:26.209Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
     }
   ]
 }
