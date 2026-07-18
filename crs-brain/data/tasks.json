@@ -365,6 +365,16 @@
       "auto": {
         "key": "state-drift:mod-status:casino_settings"
       }
+    },
+    {
+      "id": "ca8b6181",
+      "title": "Smoke QA FAIL: p7-fixture-missing-file — brain/qa/__p7_fixture_does_not_exist__.md",
+      "status": "done",
+      "created": "2026-07-18T07:00:13.892Z",
+      "notes": "auto-closed: smoke check green again (2026-07-18T07:00:19.305Z)",
+      "auto": {
+        "key": "smoke:p7-fixture-missing-file"
+      }
     }
   ]
 }
