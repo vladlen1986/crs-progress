@@ -1,12 +1,13 @@
 {
   "name": "buttons",
   "module": "user_management",
-  "status": "draft",
-  "settledHash": "b1d003ad045d88e0c62bfe275c4c4fe889f390791d7e3ac5ed68655f45a2bdf4",
+  "status": "settled",
+  "settledHash": "48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658",
   "created": "2026-07-18T04:09:54.497Z",
   "notes": [
     "registered from crs-brain/data/docs/buttons.html",
     "2026-07-18T04:09:54.508Z — settled @ b1d003ad045d",
-    "2026-07-18T04:09:54.517Z — reverted settled → draft: html changed after settle (hash mismatch)"
+    "2026-07-18T04:09:54.517Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:15:02.086Z — settled @ 48c14d6e2301"
   ]
 }
