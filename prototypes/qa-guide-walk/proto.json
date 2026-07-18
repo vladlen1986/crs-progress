@@ -1,11 +1,18 @@
 {
   "name": "qa-guide-walk",
   "module": "user_management",
-  "status": "draft",
-  "settledHash": null,
+  "status": "settled",
+  "settledHash": "19bc45ab9bde491b924163389899772f0ea9cf92263a81d91d062be119bb0ad5",
   "created": "2026-07-18T07:19:06.178Z",
   "notes": [
-    "scaffolded (template: cards)"
+    "scaffolded (template: cards)",
+    "2026-07-18T07:19:07.294Z — settled @ 19bc45ab9bde"
   ],
-  "versions": []
+  "versions": [
+    {
+      "v": 1,
+      "note": "",
+      "ts": "2026-07-18T07:19:07.283Z"
+    }
+  ]
 }
