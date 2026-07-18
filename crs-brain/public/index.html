@@ -142,6 +142,10 @@
   /* bottom-pinned settings entry (visually separated from primary nav) */
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
   .side-legend{font-size:10.5px;color:var(--muted);padding:0 12px 6px;font-family:var(--mono)}
+  .surface-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .surface-back:hover{color:var(--primary);border-color:var(--line2)}
+  .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
   .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:8px 12px 3px}
   .item .chi{color:var(--muted)}
   .item .pinned-ic{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
@@ -1364,11 +1368,11 @@
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
-      <button title="Progress Tree — modules in build-priority order" onclick="openPageWindow('/tree.html','Progress Tree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
-      <button title="Activity log — every action, timestamped" onclick="openPageWindow('/activity.html','Activity log')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
-      <button title="Memory — what the brain always remembers" onclick="openPageWindow('/memory.html','Memory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
-      <button title="Wishlist — Brain app improvement todos" onclick="openPageWindow('/wishlist.html','Wishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
-      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openPageWindow('/queue.html','Task queue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
+      <button title="Progress Tree — modules in build-priority order" onclick="openTarget('/tree.html',{title:'Progress Tree'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
+      <button title="Activity log — every action, timestamped" onclick="openTarget('/activity.html',{title:'Activity log'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
+      <button title="Memory — what the brain always remembers" onclick="openTarget('/memory.html',{title:'Memory'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
+      <button title="Wishlist — Brain app improvement todos" onclick="openTarget('/wishlist.html',{title:'Wishlist'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openTarget('/queue.html',{title:'Task queue'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -1415,6 +1419,11 @@
       </div>
       <!-- dashboard (home) -->
       <div id="dashView" class="dash" style="display:none"></div>
+      <!-- app SURFACE in the full working area (tree/wishlist/queue/memory/activity/protos) — popups are for files only (polish window policy) -->
+      <div id="surfaceView" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
+        <div class="surface-bar"><button class="surface-back" onclick="surfaceBack()">← Back</button><span class="surface-title" id="surfaceTitle"></span></div>
+        <iframe id="surfaceFrame" title="surface" style="flex:1;width:100%;border:0;display:block"></iframe>
+      </div>
       <!-- embedded galaxy map (was a separate /map page; now lives above the chat input) -->
       <div id="mapView" style="display:none;flex:1;min-height:0">
         <iframe id="mapFrame" title="Galaxy map" style="width:100%;height:100%;border:0;display:block"></iframe>
@@ -2169,11 +2178,11 @@ function dashRel(ts){ if(!ts)return '—'; const s=(Date.now()-ts)/1000; if(s<90
 function dashChip(link){
   if(!link) return '';
   const k=link.kind, r=esc(link.ref);
-  const open={module:`openPageWindow('/tree.html#module=${r}','Progress Tree')`,
-    prototype:`openPageWindow('/protos.html','Prototypes')`,
-    chunk:`openPageWindow('/protos.html','Prototypes')`,
+  const open={module:`openTarget('/tree.html#module=${r}',{title:'Progress Tree'})`,
+    prototype:`openTarget('/protos.html',{title:'Prototypes'})`,
+    chunk:`openTarget('/protos.html',{title:'Prototypes'})`,
     decision:`openDocWindow('decisions.md')`,
-    wishlist:`openPageWindow('/wishlist.html','Wishlist')`}[k]||'';
+    wishlist:`openTarget('/wishlist.html',{title:'Wishlist'})`}[k]||'';
   return `<button class="tchip" onclick="${open}" title="${esc(k)}: ${r}">${esc(k)}: ${r.length>28?esc(link.ref.slice(0,28))+'…':r}</button>`;
 }
 async function renderDashboard(){
@@ -2230,16 +2239,16 @@ async function renderDashboard(){
       <div class="dcard"><h3>${svg('i-gauge','sm')} Current focus</h3>
         ${dash.modules.focus?`<div class="np-mod">${esc(dash.modules.focus.section)}</div>
           <div class="np-title">${esc(dash.modules.focus.name)} <span class="cnt">${esc(dash.modules.focus.status)}</span></div>
-          <button class="np-draft" onclick="openPageWindow('/tree.html#module=${esc(dash.modules.focus.id)}','Progress Tree')">${svg('i-gauge','sm')} Open in tree</button>`
+          <button class="np-draft" onclick="openTarget('/tree.html#module=${esc(dash.modules.focus.id)}',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open in tree</button>`
           :'<div class="dempty">Nothing in flight — every module is done or roadmap.</div>'}
       </div>
       <div class="dcard"><h3>${svg('i-doc','sm')} Build plans in flight <span class="cnt">${plansInFlight.length}</span></h3>
         ${plansInFlight.length?plansInFlight.map(p=>{const cc=p.chunkCounts;
-          return `<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
+          return `<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
             <span class="rt">${esc(p.name)}</span>
             <span class="rmeta"><span class="pmini"><i style="width:${Math.round(cc.verified/cc.total*100)}%"></i></span><span class="dnum">${cc.verified}/${cc.total}</span></span></div>`;}).join('')
           :'<div class="dempty">No chunk plans yet — settle a prototype and build its plan.</div>'}
-        <button class="np-draft" onclick="openPageWindow('/protos.html#new','Prototypes')">${svg('i-doc','sm')} New prototype</button>
+        <button class="np-draft" onclick="openTarget('/protos.html#new',{title:'Prototypes'})">${svg('i-doc','sm')} New prototype</button>
       </div>
       <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
         ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
@@ -2265,7 +2274,7 @@ async function renderDashboard(){
         ${sortedTasks.length>10?`<div class="dempty">+${sortedTasks.length-10} more</div>`:''}
       </div>
       <div class="dcard"><h3>${svg('i-flag','sm')} Unresolved mapping flags <span class="cnt">${flagged.reduce((a,p)=>a+p.unresolvedFlags,0)}</span></h3>
-        ${flagged.length?flagged.map(p=>`<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
+        ${flagged.length?flagged.map(p=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
           <span class="rt">${esc(p.name)}</span><span class="rmeta">${num(p.unresolvedFlags)} flag${p.unresolvedFlags===1?'':'s'}</span></div>`).join('')
           :'<div class="dempty">No unresolved flags — mappings are clean.</div>'}
       </div>
@@ -2273,7 +2282,7 @@ async function renderDashboard(){
 
     <section><div class="rowlbl danger">What's wrong</div><div class="dash-cols">
       <div class="dcard"><h3>${svg('i-doc','sm')} Failed chunks <span class="cnt">${dash.failedChunks.length}</span></h3>
-        ${dash.failedChunks.length?dash.failedChunks.map(fc=>`<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')"><span class="rt">${esc(fc)}</span></div>`).join(''):'<div class="dempty">None.</div>'}
+        ${dash.failedChunks.length?dash.failedChunks.map(fc=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})"><span class="rt">${esc(fc)}</span></div>`).join(''):'<div class="dempty">None.</div>'}
       </div>
       <div class="dcard"><h3>${svg('i-list','sm')} QA failures <span class="cnt">${dash.qa.failRows.length}</span></h3>
         ${dash.qa.failRows.length?dash.qa.failRows.map(r=>`<div class="drow"><span class="rt">${esc(r)}</span>
@@ -2307,7 +2316,7 @@ async function renderDashboard(){
         <div class="drow"><span class="rt">Done</span><span class="rmeta">${num(dash.modules.counts['done']||0)} / ${num(dash.modules.total)}</span></div>
         <div class="drow"><span class="rt">In progress</span><span class="rmeta">${num(dash.modules.counts['in-progress']||0)}</span></div>
         <div class="drow"><span class="rt">Focus</span><span class="rmeta">${esc(dash.modules.focus?dash.modules.focus.name:'—')}</span></div>
-        <button class="np-draft" onclick="openPageWindow('/tree.html','Progress Tree')">${svg('i-gauge','sm')} Open tree</button>
+        <button class="np-draft" onclick="openTarget('/tree.html',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open tree</button>
       </div>
       <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>
         ${chats.slice(0,5).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>'}
@@ -2327,12 +2336,12 @@ async function renderDashboard(){
     </div></section>
 
     <section><div class="lbl">Tools</div><div class="tools">
-      ${T('i-gauge','Progress Tree',"openPageWindow('/tree.html','Progress Tree')",c.green)}
-      ${T('i-clock','Activity log',"openPageWindow('/activity.html','Activity log')",c.amber)}
-      ${T('i-book','Memory',"openPageWindow('/memory.html','Memory')",c.purple)}
-      ${T('i-flag','Wishlist',"openPageWindow('/wishlist.html','Wishlist')",c.accent)}
-      ${T('i-list','Task queue',"openPageWindow('/queue.html','Task queue')",c.accent)}
-      ${T('i-doc','Prototypes',"openPageWindow('/protos.html','Prototypes')",c.cyan)}
+      ${T('i-gauge','Progress Tree',"openTarget('/tree.html',{title:'Progress Tree'})",c.green)}
+      ${T('i-clock','Activity log',"openTarget('/activity.html',{title:'Activity log'})",c.amber)}
+      ${T('i-book','Memory',"openTarget('/memory.html',{title:'Memory'})",c.purple)}
+      ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
+      ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
+      ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
     </div></section>
   </div>`;
 }
@@ -3428,6 +3437,41 @@ async function dwDocxFill(w){
 // The tool pages (tree/activity/memory/wishlist/queue) open as DW windows with a
 // same-origin iframe body — full chrome (drag/snap/resize/minimize/chip/Esc),
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
+// Window policy (polish): ONE router decides by target type. App surfaces open
+// full-area with a ← back; files open in their popup window/viewer.
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html'];
+function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
+function openTarget(target, opts){
+  opts=opts||{};
+  if(typeof target==='string' && isSurface(target)) return openSurface(target, opts.title);
+  if(typeof target==='string' && target.startsWith('/')&&isHtml(target)) return openSurface(target, opts.title);   // any served app html surface
+  return openDocWindow(target, opts);   // a repo FILE → popup/viewer
+}
+let surfaceReturn=null;
+function currentViewRestore(){
+  // snapshot which content view is showing so ← back returns exactly there
+  const shown=['chatView','dashView','mapView','kanbanView','bubbleView'].find(id=>{ const el=$(id); return el && el.style.display!=='none'; });
+  if(shown==='dashView') return ()=>showDashboard();
+  if(shown==='mapView') return ()=>showMap();
+  if(shown==='kanbanView') return ()=>showKanban(kbMode);
+  if(shown==='bubbleView') return ()=>showBubble();
+  if(shown==='chatView') return ()=>ensureChatView();
+  return ()=>showDashboard();
+}
+function openSurface(url, title){
+  if(typeof hidePeek==='function') hidePeek();
+  if($('surfaceView').style.display==='none') surfaceReturn=currentViewRestore();   // remember where we came from (not when already on a surface)
+  bumpView(); state.chatId=null;
+  for(const id of ['chatView','dashView','mapView','kanbanView','bubbleView']) $(id).style.display='none';
+  $('surfaceView').style.display='flex';
+  $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  const name=title||url.split('/').pop().replace(/\.html?$/i,'');
+  $('surfaceTitle').textContent=name; $('centerTitle').textContent=name; markView('');
+  const fr=$('surfaceFrame');
+  if(fr.dataset.url!==url){ fr.src=url; fr.dataset.url=url; }
+  if(innerWidth<=900) mob(null);
+}
+function surfaceBack(){ $('surfaceView').style.display='none'; (surfaceReturn||(()=>showDashboard()))(); surfaceReturn=null; }
 function openPageWindow(url, title){
   if(typeof hidePeek==='function') hidePeek();
   for(const x of DW.wins.values()) if(x.pageUrl===url){ dwFocus(x); return x; }   // already open → focus
@@ -3989,8 +4033,8 @@ async function explAct(act,target){
     else if(act.startsWith('newfile')){ const ext=act.split(':')[1]||'md'; explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path, ext); }
     else if(act.startsWith('sort:')){ explDoSort(act.slice(5)); }
     else if(act.startsWith('view:')){ explSetView(act.slice(5)); }
-    else if(act==='protoreg'){ openPageWindow('/protos.html#register='+encodeURIComponent(target),'Prototypes'); }
-    else if(act==='protonew'){ openPageWindow('/protos.html#new','Prototypes'); }
+    else if(act==='protoreg'){ openTarget('/protos.html#register='+encodeURIComponent(target),{title:'Prototypes'}); }
+    else if(act==='protonew'){ openTarget('/protos.html#new',{title:'Prototypes'}); }
     else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
     else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }
@@ -4803,7 +4847,7 @@ async function notifRowClick(id,target){
     try{ await api('/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); }catch{}
   }
   if(target){ $('ninbox').classList.remove('show'); document.removeEventListener('click',closeNotifOut);
-    if(target.startsWith('/')&&isHtml(target)) openPageWindow(target,target.split('/').pop().replace(/\.html?$/i,'')); else openDocWindow(target); }
+    if(target.startsWith('/')&&isHtml(target)) openTarget(target); else openDocWindow(target); }
 }
 function toggleNotif(e){ if(e)e.stopPropagation(); const box=$('ninbox'); const show=!box.classList.contains('show'); box.classList.toggle('show',show); if(show){ renderInbox(); setTimeout(()=>document.addEventListener('click',closeNotifOut),0); } else document.removeEventListener('click',closeNotifOut); }
 function closeNotifOut(ev){ const box=$('ninbox'),b=$('notifBell'); if(box&&!box.contains(ev.target)&&b&&!b.contains(ev.target)){ box.classList.remove('show'); document.removeEventListener('click',closeNotifOut); } }
