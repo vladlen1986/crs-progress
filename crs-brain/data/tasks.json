@@ -670,9 +670,9 @@
     {
       "id": "cfa12b7d",
       "title": "Await BP report: casino-settings/c1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T10:23:26.209Z",
-      "notes": "",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:24:25.991Z)",
       "followUp": true,
       "due": "2026-07-19T10:23:26.209Z",
       "link": {
