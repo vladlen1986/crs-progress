@@ -828,6 +828,22 @@
       "status": "todo",
       "created": "2026-07-18T11:33:51.167Z",
       "notes": ""
+    },
+    {
+      "id": "633d8e1f",
+      "title": "Await BP report: chatv2probe/c1",
+      "status": "todo",
+      "created": "2026-07-18T12:11:53.474Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T12:11:53.474Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "chatv2probe/c1"
+      },
+      "auto": {
+        "key": "chunk-report:chatv2probe/c1"
+      }
     }
   ]
 }
