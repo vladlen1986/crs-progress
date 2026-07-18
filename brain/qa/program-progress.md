@@ -4,11 +4,12 @@
 
 ## Position
 
-- **Current phase:** PHASE 0 — deep comprehension
-- **Current task:** P0.4 — verification subagent on app-map + reconciliation (about to run)
-- **Just completed:** P0.1 six-agent fan-out (all returned) · P0.2 app-map.md refreshed to as-built (this commit) · P0.3 reconciliation written below · Phase-1 plan written below
-- **Next:** verification subagent (5 app-map spot-checks + reconciliation completeness) → Phase-0 checkpoint report → gate → Phase 1 task 1
-- **App server:** not yet verified running on :4317 this session — check before any UI work.
+- **Current phase:** PHASE 1 — Prototype → BP chunker
+- **Current task:** T1 — prototype store + lifecycle endpoints (server)
+- **Just completed:** PHASE 0 COMPLETE — gate PASS (verify cycle 2 after one fix cycle); checkpoint at brain/qa/checkpoints/phase-0.md
+- **Next:** T1 implement → T2 style-inventory + mapping → T3 plan → T4 emission → T5 UI → T6 verify/checklist/checkpoint (plan details in §P0.4 below)
+- **App server:** RUNNING on :4317 but STALE (404s /api/version which exists in code) — restart required before testing new endpoints. Restart via start.command/node; state is restart-safe.
+- **P6 note:** archive has `2026-07-16-user-management-audit.md` + `-as-built-section-audit.md`, no `um-audit-combined` — combine/regenerate at P6.
 
 ## Inherited context (verified 2026-07-18)
 
