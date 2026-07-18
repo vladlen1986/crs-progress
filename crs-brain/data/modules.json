@@ -9,66 +9,6 @@
   ],
   "modules": [
     {
-      "id": "casino_settings",
-      "name": "Casino Settings",
-      "section": "Admin / Core",
-      "route": "settings",
-      "icon": "gear",
-      "status": "done",
-      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
-      "checklist": [
-        {
-          "key": "ui",
-          "label": "UI elements built",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "ux",
-          "label": "UX / workflows working",
-          "state": "done",
-          "detail": ""
-        },
-        {
-          "key": "db",
-          "label": "Data types as planned (company + property)",
-          "state": "done",
-          "detail": "Company + Property DTs"
-        },
-        {
-          "key": "os",
-          "label": "Option sets in place",
-          "state": "done",
-          "detail": "Timezone 385 · Currency 156"
-        },
-        {
-          "key": "privacy",
-          "label": "Privacy rules (Pattern A) in place",
-          "state": "done",
-          "detail": "company/property-scoped, NEG-proven"
-        },
-        {
-          "key": "perms",
-          "label": "Backend protection (permission-based)",
-          "state": "done",
-          "detail": "3 writes via guarded backend WFs"
-        },
-        {
-          "key": "theme",
-          "label": "Theme (dark + light)",
-          "state": "done",
-          "detail": "Pass-3 polish outstanding"
-        },
-        {
-          "key": "tested",
-          "label": "Security [NEG] tested",
-          "state": "done",
-          "detail": "NEG-proven 2026-06-08"
-        }
-      ],
-      "order": 1
-    },
-    {
       "id": "roles_permissions",
       "name": "Roles & Permissions",
       "section": "Admin / Core",
@@ -124,6 +64,66 @@
           "label": "Security [NEG] tested",
           "state": "done",
           "detail": ""
+        }
+      ],
+      "order": 1
+    },
+    {
+      "id": "casino_settings",
+      "name": "Casino Settings",
+      "section": "Admin / Core",
+      "route": "settings",
+      "icon": "gear",
+      "status": "done",
+      "note": "Core/Settings RE — DONE + NEG-proven (2026-06-08). Theme/mobile Pass-3 left.",
+      "checklist": [
+        {
+          "key": "ui",
+          "label": "UI elements built",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "ux",
+          "label": "UX / workflows working",
+          "state": "done",
+          "detail": ""
+        },
+        {
+          "key": "db",
+          "label": "Data types as planned (company + property)",
+          "state": "done",
+          "detail": "Company + Property DTs"
+        },
+        {
+          "key": "os",
+          "label": "Option sets in place",
+          "state": "done",
+          "detail": "Timezone 385 · Currency 156"
+        },
+        {
+          "key": "privacy",
+          "label": "Privacy rules (Pattern A) in place",
+          "state": "done",
+          "detail": "company/property-scoped, NEG-proven"
+        },
+        {
+          "key": "perms",
+          "label": "Backend protection (permission-based)",
+          "state": "done",
+          "detail": "3 writes via guarded backend WFs"
+        },
+        {
+          "key": "theme",
+          "label": "Theme (dark + light)",
+          "state": "done",
+          "detail": "Pass-3 polish outstanding"
+        },
+        {
+          "key": "tested",
+          "label": "Security [NEG] tested",
+          "state": "done",
+          "detail": "NEG-proven 2026-06-08"
         }
       ],
       "order": 2
