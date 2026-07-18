@@ -800,6 +800,13 @@
       "auto": {
         "key": "sync:release-notes"
       }
+    },
+    {
+      "id": "b7d559f5",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T11:33:08.278Z",
+      "notes": ""
     }
   ]
 }
