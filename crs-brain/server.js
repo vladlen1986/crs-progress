@@ -432,6 +432,135 @@ async function distillLessons(userMessage, steps, finalText) {
   return saved;
 }
 
+// ---- Ask Protocol: server-brokered questions with clickable cards -----------
+// Sessions call the ask_vlad MCP tool (crs-brain/ask-mcp.js shim) instead of
+// ending turns with free-text "which do you want?" paragraphs. The server
+// persists the ask into the chat, renders a card via SSE, fires question-pending
+// (knock-knock), and holds the shim's long-poll until Vlad answers — the tool's
+// return value IS the answer, so the session truly blocks. Standing answers
+// (the Playbook) auto-answer repeat questions; asks touching an [OPEN] decision
+// are rejected back with DECISION-NEEDED instructions (T5 boundary).
+const STANDING_FILE = path.join(DATA_DIR, 'standing-answers.json');
+const ASK_LOG_FILE = path.join(DATA_DIR, 'ask-log.jsonl');
+const ASK_MCP_CONFIG = path.join(DATA_DIR, 'ask-mcp-config.json');
+const ASKS = new Map();        // id → {id, chatId, question, context, options, sig, ts, answered, answer, waiters:[], renotified}
+const LIVE_TURNS = new Map();  // chatId → {sse, chat} while an /api/chat turn is streaming
+function loadStanding() { try { return JSON.parse(fs.readFileSync(STANDING_FILE, 'utf8')); } catch { return []; } }
+function saveStanding(arr) { fs.writeFileSync(STANDING_FILE, JSON.stringify(arr, null, 2)); }
+function askSignature(question, options) {
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  const key = norm(question) + '|' + (options || []).map((o) => norm(o.label)).sort().join('|');
+  return crypto.createHash('sha256').update(key).digest('hex').slice(0, 12);
+}
+function askLogCount(sig) {
+  try { return fs.readFileSync(ASK_LOG_FILE, 'utf8').split('\n').filter((l) => l.includes('"' + sig + '"')).length; } catch { return 0; }
+}
+// [OPEN] decision triggers from decisions.md — an ask touching one is rejected.
+function openDecisionTriggers() {
+  const out = [];
+  try {
+    const txt = fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8');
+    for (const block of txt.split(/^## /m)) {
+      if (!block.startsWith('[OPEN]')) continue;
+      const title = block.split('\n')[0].replace(/^\[OPEN\]\s*/, '').trim();
+      const tm = block.match(/^Triggers:\s*(.+)$/m);
+      if (!tm) continue;
+      const kws = tm[1].split(',').map((s) => s.trim().toLowerCase()).filter((s) => s.length > 3);
+      if (kws.length) out.push({ title, kws });
+    }
+  } catch {}
+  return out;
+}
+// Create an ask. Returns {id} (pending), {answer} (Playbook auto), or {error} (boundary).
+function createAsk(chatId, question, context, options) {
+  question = String(question || '').trim().slice(0, 500);
+  options = (Array.isArray(options) ? options : []).slice(0, 6)
+    .map((o) => ({ label: String((o && o.label) || '').trim().slice(0, 120), hint: String((o && o.hint) || '').trim().slice(0, 200) }))
+    .filter((o) => o.label);
+  if (!question || options.length < 2) return { error: 'ask needs a question and 2-6 options' };
+  // T5 boundary: operational asks only — [OPEN] decisions go through the guard flow.
+  const hay = (question + ' ' + (context || '') + ' ' + options.map((o) => o.label + ' ' + o.hint).join(' ')).toLowerCase();
+  for (const d of openDecisionTriggers()) {
+    const hit = d.kws.find((k) => hay.includes(k));
+    if (hit) return { error: `This touches the OPEN decision "${d.title}" (trigger: "${hit}"). Locked decisions are never born from a popover — stop and emit DECISION-NEEDED for it instead, per the guard flow.` };
+  }
+  const sig = askSignature(question, options);
+  try { fs.appendFileSync(ASK_LOG_FILE, JSON.stringify({ ts: nowIso(), sig, chatId, question }) + '\n'); } catch {}
+  // T4: an ACTIVE standing answer wins — no card, no sound, turn shows the receipt.
+  const standing = loadStanding().find((s) => s.sig === sig && s.active !== false);
+  const live = LIVE_TURNS.get(chatId);
+  const persistMsg = (msg) => {
+    if (live && live.chat) { live.chat.messages.push(msg); try { saveChat(live.chat); } catch {} }
+    else { const c = loadChat(chatId); if (c) { c.messages.push(msg); c.updated = nowIso(); try { saveChat(c); } catch {} } }
+  };
+  if (standing) {
+    standing.hits = (standing.hits || 0) + 1; saveStanding(loadStanding().map((s) => (s.sig === sig ? { ...s, hits: standing.hits } : s)));
+    persistMsg({ role: 'ask', status: 'auto', question, context: context || '', options, answer: standing.answer, sig, ts: nowIso(), answeredAt: nowIso() });
+    if (live) live.sse({ type: 'question', status: 'auto', question, answer: standing.answer });
+    logAudit({ action: 'ask-auto-answer', target: sig, meta: { question: question.slice(0, 120), answer: standing.answer } });
+    return { answer: standing.answer };
+  }
+  const id = crypto.randomUUID().slice(0, 8);
+  const ask = { id, chatId, question, context: String(context || '').slice(0, 1000), options, sig, ts: Date.now(), answered: false, answer: null, waiters: [], renotified: false, askedCount: askLogCount(sig) };
+  ASKS.set(id, ask);
+  persistMsg({ role: 'ask', status: 'pending', id, question, context: ask.context, options, sig, askedCount: ask.askedCount, ts: nowIso() });
+  if (live) live.sse({ type: 'question', status: 'pending', id, question, context: ask.context, options, askedCount: ask.askedCount });
+  addNotification({ type: 'question-pending', level: 'warning', title: 'A session needs you', body: question.slice(0, 140), target: 'chat:' + chatId });
+  return { id };
+}
+function answerAsk(id, answer, opts) {
+  const ask = ASKS.get(id);
+  if (!ask || ask.answered) return { error: 'no such pending ask' };
+  ask.answered = true; ask.answer = String(answer || '').slice(0, 1000);
+  // update the persisted card → receipt
+  const live = LIVE_TURNS.get(ask.chatId);
+  const mark = (c) => { const m = (c.messages || []).find((x) => x.role === 'ask' && x.id === id); if (m) { m.status = 'answered'; m.answer = ask.answer; m.answeredAt = nowIso(); } };
+  if (live && live.chat) { mark(live.chat); try { saveChat(live.chat); } catch {} }
+  else { const c = loadChat(ask.chatId); if (c) { mark(c); try { saveChat(c); } catch {} } }
+  if ((opts || {}).standing) {
+    const arr = loadStanding().filter((s) => s.sig !== ask.sig);
+    arr.push({ sig: ask.sig, question: ask.question, options: ask.options.map((o) => o.label), answer: ask.answer, active: true, hits: 0, created: nowIso() });
+    saveStanding(arr);
+  }
+  logAudit({ action: 'ask-answered', target: id, via: (opts || {}).via || 'desktop', meta: { question: ask.question.slice(0, 120), answer: ask.answer.slice(0, 120), standing: !!(opts || {}).standing } });
+  const resumed = ask.waiters.length > 0;
+  for (const w of ask.waiters.splice(0)) { try { w({ answered: true, answer: ask.answer }); } catch {} }
+  if (live) live.sse({ type: 'question-answered', id, answer: ask.answer });
+  // keep the answered ask around briefly — a shim re-poll racing the answer must
+  // still be able to fetch it (long-poll gap), then GC
+  setTimeout(() => ASKS.delete(id), 10 * 60 * 1000).unref();
+  return { ok: true, resumed };
+}
+function pendingAsks() { return [...ASKS.values()].filter((a) => !a.answered).map((a) => ({ id: a.id, chatId: a.chatId, question: a.question, context: a.context, options: a.options, askedCount: a.askedCount, ts: a.ts })); }
+// Re-notify once after N minutes (configurable), checked every 60s.
+setInterval(() => {
+  try {
+    const cfg = loadSettings();
+    const min = Math.max(1, Number((cfg.notifyPrefs || {}).askRenotifyMin) || 10);
+    for (const a of ASKS.values()) {
+      if (!a.answered && !a.renotified && Date.now() - a.ts > min * 60 * 1000) {
+        a.renotified = true;
+        addNotification({ type: 'question-pending', level: 'warning', title: 'Still waiting on you (' + min + 'm)', body: a.question.slice(0, 140), target: 'chat:' + a.chatId });
+      }
+    }
+  } catch {}
+}, 60 * 1000).unref();
+// Boot: repopulate pending asks from recent chats (they survive restart; the
+// session is gone but answering resumes it as a continuation turn client-side).
+try {
+  const cutoff = Date.now() - 48 * 3600 * 1000;
+  for (const f of fs.readdirSync(CHATS_DIR)) {
+    if (!f.endsWith('.json')) continue;
+    if (fs.statSync(path.join(CHATS_DIR, f)).mtimeMs < cutoff) continue;
+    const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
+    for (const m of c.messages || []) {
+      if (m.role === 'ask' && m.status === 'pending' && m.id) ASKS.set(m.id, { id: m.id, chatId: c.id, question: m.question, context: m.context || '', options: m.options || [], sig: m.sig, ts: Date.parse(m.ts) || Date.now(), answered: false, answer: null, waiters: [], renotified: true, askedCount: m.askedCount || 0 });
+    }
+  }
+} catch {}
+// MCP config for the ask_vlad shim — regenerated at boot (paths are absolute).
+try { fs.writeFileSync(ASK_MCP_CONFIG, JSON.stringify({ mcpServers: { crsask: { command: process.execPath, args: [path.join(BRAIN_DIR, 'ask-mcp.js')] } } }, null, 2)); } catch {}
+
 // ---- wishlist (Brain-app improvement todos, managed in the UI) --------------
 // Canonical JSON the Wishlist page edits; WISHLIST.md is regenerated for humans/git.
 const WISHLIST_JSON = path.join(DATA_DIR, 'wishlist.json');
@@ -1374,6 +1503,7 @@ const SYSTEM_PROMPT = [
   'You are "CRS Brain", the persistent assistant for Vlad\'s CRS (Casino Reporting Suite) project.',
   'You run inside a local second-brain app. The project root is this working directory.',
   'Your job: help track progress, remember decisions, and answer "what is next / what is missing".',
+  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, scope, naming — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "let me know" question — that is a contract violation. If he answers "recommend", present YOUR recommendation with one-line tradeoffs as a NEW ask_vlad call (recommended option first) — do not just proceed. If the tool rejects the ask because it touches an [OPEN] decision, stop and report DECISION-NEEDED instead. Operational choices only — architectural decisions are never made through an ask.',
   'RETRIEVAL: the knowledge base lives in brain/. ALWAYS read brain/INDEX.md first — it maps every',
   'domain (database, option-sets, security, workflows, migrations, design) to its file and its',
   'authoritative sources. Jump straight to the mapped file/section instead of grepping the repo.',
@@ -1485,6 +1615,7 @@ const BP_PROMPT = (ws) => [
   '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
+  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, which page, naming, scope trims — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "say the word" question — that is a contract violation. "recommend" answer → present YOUR recommendation + one-line tradeoffs as a NEW ask_vlad call (recommended option first). Tool rejected (touches an [OPEN] decision) → stop and emit DECISION-NEEDED per the guard flow. Operational choices only.',
   'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task.',
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
@@ -1986,12 +2117,21 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
+    // Ask Protocol: interactive chats get the ask_vlad MCP tool (blocking
+    // question cards). Pipeline spawns (gen/memory/lesson) never get it — a
+    // blocking ask inside an unattended pipeline would hang it.
+    if (opts.askChatId) {
+      args.splice(args.indexOf('mcp__buildprint') + 1, 0, 'mcp__crsask__ask_vlad');
+      args.push('--mcp-config', ASK_MCP_CONFIG);
+    }
     if (opts.model && opts.model !== 'auto') args.push('--model', opts.model);   // 'auto' is a ROUTING token, never a CLI model id
     if (opts.effort) args.push('--effort', opts.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
-    const child = spawnClaude(args, { cwd: opts.cwd || REPO_ROOT });
+    const spawnOpts = { cwd: opts.cwd || REPO_ROOT };
+    if (opts.askChatId) spawnOpts.env = { ...process.env, CRS_ASK_CHAT: String(opts.askChatId), CRS_ASK_PORT: String(PORT) };
+    const child = spawnClaude(args, spawnOpts);
 
     let buf = '';
     let stderr = '';
@@ -2016,7 +2156,12 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     const IDLE_MS = 10 * 60 * 1000;
     const bumpIdle = () => {
       clearTimeout(timer);
-      timer = setTimeout(() => { timedOut = true; try { child.kill('SIGTERM'); } catch {} }, IDLE_MS);
+      timer = setTimeout(() => {
+        // a session BLOCKED on a pending ask_vlad question is waiting on Vlad,
+        // not hung — exempt it from the inactivity kill for as long as he takes
+        if (opts.idleExempt && opts.idleExempt()) { bumpIdle(); return; }
+        timedOut = true; try { child.kill('SIGTERM'); } catch {}
+      }, IDLE_MS);
     };
     bumpIdle();
 
@@ -3009,7 +3154,10 @@ const server = http.createServer(async (req, res) => {
         const cfg = loadSettings();
         // 'auto' = task-routed model+effort (token economy); a concrete model pins both.
         const routed = String(body.model || cfg.model || '') === 'auto' ? routeTaskModel(message, cfg.model === 'auto' ? { ...cfg, model: '' } : cfg) : null;
+        LIVE_TURNS.set(chat.id, { sse, chat });   // ask cards land in THIS stream + chat object
         const runOpts = {
+          askChatId: chat.id,
+          idleExempt: () => [...ASKS.values()].some((a) => a.chatId === chat.id && !a.answered),
           model: routed ? routed.model : (body.model || cfg.model || '').toString() || undefined,
           effort: routed ? routed.effort : (body.effort || cfg.effort || '').toString() || undefined,
           autoFallback: cfg.autoFallback !== false,
@@ -3124,6 +3272,8 @@ const server = http.createServer(async (req, res) => {
           saveChat(chat);
         } catch {}
         sse({ type: 'error', error: e.message, id: chat.id });
+      } finally {
+        LIVE_TURNS.delete(chat.id);   // ask cards for this chat now persist via the file path
       }
       return res.end();
     }
@@ -3460,6 +3610,38 @@ const server = http.createServer(async (req, res) => {
       if (body.text && !body.fact) saved = await compileMemory(body.text);   // compile free text
       else saved = addMemories([{ category: body.category, title: body.title, fact: body.fact }]);
       return send(res, 200, { ok: true, entries: saved });
+    }
+    // ---- Ask Protocol endpoints ----
+    if (p === '/api/ask' && req.method === 'POST') {   // called by the ask-mcp shim
+      const b = await readJsonBody(req) || {};
+      return send(res, 200, createAsk((b.chatId || '').toString(), b.question, b.context, b.options));
+    }
+    if (p === '/api/ask/wait' && req.method === 'GET') {   // shim long-poll
+      const id = u.searchParams.get('id');
+      const t = Math.min(30000, Number(u.searchParams.get('t')) || 25000);
+      const ask = ASKS.get(id);
+      if (!ask) return send(res, 200, { answered: true, answer: '(question expired — proceed with your best judgment and say so)' });
+      if (ask.answered) return send(res, 200, { answered: true, answer: ask.answer });
+      let done = false;
+      const finish = (payload) => { if (done) return; done = true; try { send(res, 200, payload); } catch {} };
+      ask.waiters.push(finish);
+      setTimeout(() => finish({ answered: false }), t).unref();
+      return;
+    }
+    if (p === '/api/ask/answer' && req.method === 'POST') {
+      const b = await readJsonBody(req) || {};
+      return send(res, 200, answerAsk((b.id || '').toString(), b.answer, { standing: b.standing === true, via: isRemoteReq(req) ? 'remote' : 'desktop' }));
+    }
+    if (p === '/api/ask/pending' && req.method === 'GET') return send(res, 200, { asks: pendingAsks() });
+    if (p === '/api/ask/standing' && req.method === 'GET') return send(res, 200, { rules: loadStanding() });
+    if (p === '/api/ask/standing' && req.method === 'POST') {   // retire / reactivate / delete a Playbook rule
+      const b = await readJsonBody(req) || {};
+      let arr = loadStanding();
+      if (b.delete === true) arr = arr.filter((s) => s.sig !== b.sig);
+      else arr = arr.map((s) => (s.sig === b.sig ? { ...s, active: b.active !== false } : s));
+      saveStanding(arr);
+      logAudit({ action: 'ask-standing-' + (b.delete ? 'delete' : b.active !== false ? 'activate' : 'retire'), target: (b.sig || '').toString() });
+      return send(res, 200, { ok: true, rules: arr });
     }
     if (p === '/api/memory/distill' && req.method === 'POST') {   // backfill: learn from a past chat's last turn
       const body = await readJsonBody(req) || {};
