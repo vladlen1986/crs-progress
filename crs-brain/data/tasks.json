@@ -928,6 +928,13 @@
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
       }
+    },
+    {
+      "id": "3f0cdf17",
+      "title": "c2probe-palette-zqx987",
+      "status": "todo",
+      "created": "2026-07-18T14:49:16.363Z",
+      "notes": ""
     }
   ]
 }
