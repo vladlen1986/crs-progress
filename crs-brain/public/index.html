@@ -2262,6 +2262,7 @@ async function renderDashboard(){
       ${A('i-map','Galaxy map','Explore the brain visually','showMap()',c.soft)}
       ${A('i-sparkle','Weekly digest','Open the latest weekly digest (generates if none)','openWeeklyDigest()',c.soft)}
       ${A('i-refresh','Sync Buildprint → brain','Pull the latest Bubble changes into the ledger','bpTrack()',c.cyan)}
+      ${A('i-send','Handoff','Generate + push the machine-transfer file','runHandoff()',c.purple)}
     </div></section>
 
     <section><div class="lbl">Tools</div><div class="tools">
@@ -2273,6 +2274,11 @@ async function renderDashboard(){
       ${T('i-doc','Prototypes',"openPageWindow('/protos.html','Prototypes')",c.cyan)}
     </div></section>
   </div>`;
+}
+async function runHandoff(){
+  toast('Generating handoff…');
+  try{ const r=await api('/api/handoff',{method:'POST'}); toast('Handoff '+(r.pushed?'committed + pushed':'committed (push failed: '+(r.pushErr||'?')+')')); openDocWindow(r.file); }
+  catch(e){ toast('⚠ '+e.message); }
 }
 async function openWeeklyDigest(){
   try{
@@ -2314,7 +2320,7 @@ function sendMsg(ingest){
     api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:todoCmd[1].trim()})})
       .then(()=>{ toast('Todo added: '+todoCmd[1].trim().slice(0,60)); if($('dashView').style.display!=='none') renderDashboard(); })
       .catch(e=>toast('⚠ '+e.message));
-    input.value=''; autoGrow(input);
+    input.value=''; input.style.height='auto';
     return;
   }
   ensureChatView();  // sending from map/file/dashboard drops into the conversation

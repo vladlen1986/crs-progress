@@ -35,9 +35,9 @@ Written from the BUILT system (2026-07-18). Every step below was executed on the
 
 ## 5. Notifications & sounds
 
-1. Bell (header) → inbox; click a row to open its target; **Mark read** / **Clear**.
-2. Settings → **Notifications**: master DND (banner+sound muted, bell still records), banner duration slider, and a per-type matrix — every type has Banner / Sound / Bell switches, a sound picker, and a **Test** button.
-3. Settings → **Sounds**: volume, per-event sound assignment, **Play** previews, **Regenerate** re-renders all 24 WAVs offline.
+1. Bell (header) → inbox; click a row to open its target; **Mark all read** / **Clear all**.
+2. Settings → **Notifications**: master DND (banner+sound muted, bell still records), banner duration slider, and a per-type matrix — every type has Banner / Sound / Bell switches, a sound picker (this is where sounds are assigned), and a **Test** button.
+3. Settings → **Sounds**: volume, **Play** previews, **Regenerate** re-renders all 24 WAVs offline (per-type assignment lives in the Notifications matrix).
 
 ## 6. Explorer & windows essentials
 
