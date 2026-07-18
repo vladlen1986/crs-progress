@@ -571,6 +571,16 @@
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "0dcb178c",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T08:29:14.021Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T08:29:14.046Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
     }
   ]
 }
