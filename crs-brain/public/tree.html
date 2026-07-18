@@ -84,7 +84,6 @@
   .xmd p:last-child,.xmd ul:last-child,.xmd ol:last-child{margin-bottom:0}
   .xmd h5{margin:12px 0 6px;font-size:11.5px;font-weight:700;color:var(--primary);letter-spacing:.01em}
   .xmd h5:first-child{margin-top:0}
-  .xmd code{font-family:var(--mono);font-size:11px;background:var(--bg-tertiary);border:1px solid var(--line);border-radius:4px;padding:0 4px;color:var(--primary);word-break:break-word}
   .xmd b{color:var(--primary);font-weight:600}
   .xmd ul,.xmd ol{margin:0 0 8px;padding-left:18px}
   .xmd li{margin:2px 0}
@@ -97,6 +96,22 @@
   .xtbl th{text-align:left;font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);padding:7px 10px;border-bottom:1px solid var(--line);background:var(--bg-tertiary);white-space:nowrap}
   .xtbl td{padding:6px 10px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--secondary)}
   .xtbl tr:last-child td{border-bottom:none}
+  /* exec briefing bits */
+  .xstrip{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding-bottom:10px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+  .xstrip .xname{color:var(--primary);font-weight:600;font-size:13px}
+  .xstrip .pct{min-width:0}
+  .xstrip .xsent{flex-basis:100%;color:var(--secondary);font-size:12px}
+  .inprog{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--warning);background:var(--warning-tint);border-radius:var(--radius-badge);padding:1px 5px;margin-left:6px;white-space:nowrap}
+  .donesum{margin-top:7px;border:none;background:none;color:var(--muted);font:inherit;font-size:11.5px;cursor:pointer;padding:2px 0;text-align:left;display:block}
+  .donesum:hover{color:var(--secondary)}
+  .donesum:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow);border-radius:var(--radius-btn)}
+  .donelist{margin-top:6px;opacity:.75}
+  .callout{background:var(--warning-tint);color:var(--warning);border-radius:var(--radius-btn);padding:6px 10px;font-size:12px;margin:0 0 8px}
+  .ghost{margin-left:auto;border:1px solid var(--transparent);background:none;color:var(--muted);border-radius:var(--radius-btn);font-family:inherit;font-size:10.5px;font-weight:600;padding:3px 8px;cursor:pointer}
+  .ghost:hover{color:var(--secondary);background:var(--bg-tertiary)}
+  .ghost:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow)}
+  .xmd .tcol-tech{display:none}
+  .detail.showtech .tcol-tech{display:table-cell}
   .mention{font-size:11.5px;margin-bottom:6px}
   .mention b{color:var(--primary);font-weight:600}
   .mention .mline{color:var(--muted);font-family:var(--mono);font-size:11px;display:block;padding:1px 0 1px 10px;border-left:1px solid var(--line2);margin-left:2px}
@@ -249,6 +264,8 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMenu(); });
 function findMod(id){ return DATA.modules.find(m=>m.id===id); }
 function cycleChk(id,ci){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; const s=m.checklist[ci].state; m.checklist[ci].state=s==='todo'?'partial':s==='partial'?'done':'todo'; render(); scheduleSave(); }
 function setChkDetail(id,ci,v){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; m.checklist[ci].detail=v; scheduleSave(); } // no re-render: keeps input focus
+const doneOpen=new Set(); // exec view: which modules show their completed DoD items
+function toggleDone(id){ if(doneOpen.has(id))doneOpen.delete(id);else doneOpen.add(id); render(); }
 
 async function toggle(id){
   if(expanded.has(id)){ expanded.delete(id); if(location.hash==='#module='+encodeURIComponent(id)&&history.replaceState) history.replaceState(null,'',location.pathname+location.search); }
@@ -305,12 +322,19 @@ function copyRaw(id,field,btn){ const d=detailCache[id]; if(!d)return; navigator
    Parses the known techRef/STATUS heading structures into real tables
    (§20.6) + clean prose. Anything unparseable falls through as prose —
    never a pre fence. */
-function inlineMd(s){
+// Executive-only inline pass: backticks → plain text (no code chips), status
+// emoji stripped, VERIFY kept as a quiet chip. Raw view never touches this.
+function stripEmoji(s){ return String(s||'').replace(/[✅🟡🔴➖✔❌⚠]/gu,'').replace(/️/g,''); } // exec-only display strip
+function execText(s){
   return esc(s)
-    .replace(/`([^`]+)`/g,'<code>$1</code>')
-    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>')
-    .replace(/⚠️?\s*VERIFY/g,'<span class="vfy">⚠ VERIFY</span>');
+    .replace(/⚠️?\s*VERIFY/g,'\u0001')
+    .replace(/[✅🟡🔴➖✔❌⚠]/gu,'').replace(/️/g,'')
+    .replace(/`([^`]+)`/g,'$1')
+    .replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>');
 }
+function inlineMd(s){ return execText(s).replace(/\u0001/g,'<span class="vfy">VERIFY</span>'); }
+// One amber callout line — ⚠️ VERIFY lines + blockquote warnings, no inline shouting.
+function calloutLine(s){ return '<div class="callout">'+execText(s).replace(/\u0001/g,'VERIFY').trim()+'</div>'; }
 function mdToHtml(src){
   const lines=String(src||'').replace(/\r/g,'').split('\n'); // strip CRLF so $-anchored heading regex survives a CRLF checkout
   const out=[]; let i=0, para=[], firstHead=true;
@@ -323,13 +347,18 @@ function mdToHtml(src){
       flush();
       const head=cells(l); i+=2; const rows=[];
       while(i<lines.length&&/^\s*\|/.test(lines[i])){ rows.push(cells(lines[i])); i++; }
-      out.push('<div class="xtblwrap"><table class="xtbl"><thead><tr>'+head.map(h=>'<th>'+inlineMd(h)+'</th>').join('')+'</tr></thead><tbody>'+
-        rows.map(r=>'<tr>'+head.map((_,ci)=>'<td>'+inlineMd(r[ci]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>');
+      // implementation columns hide by default in exec; the per-detail ghost toggle reveals them
+      const tech=head.map(h=>/internal|_value|^id$/i.test(h.replace(/`|\*\*/g,'').trim()));
+      const cls=ci=>tech[ci]?' class="tcol-tech"':'';
+      out.push('<div class="xtblwrap"><table class="xtbl"><thead><tr>'+head.map((h,ci)=>'<th'+cls(ci)+'>'+inlineMd(h)+'</th>').join('')+'</tr></thead><tbody>'+
+        rows.map(r=>'<tr>'+head.map((_,ci)=>'<td'+cls(ci)+'>'+inlineMd(r[ci]||'')+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>');
       continue;
     }
     const h=l.match(/^(#{1,6})\s+(.*)$/);
     if(h){ flush(); if(firstHead){ firstHead=false; } else out.push('<h5>'+inlineMd(h[2])+'</h5>'); i++; continue; } // first heading = the section title, already shown
     if(/^\s*>/.test(l)){ flush(); const q=[]; while(i<lines.length&&/^\s*>/.test(lines[i])){ q.push(lines[i].replace(/^\s*>\s?/,'')); i++; }
+      const qt=q.filter(x=>x.trim()).join(' ');
+      if(/^\s*⚠|VERIFY|^\s*\*\*?warning/i.test(qt)){ out.push(calloutLine(qt)); continue; } // blockquote warning → one amber callout line
       out.push('<div class="quote">'+q.map(x=>x.trim()?'<p>'+inlineMd(x)+'</p>':'').join('')+'</div>'); continue; }
     if(/^\s*([-*]|\d+\.)\s+/.test(l)){ flush(); const ord=/^\s*\d+\./.test(l); const items=[];
       while(i<lines.length&&(/^\s*([-*]|\d+\.)\s+/.test(lines[i])||/^\s{2,}\S/.test(lines[i]))){
@@ -340,6 +369,7 @@ function mdToHtml(src){
       out.push((ord?'<ol>':'<ul>')+items.map(x=>'<li>'+inlineMd(x)+'</li>').join('')+(ord?'</ol>':'</ul>')); continue; }
     if(/^\s*(-{3,}|\*{3,})\s*$/.test(l)){ flush(); i++; continue; } // hr → drop
     if(!l.trim()){ flush(); i++; continue; }
+    if(/⚠️?\s*VERIFY/.test(l)){ flush(); out.push(calloutLine(l.trim())); i++; continue; } // VERIFY line → one amber callout
     para.push(l.trim()); i++;
   }
   flush();
@@ -352,7 +382,23 @@ function detailHTML(id){
   if(d.error) return `<div class="detail"><div class="dsec none">Could not load detail: ${esc(d.error)}</div></div>`;
   const m0=findMod(id), cl=(m0&&m0.checklist)||[];
   const cdone=cl.filter(c=>c.state==='done').length;
-  const checklist=`<div class="dsec"><h4>Definition of done — <span class="cnt">${cdone}/${cl.length}</span></h4><div class="chklist">${cl.map((c,ci)=>`<div class="chk"><button class="chk-state ${c.state}" title="click: todo → partial → done" onclick="cycleChk('${id}',${ci})">${c.state==='done'?'✓':c.state==='partial'?'◐':'○'}</button><span class="chk-label">${esc(c.label)}</span><input class="chk-detail" value="${esc(c.detail||'')}" placeholder="notes… e.g. 128/128 done" oninput="setChkDetail('${id}',${ci},this.value)"></div>`).join('')}</div></div>`;
+  // one interactive tri-state row — shared by both views so cycleChk/setChkDetail keep working everywhere
+  const chkRow=(c,ci,extra)=>`<div class="chk"><button class="chk-state ${c.state}" title="click: todo → partial → done" onclick="cycleChk('${id}',${ci})">${c.state==='done'?'✓':c.state==='partial'?'◐':'○'}</button><span class="chk-label">${esc(VIEW==='exec'?stripEmoji(c.label):c.label)}${extra||''}</span><input class="chk-detail" value="${esc(c.detail||'')}" placeholder="notes… e.g. 128/128 done" oninput="setChkDetail('${id}',${ci},this.value)"></div>`;
+  let checklist;
+  if(VIEW==='raw'){
+    checklist=`<div class="dsec"><h4>Definition of done — <span class="cnt">${cdone}/${cl.length}</span></h4><div class="chklist">${cl.map((c,ci)=>chkRow(c,ci)).join('')}</div></div>`;
+  }else{
+    // exec: What's left comes first — open items inline (live checklist UI), done items fold to one line
+    const left=cl.map((c,ci)=>({c,ci})).filter(x=>x.c.state!=='done');
+    const doneItems=cl.map((c,ci)=>({c,ci})).filter(x=>x.c.state==='done');
+    const openDone=doneOpen.has(id);
+    checklist=`<div class="dsec"><h4>What's left — <span class="cnt">${left.length?left.length+' item'+(left.length>1?'s':''):'none'}</span></h4>`+
+      (cl.length
+        ?(left.length?`<div class="chklist">${left.map(x=>chkRow(x.c,x.ci,x.c.state==='partial'?' <span class="inprog">in progress</span>':'')).join('')}</div>`:'')+
+         (doneItems.length?`<button class="donesum" onclick="toggleDone('${id}')">${cdone} of ${cl.length} complete ✓ — ${openDone?'hide':'show'}</button>${openDone?`<div class="chklist donelist">${doneItems.map(x=>chkRow(x.c,x.ci)).join('')}</div>`:''}`:'')
+        :`<div class="none">No definition-of-done checklist yet.</div>`)+
+      `</div>`;
+  }
   // one section, two renderers: Executive = parsed tables/prose · Raw = source pre + Copy
   const sec=(title,field,empty)=>{
     const body=d[field];
@@ -364,7 +410,7 @@ function detailHTML(id){
   if(d.mentions&&d.mentions.length){
     mentions=`<div class="dsec"><h4>Referenced across the brain ledger</h4>`+d.mentions.map(m=>
       `<div class="mention"><b>${esc(m.file)}</b> · ${m.count} mention${m.count>1?'s':''}`+
-      m.lines.slice(0,6).map(l=>`<span class="mline">L${l.line}: ${esc(l.text)}</span>`).join('')+
+      m.lines.slice(0,6).map(l=>`<span class="mline">L${l.line}: ${esc(VIEW==='exec'?stripEmoji(l.text):l.text)}</span>`).join('')+
       (m.count>6?`<span class="mline">… +${m.count-6} more</span>`:'')+`</div>`).join('')+`</div>`;
   }
   const flink=(p,label)=>`<a class="flink" href="/api/file?path=${encodeURIComponent(p)}" data-path="${esc(p)}" target="_blank">${label} ↗</a>`;
@@ -372,13 +418,31 @@ function detailHTML(id){
   if(d.techRef) links.push(flink(d.techRef,'Technical reference'));
   if(d.userManual) links.push(flink(d.userManual,'User manual'));
   links.push(flink('brain/STATUS.md','STATUS.md'));
-  return `<div class="detail"><div class="dgrid">
+  // exec skips the STATUS.md prose (briefing, not transcript) — Raw keeps it in full
+  const statusSec=VIEW==='raw'
+    ?sec('Status detail (brain/STATUS.md)','statusBlock','No expanded status block yet — only the Core-7 row in STATUS.md.')
+    :`<div class="dsec"><h4>Status detail (brain/STATUS.md)</h4><div class="none">Full status prose in Raw view.</div></div>`;
+  const mdSecs=statusSec+`
+    `+sec('Data types & data model','dataModel',d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')+`
+    `+sec('Option sets','optionSets',d.documented?'—':'Not documented yet.')+`
+    `+sec('Permissions','perms',d.documented?'—':'Not documented yet.')+`
+    `+sec('Workflows','workflows',d.documented?'—':'Not documented yet.');
+  // exec-only top strip: name + status + % + one plain-English sentence generated from the DoD data
+  let strip='';
+  if(VIEW==='exec'){
+    const plain=s=>String(s||'').replace(/[✅🟡🔴➖✔❌⚠`]/gu,'').replace(/️/g,'').trim();
+    const pct=cl.length?Math.round(cdone/cl.length*100)+'%':'—';
+    const nx=cl.find(c=>c.state!=='done');
+    let sent;
+    if(!cl.length) sent='No definition-of-done checklist yet.';
+    else if(!nx) sent=`All ${cl.length} definition-of-done items complete.`;
+    else{ sent=`${cdone} of ${cl.length} done · next: ${plain(nx.label)}.`; const dn=plain(nx.detail); if(dn&&dn.length<=60) sent+=` (${dn})`; }
+    const techBtn=mdSecs.indexOf('tcol-tech')>=0?`<button class="ghost" onclick="event.stopPropagation();const d=this.closest('.detail'),on=d.classList.toggle('showtech');this.textContent=(on?'Hide':'Show')+' technical columns'">Show technical columns</button>`:'';
+    strip=`<div class="xstrip"><span class="xname">${esc(m0?m0.name:id)}</span>${m0?`<span class="stword ${m0.status}">${LABEL[m0.status]||m0.status}</span>`:''}<span class="pct">${pct}</span>${techBtn}<span class="xsent">${esc(sent)}</span></div>`;
+  }
+  return `<div class="detail">${strip}<div class="dgrid">
     ${checklist}
-    ${sec('Status detail (brain/STATUS.md)','statusBlock','No expanded status block yet — only the Core-7 row in STATUS.md.')}
-    ${sec('Data types & data model','dataModel',d.documented?'—':'Not documented yet. Generate the prompt below and run the Buildprint audit to inventory it.')}
-    ${sec('Option sets','optionSets',d.documented?'—':'Not documented yet.')}
-    ${sec('Permissions','perms',d.documented?'—':'Not documented yet.')}
-    ${sec('Workflows','workflows',d.documented?'—':'Not documented yet.')}
+    ${mdSecs}
     ${mentions}
     <div class="dsec"><h4>Files</h4><div class="filelinks">${links.join('')}</div></div>
     <div class="dsec"><h4>Buildprint prompts</h4>
