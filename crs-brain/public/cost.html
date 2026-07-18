@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cost &amp; usage · CRS Brain</title>
+<link rel="stylesheet" href="/tokens.css">
+<script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.55}
+  .wrap{max-width:1000px;margin:0 auto;padding:24px 22px 90px}
+  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
+  .sub{color:var(--muted);font-size:12px;font-family:var(--mono);margin-bottom:20px}
+  .est{background:var(--warning-tint);color:var(--warning);border:1px solid var(--warning);border-radius:var(--radius-badge);padding:1px 7px;font-size:10.5px;font-weight:700;margin-left:8px}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
+  .tile{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:16px}
+  .tile .v{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1}
+  .tile .k{color:var(--text-muted);font-size:11px;margin-top:8px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin:26px 0 10px}
+  .chart{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:16px}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--secondary)}
+  td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
+  td.key{color:var(--primary);font-weight:600}
+  .flag{background:var(--warning-tint);border:1px solid var(--warning);border-radius:var(--radius-btn);padding:9px 12px;margin-bottom:8px;color:var(--secondary);font-size:12.5px}
+  .flag b{color:var(--warning)}
+  .empty{color:var(--muted);font-style:italic}
+  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap"><div class="empty" style="padding:60px">Loading…</div></div>
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtUsd=n=>'$'+(+n||0).toFixed(n<1?4:2);
+const fmtTok=n=>(+n||0)>=1e6?((n/1e6).toFixed(1)+'M'):(+n||0)>=1e3?((n/1e3).toFixed(1)+'k'):String(n||0);
+function trendChart(byDay){
+  const days=Object.keys(byDay).sort();
+  if(!days.length) return '<div class="empty">No runs logged yet.</div>';
+  const vals=days.map(d=>byDay[d].cost);
+  const max=Math.max(...vals,0.0001);
+  const W=Math.max(320,days.length*54), H=140, pad=24;
+  const x=i=>pad+i*((W-2*pad)/Math.max(1,days.length-1));
+  const y=v=>H-pad-(v/max)*(H-2*pad);
+  const pts=vals.map((v,i)=>x(i)+','+y(v)).join(' ');
+  const cs=getComputedStyle(document.documentElement);
+  const acc=cs.getPropertyValue('--accent').trim()||'#3B82F6', mut=cs.getPropertyValue('--text-muted').trim()||'#888';
+  let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="max-width:${W}px">`;
+  svg+=`<polyline fill="none" stroke="${acc}" stroke-width="2" points="${pts}"/>`;
+  vals.forEach((v,i)=>{ svg+=`<circle cx="${x(i)}" cy="${y(v)}" r="3" fill="${acc}"/>`; });
+  days.forEach((d,i)=>{ svg+=`<text x="${x(i)}" y="${H-6}" font-size="9" fill="${mut}" text-anchor="middle" font-family="monospace">${esc(d.slice(5))}</text>`; });
+  svg+=`<text x="${pad}" y="12" font-size="9" fill="${mut}" font-family="monospace">${fmtUsd(max)}/day peak</text></svg>`;
+  return svg;
+}
+async function load(){
+  let d; try{ d=await (await fetch('/api/usage-analytics')).json(); }catch{ $('wrap').innerHTML='<div class="empty" style="padding:60px">Could not load usage.</div>'; return; }
+  const t=d.totals, po=d.byPurpose, bm=d.byModel;
+  const purposeRows=Object.entries(po).sort((a,b)=>b[1].cost-a[1].cost).map(([k,v])=>`<tr><td class="key">${esc(k)}</td><td class="n">${v.runs}</td><td class="n">${fmtTok(v.in+v.out)}</td><td class="n">${fmtUsd(v.cost)}</td></tr>`).join('')||'<tr><td colspan="4" class="empty">No runs yet.</td></tr>';
+  const modelRows=Object.entries(bm).sort((a,b)=>b[1].cost-a[1].cost).map(([k,v])=>`<tr><td class="key">${esc(k||'?')}</td><td class="n">${v.runs}</td><td class="n">${fmtUsd(v.cost)}</td></tr>`).join('')||'<tr><td colspan="3" class="empty">—</td></tr>';
+  const win=d.windows;
+  $('wrap').innerHTML=`
+    <h1>Cost &amp; usage <span class="est">estimated</span></h1>
+    <div class="sub">tokens × published rates · verification-subagent tokens run externally &amp; aren't captured</div>
+    <div class="tiles">
+      <div class="tile"><div class="v">${fmtUsd(t.costUsd)}</div><div class="k">Total spend (est)</div></div>
+      <div class="tile"><div class="v">${t.runs}</div><div class="k">Model runs</div></div>
+      <div class="tile"><div class="v">${fmtTok(t.in+t.out)}</div><div class="k">Tokens</div></div>
+      <div class="tile"><div class="v">${d.costPerOutcome.usdPerVerifiedChunk!=null?fmtUsd(d.costPerOutcome.usdPerVerifiedChunk):'—'}</div><div class="k">Per verified chunk (${d.costPerOutcome.verifiedChunks})</div></div>
+      ${win?`<div class="tile"><div class="v">${Math.round((win.five_hour&&win.five_hour.used_percentage)||0)}%</div><div class="k">5-hour window</div></div>
+      <div class="tile"><div class="v">${Math.round((win.seven_day&&win.seven_day.used_percentage)||0)}%</div><div class="k">7-day window</div></div>`:''}
+    </div>
+    <h2>Spend trend (by day)</h2>
+    <div class="chart">${trendChart(d.byDay)}</div>
+    <h2>By purpose</h2>
+    <table><tr><th>Purpose</th><th style="text-align:right">Runs</th><th style="text-align:right">Tokens</th><th style="text-align:right">Cost</th></tr>${purposeRows}</table>
+    <h2>By model</h2>
+    <table><tr><th>Model</th><th style="text-align:right">Runs</th><th style="text-align:right">Cost</th></tr>${modelRows}</table>
+    <h2>Routing audit</h2>
+    ${d.routingAudit.length?d.routingAudit.map(s=>`<div class="flag"><b>${esc(s.purpose)}</b> ran on ${esc(s.model)} ×${s.count} — ${esc(s.suggestion)}</div>`).join(''):'<div class="empty">No re-route suggestions — everything ran on an appropriate model.</div>'}
+    <div style="margin-top:18px;color:var(--muted);font-size:11px">${esc(d.note)}</div>
+  `;
+}
+load();
+</script>
+</body>
+</html>

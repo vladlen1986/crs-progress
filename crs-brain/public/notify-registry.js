@@ -34,6 +34,7 @@
     T('task-failed',         'Task failed',           'A run errored — nothing is retried automatically.',                'tasks',  'error',   's21', 1, 1, 1),
     T('queue-blocked-limit', 'Queue paused — limit',  'The task queue hit the usage window and armed an auto-resume.',    'tasks',  'warning', 's20', 1, 1, 1),
     T('queue-resumed',       'Queue resumed',         'The usage window reset — queued tasks are running again.',         'tasks',  'info',    's12', 1, 1, 1),
+    T('follow-up-due',       'Follow-up due',         'A dashboard follow-up hit its due time and needs you.',            'tasks',  'warning', 's19', 1, 1, 1),
     // ---- Bubble sync ----
     T('forum-new-topics',    'Forum: new topics',     'New CRS-relevant Bubble forum topics appended to the digest.',     'bubble', 'info',    's01', 1, 1, 1),
     T('release-notes-new',   'Release notes: new',    'New Bubble release-notes entries were recorded.',                  'bubble', 'info',    's01', 1, 1, 1),

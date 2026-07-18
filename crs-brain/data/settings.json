@@ -5,6 +5,11 @@
   "autoRoute": false,
   "bubbleWatch": false,
   "bubbleCheckedAt": 0,
+  "autoFallback": true,
+  "fallbackModels": [
+    "sonnet",
+    "haiku"
+  ],
   "theme": "dark",
   "bpAutoTrack": false,
   "notify": {

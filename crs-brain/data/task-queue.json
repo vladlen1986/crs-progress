@@ -86,6 +86,179 @@
       ],
       "sessionId": "ca3abe54-9026-4e84-976d-c400c9bc68e1",
       "result": "RESUMED-OK"
+    },
+    {
+      "id": "24ddb86b",
+      "title": "Emit chunk c2 — casino-settings Layout/containers",
+      "prompt": "",
+      "intent": {
+        "kind": "chunk-emit",
+        "proto": "casino-settings",
+        "chunkId": "c2"
+      },
+      "status": "done",
+      "created": "2026-07-18T08:40:04.596Z",
+      "started": "2026-07-18T08:40:04.804Z",
+      "finished": "2026-07-18T08:40:46.701Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.596Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:40:04.804Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:40:46.701Z",
+          "msg": "done (intent)"
+        }
+      ],
+      "result": "staged prototypes/casino-settings/chunks/c2-prompt.md · archived brain/buildprint/generated/2026-07-18-casino_settings-chunk-c2-casino-settings-layout-containers.md · bundle cb9cc4269e28 · proto dd65bf739ecf · status sent (copy path — report/verify are Vlad's)"
+    },
+    {
+      "id": "2ae800a0",
+      "title": "Emit chunk c3 — casino-settings Sidebar components",
+      "prompt": "",
+      "intent": {
+        "kind": "chunk-emit",
+        "proto": "casino-settings",
+        "chunkId": "c3"
+      },
+      "status": "done",
+      "created": "2026-07-18T08:40:04.685Z",
+      "started": "2026-07-18T08:40:46.702Z",
+      "finished": "2026-07-18T08:41:28.695Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.685Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:40:46.702Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:41:28.695Z",
+          "msg": "done (intent)"
+        }
+      ],
+      "result": "staged prototypes/casino-settings/chunks/c3-prompt.md · archived brain/buildprint/generated/2026-07-18-casino_settings-chunk-c3-casino-settings-components-sidebar.md · bundle cb9cc4269e28 · proto dd65bf739ecf · status sent (copy path — report/verify are Vlad's)"
+    },
+    {
+      "id": "ed6b7d11",
+      "title": "Emit chunk c4 — casino-settings Dropdown & filter",
+      "prompt": "",
+      "intent": {
+        "kind": "chunk-emit",
+        "proto": "casino-settings",
+        "chunkId": "c4"
+      },
+      "status": "done",
+      "created": "2026-07-18T08:40:04.711Z",
+      "started": "2026-07-18T08:41:28.696Z",
+      "finished": "2026-07-18T08:42:58.871Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.711Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:41:28.696Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:42:58.871Z",
+          "msg": "done (intent)"
+        }
+      ],
+      "result": "staged prototypes/casino-settings/chunks/c4-prompt.md · archived brain/buildprint/generated/2026-07-18-casino_settings-chunk-c4-casino-settings-components-dropdown.md · bundle cb9cc4269e28 · proto dd65bf739ecf · status sent (copy path — report/verify are Vlad's)"
+    },
+    {
+      "id": "86ecea41",
+      "title": "FWM kickoff 1 — data model foundation",
+      "prompt": "",
+      "intent": {
+        "kind": "gen",
+        "module": "fiscal_week_mgmt",
+        "text": "Create the Fiscal Week Management data model foundation on the TEST branch: the Fiscal Week data type with its tracked fields, related option sets, and the standard company and property fields per locked architecture; Task 0 locate-and-report what already exists (Fiscal Week DT is tracked as existing) before creating anything"
+      },
+      "status": "done",
+      "created": "2026-07-18T08:40:04.735Z",
+      "started": "2026-07-18T08:42:58.872Z",
+      "finished": "2026-07-18T08:43:53.983Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.735Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:42:58.872Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:43:53.983Z",
+          "msg": "done (intent)"
+        }
+      ],
+      "result": "generated + archived brain/buildprint/generated/2026-07-18-fiscal_week_mgmt-create-the-fiscal-week-management-data-model.md · bundle d864b74a3783 (copy path — run in BP, then ingest)"
+    },
+    {
+      "id": "9a9eb1dd",
+      "title": "FWM kickoff 2 — page skeleton + role gating notes",
+      "prompt": "",
+      "intent": {
+        "kind": "gen",
+        "module": "fiscal_week_mgmt",
+        "text": "Build the Fiscal Week Management page skeleton in the App SPA per the tracked design: view routing, base layout containers per the design system, and role gating notes for who may manage fiscal weeks; Task 0 locate-and-report the current as-built state first"
+      },
+      "status": "done",
+      "created": "2026-07-18T08:40:04.758Z",
+      "started": "2026-07-18T08:43:53.985Z",
+      "finished": "2026-07-18T08:44:50.192Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.758Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:43:53.985Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:44:50.192Z",
+          "msg": "done (intent)"
+        }
+      ],
+      "result": "generated + archived brain/buildprint/generated/2026-07-18-fiscal_week_mgmt-build-the-fiscal-week-management-page-skelet.md · bundle d864b74a3783 (copy path — run in BP, then ingest)"
+    },
+    {
+      "id": "c64bdc3f",
+      "title": "[GUARD PROBE] blocked intent — must fail DECISION-NEEDED",
+      "prompt": "",
+      "intent": {
+        "kind": "gen",
+        "module": "user_management",
+        "text": "batch privacy rules for all 46 DTs in one sweep"
+      },
+      "status": "failed",
+      "created": "2026-07-18T08:40:04.781Z",
+      "started": "2026-07-18T08:44:50.194Z",
+      "finished": "2026-07-18T08:44:50.205Z",
+      "log": [
+        {
+          "ts": "2026-07-18T08:40:04.781Z",
+          "msg": "queued"
+        },
+        {
+          "ts": "2026-07-18T08:44:50.194Z",
+          "msg": "started"
+        },
+        {
+          "ts": "2026-07-18T08:44:50.205Z",
+          "msg": "failed: DECISION-NEEDED: Pattern A rollout order & batching (trigger: \"all 46 DTs\") → decisions.md"
+        }
+      ]
     }
   ],
   "resumeAt": null

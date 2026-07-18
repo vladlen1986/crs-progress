@@ -1,0 +1,131 @@
+# Buildprint Prompt — Create 11 missing CRS styles (Buttons, Property Avatar, Toast, Stat) and showcase them on the Design System page
+
+**TEST/DEV branch only. Never live. Savepoint: "Before Casino Settings styles c1". Run `buildprint check` after each task. Do not push to live. Apply directly without confirmation.**
+
+## TARGET
+- Branch: **TEST** (casinoreportingsystem, `~/projects/crs-bubble/casinoreportingsystem/test`).
+- Surface changed: the app's **Globals → Styles** (paired named Styles) + the **Design System page `# Casino Settings`… — no**, the showcase page is the **Design System page, ID `bUfVN0`** (canonical `crs-design-system.html`, the approval gate for all styles — STATUS.md §6).
+- Savepoint name: **"Before Casino Settings styles c1"**.
+- This is chunk **c1** of prototype `casino-settings` (settled hash `dd65bf739ecfb0ec006307238619fe693f2436df0237c24a96475bfd7990596a`). Depends on nothing.
+
+## EXISTING REUSABLES BY ID
+Relevant existing components from the bundle (reuse — recreating is FORBIDDEN):
+- **Design System page — `bUfVN0`** (showcase target for the new styles; approval gate for all styles).
+- **Sidebar reusable — `⚠ VERIFY: exact ID`** (bundle STATUS.md §6 lists "Sidebar reusable ✅" but gives no ID). The three `CRS - /*` "produced names" are **not styles to create** — the mapping marks each `/*` row as *"Sidebar (§10) → Sidebar reusable → reuse/clone by ID, never recreate."* They are section-comment markers in the prototype, not Bubble styles. **Do not create any style named `CRS - /*`.** No Sidebar work is in this chunk (SCOPE OUT: no element layout).
+
+So of the 14 produced-name lines, **11 are real styles to CREATE** (the 3 `CRS - /*` are reuse-markers, skipped). If a like-named Style already exists in Globals, reuse/clone it (`--copy`) — do not fork a near-duplicate.
+
+## STEPS FOR BP
+
+**Task 0 — Locate & report (READ-ONLY, no change).** Before creating anything, `buildprint sync`, then report:
+- The Design System page node `bUfVN0`: its structure and where new style specimens are added (existing showcase pattern).
+- Search Globals for any existing Styles named or resembling: `CRS - Btn`, `CRS - Btn Primary`, `CRS - Btn Ghost`, `CRS - Btn Large`, `CRS - Btn Small`, `CRS - Property Avatar`, `CRS - Toast`, `CRS - Toast.visible`, `CRS - Stat`, `CRS - Stat Label`, `CRS - Stat Value` (and their `(Dark)`/`(Light)` variants). Report each as `name — ID` or "not present."
+- The Sidebar reusable's exact ID (for record; not edited here).
+- Confirm the token→Style backing values in §2 for each color referenced below.
+- **Report the resolution of the 3 UNRESOLVED status tokens** (`--status-error`, `--status-warning`, `--status-success`) — see the VERIFY note in Task 4. Do not proceed on those until resolved.
+
+**Task 1 — Button styles.** Create paired Styles (each as `Name (Dark)` default + `Name (Light)` variant per the standing rule):
+- `CRS - Btn` — base button. Radius `--radius-btn` (7px). Hover: bg `--bg-elevated`, border `--border-hover`. Transition `--transition` (160ms) on interaction; all color/background/border transitions **200ms ease-in**.
+- `CRS - Btn Primary` — accent fill `--accent` (white text on top). Hover `--accent-hover`; active `--accent-active`.
+- `CRS - Btn Ghost` — ghost variant (no fill; hover bg `--bg-tertiary` per §5/§6 ghost pattern). *(VERIFY: mapping gives no explicit ghost token row — confirm ghost fill/hover against §5 "X button ghost, hover bg `--bg-tertiary`".)*
+- `CRS - Btn Large` — large size. Height per §2.9 large (40–44px). *(VERIFY exact px: §20.1 segmented sizes list 40/48; §2.9 button large = 40–44px — pick one and record.)*
+- `CRS - Btn Small` — small size. Height per §2.9 small (28px).
+
+Approved literals stay literal; no inline hex — every color references its named §2 token/Style.
+
+**Task 2 — Property Avatar.** Create paired Style `CRS - Property Avatar` per §20.5 Avatars: background `--bg-elevated` (mapping: `.property-avatar` → `--bg-elevated`), photo = 2px ring, radius 100 (circle). *(VERIFY: §20.5 names Employee/User/Guest avatar reusables and SM 24/MD 32/LG 44 sizes but no "Property" avatar — confirm which size/mode `CRS - Property Avatar` targets; do not invent a gradient — "No avatar gradient exists in-app.")*
+
+**Task 3 — Toast styles.** Create paired Styles per §9 Toast pattern:
+- `CRS - Toast` — surface `--bg-secondary`, border `--border-active`.
+- `CRS - Toast.visible` — the visible/entrance state. *(VERIFY: `.toast.visible` is a state modifier, not a standalone class. Confirm whether this is (a) a `(Dark)`/`(Light)` paired Style, or (b) a basic/animation state defined inside `CRS - Toast`. §9 gives spring entrance `420ms cubic-bezier(.16,1,.3,1)`, auto-dismiss ~3.5s.)*
+- Toast success color (`.toast`, `.toast svg`) is backed by **`--status-success` — UNRESOLVED** (see Task 4).
+
+**Task 4 — Stat / KPI styles.** Create paired Styles per §20.4 KPI Tiles:
+- `CRS - Stat` — card: `--bg-secondary`, 1px `--border-default`, `--radius-card` (10px).
+- `CRS - Stat Value` — JetBrains Mono 24px/700 (compact 16px/600).
+- `CRS - Stat Label` — Inter Tight, `--text-muted`.
+
+**⚠ UNRESOLVED — do not guess:** the mapping marks `--status-error`, `--status-warning`, `--status-success` as **UNRESOLVED** (no dark/light value given). They back `.label-required::after`, `.badge-success`/`.toast`, and `.badge-warning`. §2.5 provides canonical `--error` / `--warning` / `--success`, and §20.7 notes the app currently hardcodes badge rgba. **VERIFY: do these three `--status-*` vars map to the §2.5 `--success`/`--warning`/`--error` tokens, or to approved literal badge rgba (which "stay literal")?** Resolve before applying any style that consumes them; flag as `VERIFY:` in Task 0 output.
+
+**Task 5 — Showcase.** Add a specimen of each newly created Style to the Design System page `bUfVN0`, following its existing showcase layout, so the styles pass the approval gate. (Standing rule: new styles must be showcased on the design_system page.)
+
+**Styling conventions (all tasks):** named paired styles `Name (Dark)` / `Name (Light)`; theme = full style swap on `dark_theme is "no"` only (via the element's `bptheme` state); **zero** property-level color conditionals; approved literals (badge rgba, selected-row tint, overlay ink) stay literal; reuse existing styles — do not fork near-duplicates. Build the `(Dark)` variant now; name it so the `(Light)` variant slots in later.
+
+## DATA / PRIVACY
+No data reads or writes in this chunk — it creates Styles and page specimens only (SCOPE OUT: no workflows). No business Data Type is touched, so no privacy rule applies here.
+
+For the record, the locked tenant rule (Pattern A, unchanged by this chunk): *"Privacy rules check both: `Current User's company = This Thing's company AND Current User's property = This Thing's property`."* Any future write must route through a **private server-guarded backend workflow** — no UI-only or auto-bound writes. None occur in c1.
+
+## WU NOTES
+No WU-relevant surface in this change. This chunk only creates named Styles and adds static specimens to the Design System page — no searches, `:count`, lists, filters, or data-bound expressions are introduced (the WU guardrails in the bundle govern searches/constraints/counts, none of which this chunk adds).
+
+## MANUAL VERIFICATION
+- [NEG] This chunk creates no tenant-scoped data and no privacy rules, so there is **no cross-tenant negative to prove** here (the module's Pattern A privacy was already NEG-proven 2026-06-08). Confirm nothing in c1 altered a privacy rule.
+- [NEG] As a lesser-privileged / different-property user, load the Design System page `bUfVN0` and confirm the new specimens render styling only (no data exposure) — styles carry no tenant data, but verify the showcase page itself exposes no records.
+- [NEG] Visually confirm in the editor (local Agent Browser `login` + `screenshot`, not a metered web test run) that each new `(Dark)` Style renders with named tokens and **no inline hex**, and that the 3 `--status-*`-backed specimens are absent/greyed until the UNRESOLVED tokens are resolved by Vlad.
+
+---
+
+## MAPPING CONTRACT (verbatim from prototypes/casino-settings/mapping.md — do not reinterpret)
+
+Produced names — create EXACTLY these, byte-for-byte:
+- `CRS - /*`
+- `CRS - Btn`
+- `CRS - Btn Primary`
+- `CRS - Btn Ghost`
+- `CRS - Btn Large`
+- `CRS - Btn Small`
+- `CRS - Property Avatar`
+- `CRS - /*`
+- `CRS - Toast.visible`
+- `CRS - Toast`
+- `CRS - /*`
+- `CRS - Stat`
+- `CRS - Stat Label`
+- `CRS - Stat Value`
+
+Tokens used:
+
+| var in file | canonical §2 token | dark | light | used by |
+|---|---|---|---|---|
+| `--accent` | `--accent` | #3B82F6 | #3B82F6 | .sidebar-item.active, .tab.active, .input:focus, .select:focus, .textarea:focus, .input-with-prefix:focus-within +4 |
+| `--accent-active` | `--accent-active` | #1D4ED8 | #1D4ED8 | .btn-primary:active |
+| `--accent-glow` | `--accent-glow` | rgba(59,130,246,0.13) | rgba(59,130,246,0.13) | .input:focus, .select:focus, .textarea:focus, .input-with-prefix:focus-within, .property-list-item.selected |
+| `--accent-hover` | `--accent-hover` | #2563EB | #2563EB | .btn-primary:hover |
+| `--bg-elevated` | `--bg-elevated` | #2A2A2A | #FFFFFF | .btn:hover, .property-avatar, .logo-upload, /* Inline edit toggle */ .save-bar +1 |
+| `--bg-primary` | `--bg-primary` | #181818 | #FAFAFA | html, body |
+| `--bg-secondary` | `--bg-secondary` | #1E1E1E | #FFFFFF | /* Sidebar */ .sidebar, .topbar, /* Cards */ .card, .input:disabled, .select:disabled, .textarea:disabled +1 |
+| `--bg-tertiary` | `--bg-tertiary` | #242424 | #F4F4F5 | .sidebar-item:hover, .sidebar-item.active, .tab-count, .input, .select, .textarea +6 |
+| `--border-active` | `--border-active` | #3D3D3D | #C8C8CB | .toggle-slider, .property-detail-empty, .logo-upload, /* Inline edit toggle */ .save-bar +1 |
+| `--border-default` | `--border-default` | #242424 | #EAEAEB | /* Sidebar */ .sidebar, .logo, .topbar, /* Tabs */ .tabs +9 |
+| `--border-hover` | `--border-hover` | #333333 | #DCDCDE | .input:hover, .select:hover, .textarea:hover, .btn:hover, .property-list-item:hover |
+| `--radius-badge` | `--radius-badge` | 5px | 5px | /* Badge */ .badge |
+| `--radius-btn` | `--radius-btn` | 7px | 7px | /* Buttons */ .btn |
+| `--radius-card` | `--radius-card` | 10px | 10px | /* Cards */ .card, .property-list-item, .property-detail-empty |
+| `--radius-input` | `--radius-input` | 7px | 7px | .input, .select, .textarea, .input-with-prefix |
+| `--status-error` | **UNRESOLVED** | — | — | .label-required::after |
+| `--status-success` | **UNRESOLVED** | — | — | .badge-success, /* Toast */ .toast, .toast svg |
+| `--status-warning` | **UNRESOLVED** | — | — | .badge-warning |
+| `--text-disabled` | `--text-disabled` | #565656 | #B6B6BB | .input:disabled, .select:disabled, .textarea:disabled |
+| `--text-muted` | `--text-muted` | #6B6B6B | #8E8E95 | .sidebar-section-title, .breadcrumb-sep, .card-subtitle, .label-optional +9 |
+| `--text-primary` | `--text-primary` | #E0E0E0 | #18181B | html, body, .sidebar-item:hover, .sidebar-item.active, .breadcrumb-current +13 |
+| `--text-secondary` | `--text-secondary` | #A6A6A6 | #5F5F66 | .logo, .sidebar-item, .breadcrumb, .page-subtitle +6 |
+| `--transition` | `--transition` | 160ms cubic-bezier(.4,0,.2,1) | 160ms cubic-bezier(.4,0,.2,1) | .sidebar-item, .tab, .input, .select, .textarea, .input-with-prefix +5 |
+
+Chunk rows:
+
+| `/*` | Sidebar (CRS-design-system.md §10) | Sidebar reusable — brain/STATUS.md §6 | reuse/clone by ID — never recreate |
+| `.btn` | Buttons (variants/sizes/states) (CRS-design-system.md §14 + design/CRS_UI_Kit.html §3) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.btn-primary` | Buttons (variants/sizes/states) (CRS-design-system.md §14 + design/CRS_UI_Kit.html §3) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.btn-ghost` | Buttons (variants/sizes/states) (CRS-design-system.md §14 + design/CRS_UI_Kit.html §3) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.btn-large` | Buttons (variants/sizes/states) (CRS-design-system.md §14 + design/CRS_UI_Kit.html §3) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.btn-small` | Buttons (variants/sizes/states) (CRS-design-system.md §14 + design/CRS_UI_Kit.html §3) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.property-avatar` | Avatars (CRS-design-system.md §20.5) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `/*` | Sidebar (CRS-design-system.md §10) | Sidebar reusable — brain/STATUS.md §6 | reuse/clone by ID — never recreate |
+| `.toast.visible` | Toast / notification (CRS-design-system.md §9) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.toast` | Toast / notification (CRS-design-system.md §9) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `/*` | Sidebar (CRS-design-system.md §10) | Sidebar reusable — brain/STATUS.md §6 | reuse/clone by ID — never recreate |
+| `.stat` | KPI tiles (CRS-design-system.md §20.4) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.stat-label` | KPI tiles (CRS-design-system.md §20.4) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+| `.stat-value` | KPI tiles (CRS-design-system.md §20.4) | (none attested) | CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase) |
+

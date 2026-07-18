@@ -141,6 +141,19 @@
 
   /* bottom-pinned settings entry (visually separated from primary nav) */
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
+  .side-legend{font-size:10.5px;color:var(--muted);padding:0 12px 6px;font-family:var(--mono)}
+  .surface-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
+  .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  .surface-back:hover{color:var(--primary);border-color:var(--line2)}
+  .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
+  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:8px 12px 3px}
+  .item .chi,.item .bpi{width:16px;height:16px;flex:0 0 auto}   /* polish: 16px leading conversation type icon (spec) */
+  .item .chi{color:var(--muted)}
+  .item .pinned-ic{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
+  .item .cmenu{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;opacity:0;min-width:24px}
+  .item:hover .cmenu{opacity:1}
+  .item .cmenu:hover{background:var(--panel2);color:var(--primary)}
+  .expl-menu .mdiv{height:1px;background:var(--line);margin:4px 0}
   .side-set{width:100%;display:flex;align-items:center;gap:10px;background:none;border:1px solid transparent;color:var(--secondary);border-radius:9px;padding:9px 11px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:var(--transition);text-align:left}
   .side-set:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .side-set.on{background:var(--accent-glow);color:var(--primary)}
@@ -153,7 +166,7 @@
   .item:hover{background:var(--panel2)}
   .item.on{background:var(--accent-glow);color:var(--primary)}
   .item .meta{margin-left:auto;color:var(--muted);font-size:11px;background:var(--veil);border-radius:20px;padding:0 7px;line-height:17px}
-  .item .bpi{color:var(--accent2);flex:0 0 auto;width:14px;height:14px}
+  .item .bpi{color:var(--accent2);flex:0 0 auto}
   .item .x{opacity:0;color:var(--muted);font-size:13px;transition:var(--transition)}
   .item:hover .x{opacity:.7}
   .item .x:hover{color:var(--danger)}
@@ -193,8 +206,8 @@
   .uchip .ic{width:14px;height:14px;color:var(--muted);flex:0 0 auto}
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
   .uchip .usep{width:1px;height:12px;background:var(--line3);display:inline-block;margin:0 4px}
-  .uchip.warn{border-color:var(--warning)} .uchip.warn .ic{color:var(--warn)}
-  .uchip.crit{border-color:var(--error)} .uchip.crit .ic{color:var(--danger)}
+  /* polish: chip stays neutral in every state — severity lives in the dot + popover
+     (was: .uchip.warn/.crit amber/red border tints at 75%/90% usage) */
   .upop{position:absolute;top:50px;right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
   .upop.show{display:block;animation:msgIn .16s ease both}
   .upop-head{display:flex;align-items:center;gap:8px;padding:12px 14px 11px;border-bottom:1px solid var(--line);color:var(--primary);font-size:12.5px;font-weight:600}
@@ -456,29 +469,7 @@
   .genmeter .gm-tok b{color:var(--secondary);font-weight:600}
 
   /* ───── full-window kanban / list board ───── */
-  .kb-toolbar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--line);flex:0 0 auto;flex-wrap:wrap}
-  .kb-search{flex:1;min-width:120px;max-width:340px;background:var(--panel2);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:12.5px;outline:none}
-  .kb-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .kb-count{margin-left:auto;color:var(--muted);font-size:11.5px;font-family:var(--mono);flex:0 0 auto}
-  .kb-toolbar .seg2 button svg{width:14px;height:14px}
-  .kb-board{flex:1;min-height:0;display:flex;gap:14px;overflow-x:auto;overflow-y:hidden;padding:16px 20px 20px;align-items:stretch}
-  .kb-board.list{display:block;overflow-y:auto;overflow-x:hidden;max-width:920px;margin:0 auto;width:100%;padding:16px 20px 28px}
-  .kb-col{flex:0 0 300px;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);min-height:0;max-height:100%;overflow:hidden}
-  .kb-col-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);flex:0 0 auto}
-  .kb-col-head .kn{color:var(--primary);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .kb-col-head .kc{margin-left:auto;color:var(--muted);font-size:11px;font-family:var(--mono);background:var(--panel2);border:1px solid var(--line2);border-radius:999px;padding:1px 8px;flex:0 0 auto}
-  .kb-cards{flex:1;min-height:0;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px}
-  .kb-card{display:flex;align-items:center;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-card);padding:10px 12px;cursor:pointer;transition:var(--transition);text-align:left;font-family:inherit;width:100%}
-  .kb-card:hover{border-color:var(--line2);background:var(--elev)}
-  .kb-card .kf{width:15px;height:15px;flex:0 0 15px;color:var(--muted)}
-  .kb-card .knm{flex:1;min-width:0;color:var(--secondary);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .kb-card:hover .knm{color:var(--primary)}
-  .kb-card .kbadge{flex:0 0 auto;color:var(--muted);font-size:10px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:.4px;background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius-badge);padding:1px 5px}
-  .kb-empty{color:var(--muted);font-size:12px;text-align:center;padding:18px 12px;font-style:italic}
-  .kb-loading{color:var(--muted);font-size:13px;padding:34px;text-align:center}
-  .kb-sec-head{display:flex;align-items:center;gap:8px;padding:16px 4px 9px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.7px}
-  .kb-sec-head .kc{color:var(--muted);font-family:var(--mono);font-size:10.5px}
-  .kb-board.list .kb-card{margin-bottom:7px}
+  /* polish: native kb-* kanban removed — the map board (map.html right drawer) is the single kanban */
 
   /* composer */
   .composer-wrap{padding:12px 18px 30px}
@@ -601,6 +592,14 @@
   .cm-more:hover{border-color:var(--border-hover);color:var(--text-primary)}
   .cm-more:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
   .cm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 6px;border:1px solid var(--border-default);border-radius:var(--radius-pill);background:var(--bg-secondary);color:var(--text-secondary);font-size:12px;text-decoration:none;vertical-align:baseline;cursor:pointer;transition:border-color .15s ease,color .15s ease}
+  .ent-chip{display:inline;color:var(--accent-text);text-decoration:none;border-bottom:1px dotted var(--accent-border-active);cursor:pointer}
+  .ent-chip:hover{color:var(--accent);border-bottom-style:solid}
+  .dp-backlinks{margin:22px 0 6px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+  .dp-backlinks .bl-h{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin-right:4px}
+  .dp-backlinks .bl-orphan{font-size:12px;color:var(--warning);background:var(--warning-tint);border:1px solid var(--warning);border-radius:var(--radius-btn);padding:5px 9px}
+  .dp-backlinks .bl-chip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 9px;font-size:11px;font-family:var(--mono);cursor:pointer}
+  .dp-backlinks .bl-chip:hover{color:var(--primary);border-color:var(--line2)}
+  .dp-backlinks .bl-k{font-size:9px;color:var(--muted);text-transform:uppercase;margin-right:5px}
   .cm-chip:hover{border-color:var(--border-hover);color:var(--text-primary)}
   .cm-chip .cm-ic{display:inline-flex;width:16px;height:16px;flex:0 0 auto}
   .cm-chip .cm-ic svg{width:16px;height:16px}
@@ -631,6 +630,7 @@
   .pal .results{max-height:46vh;overflow:auto;padding:6px}
   .pal .res{display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:6px;cursor:pointer;font-size:13px;color:var(--secondary)}
   .pal .res .k{margin-left:auto;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+  .pal .pal-grp{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;padding:8px 11px 3px}
   .pal .res.on{background:var(--accent-glow);color:var(--primary)}
   .pal .none{padding:14px;color:var(--muted);font-size:12.5px;text-align:center}
 
@@ -647,6 +647,58 @@
   .dash section{margin-bottom:30px}
   .dash .lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 13px}
   /* KPI row — even grid, calm monochrome numbers, thin accent bar per metric */
+  /* Chief-of-staff board (P2) */
+  .rowlbl{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:8px}
+  .rowlbl::after{content:'';flex:1;height:1px;background:var(--line)}
+  .rowlbl.warn{color:var(--warn)} .rowlbl.danger{color:var(--danger)}
+  .dnum{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--primary);font-weight:600}
+  .pmini{display:inline-block;width:64px;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden;vertical-align:middle;margin-right:6px}
+  .pmini i{display:block;height:100%;background:var(--accent)}
+  .tadd{display:flex;gap:6px;margin-bottom:8px}
+  .tadd input{flex:1;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:7px 10px;font:inherit;font-size:12.5px;outline:none}
+  .tadd input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .hbtn-sm{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+  .hbtn-sm:hover{color:var(--primary);border-color:var(--line2)}
+  .trow{display:flex;align-items:center;gap:7px;padding:6px 4px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .trow:last-child{border-bottom:none}
+  .trow.overdue{background:var(--warning-tint);border-radius:var(--radius-btn);padding-left:7px}
+  .trow.overdue .ttitle{color:var(--warning)}
+  .tchk{width:17px;height:17px;flex:0 0 auto;border-radius:5px;border:1.5px solid var(--input-border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--transparent);padding:0}
+  .tchk:hover{border-color:var(--line3)}
+  .tchk.on{border-color:var(--success);background:var(--success);color:var(--white) /* approved literal — check on --success fill */}
+  .tchk svg{width:11px;height:11px}
+  .ttitle{flex:1;min-width:70px;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tover{font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--warning);text-transform:uppercase}
+  .tchip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 8px;font:inherit;font-size:10.5px;font-family:var(--mono);cursor:pointer;white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
+  .tchip:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  .tst{border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:var(--radius-badge);padding:1px 7px;font:inherit;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+  .tst.st-doing{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale active per override #36 */
+  .tst.st-blocked{color:var(--warning);border-color:var(--warning)}
+  .tdel{border:none;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;opacity:0}
+  .trow:hover .tdel{opacity:1}
+  .tdel:hover{color:var(--danger);background:var(--panel2)}
+  .envlist{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 2px;line-height:1.7}
+  /* P10 — phone-width command post: reading + ruling only */
+  @media (max-width:480px){
+    .col.left, #input, .composer, .chatbar, .dash-head .subline{display:none !important}
+    .actions, .tools, .lbl{display:none !important}
+    .dash-inner{padding:12px}
+    .dash-cols{grid-template-columns:1fr}
+    .trow{min-height:44px}
+    .tchk{width:26px;height:26px}
+    .tst,.tchip{min-height:32px;display:inline-flex;align-items:center}
+    .hicon{width:44px;height:44px}
+  }
+  .mpo{position:fixed;inset:0;z-index:380;background:var(--bg);display:none;flex-direction:column}
+  .mpo.show{display:flex}
+  .mpo .mpo-bar{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line)}
+  .mpo .mpo-bar b{flex:1;color:var(--primary);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mpo .mpo-bar button{min-width:44px;min-height:44px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:var(--radius-btn);font:inherit;cursor:pointer}
+  .mpo .mpo-body{flex:1;overflow:auto;padding:16px;color:var(--secondary);font-size:13.5px;line-height:1.65;white-space:pre-wrap;font-family:var(--mono)}
+  .mpo .mpo-acts{display:flex;gap:10px;padding:12px 14px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .mpo .mpo-acts button{flex:1;min-height:48px;border-radius:var(--radius-btn);font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--secondary)}
+  .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
+  .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
   .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:var(--transition);text-align:left;font-family:inherit;cursor:pointer}
   .kpi:hover{border-color:var(--line2);background:var(--elev)}
@@ -668,7 +720,7 @@
   .tool:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
   .tool .ti{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--qc-bg,var(--accent-tint));color:var(--qc,var(--accent2));flex:0 0 26px}
   .tool .ti .ic{width:15px;height:15px}
-  .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
   /* min-width:0 lets grid items shrink below their nowrap content (long chat titles) */
   .dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 18px;min-width:0}
   .drow .rt{min-width:0}
@@ -1040,6 +1092,13 @@
   .htmlfull .hf-bar button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer}
   .htmlfull .hf-bar button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .htmlfull iframe{flex:1;border:0;background:#fff}
+  /* prototype-studio chrome on the fullscreen bar (parent chrome — the sandboxed iframe can't host it) */
+  .htmlfull .hf-bar button.hf-pbtn{width:auto;padding:0 11px;font:inherit;font-size:12px;font-weight:600;height:30px}
+  .hf-proto{display:flex;align-items:center;gap:7px}
+  .hf-chip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
+  .hf-chip.st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
+  .hf-chip.st-settled{background:var(--accent-tint);color:var(--accent2);border:1px solid var(--accent-border-active)}
+  .hf-chip.st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
   /* undo toast (interactive, unlike .toast) */
   .utoast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:9px 10px 9px 16px;border-radius:11px;font-size:13px;display:none;align-items:center;gap:12px;z-index:370;box-shadow:var(--shadow-dropdown)}
   .utoast.show{display:flex}
@@ -1274,6 +1333,7 @@
   <symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13c-.4-1.3-.6-3-.6-5a6 6 0 0 0-9.3-5M6.3 6.3C6.1 6.8 6 7.4 6 8c0 7-3 9-3 9h14"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M6 10l1.5-6h9L18 10c0 2-2 4-6 4s-6-2-6-4z" fill="currentColor" stroke="currentColor" stroke-width="1"/></symbol>
   <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="4 9 8 9 13 5 13 19 8 15 4 15"/><path d="M17 8a5 5 0 0 1 0 8"/></symbol>
   <symbol id="i-arrow-right-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
@@ -1296,11 +1356,11 @@
       <div class="rsep"></div>
       <button title="Galaxy map" onclick="showMap()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg></button>
       <button title="Kanban board" onclick="openKanban()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg></button>
-      <button title="Progress Tree — modules in build-priority order" onclick="openPageWindow('/tree.html','Progress Tree')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
-      <button title="Activity log — every action, timestamped" onclick="openPageWindow('/activity.html','Activity log')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
-      <button title="Memory — what the brain always remembers" onclick="openPageWindow('/memory.html','Memory')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
-      <button title="Wishlist — Brain app improvement todos" onclick="openPageWindow('/wishlist.html','Wishlist')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
-      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openPageWindow('/queue.html','Task queue')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
+      <button title="Progress Tree — modules in build-priority order" onclick="openTarget('/tree.html',{title:'Progress Tree'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg></button>
+      <button title="Activity log — every action, timestamped" onclick="openTarget('/activity.html',{title:'Activity log'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 8v4l3 2"/><circle cx="12" cy="12" r="9"/></svg></button>
+      <button title="Memory — what the brain always remembers" onclick="openTarget('/memory.html',{title:'Memory'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9.5 2a4.5 4.5 0 0 0-4.5 4.5c0 .6-.3 1-.7 1.5A4 4 0 0 0 5 14c.2 2 1.8 3.5 4 3.5V2z"/><path d="M14.5 2a4.5 4.5 0 0 1 4.5 4.5c0 .6.3 1 .7 1.5A4 4 0 0 1 19 14c-.2 2-1.8 3.5-4 3.5V2z"/><path d="M9 17.5V22M15 17.5V22"/></svg></button>
+      <button title="Wishlist — Brain app improvement todos" onclick="openTarget('/wishlist.html',{title:'Wishlist'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></button>
+      <button title="Task queue — sequential Claude runs with limit-aware auto-resume" onclick="openTarget('/queue.html',{title:'Task queue'})"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/><path d="M18 16l2 2 3-3"/></svg></button>
       <button title="Bubble data — live app structure" onclick="showBubble()"><svg viewBox="0 0 24 24"><use href="#i-db"/></svg></button>
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
@@ -1309,6 +1369,7 @@
       <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
     </div>
     <div class="pane" id="paneChats"></div>
+    <div class="side-legend">›_ marks Buildprint conversations</div>
     <div class="side-foot">
       <button class="side-set" onclick="openSettings('general')"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg> Settings &amp; Preferences</button>
     </div>
@@ -1324,10 +1385,7 @@
       <span class="spacer"></span>
       <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
-      <div class="seg hseg" id="themeSeg" title="Theme — Dark / Light">
-        <button id="thDark" onclick="setTheme('dark')" aria-label="Dark theme"><svg viewBox="0 0 24 24"><use href="#i-moon"/></svg></button>
-        <button id="thLight" onclick="setTheme('light')" aria-label="Light theme"><svg viewBox="0 0 24 24"><use href="#i-sun"/></svg></button>
-      </div>
+      <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
         <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
@@ -1349,6 +1407,11 @@
       </div>
       <!-- dashboard (home) -->
       <div id="dashView" class="dash" style="display:none"></div>
+      <!-- app SURFACE in the full working area (tree/wishlist/queue/memory/activity/protos) — popups are for files only (polish window policy) -->
+      <div id="surfaceView" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
+        <div class="surface-bar"><button class="surface-back" onclick="surfaceBack()">← Back</button><span class="surface-title" id="surfaceTitle"></span></div>
+        <iframe id="surfaceFrame" title="surface" style="flex:1;width:100%;border:0;display:block"></iframe>
+      </div>
       <!-- embedded galaxy map (was a separate /map page; now lives above the chat input) -->
       <div id="mapView" style="display:none;flex:1;min-height:0">
         <iframe id="mapFrame" title="Galaxy map" style="width:100%;height:100%;border:0;display:block"></iframe>
@@ -1369,22 +1432,6 @@
         <div class="bub-meta" id="bubMeta"></div>
         <div class="bub-banner" id="bubBanner" style="display:none"></div>
         <div class="bub-body" id="bubBody"></div>
-      </div>
-      <!-- full-window kanban / list board — files as columns; owns the whole content area -->
-      <div id="kanbanView" style="display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden">
-        <div class="kb-toolbar">
-          <div class="seg2">
-            <button data-k="board" class="on" onclick="showKanban('board')"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg> Board</button>
-            <button data-k="list" onclick="showKanban('list')"><svg viewBox="0 0 24 24"><use href="#i-list"/></svg> List</button>
-          </div>
-          <input class="kb-search" id="kbSearch" placeholder="Filter files…" autocomplete="off" oninput="renderKanban()">
-          <div class="seg2">
-            <button data-s="crs" class="on" onclick="kbScope(true)">Project</button>
-            <button data-s="all" onclick="kbScope(false)">All files</button>
-          </div>
-          <span class="kb-count" id="kbCount"></span>
-        </div>
-        <div class="kb-board" id="kbBoard"></div>
       </div>
     </div>
     <!-- persistent composer — always visible on every view -->
@@ -1475,6 +1522,7 @@
 <script src="sounds-synth.js"></script>
 <script src="sounds.js"></script>
 <script src="notify-registry.js"></script>
+<script src="js/chat-media.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const svg = (name,cls) => `<svg class="ic ${cls||''}" viewBox="0 0 24 24" aria-hidden="true"><use href="#${name}"/></svg>`;
@@ -1505,126 +1553,7 @@ function mdInline(s){
       :`<a href="#" data-path="${href}">${t}</a>`)
     .replace(FILE_RE,'$1<a href="#" data-path="$2">$2</a>');
 }
-function renderMd(src){
-  const lines = src.replace(/\r/g,'').split('\n');
-  let html='', i=0;
-  while(i<lines.length){
-    let l=lines[i];
-    if(/^```/.test(l)){ let code=''; i++; while(i<lines.length && !/^```/.test(lines[i])){code+=lines[i]+'\n';i++;} i++; html+='<pre><code>'+esc(code)+'</code></pre>'; continue; }
-    if(/^#{1,6}\s/.test(l)){ const n=l.match(/^#+/)[0].length; html+=`<h${n}>${mdInline(l.replace(/^#+\s/,''))}</h${n}>`; i++; continue; }
-    if(/^\s*(-{3,}|\*{3,}|_{3,})\s*$/.test(l)){ html+='<hr>'; i++; continue; }
-    if(/^\s*>/.test(l)){ let q=''; while(i<lines.length && /^\s*>/.test(lines[i])){q+=lines[i].replace(/^\s*>\s?/,'')+' ';i++;} html+='<blockquote>'+mdInline(q)+'</blockquote>'; continue; }
-    if(/^\s*[-*+]\s/.test(l)){ html+='<ul>'; while(i<lines.length && /^\s*[-*+]\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*[-*+]\s/,''))+'</li>';i++;} html+='</ul>'; continue; }
-    if(/^\s*\d+\.\s/.test(l)){ html+='<ol>'; while(i<lines.length && /^\s*\d+\.\s/.test(lines[i])){html+='<li>'+mdInline(lines[i].replace(/^\s*\d+\.\s/,''))+'</li>';i++;} html+='</ol>'; continue; }
-    if(/^\s*\|.*\|\s*$/.test(l) && i+1<lines.length && /^\s*\|[-:\s|]+\|\s*$/.test(lines[i+1])){
-      const row=(x)=>x.trim().replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
-      const head=row(l); i+=2; let body='';
-      while(i<lines.length && /^\s*\|.*\|\s*$/.test(lines[i])){ body+='<tr>'+row(lines[i]).map(c=>'<td>'+mdInline(c)+'</td>').join('')+'</tr>'; i++; }
-      html+='<div class="md-tbl"><table><thead><tr>'+head.map(c=>'<th>'+mdInline(c)+'</th>').join('')+'</tr></thead><tbody>'+body+'</tbody></table></div>'; continue;
-    }
-    if(l.trim()===''){ i++; continue; }
-    let para=l; i++;
-    while(i<lines.length && lines[i].trim()!=='' && !/^(#{1,6}\s|```|\s*[-*+]\s|\s*\d+\.\s|\s*>)/.test(lines[i])){ para+=' '+lines[i]; i++; }
-    html+='<p>'+mdInline(para)+'</p>';
-  }
-  return html;
-}
-
-// ---------- chat-media: inline image previews + file chips (post-render pass) ----------
-// Runs over a FINISHED assistant message body. Turns repo file references
-// (backticked <code>, bare-path/markdown <a data-path>) into: thumbnail grids for
-// images (one gallery per message, seeded into the existing image viewer), file
-// chips for other known types, and muted "not found" chips for dead refs. Reuses
-// smartOpen + the P9.5 viewer; never fetches outside the repo. Idempotent per body.
-const CM_IMG_EXT=/^(png|jpe?g|gif|webp|svg)$/i;
-const CM_KNOWN_EXT=/\.(md|html?|css|js|py|json|txt|csv|ya?ml|xlsx|png|jpe?g|gif|webp|svg)$/i;
-const CM_PATH_SHAPE=/^(?:[\w][\w.\-]*\/)*[\w][\w.\-]*\.[A-Za-z0-9]+$/;   // relative path w/ extension, no spaces
-function cmNorm(p){ return String(p||'').trim().replace(/^\.\//,'').replace(/^\/+/,''); }
-function cmOutsideRepo(p){ return /(^|\/)\.\.(\/|$)/.test(p) || /^[a-z]+:\/\//i.test(p) || p.startsWith('/'); }
-function cmClassify(rawPath){
-  const p=cmNorm(rawPath);
-  if(!p || !CM_PATH_SHAPE.test(p) || !CM_KNOWN_EXT.test(p)) return null;   // not a file reference
-  const name=p.split('/').pop(), ext=(name.split('.').pop()||'').toLowerCase();
-  if(cmOutsideRepo(p)) return {p,name,ext,kind:'dead'};                    // never fetch outside repo
-  const known=(typeof DW!=='undefined'&&DW.allPaths&&DW.allPaths.size)?DW.allPaths:null;
-  const isImg=CM_IMG_EXT.test(ext);
-  if(known){ if(!known.has(p)) return {p,name,ext,kind:'dead'}; return {p,name,ext,kind:isImg?'img':'file'}; }
-  return {p,name,ext,kind:isImg?'img':'file'};   // tree not loaded yet → optimistic (img onerror falls back)
-}
-// The block a reference lives in — used to group images that sit together.
-function cmBlock(el,root){ let n=el; while(n&&n!==root){ if(/^(P|LI|TD|TH|BLOCKQUOTE|H1|H2|H3|H4|H5|H6)$/.test(n.tagName)) return n; n=n.parentElement; } return el; }
-function cmChipEl(info){
-  if(info.kind==='dead'){
-    const s=document.createElement('span'); s.className='cm-chip cm-dead'; s.title=info.p+' — not found';
-    s.innerHTML=`<span class="cm-nm">${esc(info.name)}</span><span class="cm-dead-tag">not found</span>`; return s;
-  }
-  const a=document.createElement('a'); a.className='cm-chip'; a.href='#'; a.dataset.path=info.p; a.title=info.p;
-  a.innerHTML=`<span class="cm-ic">${fileIcon(info.name,16)}</span><span class="cm-nm">${esc(info.name)}</span>`; return a;   // click → smartOpen via global a[data-path] delegation
-}
-function cmTile(path,gi,solo){
-  const b=document.createElement('button'); b.type='button'; b.className='cm-shot'+(solo?' cm-solo':'');
-  b.dataset.i=gi; b.title=path;
-  b.innerHTML=`<img loading="lazy" src="/api/raw?path=${encodeURIComponent(path)}" alt="${esc(path.split('/').pop())}"><span class="cm-cap">${esc(path.split('/').pop())}</span>`;
-  const img=b.querySelector('img');
-  img.onerror=()=>{ const info={p:path,name:path.split('/').pop(),kind:'dead'}; b.replaceWith(cmChipEl(info)); };   // no broken-img soup
-  return b;
-}
-function cmGrid(runPaths,msgImgs){
-  const g=document.createElement('div'); g.className='cm-grid'; g._imgs=msgImgs;
-  const solo=(runPaths.length===1 && msgImgs.length===1);
-  const CAP=10;
-  const add=(list)=>list.forEach(p=>g.appendChild(cmTile(p,msgImgs.indexOf(p),solo)));
-  if(runPaths.length>CAP){
-    add(runPaths.slice(0,CAP));
-    const more=document.createElement('button'); more.type='button'; more.className='cm-more';
-    more.textContent='+'+(runPaths.length-CAP)+' more';
-    more.onclick=()=>{ more.remove(); add(runPaths.slice(CAP)); };   // expand in place
-    g.appendChild(more);
-  } else add(runPaths);
-  return g;
-}
-function enhanceChatMedia(body){
-  if(!body || body.dataset.cm==='1') return; body.dataset.cm='1';
-  // 1. collect reference tokens (code + data-path anchors), classify, skip non-refs
-  const toks=[];
-  body.querySelectorAll('code, a[data-path]').forEach(el=>{
-    if(el.closest('pre')) return;                                   // real code blocks are literal
-    if(el.tagName==='A' && el.closest('code')) return;              // backticked paths become <code><a data-path>…</a></code> — process the outer <code> only, once
-    const raw=el.tagName==='A' ? el.dataset.path : el.textContent;
-    const info=cmClassify(raw); if(!info) return;
-    toks.push({el,info});
-  });
-  if(!toks.length) return;
-  // 2. the message gallery = each image ref once, in document order
-  const seen=new Set(), msgImgs=[];
-  toks.filter(t=>t.info.kind==='img').forEach(t=>{ if(!seen.has(t.info.p)){ seen.add(t.info.p); msgImgs.push(t.info.p); } });
-  // 3. group consecutive image tokens into runs (same block, or adjacent sibling blocks)
-  const runs=[]; let cur=null, prevBlock=null;
-  for(const t of toks){
-    if(t.info.kind!=='img'){ cur=null; prevBlock=null; continue; }
-    const blk=cmBlock(t.el,body);
-    const adjacent = prevBlock && (blk===prevBlock || blk.previousElementSibling===prevBlock);
-    if(cur && adjacent){ cur.toks.push(t); } else { cur={toks:[t]}; runs.push(cur); }
-    prevBlock=blk;
-  }
-  // 4. render image runs: grid replaces the run's first token; other run tokens (and now-empty blocks) removed
-  for(const run of runs){
-    const first=run.toks[0].el, grid=cmGrid(run.toks.map(t=>t.info.p),msgImgs);
-    const firstBlock=cmBlock(first,body);
-    (firstBlock&&firstBlock!==body?firstBlock:first).before(grid);
-    for(const t of run.toks){ const blk=cmBlock(t.el,body); t.el.remove(); if(blk&&blk!==body&&!blk.textContent.trim()&&!blk.querySelector('img,.cm-grid,.cm-chip')) blk.remove(); }
-  }
-  // 5. non-image refs → chips (replace in place). Use body.contains (not
-  // isConnected): renderChat enhances the body BEFORE appending it, so the
-  // subtree is detached — contains() still tells us if step 4 removed a token.
-  for(const t of toks){ if(t.info.kind==='img') continue; if(!body.contains(t.el)) continue; t.el.replaceWith(cmChipEl(t.info)); }
-}
-// one delegated handler: a chat thumbnail opens the P9.5 viewer seeded with its message's gallery
-document.addEventListener('click',(e)=>{
-  const shot=e.target.closest('.cm-shot'); if(!shot) return;
-  const g=shot.closest('.cm-grid'); const imgs=(g&&g._imgs)||[]; const i=+shot.dataset.i||0;
-  if(imgs.length) openDocWindow(imgs[i],{ivImgs:imgs,ivIdx:i});
-});
+// [chat-media + markdown region → js/chat-media.js (Phase-5 module split)]
 
 let _toastTimer=null;
 function toast(t,ms){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200); }
@@ -1737,9 +1666,29 @@ function filterTree(tree){ if(!state.crsOnly) return tree;
 // ---------- chats ----------
 function chatItemEl(c){
   const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
-  d.innerHTML=`${c.bp?`<svg class="ic sm bpi" viewBox="0 0 24 24" title="Buildprint"><use href="#i-terminal"/></svg>`:''}<span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><span class="meta">${c.count}</span><span class="x" title="Delete">${svg('i-x','sm')}</span>`;
-  d.onclick=(e)=>{ if(e.target.closest('.x')){delChat(c.id);return;} openChat(c.id); };
+  // Leading 16px type icon: terminal glyph = the conversation ran with Buildprint
+  // CLI tooling (the bp flag — per-message tool events are not persisted); plain
+  // chat icon otherwise. Pinned rows carry a small filled pin.
+  d.innerHTML=`<svg class="ic sm ${c.bp?'bpi':'chi'}" viewBox="0 0 24 24"><use href="${c.bp?'#i-terminal':'#i-chat'}"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span>${c.pinned?`<svg class="ic pinned-ic" viewBox="0 0 24 24"><use href="#i-pin"/></svg>`:''}<span class="meta">${c.count}</span><button class="cmenu" title="Actions">⋮</button>`;
+  d.onclick=(e)=>{ if(e.target.closest('.cmenu')){ chatMenuAt(e, c); return; } openChat(c.id); };
   return d;
+}
+// Per-conversation ⋮ menu — same visual language as the explorer menu.
+function chatMenuAt(e, c){
+  e.stopPropagation();
+  let m=$('chatMenu');
+  if(!m){ m=document.createElement('div'); m.id='chatMenu'; m.className='expl-menu'; document.body.appendChild(m);
+    document.addEventListener('pointerdown',(ev)=>{ if(!ev.target.closest('#chatMenu')) m.style.display='none'; },true); }
+  m.innerHTML=`<button data-act="pin">${c.pinned?'Unpin':'Pin'}</button><button data-act="rename">Rename</button><div class="mdiv"></div><button data-act="delete">Delete</button>`;
+  m.style.display='block';
+  const r=e.target.closest('.cmenu').getBoundingClientRect();
+  m.style.left=Math.min(r.left, innerWidth-170)+'px'; m.style.top=(r.bottom+4)+'px';
+  m.onclick=async(ev)=>{ const b=ev.target.closest('button[data-act]'); if(!b) return; m.style.display='none';
+    const act=b.dataset.act;
+    if(act==='pin'){ await api('/api/chat/meta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,pinned:!c.pinned})}); loadChats(); }
+    else if(act==='rename'){ const t=prompt('Rename conversation:', c.title||''); if(t&&t.trim()){ await api('/api/chat/meta',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:c.id,title:t.trim()})}); loadChats(); if(c.id===state.chatId) $('centerTitle').textContent=t.trim(); } }
+    else if(act==='delete'){ delChat(c.id); }
+  };
 }
 // ---------- chat search (sidebar) ----------
 let chatSearchT=null;
@@ -1762,9 +1711,15 @@ function onChatSearch(q){ clearTimeout(chatSearchT);
 async function loadChats(){
   const {chats}=await api('/api/chats');
   state.chatList=chats;
-  // unified list — Buildprint tasks marked with a terminal glyph (mode is a composer switch now)
-  $('paneChats').innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
-  for(const c of chats) $('paneChats').appendChild(chatItemEl(c));
+  const box=$('paneChats');
+  box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
+  const pinned=chats.filter(c=>c.pinned), rest=chats.filter(c=>!c.pinned);
+  if(pinned.length){
+    const h=document.createElement('div'); h.className='pane-cap'; h.textContent='Pinned'; box.appendChild(h);
+    for(const c of pinned) box.appendChild(chatItemEl(c));
+    const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Conversations'; box.appendChild(h2);
+  }
+  for(const c of rest) box.appendChild(chatItemEl(c));
 }
 // mode-aware chat starter templates — clicking a card seeds the input
 const TEMPLATES={
@@ -1798,7 +1753,7 @@ function setChatMode(bp){ state.bp=!!bp; reflectMode();
   const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; }
   if(bp) bpStatus(); }
 function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; state.bp=true; setTab('chats'); showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
 const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
@@ -1965,7 +1920,7 @@ async function openReplyDoc(text, title){
     await loadFiles(); openDocWindow(r.path); toast('Saved & opened  ·  '+r.path);
   }catch(e){ toast('Could not save: '+e.message); }
 }
-function showChat(){ $('chatView').style.display='flex'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); markView('chat'); }
+function showChat(){ $('chatView').style.display='flex'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer'); markView('chat'); }
 // The composer is permanent; sending from any view (map/file/dashboard) drops into the conversation.
 // If a chat is already open, reveal it; otherwise start a clean one so we don't append onto a stale log.
 function ensureChatView(){
@@ -1978,61 +1933,18 @@ function ensureChatView(){
 function setView(v){
   if(v==='chat') ensureChatView();
   else if(v==='map') showMap();
-  else if(v==='kanban') showKanban('board');
-  else if(v==='list') showKanban('list');
+  else if(v==='kanban') showMap('board');
+  else if(v==='list') showMap('list');
 }
 // ---------- full-window kanban / list board (files as columns) ----------
-let kbMode='board', kbTree=null;
-state.kbCrs = localStorage.getItem('kbCrs')!=='0';   // default: project scope
-function showKanban(mode){
-  bumpView();
-  kbMode = mode==='list' ? 'list' : 'board';
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none';
-  $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
-  $('kanbanView').style.display='flex';
-  $('centerTitle').textContent = kbMode==='list' ? 'List' : 'Kanban';
-  markView(kbMode==='list' ? 'list' : 'kanban');
-  document.querySelectorAll('#kanbanView .seg2 button[data-k]').forEach(b=>b.classList.toggle('on', b.dataset.k===kbMode));
-  document.querySelectorAll('#kanbanView .seg2 button[data-s]').forEach(b=>b.classList.toggle('on', (b.dataset.s==='crs')===state.kbCrs));
-  if(innerWidth<=900) mob(null);
-  if(!kbTree){ $('kbBoard').innerHTML='<div class="kb-loading">Loading files…</div>'; api('/api/files').then(r=>{ kbTree=r.tree||[]; renderKanban(); }).catch(()=>{ $('kbBoard').innerHTML='<div class="kb-loading">Could not load files.</div>'; }); }
-  else renderKanban();
-}
-function kbScope(crs){ state.kbCrs=crs; localStorage.setItem('kbCrs', crs?'1':'0'); document.querySelectorAll('#kanbanView .seg2 button[data-s]').forEach(b=>b.classList.toggle('on',(b.dataset.s==='crs')===crs)); renderKanban(); }
-function kbColumns(){
-  const tree = state.kbCrs ? filterTree(kbTree||[]) : (kbTree||[]);
-  const q=($('kbSearch').value||'').toLowerCase().trim();
-  const cols=[]; const rootFiles=[];
-  for(const n of tree){
-    if(n.type==='dir'){ const files=[]; (function w(ns){ for(const c of ns||[]){ if(c.type==='dir') w(c.children); else files.push({path:c.path,name:c.name,ext:extOf(c.name)}); } })(n.children); cols.push({name:n.name,files}); }
-    else rootFiles.push({path:n.path,name:n.name,ext:extOf(n.name)});
-  }
-  if(rootFiles.length) cols.unshift({name:'root',files:rootFiles});
-  if(q) for(const c of cols) c.files=c.files.filter(f=>f.path.toLowerCase().includes(q));
-  return q ? cols.filter(c=>c.files.length) : cols;
-}
-function kbCardHtml(f){ return `<button class="kb-card" onclick="kbOpen('${f.path.replace(/'/g,"\\'")}')" title="${esc(f.path)}"><svg class="kf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-doc-sm"/></svg><span class="knm">${esc(f.name)}</span><span class="kbadge">${esc(f.ext||'')}</span></button>`; }
-function kbOpen(p){ if(isHtml(p)) apiOpen(p); else openDocWindow(p); }
-function renderKanban(){
-  const board=$('kbBoard'); if(!kbTree) return;
-  const cols=kbColumns();
-  const total=cols.reduce((a,c)=>a+c.files.length,0);
-  $('kbCount').textContent = total+' file'+(total===1?'':'s');
-  board.classList.toggle('list', kbMode==='list');
-  if(!cols.length){ board.innerHTML='<div class="kb-empty">No files match.</div>'; return; }
-  if(kbMode==='list'){
-    board.innerHTML = cols.map(c=>`<div class="kb-sec"><div class="kb-sec-head">${esc(c.name)} <span class="kc">${c.files.length}</span></div>${c.files.map(kbCardHtml).join('')||'<div class="kb-empty">Empty</div>'}</div>`).join('');
-  } else {
-    board.innerHTML = cols.map(c=>`<div class="kb-col"><div class="kb-col-head"><span class="kn">${esc(c.name)}</span><span class="kc">${c.files.length}</span></div><div class="kb-cards">${c.files.map(kbCardHtml).join('')||'<div class="kb-empty">Empty</div>'}</div></div>`).join('');
-  }
-}
+// polish: showKanban/kbColumns/kbCardHtml/kbScope/renderKanban deleted — kanban is the map board now.
 function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.v===v)); }
 
 // Embedded galaxy map — same page, shown above the persistent chat input (no more popup window).
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
   bumpView();
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none'; $('kanbanView').style.display='none';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('bubbleView').style.display='none';
   $('centerCol').classList.add('no-composer');
   $('mapView').style.display='flex';
   const board = mode==='board'||mode==='kanban'||mode==='list'||mode==='ideas';  // any board drawer state
@@ -2064,51 +1976,162 @@ function setMapBoardOpen(open){
 function showDashboard(){
   bumpView();
   state.chatId=null;
-  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('kanbanView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
 }
+// Chief-of-staff board (Steps-2+3 program, Phase 2). Rendered EXCLUSIVELY from
+// state files via /api/dash (+ chats list for the background card). No file
+// counts, no repo introspection. Rows: Now · Needs me · What's wrong · Synced
+// & background. All figures in JBMono (--mono).
+function dashRel(ts){ if(!ts)return '—'; const s=(Date.now()-ts)/1000; if(s<90)return 'just now'; if(s<5400)return Math.round(s/60)+'m ago'; if(s<129600)return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
+function dashChip(link){
+  if(!link) return '';
+  const k=link.kind, r=esc(link.ref);
+  const open={module:`openTarget('/tree.html#module=${r}',{title:'Progress Tree'})`,
+    prototype:`openTarget('/protos.html',{title:'Prototypes'})`,
+    chunk:`openTarget('/protos.html',{title:'Prototypes'})`,
+    decision:`openDocWindow('decisions.md')`,
+    wishlist:`openTarget('/wishlist.html',{title:'Wishlist'})`}[k]||'';
+  return `<button class="tchip" onclick="${open}" title="${esc(k)}: ${r}">${esc(k)}: ${r.length>28?esc(link.ref.slice(0,28))+'…':r}</button>`;
+}
 async function renderDashboard(){
   const box=$('dashView');
-  const [files,chatsR,progress,ideas,plansD]=await Promise.all([
-    api('/api/files').catch(()=>({tree:[]})),
+  const [dash,chatsR,plansD]=await Promise.all([
+    api('/api/dash').catch(()=>null),
     api('/api/chats').catch(()=>({chats:[]})),
-    api('/api/progress').catch(()=>({columns:{},missing:[]})),
-    fetch('/api/ideas').then(r=>r.json()).catch(()=>({columns:{}})),
     api('/api/plans').catch(()=>null),
   ]);
   if(plansD) plansCache=plansD;
-  let nFiles=0,bubble=0,build=0,forum=0,docs=0;
-  (function walk(ns,pfx){ for(const n of ns){ if(n.type==='dir') walk(n.children,pfx+n.name+'/');
-    else { nFiles++; const p=pfx+n.name;
-      if(p.startsWith('brain/bubble/'))bubble++; else if(p.startsWith('brain/buildprint/'))build++;
-      else if(p.startsWith('brain/bubble-forum/'))forum++;
-      if(p.startsWith('crs-brain/data/docs/'))docs++; } } })(files.tree||[],'');
+  if(!dash){ box.innerHTML='<div class="dash-inner"><div class="dempty">Dashboard data unavailable — is the server up?</div></div>'; return; }
   const chats=chatsR.chats||[];
-  const ideaCount=Object.values(ideas.columns||{}).flat().length;
-  const col=k=>(progress.columns&&progress.columns[k])||[];
-  const now=col('now'),next=col('next'),done=col('done'),missing=progress.missing||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  // themed accents via tokens (§2); tint backgrounds via color-mix (13% ≈ status-tint alpha)
   const c={accent:'var(--accent)',purple:'var(--purple)',cyan:'var(--cyan)',green:'var(--good)',amber:'var(--warn)',soft:'var(--accent2)'};
   const tint=x=>`color-mix(in srgb, ${x} 12%, transparent)`;
   const A=(icon,title,desc,onclick,color)=>`<button class="action" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ai">${svg(icon)}</span><span class="atxt"><span class="at">${title}</span><span class="ad">${desc}</span></span></button>`;
   const T=(icon,title,onclick,color)=>`<button class="tool" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ti">${svg(icon)}</span>${title}</button>`;
-  const kpi=(v,k,color,onclick)=>`<button class="kpi" style="--kc:${color}"${onclick?` onclick="${onclick}"`:''}><div class="v">${v}</div><div class="k">${k}</div></button>`;
-  const chatRows=chats.slice(0,6).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>';
+  const num=v=>`<span class="dnum">${v}</span>`;
+
+  // -- tasks (todos & follow-ups) --
+  const open=(dash.tasks||[]).filter(t=>t.status!=='done');
+  const overdue=open.filter(t=>t.due&&Date.parse(t.due)<=Date.now());
+  const doing=open.filter(t=>t.status==='doing');
+  const taskRow=t=>{
+    const od=t.due&&Date.parse(t.due)<=Date.now()&&t.status!=='done';
+    return `<div class="trow${od?' overdue':''}${t.status==='done'?' tdone':''}" data-id="${esc(t.id)}">
+      <button class="tchk${t.status==='done'?' on':''}" title="toggle done" onclick="dashTaskDone('${esc(t.id)}','${esc(t.status)}')">${t.status==='done'?svg('i-check','sm'):''}</button>
+      <span class="ttitle">${esc(t.title)}</span>
+      ${od?'<span class="tover">overdue</span>':''}
+      ${dashChip(t.link)}
+      <button class="tst st-${esc(t.status)}" title="cycle status" onclick="dashTaskCycle('${esc(t.id)}','${esc(t.status)}')">${esc(t.status)}</button>
+      <button class="tdel" title="delete" onclick="dashTaskDel('${esc(t.id)}')">✕</button>
+    </div>`;
+  };
+  const sortedTasks=[...open].sort((a,b)=>{
+    const ao=a.due&&Date.parse(a.due)<=Date.now()?0:1, bo=b.due&&Date.parse(b.due)<=Date.now()?0:1;
+    return ao-bo || (b.created||'').localeCompare(a.created||'');
+  });
+
+  // -- row pieces --
+  const plansInFlight=(dash.protos||[]).filter(p=>p.chunkCounts);
+  const flagged=(dash.protos||[]).filter(p=>p.unresolvedFlags>0);
+  const q=dash.qa.counts;
+  const wrongEmpty=!dash.failedChunks.length&&!dash.qa.failRows.length&&!open.some(t=>t.auto&&t.auto.key.startsWith('sync:'))&&!dash.qa.envRows.length;
+  const syncRow=(name,s,extra)=>`<div class="drow"><span class="rt">${name}</span><span class="rmeta"><span class="dnum">${dashRel(s.lastSync)}</span>${extra||''}</span></div>`;
+
   box.innerHTML=`<div class="dash-inner">
     <div class="dash-head">
       <h2>${greet}, Vlad</h2>
-      <div class="subline">CRS build console — everything grounded, versioned, and searchable.</div>
+      <div class="subline">Chief-of-staff board — what's in flight, what needs you, what's wrong, what synced.</div>
     </div>
 
-    <section><div class="kpis">
-      ${kpi(nFiles.toLocaleString(),'files',c.purple,"openExpl('')")}
-      ${kpi(chats.length,'conversations',c.accent,"setTab('chats')")}
-      ${kpi(ideaCount,'ideas',c.amber,"showMap('ideas')")}
-      ${kpi(done.length,'shipped',c.green,"openDocWindow('brain/changelog.md')")}
-      ${kpi((bubble+build+forum).toLocaleString(),'manual pages',c.cyan,"openExpl('brain/bubble')")}
+    <section><div class="rowlbl">Now</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Current focus</h3>
+        ${dash.modules.focus?`<div class="np-mod">${esc(dash.modules.focus.section)}</div>
+          <div class="np-title">${esc(dash.modules.focus.name)} <span class="cnt">${esc(dash.modules.focus.status)}</span></div>
+          <button class="np-draft" onclick="openTarget('/tree.html#module=${esc(dash.modules.focus.id)}',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open in tree</button>`
+          :'<div class="dempty">Nothing in flight — every module is done or roadmap.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-doc','sm')} Build plans in flight <span class="cnt">${plansInFlight.length}</span></h3>
+        ${plansInFlight.length?plansInFlight.map(p=>{const cc=p.chunkCounts;
+          return `<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
+            <span class="rt">${esc(p.name)}</span>
+            <span class="rmeta"><span class="pmini"><i style="width:${Math.round(cc.verified/cc.total*100)}%"></i></span><span class="dnum">${cc.verified}/${cc.total}</span></span></div>`;}).join('')
+          :'<div class="dempty">No chunk plans yet — settle a prototype and build its plan.</div>'}
+        <button class="np-draft" onclick="openTarget('/protos.html#new',{title:'Prototypes'})">${svg('i-doc','sm')} New prototype</button>
+      </div>
+      <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
+        ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-terminal','sm')} Factory throughput</h3>
+        ${(dash.throughput&&dash.throughput.awaitingVerify.length)?dash.throughput.awaitingVerify.map(cv=>`<div class="drow" style="cursor:pointer" onclick="mobileChunkReview('${esc(cv)}')"><span class="rt">${esc(cv)}</span><span class="rmeta"><span class="tchip">review ▸</span></span></div>`).join(''):''}
+        <div class="drow"><span class="rt">Intents processed</span><span class="rmeta">${num(dash.throughput?dash.throughput.processed:0)}</span></div>
+        <div class="drow"><span class="rt">Awaiting my verify</span><span class="rmeta">${num(dash.throughput?dash.throughput.awaitingVerify.length:0)}</span></div>
+        <div class="drow"><span class="rt">Avg intent → staged</span><span class="rmeta"><span class="dnum">${dash.throughput&&dash.throughput.avgIntentToStagedMs?Math.round(dash.throughput.avgIntentToStagedMs/1000)+'s':'—'}</span></span></div>
+        <div class="drow"><span class="rt">Limit blocks survived</span><span class="rmeta">${num(dash.throughput?dash.throughput.limitBlocksSurvived:0)}</span></div>
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-flag','sm')} Decisions needed <span class="cnt">${dash.decisionsOpen.length}</span></h3>
+        ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileDecisionView('${esc(d).replace(/'/g,"\\'")}')">${esc(d)}</span>
+          <button class="tchip" onclick="openDocWindow('decisions.md')">open decisions.md</button></div>`).join('')
+          :'<div class="dempty">No open decisions — the guard has nothing to block on.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-list','sm')} Todos &amp; follow-ups <span class="cnt">${open.length}</span></h3>
+        <div class="tadd"><input id="dashTaskInput" placeholder="Add a todo…  (Enter)" onkeydown="if(event.key==='Enter')dashTaskAdd()"><button class="hbtn-sm" onclick="dashTaskAdd()">Add</button></div>
+        ${sortedTasks.length?sortedTasks.slice(0,10).map(taskRow).join(''):'<div class="dempty">Nothing open. Add one above, or say “add todo …” in chat.</div>'}
+        ${sortedTasks.length>10?`<div class="dempty">+${sortedTasks.length-10} more</div>`:''}
+      </div>
+      <div class="dcard"><h3>${svg('i-flag','sm')} Unresolved mapping flags <span class="cnt">${flagged.reduce((a,p)=>a+p.unresolvedFlags,0)}</span></h3>
+        ${flagged.length?flagged.map(p=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
+          <span class="rt">${esc(p.name)}</span><span class="rmeta">${num(p.unresolvedFlags)} flag${p.unresolvedFlags===1?'':'s'}</span></div>`).join('')
+          :'<div class="dempty">No unresolved flags — mappings are clean.</div>'}
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl danger">What's wrong</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-doc','sm')} Failed chunks <span class="cnt">${dash.failedChunks.length}</span></h3>
+        ${dash.failedChunks.length?dash.failedChunks.map(fc=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})"><span class="rt">${esc(fc)}</span></div>`).join(''):'<div class="dempty">None.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-list','sm')} QA failures <span class="cnt">${dash.qa.failRows.length}</span></h3>
+        ${dash.qa.failRows.length?dash.qa.failRows.map(r=>`<div class="drow"><span class="rt">${esc(r)}</span>
+          <button class="tchip" onclick="openDocWindow('brain/qa/master-checklist.md')">open checklist</button></div>`).join(''):'<div class="dempty">Zero FAIL / quarantine rows.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync failures &amp; needs-eyes <span class="cnt">${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).length+dash.qa.envRows.length}</span></h3>
+        ${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).map(taskRow).join('')||''}
+        ${dash.qa.envRows.length?`<div class="drow"><span class="rt">ENV-LIMITED (needs your eyes)</span><span class="rmeta">${num(dash.qa.envRows.length)}</span></div>
+          <div class="envlist">${dash.qa.envRows.map(esc).join(' · ')}</div>`:''}
+        ${wrongEmpty?'<div class="dempty">All quiet.</div>':''}
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl">Synced &amp; background</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync</h3>
+        ${syncRow('Forum digest',dash.sync.forum)}
+        ${syncRow('Release notes',dash.sync.relnotes)}
+        ${syncRow('Issue check',dash.sync.issues,dash.sync.issues.lastCount?` · ${num(dash.sync.issues.lastCount)} found`:'')}
+        ${syncRow('Manuals mirror',dash.sync.manuals)}
+        ${syncRow('Bubble digest',dash.sync.bubbleDigest)}
+      </div>
+      <div class="dcard"><h3>${svg('i-check','sm')} QA cycle</h3>
+        <div class="drow"><span class="rt">PASS</span><span class="rmeta">${num(q.PASS)}</span></div>
+        <div class="drow"><span class="rt">ENV-LIMITED</span><span class="rmeta">${num(q['ENV-LIMITED'])}</span></div>
+        <div class="drow"><span class="rt">FAIL / quarantine</span><span class="rmeta">${num(q.FAIL+(q.QUARANTINE||0))}</span></div>
+        <div class="drow"><span class="rt">Last run</span><span class="rmeta"><span class="dnum">${esc(dash.qa.lastRun||'—')}</span></span></div>
+        <div class="drow"><span class="rt">State audit</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.stateAuditAt)}</span>${dash.ops&&dash.ops.stateAuditFindings?` · ${num(dash.ops.stateAuditFindings)} drift`:''}</span></div>
+        <div class="drow"><span class="rt">Smoke QA</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.smokeQaAt)}</span>${dash.ops&&dash.ops.smokeQaFails?` · ${num(dash.ops.smokeQaFails)} fail`:''}</span></div>
+      </div>
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Progress Tree</h3>
+        <div class="drow"><span class="rt">Done</span><span class="rmeta">${num(dash.modules.counts['done']||0)} / ${num(dash.modules.total)}</span></div>
+        <div class="drow"><span class="rt">In progress</span><span class="rmeta">${num(dash.modules.counts['in-progress']||0)}</span></div>
+        <div class="drow"><span class="rt">Focus</span><span class="rmeta">${esc(dash.modules.focus?dash.modules.focus.name:'—')}</span></div>
+        <button class="np-draft" onclick="openTarget('/tree.html',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open tree</button>
+      </div>
+      <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>
+        ${chats.slice(0,5).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>'}
+      </div>
     </div></section>
 
     <section><div class="lbl">Quick actions</div><div class="actions">
@@ -2118,31 +2141,99 @@ async function renderDashboard(){
       ${A('i-ingest','Ingest a report','Route a Buildprint update into the brain','startIngest()',c.amber)}
       ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')',c.green)}
       ${A('i-map','Galaxy map','Explore the brain visually','showMap()',c.soft)}
-      ${A('i-sparkle','Weekly digest','Summarize the week from git + progress','runDigest()',c.soft)}
+      ${A('i-sparkle','Weekly digest','Open the latest weekly digest (generates if none)','openWeeklyDigest()',c.soft)}
       ${A('i-refresh','Sync Buildprint → brain','Pull the latest Bubble changes into the ledger','bpTrack()',c.cyan)}
+      ${A('i-send','Handoff','Generate + push the machine-transfer file','runHandoff()',c.purple)}
     </div></section>
 
     <section><div class="lbl">Tools</div><div class="tools">
-      ${T('i-gauge','Progress Tree',"openPageWindow('/tree.html','Progress Tree')",c.green)}
-      ${T('i-clock','Activity log',"openPageWindow('/activity.html','Activity log')",c.amber)}
-      ${T('i-book','Memory',"openPageWindow('/memory.html','Memory')",c.purple)}
-      ${T('i-flag','Wishlist',"openPageWindow('/wishlist.html','Wishlist')",c.accent)}
-      ${T('i-list','Task queue',"openPageWindow('/queue.html','Task queue')",c.accent)}
-    </div></section>
-
-    <section><div class="dash-cols">
-      <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>${chatRows}</div>
-      <div class="dcard"><h3>${svg('i-gauge','sm')} Next build step</h3>
-        ${(()=>{ const pk=activePacket(); const st=pk&&pk.steps.find(s=>s.status==='pending');
-          if(pk&&st) return `<div class="np-mod">${esc(pk.module)}</div>
-            <div class="np-title">${esc(st.title)}</div>
-            ${st.verify?`<div class="np-verify">Verify: ${esc(st.verify)}</div>`:''}
-            <button class="np-draft" onclick="draftStepPrompt('${pk.id}','${st.id}')">${svg('i-send','sm')} Draft Buildprint prompt</button>`;
-          if(pk) return `<div class="dempty">All steps in “${esc(pk.module)}” are past pending — advance them in Progress Tree.</div>`;
-          return '<div class="dempty">No build packet yet — open Progress Tree to generate one.</div>'; })()}
-      </div>
+      ${T('i-gauge','Progress Tree',"openTarget('/tree.html',{title:'Progress Tree'})",c.green)}
+      ${T('i-clock','Activity log',"openTarget('/activity.html',{title:'Activity log'})",c.amber)}
+      ${T('i-book','Memory',"openTarget('/memory.html',{title:'Memory'})",c.purple)}
+      ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
+      ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
+      ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
+      ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
     </div></section>
   </div>`;
+}
+function mpoShow(title, body, acts){
+  let el=$('mpo'); if(!el){ el=document.createElement('div'); el.className='mpo'; el.id='mpo'; document.body.appendChild(el); }
+  el.innerHTML=`<div class="mpo-bar"><b>${esc(title)}</b><button onclick="$('mpo').classList.remove('show')">✕</button></div>
+    <div class="mpo-body">${esc(body)}</div><div class="mpo-acts">${acts}</div>`;
+  el.classList.add('show');
+}
+async function mobileChunkReview(cv){
+  const [name,cid]=cv.split('/');
+  let report='(no BP report pasted yet — paste it from the desktop panel, or run the chunk in Buildprint first)';
+  try{ const r=await api('/api/file?path='+encodeURIComponent('prototypes/'+name+'/chunks/'+cid+'-report.md')); report=r.content; }catch{}
+  mpoShow('Review '+cv, report,
+    `<button class="ok" onclick="mobileChunkVerdict('${esc(name)}','${esc(cid)}','verified')">Verified ✓</button>
+     <button class="bad" onclick="mobileChunkVerdict('${esc(name)}','${esc(cid)}','failed')">Failed ✗</button>`);
+}
+async function mobileChunkVerdict(name,cid,st){
+  if(!await crsConfirm('Mark '+name+'/'+cid+' as '+st+'?')) return;
+  try{ await api('/api/protos/chunk-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,chunkId:cid,status:st})}); toast(cid+' → '+st); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
+}
+async function mobileDecisionView(title){
+  let body='(could not load decisions.md)';
+  try{ const r=await api('/api/file?path=decisions.md');
+    const m=r.content.split(/^## /m).find(b=>b.startsWith('[OPEN] '+title));
+    body=m?('## '+m):'(stub not found — it may have been resolved)';
+  }catch{}
+  mpoShow(title, body,
+    `<button onclick="mobileDecisionNote('${esc(title).replace(/'/g,"\\'")}')">Note to self</button>
+     <button class="ok" onclick="mobileDecisionLock('${esc(title).replace(/'/g,"\\'")}')">Lock decision…</button>`);
+}
+async function mobileDecisionNote(title){
+  const note=prompt('Note to self about: '+title);
+  if(!note) return;
+  try{ await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:'Decision note: '+note.slice(0,150),link:{kind:'decision',ref:title}})}); toast('Note saved as todo'); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
+}
+async function mobileDecisionLock(title){
+  const ruling=prompt('Your ruling for: '+title+'\n(This becomes the dated LOCKED entry in decisions.md)');
+  if(!ruling) return;
+  const confirm1=prompt('Type exactly:  LOCK '+title);
+  if(confirm1!=='LOCK '+title){ toast('Confirmation phrase mismatch — nothing changed'); return; }
+  try{ const r=await api('/api/decisions/lock',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title,ruling,confirm:confirm1})}); toast('Locked (via '+r.via+')'); $('mpo').classList.remove('show'); }
+  catch(e){ toast('⚠ '+e.message) }
+  renderDashboard();
+}
+async function runHandoff(){
+  toast('Generating handoff…');
+  try{ const r=await api('/api/handoff',{method:'POST'}); toast('Handoff '+(r.pushed?'committed + pushed':'committed (push failed: '+(r.pushErr||'?')+')')); openDocWindow(r.file); }
+  catch(e){ toast('⚠ '+e.message); }
+}
+async function openWeeklyDigest(){
+  try{
+    let r=await api('/api/digest/latest');
+    if(!r.file){ toast('Generating the first weekly digest…'); r=await api('/api/digest/weekly',{method:'POST'}); }
+    openDocWindow(r.file);
+  }catch(e){ toast('⚠ '+e.message); }
+}
+async function dashTaskAdd(){
+  const el=$('dashTaskInput'); const title=(el&&el.value||'').trim();
+  if(!title) return;
+  try{ await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title})}); el.value=''; toast('Todo added'); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskDone(id,cur){
+  try{ await api('/api/tasks/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:cur==='done'?'todo':'done'})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskCycle(id,cur){
+  const order=['todo','doing','blocked']; const next=order[(order.indexOf(cur)+1)%order.length]||'todo';
+  try{ await api('/api/tasks/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:next})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskDel(id){
+  if(!await crsConfirm('Delete this todo?')) return;
+  try{ await api('/api/tasks/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
 }
 function startIngest(){ newChat(); toast('Attach a Buildprint report (📎), then hit Ingest to Brain'); $('input').focus(); }
 
@@ -2150,6 +2241,21 @@ function sendMsg(ingest){
   const input=$('input'); const text=input.value.trim();
   const atts=(state.pending||[]).filter(a=>a.path);
   if(!text && !atts.length) return;
+  // Chief-of-staff command: "add todo <text>" goes to the tasks store, not the
+  // model — no chat turn is spent.
+  const todoCmd=text.match(/^add\s+todo\s*[:—-]?\s+(.+)/i);
+  if(todoCmd && !atts.length){
+    api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:todoCmd[1].trim()})})
+      .then(()=>{ toast('Todo added: '+todoCmd[1].trim().slice(0,60)); if($('dashView').style.display!=='none') renderDashboard(); })
+      .catch(e=>toast('⚠ '+e.message));
+    input.value=''; input.style.height='auto';
+    return;
+  }
+  // Operator slash-commands (Chat v2): known verb + space → routed through the
+  // existing engine/bridge/state APIs with a confirm step, never freelance to the
+  // model. `/help` lists them. Unknown /foo falls through to the model as normal text.
+  const slash=text.match(/^\/(settle|chunk|send|todo|decide|gen|help)\b\s*(.*)$/is);
+  if(slash && !atts.length){ input.value=''; input.style.height='auto'; runSlashCommand(slash[1].toLowerCase(), slash[2].trim()); return; }
   ensureChatView();  // sending from map/file/dashboard drops into the conversation
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   input.value=''; input.style.height='auto';
@@ -2160,6 +2266,35 @@ function sendMsg(ingest){
   runJob(job);
 }
 function runJob(job){ streamChat(job.text,{attachments:job.attachments,attachmentNames:job.attachmentNames,ingest:job.ingest}); }
+// Operator commands — each routes to an EXISTING API; state-mutating ones confirm first.
+const SLASH_HELP=[
+  ['/settle <proto>','freeze the prototype hash (POST /api/protos/settle)'],
+  ['/chunk <proto>','map + build-plan, then open the Prototypes panel'],
+  ['/send <proto/chunk>','mark a chunk sent (copy path; bridge ENV-LIMITED)'],
+  ['/todo <text>','add a dashboard todo (also: "add todo …")'],
+  ['/decide <stub>','open decisions.md + type LOCK to rule (POST /api/decisions/lock)'],
+  ['/gen <intent>','engine prompt for the focus module (POST /api/modules/edit-prompt)'],
+  ['/help','list these commands'],
+];
+async function dashFocusModule(){ try{ const d=await api('/api/dash'); return d.modules&&d.modules.focus; }catch{ return null; } }
+async function runSlashCommand(cmd, arg){
+  try{
+    if(cmd==='help'){ toast('Operator commands'); openDocOverlayText('Operator commands', SLASH_HELP.map(([c,d])=>c+'  —  '+d).join('\n')); return; }
+    if(cmd==='todo'){ if(!arg) return toast('Usage: /todo <text>'); await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:arg})}); toast('Todo added'); if($('dashView').style.display!=='none') renderDashboard(); return; }
+    if(cmd==='settle'){ if(!arg) return toast('Usage: /settle <proto>'); if(!await crsConfirm({title:'Settle "'+arg+'"?',body:'Freezes the current html hash. Editing after reverts it to draft.',confirmLabel:'Settle',danger:false})) return; const r=await api('/api/protos/settle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}); toast('Settled '+arg); return; }
+    if(cmd==='chunk'){ if(!arg) return toast('Usage: /chunk <proto>'); await api('/api/protos/map',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}).catch(e=>{throw new Error('map: '+e.message);}); try{ await api('/api/protos/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}); toast('Mapped + planned '+arg); }catch(e){ toast('Mapped '+arg+' — plan blocked: '+e.message); } openTarget('/protos.html',{title:'Prototypes'}); return; }
+    if(cmd==='send'){ if(!arg||arg.indexOf('/')<0) return toast('Usage: /send <proto>/<chunkId>'); const [name,cid]=arg.split('/'); if(!await crsConfirm({title:'Send '+arg+'?',body:'Marks the chunk sent (copy path — the bridge is ENV-LIMITED). Copy the prompt from the panel to run it in Buildprint.',confirmLabel:'Send',danger:false})) return; await api('/api/protos/chunk-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,chunkId:cid,status:'sent'})}); toast(arg+' → sent'); if($('dashView').style.display!=='none') renderDashboard(); return; }
+    if(cmd==='decide'){ openDocWindow('decisions.md'); toast(arg?('Rule "'+arg+'" — use the decisions doc or the mobile Lock flow'):'Opened decisions.md'); return; }
+    if(cmd==='gen'){ if(!arg) return toast('Usage: /gen <intent>'); const fm=await dashFocusModule(); if(!fm) return toast('No focus module to generate against'); if(!await crsConfirm({title:'Generate for '+fm.name+'?',body:'Runs the engine (retrieval → assemble → GUARD → one model call) for the focus module. Intent: '+arg.slice(0,120),confirmLabel:'Generate',danger:false})) return; toast('Generating for '+fm.name+'… (~30s)'); try{ const r=await api('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:fm.id,text:arg})}); openDocOverlayText('Generated prompt · '+fm.name, r.prompt||JSON.stringify(r)); }catch(e){ toast('⚠ '+e.message); } return; }
+  }catch(e){ toast('⚠ '+e.message); }
+}
+// Small read-only text overlay (reuses the html-fullscreen chrome pattern, plain text).
+function openDocOverlayText(title, body){
+  const h=ensureHtmlFull();
+  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(title)}</span><button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
+    <div style="flex:1;overflow:auto;padding:20px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--secondary);white-space:pre-wrap">${esc(body)}</div>`;
+  h.classList.add('show');
+}
 function renderQueue(){
   const el=$('queueStrip'); if(!el) return;
   const q=state.queue||[];
@@ -2848,7 +2983,7 @@ async function openDocWindow(p, opts){
   if(!p) return null;
   p=String(p).replace(/^\.\//,'').replace(/^\/+/,'');
   if(typeof hidePeek==='function') hidePeek();
-  if(isHtml(p) && !opts.editSource){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor)
+  if(isHtml(p) && !opts.editSource && !opts.htmlView){ openHtmlOverlay(p, opts.protoName); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor); htmlView renders in a doc window instead
   const ivSeed=opts.ivImgs&&opts.ivImgs.length ? {imgs:opts.ivImgs.slice(), idx:opts.ivIdx||0} : null;   // chat-gallery: explicit image set + start index
   const dup=dwFind(p); if(dup){ dwFocus(dup); if(ivSeed&&dup.kind==='img'){ dup.ivSeed=ivSeed; ivFill(dup); } return dup; }   // same path already open → focus (re-seed gallery if asked)
   if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window — never one with unsaved edits
@@ -2858,7 +2993,7 @@ async function openDocWindow(p, opts){
   const id=++DW.seq, name=p.split('/').pop();
   const el=document.createElement('div'); el.className='docwin'; el.tabIndex=-1; el.dataset.path=p;
   const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null,
-    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null,ivSeed};
+    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null,ivSeed,htmlView:!!opts.htmlView};
   if(w.kind==='img') el.classList.add('imgwin');   // P9.5: viewer species (same window manager, different body)
   el.innerHTML=dwHeadHtml(w)+'<div class="dp-body"><div class="dp-card"><span class="pk-load">Loading…</span></div></div>';
   document.body.appendChild(el); DW.wins.set(id,w);
@@ -2924,6 +3059,9 @@ function dwWire(w){ const el=w.el;
 async function dwFill(w){
   const p=w.path, name=w.name, raw='/api/raw?path='+encodeURIComponent(p);
   const body=w.el.querySelector('.dp-body'); const show=(h)=>{ body.innerHTML=h; };
+  // Sandboxed html render inside a normal doc window (prototype version
+  // side-by-side view) — same isolation as the fullscreen overlay.
+  if(w.htmlView){ w.kind='htmlview'; return show(`<iframe class="dp-embed" sandbox="allow-scripts" src="${raw}" title="${esc(name)}"></iframe>`); }
   const k=w.kind=dwKind(name);
   if(k==='img') return ivFill(w);   // P9.5 viewer species
   // pdf: NATIVE Chromium viewer — shipped via <iframe> (an <embed> here stayed
@@ -2942,7 +3080,21 @@ async function dwFill(w){
   let content=null; try{ content=await FS.read(p); }catch(e){ return show(`<div class="dp-card">Could not read: ${esc(e.message)}</div>`); }
   w.text=content;
   dwRenderView(w);
+  dwBacklinks(w);   // Program 3 Phase 3: "Referenced by" footer for text/md docs
 }
+// Compute + render a compact backlinks strip for a document window.
+async function dwBacklinks(w){
+  if(w.mode==='edit') return;
+  try{
+    const {links,orphan}=await api('/api/backlinks?ref='+encodeURIComponent(w.path));
+    const body=w.el&&w.el.querySelector('.dp-body'); if(!body||w.htmlView) return;
+    const strip=document.createElement('div'); strip.className='dp-backlinks';
+    if(orphan) strip.innerHTML='<span class="bl-orphan">Orphan — nothing in the brain references this file.</span>';
+    else strip.innerHTML='<span class="bl-h">Referenced by '+links.length+'</span>'+links.slice(0,12).map(l=>`<button class="bl-chip" onclick="dwBacklinkOpen('${jsq(l.from)}')"><span class="bl-k">${esc(l.kind)}</span>${esc(l.from.replace(/^chat:/,'chat ').split('/').pop())}</button>`).join('');
+    body.appendChild(strip);
+  }catch{}
+}
+function dwBacklinkOpen(from){ if(from.startsWith('chat:')) openChat(from.slice(5)); else if(from.startsWith('module:')) openTarget('/entity.html#module='+from.slice(7),{title:'Module'}); else openDocWindow(from); }
 function dwRenderView(w){
   const body=w.el.querySelector('.dp-body'), ext=extOf(w.name), t=w.text==null?'':w.text;
   if(/^(md|markdown)$/.test(ext)) body.innerHTML=`<div class="dp-md md">${renderMd(t)}</div>`;
@@ -3145,6 +3297,41 @@ async function dwDocxFill(w){
 // The tool pages (tree/activity/memory/wishlist/queue) open as DW windows with a
 // same-origin iframe body — full chrome (drag/snap/resize/minimize/chip/Esc),
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
+// Window policy (polish): ONE router decides by target type. App surfaces open
+// full-area with a ← back; files open in their popup window/viewer.
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html'];
+function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
+function openTarget(target, opts){
+  opts=opts||{};
+  if(typeof target==='string' && isSurface(target)) return openSurface(target, opts.title);
+  if(typeof target==='string' && target.startsWith('/')&&isHtml(target)) return openSurface(target, opts.title);   // any served app html surface
+  return openDocWindow(target, opts);   // a repo FILE → popup/viewer
+}
+let surfaceReturn=null;
+function currentViewRestore(){
+  // snapshot which content view is showing so ← back returns exactly there
+  const shown=['chatView','dashView','mapView','bubbleView'].find(id=>{ const el=$(id); return el && el.style.display!=='none'; });
+  if(shown==='dashView') return ()=>showDashboard();
+  if(shown==='mapView') return ()=>showMap();
+  // (kanbanView removed — the map board is a mode of showMap)
+  if(shown==='bubbleView') return ()=>showBubble();
+  if(shown==='chatView') return ()=>ensureChatView();
+  return ()=>showDashboard();
+}
+function openSurface(url, title){
+  if(typeof hidePeek==='function') hidePeek();
+  if($('surfaceView').style.display==='none') surfaceReturn=currentViewRestore();   // remember where we came from (not when already on a surface)
+  bumpView(); state.chatId=null;
+  for(const id of ['chatView','dashView','mapView','bubbleView']) $(id).style.display='none';
+  $('surfaceView').style.display='flex';
+  $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  const name=title||url.split('/').pop().replace(/\.html?$/i,'');
+  $('surfaceTitle').textContent=name; $('centerTitle').textContent=name; markView('');
+  const fr=$('surfaceFrame');
+  if(fr.dataset.url!==url){ fr.src=url; fr.dataset.url=url; }
+  if(innerWidth<=900) mob(null);
+}
+function surfaceBack(){ $('surfaceView').style.display='none'; (surfaceReturn||(()=>showDashboard()))(); surfaceReturn=null; }
 function openPageWindow(url, title){
   if(typeof hidePeek==='function') hidePeek();
   for(const x of DW.wins.values()) if(x.pageUrl===url){ dwFocus(x); return x; }   // already open → focus
@@ -3324,18 +3511,57 @@ function dwLinkClick(w,e){
 // fullscreen sandboxed HTML overlay — scripts run isolated (no same-origin access)
 function ensureHtmlFull(){ let h=$('htmlFull'); if(h) return h;
   h=document.createElement('div'); h.className='htmlfull'; h.id='htmlFull'; document.body.appendChild(h); return h; }
-function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } }
-function openHtmlOverlay(p){
+let protoPoll=null;
+function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } if(protoPoll){ clearInterval(protoPoll); protoPoll=null; } }
+// The fullscreen HTML viewer. With protoName set (prototype studio path) the
+// bar gains prototype chrome (status chip, versions, theme toggle, Snapshot,
+// Mark settled) and the parent polls /api/protos/mtime — the sandboxed iframe
+// (allow-scripts, no same-origin) cannot poll the app itself, so live-reload is
+// parent-driven: mtime change → reset iframe.src with a ?v= cache-buster.
+function openHtmlOverlay(p, protoName){
   hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
-  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>
+  const protoBtns=protoName?`
+    <span class="hf-proto" id="hfProtoMeta">…</span>
+    <button class="hf-pbtn" title="Toggle prototype theme" onclick="protoOverlayTheme()">◐ Theme</button>
+    <button class="hf-pbtn" title="Snapshot the current html into versions/" onclick="protoOverlaySnapshot('${jsq(protoName)}')">⬇ Snapshot</button>
+    <button class="hf-pbtn" title="Freeze this exact html as the settled hash" onclick="protoOverlaySettle('${jsq(protoName)}')">✓ Mark settled</button>`:'';
+  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>${protoBtns}
     <button title="Edit source (html is a Tier-1 text format)" onclick="closeHtmlOverlay();openDocWindow('${jsq(p)}',{editSource:true})">✎</button>
     <button title="Open externally" onclick="apiOpen('${jsq(p)}')">↗</button>
     <button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
-    <iframe sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
+    <iframe id="hfFrame" sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
   h.classList.add('show');
+  if(protoPoll){ clearInterval(protoPoll); protoPoll=null; }
+  if(protoName){
+    let last=0, theme='dark';
+    h.dataset.protoTheme=theme;
+    const tick=async()=>{ try{
+      const m=await api('/api/protos/mtime?name='+encodeURIComponent(protoName));
+      const meta=$('hfProtoMeta');
+      if(meta) meta.innerHTML=`<span class="hf-chip st-${esc(m.status)}">${esc(m.status)}</span> <span style="font-family:var(--mono);font-size:10.5px">v${m.versions}</span>`;
+      if(last && m.mtime!==last){ const f=$('hfFrame'); if(f) f.src='/api/raw?path='+encodeURIComponent(p)+'&v='+m.mtime+(h.dataset.protoTheme==='light'?'&theme=light':''); }
+      last=m.mtime;
+    }catch{} };
+    tick(); protoPoll=setInterval(tick,1000);
+  }
+}
+function protoOverlayTheme(){
+  const h=$('htmlFull'), f=$('hfFrame'); if(!h||!f) return;
+  const next=h.dataset.protoTheme==='light'?'dark':'light';
+  h.dataset.protoTheme=next;
+  // Scaffolded prototypes listen for this; legacy registered html may not.
+  try{ f.contentWindow.postMessage({type:'crs-theme',theme:next},'*'); }catch{}
+}
+async function protoOverlaySnapshot(name){
+  try{ const r=await api('/api/protos/snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}); toast('Snapshot v'+r.v+' saved'); }
+  catch(e){ toast('⚠ '+e.message); }
+}
+async function protoOverlaySettle(name){
+  try{ await api('/api/protos/settle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}); toast('Settled — hash frozen'); }
+  catch(e){ toast('⚠ '+e.message); }
 }
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
-  if(e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
+  if(e.target.closest && e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
   if($('htmlFull')?.classList.contains('show')){ closeHtmlOverlay(); return; }
   if($('propPop')?.classList.contains('show')){ $('propPop').classList.remove('show'); return; }
   if($('settingsWrap')?.classList.contains('show')||$('palWrap')?.classList.contains('show')) return;
@@ -3639,7 +3865,7 @@ function explBuildMenu(target){
   if(target==null){
     const sortSub=sub('Sort by', ['name','date','type','size'].map(k=>mi(k[0].toUpperCase()+k.slice(1)+(EX.sortKey===k?(EX.sortDir>0?'  ▲':'  ▼'):''),'sort:'+k)).join(''));
     const viewSub=sub('View', mi('List'+(EX.view==='list'?'  ✓':''),'view:list')+mi('Grid'+(EX.view==='grid'?'  ✓':''),'view:grid'));
-    return mi('New folder','newfolder',{sh:'⌘N'})+newFileSub+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+sortSub+viewSub;
+    return mi('New folder','newfolder',{sh:'⌘N'})+newFileSub+mi('New prototype','protonew')+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+sortSub+viewSub;
   }
   const node=explVisible().find(n=>n.path===target)||{type:'file'};
   const multi=EX.sel.size>1;
@@ -3654,7 +3880,8 @@ function explBuildMenu(target){
       + (/^(md|txt|json|yml|csv|html|css|js|py)$/.test(kind)?mi('Copy content','copycontent'):'')
       + (kind==='img' && window.ClipboardItem && navigator.clipboard?.write ? mi('Copy image','copyimage'):'');
   if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
-  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
+  const protoItem=/\.html?$/i.test(node.path)?mi('Register as prototype','protoreg',{dis:multi}):'';
+  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+protoItem+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
 }
 async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
 function explSelectPath(p){ EX.sel=new Set([p]); EX.cur=p; renderExpl(); }
@@ -3666,6 +3893,8 @@ async function explAct(act,target){
     else if(act.startsWith('newfile')){ const ext=act.split(':')[1]||'md'; explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path, ext); }
     else if(act.startsWith('sort:')){ explDoSort(act.slice(5)); }
     else if(act.startsWith('view:')){ explSetView(act.slice(5)); }
+    else if(act==='protoreg'){ openTarget('/protos.html#register='+encodeURIComponent(target),{title:'Prototypes'}); }
+    else if(act==='protonew'){ openTarget('/protos.html#new',{title:'Prototypes'}); }
     else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
     else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }
@@ -3919,6 +4148,17 @@ async function loadProgress(){
   box.appendChild(m);
 }
 
+// ---------- Program 3 Phase 5: client error capture ----------
+(function(){
+  let sent=0;
+  function report(message,stack,url){
+    if(sent>50) return; sent++;   // don't flood on a render loop
+    try{ navigator.sendBeacon ? navigator.sendBeacon('/api/client-error', new Blob([JSON.stringify({message,stack,url})],{type:'application/json'}))
+      : fetch('/api/client-error',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message,stack,url}),keepalive:true}); }catch{}
+  }
+  addEventListener('error',e=>{ if(e.message) report(e.message,(e.error&&e.error.stack)||'',location.hash||location.pathname); });
+  addEventListener('unhandledrejection',e=>{ const r=e.reason; report((r&&r.message)||String(r),(r&&r.stack)||'','promise'); });
+})();
 // ---------- input UX ----------
 const inp=$('input');
 inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(inp.scrollHeight,200)+'px';});
@@ -3932,34 +4172,7 @@ inp.addEventListener('paste',(e)=>{ const files=[...(e.clipboardData?.files||[])
   comp.addEventListener('drop',e=>{ const files=[...(e.dataTransfer?.files||[])]; if(files.length) uploadFiles(files); });
 }
 
-// ---------- quick-open palette (Cmd/Ctrl+K) ----------
-let palIdx=0, palItems=[];
-function openPal(){ $('palWrap').classList.add('show'); $('palQ').value=''; palFilter(''); $('palQ').focus(); }
-function closePal(){ $('palWrap').classList.remove('show'); }
-function palFilter(q){
-  q=q.toLowerCase();
-  const files=(state.allFiles||[]).filter(p=>p.toLowerCase().includes(q)).slice(0,10)
-    .map(p=>({kind:'file',label:p,go:()=>{closePal();smartOpen(p);}}));
-  const chats=(state.chatList||[]).filter(c=>(c.title||'').toLowerCase().includes(q)).slice(0,5)
-    .map(c=>({kind:'chat',label:c.title||'Untitled',go:()=>{closePal();openChat(c.id);}}));
-  palItems=[...files,...chats]; palIdx=0; palRender();
-}
-function palRender(){
-  const box=$('palRes');
-  if(!palItems.length){ box.innerHTML='<div class="none">No matches</div>'; return; }
-  box.innerHTML='';
-  palItems.forEach((it,i)=>{ const d=document.createElement('div'); d.className='res'+(i===palIdx?' on':'');
-    d.innerHTML=`${svg(it.kind==='file'?'i-doc-sm':'i-sparkle','sm')} <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(it.label)}</span><span class="k">${it.kind}</span>`;
-    d.onclick=it.go; d.onmousemove=()=>{palIdx=i;palRender();}; box.appendChild(d); });
-}
-$('palQ').addEventListener('input',e=>palFilter(e.target.value));
-$('palQ').addEventListener('keydown',e=>{
-  if(e.key==='ArrowDown'){e.preventDefault();palIdx=Math.min(palItems.length-1,palIdx+1);palRender();}
-  if(e.key==='ArrowUp'){e.preventDefault();palIdx=Math.max(0,palIdx-1);palRender();}
-  if(e.key==='Enter'&&palItems[palIdx])palItems[palIdx].go();
-  if(e.key==='Escape')closePal();
-});
-addEventListener('keydown',e=>{ if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){ e.preventDefault(); openPal(); } });
+// [command palette region → js/palette.js (Phase-5 module split)]
 
 // ---------- account / connection ----------
 // The account card moved from the sidebar into the header chip's popover. loadAuth
@@ -4019,7 +4232,7 @@ async function applyModelSettings(){
 let bubState=null, bubTabName='dataTypes', bubChanged=null;
 async function showBubble(){
   bumpView();
-  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none'; $('kanbanView').style.display='none';
+  $('chatView').style.display='none'; $('dashView').style.display='none'; $('mapView').style.display='none';
   $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
   $('bubbleView').style.display='flex';
   $('centerTitle').textContent='Bubble data'; markView('');
@@ -4189,7 +4402,7 @@ function usageRow(label, w){
     `<div class="sub"><span class="reset">${w.resets_at?fmtReset(w.resets_at):''}</span></div></div>`;
 }
 // header usage chip + popover (usage moved out of the removed right rail)
-function setUsageChip(html, cls){ const el=$('usageChipTxt'); if(el){ el.innerHTML=html; el.classList.remove('dim'); } const chip=$('usageChip'); if(chip){ chip.classList.remove('warn','crit'); if(cls) chip.classList.add(cls); } }
+function setUsageChip(html){ const el=$('usageChipTxt'); if(el){ el.innerHTML=html; el.classList.remove('dim'); } const chip=$('usageChip'); if(chip) chip.classList.remove('warn','crit'); }   // polish: chip never carries severity classes
 function toggleUsagePop(e, force){ if(e&&e.stopPropagation) e.stopPropagation(); const p=$('usagePop'); if(!p) return; const show = force===undefined ? !p.classList.contains('show') : !!force; p.classList.toggle('show', show); if(show){ renderAcctInfo(); loadAuth(); loadUsage(); setTimeout(()=>document.addEventListener('click', closeUsageOnOut),0); } else document.removeEventListener('click', closeUsageOnOut); }
 function closeUsageOnOut(ev){ const p=$('usagePop'), c=$('usageChip'); if(p && !p.contains(ev.target) && c && !c.contains(ev.target)){ p.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } }
 async function loadUsage(){
@@ -4241,7 +4454,7 @@ async function loadUsage(){
   const sessP = d.rate_limits&&d.rate_limits.five_hour ? Math.round(d.rate_limits.five_hour.used_percentage||0) : null;
   const wkP = d.rate_limits&&d.rate_limits.seven_day ? Math.round(d.rate_limits.seven_day.used_percentage||0) : null;
   const maxP = Math.max(sessP||0, wkP||0);
-  setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'), maxP>=90?'crit':maxP>=75?'warn':'');
+  setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'));
   const stamp = d.rate_limits ? (d.rate_limits_at||d.at) : d.at;
   const stampLbl = d.rate_limits ? 'Limits read' : 'Updated';
   box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} ${stampLbl} ${fmtAgo(stamp)}</div>`+
@@ -4286,7 +4499,10 @@ async function bpTrack(){
   if(state.sending) return;
   bumpView();
   bubChanged=null;   // the ingest owns these changes now — clear the Bubble-data banner
-  state.bp=true; state.chatId=null; setTab('buildprint'); showChat();
+  // order matters: setTab()→newChat() (chatView hidden, chatId null) resets state.bp,
+  // so BP mode must be forced AFTER the view swap or follow-ups post bp:false
+  state.chatId=null; setTab('buildprint'); showChat();
+  state.bp=true; reflectMode(); bpStatus();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
   const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
@@ -4308,7 +4524,7 @@ async function bpTrack(){
         else if(ev.type==='error'){ body.classList.add('err'); body.textContent='⚠ '+ev.error; }
       }
     }
-    if(full && !body.classList.contains('err')){ body.innerHTML=renderMd(full); enhanceChatMedia(body); }
+    if(full && !body.classList.contains('err')){ body.innerHTML=renderMd(full); enhanceChatMedia(body); autoLinkEntities(body); }
     loadChats(); loadProgress(); loadFiles();
   }catch(e){ body.classList.add('err'); body.textContent='⚠ '+e.message; }
   finally{ state.sending=false; $('sendBtn').disabled=false; log.scrollTop=log.scrollHeight; }
@@ -4383,7 +4599,7 @@ let SETTINGS=null;
 function themeParam(){ try{ return new URLSearchParams(location.search).get('theme'); }catch{ return null; } }
 try{ document.documentElement.setAttribute('data-theme', themeParam()||localStorage.getItem('crs-theme')||'dark'); }catch{}
 function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{}
-  const d=$('thDark'),l=$('thLight'); if(d&&l){ d.classList.toggle('on',th==='dark'); l.classList.toggle('on',th==='light'); } }
+  const ic=$('themeToggleIcon'); if(ic) ic.setAttribute('href', th==='light'?'#i-moon':'#i-sun'); }
 // Cross-window theme sync: standalone pages (map/tree/wishlist/queue/…) follow via the storage event.
 addEventListener('storage',e=>{ if(e.key==='crs-theme'&&e.newValue) applyTheme(e.newValue); });
 async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)},notifyPrefs:{dnd:false,bannerSec:4,types:{}}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); if(typeof renderBellDnd==='function') renderBellDnd(); return SETTINGS; }
@@ -4475,7 +4691,7 @@ async function notifRowClick(id,target){
     try{ await api('/api/notifications/read',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); }catch{}
   }
   if(target){ $('ninbox').classList.remove('show'); document.removeEventListener('click',closeNotifOut);
-    if(target.startsWith('/')&&isHtml(target)) openPageWindow(target,target.split('/').pop().replace(/\.html?$/i,'')); else openDocWindow(target); }
+    if(target.startsWith('/')&&isHtml(target)) openTarget(target); else openDocWindow(target); }
 }
 function toggleNotif(e){ if(e)e.stopPropagation(); const box=$('ninbox'); const show=!box.classList.contains('show'); box.classList.toggle('show',show); if(show){ renderInbox(); setTimeout(()=>document.addEventListener('click',closeNotifOut),0); } else document.removeEventListener('click',closeNotifOut); }
 function closeNotifOut(ev){ const box=$('ninbox'),b=$('notifBell'); if(box&&!box.contains(ev.target)&&b&&!b.contains(ev.target)){ box.classList.remove('show'); document.removeEventListener('click',closeNotifOut); } }
@@ -4649,8 +4865,9 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showKanban('board'):_v==='list'?showKanban('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
+<script src="js/palette.js"></script>
 </body>
 </html>

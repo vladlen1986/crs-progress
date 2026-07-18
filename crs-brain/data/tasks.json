@@ -1,0 +1,981 @@
+{
+  "tasks": [
+    {
+      "id": "9b23fd99",
+      "title": "Test manual todo",
+      "status": "todo",
+      "created": "2026-07-18T04:46:00.018Z",
+      "notes": "",
+      "link": {
+        "kind": "module",
+        "ref": "user_management"
+      }
+    },
+    {
+      "id": "f36fe3a4",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T04:52:08.176Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T04:52:08.231Z)",
+      "followUp": true,
+      "due": "2026-07-19T04:52:08.176Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "f55a06fb",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T04:58:37.603Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T04:58:39.112Z)",
+      "followUp": true,
+      "due": "2026-07-19T04:58:37.603Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "7fe7eeb4",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T04:58:39.130Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by p2-accept rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "8a068b2a",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T04:58:40.630Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T04:58:41.919Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "19f1b0e8",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T04:58:41.930Z",
+      "notes": "planted fixture (p2 rig) · auto-closed: sync succeeded (2026-07-18T04:58:44.098Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "8155b5c8",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T05:02:23.126Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T05:02:24.444Z)",
+      "followUp": true,
+      "due": "2026-07-19T05:02:23.126Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "fafd4034",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T05:02:24.460Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by p2-accept rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "bf56eda9",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T05:02:25.770Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T05:02:27.113Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "cb7ef39a",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T05:02:27.124Z",
+      "notes": "planted fixture (p2 rig) · auto-closed: sync succeeded (2026-07-18T05:02:29.435Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "79d66f03",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T05:03:11.558Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T05:03:12.938Z)",
+      "followUp": true,
+      "due": "2026-07-19T05:03:11.557Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "2f541896",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T05:03:12.952Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by p2-accept rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "1f1360fd",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T05:03:14.354Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T05:03:15.800Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "48a02202",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T05:03:15.810Z",
+      "notes": "planted fixture (p2 rig) · auto-closed: sync succeeded (2026-07-18T05:03:17.915Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "56acaf0b",
+      "title": "Link the buildprint CLI on this Mac: run `buildprint link <token>` (token: Buildprint web app → Integrations → CLI). Unblocks Phase-4 bridge (--send) + 2 standing ENV-LIMITED QA rows.",
+      "status": "todo",
+      "created": "2026-07-18T05:27:32.491Z",
+      "notes": "Precondition check 2026-07-18: buildprint 4.1.6 installed, `buildprint project list` → Unauthorized. CLI update 4.1.6→4.2.5 also still pending."
+    },
+    {
+      "id": "ba162e1d",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T05:31:03.345Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:18:47.131Z)",
+      "followUp": true,
+      "due": "2026-07-19T05:31:03.345Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "2f0a7aee",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T05:40:38.827Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T05:40:40.205Z)",
+      "followUp": true,
+      "due": "2026-07-19T05:40:38.827Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "9b2a1259",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T05:40:40.220Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "a46aa910",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T05:40:41.629Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T05:40:42.964Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "a879a26b",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T05:40:42.972Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T05:41:13.941Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "8033805e",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T06:23:04.546Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T06:23:05.928Z)",
+      "followUp": true,
+      "due": "2026-07-19T06:23:04.546Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "c9ea1c53",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T06:23:05.942Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "6a7dd257",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T06:23:07.353Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T06:23:08.673Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "a78f6490",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T06:23:08.687Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T06:23:10.841Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "8dcbb081",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T06:42:55.059Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T06:43:46.978Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "63573334",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-18T06:42:55.059Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T06:43:46.978Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
+    },
+    {
+      "id": "dad11e7d",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T06:49:07.852Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "026f1b31",
+      "title": "Run the UM combined audit in Buildprint: copy brain/buildprint/generated/2026-07-18-user_management-read-only-combined-audit-….md into a BP session (TEST branch, read-only), then attach the returned r",
+      "status": "todo",
+      "created": "2026-07-18T06:49:40.396Z",
+      "notes": "P6 copy path — bridge ENV-LIMITED (CLI unauthorized). The ingest applies modules.json + STATUS.md deltas and raises scorecard/[NEG] todos.",
+      "followUp": true,
+      "link": {
+        "kind": "module",
+        "ref": "user_management"
+      }
+    },
+    {
+      "id": "8c3f67b0",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T06:56:54.734Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T06:56:54.827Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
+    },
+    {
+      "id": "60149b64",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T06:59:02.978Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T06:59:20.223Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
+    },
+    {
+      "id": "ca8b6181",
+      "title": "Smoke QA FAIL: p7-fixture-missing-file — brain/qa/__p7_fixture_does_not_exist__.md",
+      "status": "done",
+      "created": "2026-07-18T07:00:13.892Z",
+      "notes": "auto-closed: smoke check green again (2026-07-18T07:00:19.305Z)",
+      "auto": {
+        "key": "smoke:p7-fixture-missing-file"
+      }
+    },
+    {
+      "id": "88749b3f",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T07:45:07.794Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T07:45:09.164Z)",
+      "followUp": true,
+      "due": "2026-07-19T07:45:07.794Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "11c32e55",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T07:45:10.582Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T07:45:12.034Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "bfb810b0",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T07:45:12.049Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T07:45:53.411Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "7125a75b",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T07:46:12.246Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T07:46:13.690Z)",
+      "followUp": true,
+      "due": "2026-07-19T07:46:12.246Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "e1faa47c",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T07:46:13.705Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "2ec778ff",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T07:46:15.118Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T07:46:16.450Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "5316bad2",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T07:46:16.463Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T07:48:29.337Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "9bd79074",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T07:48:37.436Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T07:48:38.823Z)",
+      "followUp": true,
+      "due": "2026-07-19T07:48:37.436Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "b8afc469",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T07:48:38.839Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "cd02f03f",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T07:48:40.246Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T07:48:41.588Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "7eaf0f5a",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T07:48:41.602Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T07:48:43.713Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "9ed6f09e",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T07:53:32.005Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T07:53:43.955Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
+    },
+    {
+      "id": "bd77a453",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T08:22:00.391Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T08:22:01.754Z)",
+      "followUp": true,
+      "due": "2026-07-19T08:22:00.391Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "832bf17c",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T08:22:01.771Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "b949de68",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T08:22:03.180Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T08:22:04.523Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "7a35d6ce",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T08:22:04.538Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T08:22:06.784Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "0dcb178c",
+      "title": "State drift: modules.json says roadmap but STATUS §2 shows 6/7 dimensions ✅ — Casino Settings",
+      "status": "done",
+      "created": "2026-07-18T08:29:14.021Z",
+      "notes": "auto-closed: drift no longer present (2026-07-18T08:29:14.046Z)",
+      "auto": {
+        "key": "state-drift:mod-status:casino_settings"
+      }
+    },
+    {
+      "id": "6d5da975",
+      "title": "Decision needed: Pattern A rollout order & batching",
+      "status": "todo",
+      "created": "2026-07-18T08:44:50.207Z",
+      "notes": "raised by queue intent \"[GUARD PROBE] blocked intent — must fail DECISION-NEEDED\"",
+      "link": {
+        "kind": "decision",
+        "ref": "Pattern A rollout order & batching"
+      },
+      "auto": {
+        "key": "decision:Pattern A rollout order & batching"
+      }
+    },
+    {
+      "id": "bc634ee9",
+      "title": "Await BP report: casino-settings/c2",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c2"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c2"
+      }
+    },
+    {
+      "id": "edf88a67",
+      "title": "Await BP report: casino-settings/c3",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c3"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c3"
+      }
+    },
+    {
+      "id": "a5ab82e3",
+      "title": "Await BP report: casino-settings/c4",
+      "status": "todo",
+      "created": "2026-07-18T08:45:34.762Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T08:45:34.762Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c4"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c4"
+      }
+    },
+    {
+      "id": "8b3fa08a",
+      "title": "Enable Tailscale Serve for the remote command post: open https://login.tailscale.com/f/serve?node=nsJn6BSpk111CNTRL (one click, your tailnet), then run: /Applications/Tailscale.app/Contents/MacOS/Tail",
+      "status": "done",
+      "created": "2026-07-18T09:43:05.011Z",
+      "notes": "P10 tunnel ENV-LIMITED: serve not enabled on the tailnet (account action). Auth gate + mobile command post are live and locally proven."
+    },
+    {
+      "id": "a88436c7",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T10:18:53.604Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:22:07.705Z)",
+      "followUp": true,
+      "due": "2026-07-19T10:18:53.603Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "cfa12b7d",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T10:23:26.209Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:24:25.991Z)",
+      "followUp": true,
+      "due": "2026-07-19T10:23:26.209Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "da00a249",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T10:27:52.673Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T10:32:27.850Z)",
+      "followUp": true,
+      "due": "2026-07-19T10:27:52.673Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "0c8c1d4d",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T10:33:01.288Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T11:12:20.982Z)",
+      "followUp": true,
+      "due": "2026-07-19T10:33:01.288Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "808c1d6f",
+      "title": "Await BP report: buttons/c1",
+      "status": "done",
+      "created": "2026-07-18T10:55:05.485Z",
+      "notes": "auto-closed: chunk is reported (2026-07-18T10:55:06.940Z)",
+      "followUp": true,
+      "due": "2026-07-19T10:55:05.485Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "buttons/c1"
+      },
+      "auto": {
+        "key": "chunk-report:buttons/c1"
+      }
+    },
+    {
+      "id": "1125b335",
+      "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+      "status": "done",
+      "created": "2026-07-18T10:55:06.960Z",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
+      "link": {
+        "kind": "decision",
+        "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      },
+      "auto": {
+        "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "42c0b758",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "done",
+      "created": "2026-07-18T10:55:08.373Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T10:55:09.700Z)",
+      "auto": {
+        "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "a2a0116d",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T10:55:09.719Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T10:55:11.951Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "7f0f85bf",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T11:16:30.000Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T14:19:30.203Z)",
+      "followUp": true,
+      "due": "2026-07-19T11:16:30.000Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "f1849834",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T11:23:28.527Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T11:24:00.363Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "c6408d88",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-18T11:23:28.527Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-18T11:24:00.363Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
+    },
+    {
+      "id": "b7d559f5",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T11:33:08.278Z",
+      "notes": ""
+    },
+    {
+      "id": "4276ab0f",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T11:33:08.337Z",
+      "notes": ""
+    },
+    {
+      "id": "1558254b",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T11:33:51.122Z",
+      "notes": ""
+    },
+    {
+      "id": "b56180e4",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T11:33:51.167Z",
+      "notes": ""
+    },
+    {
+      "id": "7ad6721c",
+      "title": "QA FAIL: CHATV2.3",
+      "status": "done",
+      "created": "2026-07-18T12:29:28.588Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T12:40:00.291Z)",
+      "auto": {
+        "key": "qa:CHATV2.3"
+      }
+    },
+    {
+      "id": "c496c873",
+      "title": "Smoke QA FAIL: checklist-parse-sane — 165 rows",
+      "status": "todo",
+      "created": "2026-07-18T12:45:57.488Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:checklist-parse-sane"
+      }
+    },
+    {
+      "id": "bd9493bf",
+      "title": "QA FAIL: ENTITY.3",
+      "status": "done",
+      "created": "2026-07-18T13:14:44.409Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T13:20:01.410Z)",
+      "auto": {
+        "key": "qa:ENTITY.3"
+      }
+    },
+    {
+      "id": "d143d415",
+      "title": "QA FAIL: ENTITY.5",
+      "status": "done",
+      "created": "2026-07-18T13:14:44.409Z",
+      "notes": "auto-closed: row now PASS (2026-07-18T13:20:01.410Z)",
+      "auto": {
+        "key": "qa:ENTITY.5"
+      }
+    },
+    {
+      "id": "27ee366d",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T14:04:51.589Z",
+      "notes": ""
+    },
+    {
+      "id": "8f5ddeff",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T14:04:51.639Z",
+      "notes": ""
+    },
+    {
+      "id": "ca47a988",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T14:08:21.085Z",
+      "notes": ""
+    },
+    {
+      "id": "d2e0566c",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T14:08:21.131Z",
+      "notes": ""
+    },
+    {
+      "id": "60aa80ea",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T14:20:20.231Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T14:55:38.267Z)",
+      "followUp": true,
+      "due": "2026-07-19T14:20:20.231Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "b7c2b5ab",
+      "title": "Await BP report: chatv2probe/c1",
+      "status": "todo",
+      "created": "2026-07-18T14:25:18.763Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T14:25:18.763Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "chatv2probe/c1"
+      },
+      "auto": {
+        "key": "chunk-report:chatv2probe/c1"
+      }
+    },
+    {
+      "id": "b1fea3ad",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T14:55:45.300Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T14:56:44.481Z)",
+      "followUp": true,
+      "due": "2026-07-19T14:55:45.299Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "8397bfbe",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "done",
+      "created": "2026-07-18T14:57:39.688Z",
+      "notes": "auto-closed: chunk is verified (2026-07-18T14:58:38.864Z)",
+      "followUp": true,
+      "due": "2026-07-19T14:57:39.688Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    },
+    {
+      "id": "5a101153",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "todo",
+      "created": "2026-07-18T15:00:19.855Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T15:00:19.855Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
+    }
+  ]
+}

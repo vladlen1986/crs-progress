@@ -1,0 +1,18 @@
+{
+  "name": "studio-sample",
+  "module": "user_management",
+  "status": "settled",
+  "settledHash": "3bcca213cef6467fd5734abea83e893910e36360e82b7bcfa1f1e75d5d28eff4",
+  "created": "2026-07-18T05:10:14.243Z",
+  "notes": [
+    "scaffolded (template: cards)",
+    "2026-07-18T05:10:14.283Z — settled @ 3bcca213cef6"
+  ],
+  "versions": [
+    {
+      "v": 1,
+      "note": "first snap",
+      "ts": "2026-07-18T05:13:39.442Z"
+    }
+  ]
+}

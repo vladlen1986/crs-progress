@@ -149,6 +149,195 @@ function memoryForPrompt() {
   return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
 }
 function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+// ---- Program 3 Phase 3: entity aggregation + backlinks ----------------------
+// Everything the brain knows about one module, aggregated from every store, each
+// section carrying a source ref. moduleDetail() is the backbone; this adds the
+// cross-store links (decisions, prompts, chunks+reports, todos, feedback, checklist).
+function moduleEntity(modId) {
+  const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+  if (!mod) return null;
+  const detail = moduleDetail(mod);
+  const nameLc = (mod.name || '').toLowerCase();
+  const idLc = modId.toLowerCase();
+  const hits = (s) => { s = (s || '').toLowerCase(); return s.includes(nameLc) || s.includes(idLc) || s.includes(idLc.replace(/_/g, ' ')); };
+  // Decisions (open stubs + dated locked entries) that mention the module.
+  const decisions = [];
+  try {
+    const dec = fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8');
+    for (const block of dec.split(/^## /m)) {
+      const title = block.split('\n')[0].trim();
+      if (!title) continue;
+      if (hits(block)) decisions.push({ title, open: /^\[OPEN\]/.test(title), ref: 'decisions.md' });
+    }
+  } catch {}
+  // Prompts generated for it.
+  const prompts = [];
+  try {
+    const gdir = path.join(REPO_ROOT, 'brain', 'buildprint', 'generated');
+    for (const f of fs.readdirSync(gdir)) {
+      if (!f.endsWith('.md')) continue;
+      if (f.toLowerCase().includes(idLc) || f.toLowerCase().includes(idLc.replace(/_/g, '-'))) prompts.push({ label: f.replace(/\.md$/, ''), ref: 'brain/buildprint/generated/' + f });
+    }
+  } catch {}
+  // Chunks + reports from prototypes whose proto.json module === this module.
+  const chunks = [];
+  try {
+    for (const name of fs.readdirSync(PROTOS_DIR)) {
+      let pj; try { pj = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8')); } catch { continue; }
+      if (pj.module !== modId) continue;
+      let plan; try { plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); } catch { plan = { chunks: [] }; }
+      for (const c of plan.chunks || []) {
+        const rep = 'prototypes/' + name + '/chunks/' + c.id + '-report.md';
+        chunks.push({ proto: name, id: c.id, title: c.title, status: c.status, ref: 'prototypes/' + name + '/chunks/' + c.id + '-prompt.md', report: fs.existsSync(path.join(REPO_ROOT, rep)) ? rep : null });
+      }
+    }
+  } catch {}
+  // Linked todos.
+  const todos = loadTasks().filter((t) => t.status !== 'done' && ((t.link && t.link.kind === 'module' && t.link.ref === modId) || hits(t.title)));
+  // Feedback (wishlist items mentioning it).
+  const feedback = [];
+  try { for (const it of (loadWishlist().items || [])) if (hits(it.title + ' ' + (it.detail || ''))) feedback.push({ title: it.title, status: it.status, ref: 'wishlist' }); } catch {}
+  // Checklist rows referencing it.
+  const checklist = [];
+  try {
+    for (const l of fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8').split('\n')) {
+      const m = l.match(/^\|\s*([A-Za-z0-9][^|]*?)\s*\|/);
+      if (m && !/^id$/i.test(m[1]) && hits(l)) checklist.push({ id: m[1], ref: 'brain/qa/master-checklist.md' });
+    }
+  } catch {}
+  return { module: mod, detail, decisions, prompts, chunks, todos: todos.map((t) => ({ id: t.id, title: t.title, status: t.status })), feedback, checklist };
+}
+
+// Backlinks index: which docs / chat messages / reports reference a given path or
+// entity name. mtime-gated cache. Orphan = zero inbound references.
+const BACKLINK_CACHE = { map: null, stamp: 0 };
+function backlinkStamp() {
+  // cheap: mtimes of the doc roots + chats dir + prototypes
+  let s = 0;
+  for (const p of [path.join(REPO_ROOT, 'decisions.md'), path.join(REPO_ROOT, 'CLAUDE.md'), CHATS_DIR, PROTOS_DIR, path.join(REPO_ROOT, 'brain')]) s += searchStamp(p);
+  return s;
+}
+function buildBacklinkMap() {
+  const st = backlinkStamp();
+  if (BACKLINK_CACHE.map && st === BACKLINK_CACHE.stamp) return BACKLINK_CACHE.map;
+  const map = {};   // target (lowercased path or entity) → [{from, kind}]
+  const modNames = (loadModulesDoc().modules || []).map((m) => ({ id: m.id, name: m.name }));
+  const addRef = (target, from, kind) => { const t = target.toLowerCase(); (map[t] = map[t] || []).push({ from, kind }); };
+  const scan = (text, from, kind) => {
+    if (!text) return;
+    // explicit repo paths in backticks or md links
+    for (const m of text.matchAll(/`([a-zA-Z0-9_./-]+\.[a-z]{2,5})`|\]\(([a-zA-Z0-9_./-]+\.[a-z]{2,5})\)/g)) addRef(m[1] || m[2], from, kind);
+    for (const m of text.matchAll(/prototypes\/[a-z0-9_-]+/gi)) addRef(m[0], from, kind);
+    // module names (word-boundary, ≥4 chars to avoid noise)
+    for (const mod of modNames) if (mod.name.length >= 4 && new RegExp('\\b' + mod.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b').test(text)) addRef('module:' + mod.id, from, kind);
+  };
+  // docs
+  const docRoots = ['decisions.md', 'CLAUDE.md', 'brain/STATUS.md', 'brain/INDEX.md'];
+  for (const d of docRoots) { try { scan(fs.readFileSync(path.join(REPO_ROOT, d), 'utf8'), d, 'doc'); } catch {} }
+  try { for (const f of fs.readdirSync(path.join(REPO_ROOT, 'brain', 'modules'))) scan(fs.readFileSync(path.join(REPO_ROOT, 'brain', 'modules', f), 'utf8'), 'brain/modules/' + f, 'doc'); } catch {}
+  // chat messages
+  try {
+    for (const f of fs.readdirSync(CHATS_DIR)) {
+      if (!f.endsWith('.json')) continue;
+      let c; try { c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8')); } catch { continue; }
+      const txt = (c.messages || []).map((m) => m.content || '').join('\n');
+      scan(txt, 'chat:' + c.id, 'chat');
+    }
+  } catch {}
+  // chunk reports
+  try {
+    for (const name of fs.readdirSync(PROTOS_DIR)) {
+      const cdir = path.join(PROTOS_DIR, name, 'chunks');
+      try { for (const f of fs.readdirSync(cdir)) if (/-report\.md$/.test(f)) scan(fs.readFileSync(path.join(cdir, f), 'utf8'), 'prototypes/' + name + '/chunks/' + f, 'report'); } catch {}
+    }
+  } catch {}
+  BACKLINK_CACHE.map = map; BACKLINK_CACHE.stamp = st;
+  return map;
+}
+function backlinksFor(ref) {
+  const map = buildBacklinkMap();
+  return (map[(ref || '').toLowerCase()] || []);
+}
+
+// ---- Program 3 Phase 2: global search index (⌘K palette backing) ------------
+// Zero-dep, mtime-gated cache — the index rebuilds only the stores whose backing
+// file changed, so an edit shows up within seconds without a file-watcher.
+const SEARCH_CACHE = { entries: [], stamps: {} };
+function searchStamp(p) { try { return fs.statSync(p).mtimeMs; } catch { return 0; } }
+function buildSearchIndex() {
+  // Cheap change-detection: hash the mtimes of the store roots; rebuild on any change.
+  const roots = {
+    chats: CHATS_DIR, tasks: TASKS_FILE, modules: MODULES_FILE, wishlist: path.join(DATA_DIR, 'wishlist.json'),
+    decisions: path.join(REPO_ROOT, 'decisions.md'), checklist: path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'),
+    prompts: path.join(REPO_ROOT, 'brain', 'buildprint', 'generated'), protos: PROTOS_DIR,
+  };
+  const stamps = {};
+  for (const [k, p] of Object.entries(roots)) stamps[k] = searchStamp(p);
+  if (JSON.stringify(stamps) === JSON.stringify(SEARCH_CACHE.stamps) && SEARCH_CACHE.entries.length) return SEARCH_CACHE.entries;
+  const E = [];
+  const add = (kind, label, ref, text) => E.push({ kind, label: String(label).slice(0, 140), ref, text: (label + ' ' + (text || '')).toLowerCase() });
+  try { for (const c of listChats()) add('chat', c.title || 'Untitled', c.id, ''); } catch {}
+  try { for (const t of loadTasks()) if (t.status !== 'done') add('todo', t.title, t.id, t.notes || ''); } catch {}
+  try { for (const m of (loadModulesDoc().modules || [])) add('module', m.name, m.id, m.section + ' ' + (m.note || '')); } catch {}
+  try { for (const it of (loadWishlist().items || [])) add('wishlist', it.title, it.id, it.detail || ''); } catch {}
+  try {
+    const dec = fs.readFileSync(roots.decisions, 'utf8');
+    for (const m of dec.matchAll(/^## (\[OPEN\] )?(.+)$/gm)) add('decision', m[2].trim(), m[2].trim(), m[1] ? 'open' : 'locked');
+  } catch {}
+  try {
+    for (const l of fs.readFileSync(roots.checklist, 'utf8').split('\n')) {
+      const m = l.match(/^\|\s*([A-Za-z0-9][^|]*?)\s*\|\s*([^|]*?)\s*\|\s*([^|]*)/);
+      if (m && !/^id$/i.test(m[1]) && !/^[-\s:]+$/.test(m[1])) add('checklist', m[1], m[1], m[3]);
+    }
+  } catch {}
+  try { for (const f of fs.readdirSync(roots.prompts)) if (f.endsWith('.md')) add('prompt', f.replace(/\.md$/, ''), 'brain/buildprint/generated/' + f, ''); } catch {}
+  try {
+    for (const name of fs.readdirSync(roots.protos)) {
+      const cdir = path.join(roots.protos, name, 'chunks');
+      try { for (const f of fs.readdirSync(cdir)) if (/-report\.md$/.test(f)) add('report', name + '/' + f.replace(/-report\.md$/, ''), 'prototypes/' + name + '/chunks/' + f, ''); } catch {}
+    }
+  } catch {}
+  SEARCH_CACHE.entries = E; SEARCH_CACHE.stamps = stamps;
+  return E;
+}
+// Rank: exact-prefix > word-prefix > substring; shorter labels first within a tier.
+function searchQuery(q) {
+  q = (q || '').toLowerCase().trim();
+  const E = buildSearchIndex();
+  if (!q) return [];
+  const scored = [];
+  for (const e of E) {
+    const lab = e.label.toLowerCase();
+    let score = -1;
+    if (lab.startsWith(q)) score = 0;
+    else if (new RegExp('\\b' + q.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).test(e.text)) score = 1;
+    else if (e.text.includes(q)) score = 2;
+    if (score >= 0) scored.push({ ...e, score, tie: e.label.length });
+  }
+  scored.sort((a, b) => a.score - b.score || a.tie - b.tie);
+  return scored.slice(0, 40).map(({ kind, label, ref }) => ({ kind, label, ref }));
+}
+
+// Chat v2 (Program 3): a compact focus-module brief injected at session start when
+// a chat opts in (chat.focusModule). Groundedness without bloat — the FULL engine
+// bundle (~96KB) is reserved for /gen through the engine; the chat gets a brief.
+function focusModuleBrief(modId) {
+  try {
+    const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+    if (!mod) return '';
+    const done = (mod.checklist || []).filter((c) => c.state === 'done').length;
+    const total = (mod.checklist || []).length;
+    const open = (mod.checklist || []).filter((c) => c.state !== 'done').map((c) => c.label).slice(0, 6);
+    const decisions = openDecisionTitles().filter((t) => t.toLowerCase().includes((mod.name || '').toLowerCase()) || t.toLowerCase().includes(modId));
+    return ['=== FOCUS MODULE CONTEXT (brain-injected) ===',
+      'Module: ' + mod.name + ' (' + mod.section + ') — status ' + mod.status + ' — ' + done + '/' + total + ' DoD done.',
+      mod.note ? 'Note: ' + mod.note.slice(0, 300) : '',
+      open.length ? "What's left: " + open.join('; ') : '',
+      decisions.length ? 'Open decisions touching it: ' + decisions.join(' · ') : '',
+      'Conventions: follow CLAUDE.md (Pattern A company+property on every business DT; design tokens; no fabrication). Use `brain gen` / the engine for Buildprint prompts — never freelance a prompt.',
+      '=== END FOCUS CONTEXT ==='].filter(Boolean).join('\n');
+  } catch { return ''; }
+}
 function looksLikeSecret(s) { return /\b(bp_[A-Za-z0-9]{6,}|sk-[A-Za-z0-9]{10,})\b|\b(password|passwd|secret|api[_-]?key|token)\b\s*[:=]\s*\S+/i.test(s || ''); }
 // Add compiled entries; dedup by (category + normalized title) → update in place.
 function addMemories(entries) {
@@ -184,7 +373,7 @@ async function compileMemory(userText) {
       'Each item: {"category": one of ' + MEMORY_CATEGORIES.join('|') + ', "title": "a <=8-word label", "fact": "one or two self-contained specific sentences"}. ' +
       'Category guide: Preferences = how the user wants things done; Product = CRS facts/scope; Decisions = choices made; Technical = implementation details; Workflow = process/tooling; People = person facts; Reminders = time-bound notes. ' +
       'If the note truly contains nothing durable to remember, output [].\n\nNOTE:\n<<<\n' + (userText || '') + '\n>>>';
-    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir() });
+    const res = await runClaudeStream(instruction, null, {}, { model: cfg.model, effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'memory' });
     const txt = (res.text || '').trim();
     const match = txt.match(/\[[\s\S]*\]/);
     if (!match) return [];
@@ -359,6 +548,538 @@ function addNotification(n) {
   maybeEmailNotification(rec);
   return rec;
 }
+// ---- prototypes: design-prototype lifecycle (draft → settled → built) --------
+// prototypes/<name>/<name>.html + proto.json {name, module, status, settledHash,
+// created, notes[]}. Chunks generate ONLY from a settled hash; editing a settled
+// (or built) file auto-reverts it to draft with a warning — every read path runs
+// the drift check, so the freeze holds no matter which editor touched the file.
+const PROTOS_DIR = path.join(REPO_ROOT, 'prototypes');
+try { fs.mkdirSync(PROTOS_DIR, { recursive: true }); } catch {}
+const PROTO_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,63}$/;
+const PROTO_STATUSES = ['draft', 'settled', 'built'];
+function protoDir(name) { return path.join(PROTOS_DIR, name); }
+function protoHtmlPath(name) { return path.join(protoDir(name), name + '.html'); }
+function protoHtmlRel(name) { return 'prototypes/' + name + '/' + name + '.html'; }
+function protoJsonPath(name) { return path.join(protoDir(name), 'proto.json'); }
+// Hash the exact file bytes — no newline normalization, so the settled hash is
+// byte-truth (matches the engine's byte-identical bundle discipline).
+function protoHash(name) {
+  return crypto.createHash('sha256').update(fs.readFileSync(protoHtmlPath(name))).digest('hex');
+}
+function loadProto(name) {
+  const j = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8'));
+  j.name = name;
+  if (!PROTO_STATUSES.includes(j.status)) j.status = 'draft';
+  if (!Array.isArray(j.notes)) j.notes = j.notes ? [String(j.notes)] : [];
+  return j;
+}
+function saveProto(name, j) { fs.writeFileSync(protoJsonPath(name), JSON.stringify(j, null, 2)); }
+// Settled-integrity: settled/built html whose bytes no longer match the frozen
+// hash reverts to draft. Reports drift, keeps settledHash for the audit trail.
+function protoDriftCheck(name, j) {
+  if (j.status !== 'settled' && j.status !== 'built') return j;
+  let cur = null;
+  try { cur = protoHash(name); } catch { cur = null; }   // missing html = drift too
+  if (cur === j.settledHash) return j;
+  const was = j.status;
+  j.status = 'draft';
+  j.notes.push(nowIso() + ' — reverted ' + was + ' → draft: html changed after settle (hash mismatch)');
+  saveProto(name, j);
+  addNotification({
+    type: 'warning', level: 'warning', title: 'Prototype reverted to draft',
+    body: name + ': the html was edited after "' + was + '" — re-settle before chunking.',
+    target: protoHtmlRel(name),
+  });
+  return j;
+}
+function listProtos() {
+  let names = [];
+  try { names = fs.readdirSync(PROTOS_DIR).filter((n) => { try { return fs.existsSync(protoJsonPath(n)); } catch { return false; } }); } catch {}
+  const out = [];
+  for (const name of names.sort()) {
+    let j;
+    try { j = protoDriftCheck(name, loadProto(name)); } catch { continue; }
+    const dir = protoDir(name);
+    const plan = (() => { try { return JSON.parse(fs.readFileSync(path.join(dir, 'build-plan.json'), 'utf8')); } catch { return null; } })();
+    const chunks = plan && Array.isArray(plan.chunks) ? plan.chunks : [];
+    out.push({
+      ...j, html: protoHtmlRel(name),
+      mappingExists: fs.existsSync(path.join(dir, 'mapping.md')),
+      planExists: !!plan,
+      chunkCounts: chunks.length ? {
+        total: chunks.length,
+        sent: chunks.filter((c) => c.status === 'sent').length,
+        reported: chunks.filter((c) => c.status === 'reported').length,
+        verified: chunks.filter((c) => c.status === 'verified').length,
+        failed: chunks.filter((c) => c.status === 'failed').length,
+      } : null,
+    });
+  }
+  return out;
+}
+
+// ---- tasks: chief-of-staff todos & follow-ups --------------------------------
+// data/tasks.json — the dashboard's task store. Manual todos + AUTO items the
+// reconciler derives from other state files (chunk plans, decisions.md [OPEN]
+// stubs, master-checklist rows, sync stamps). Auto items close THEMSELVES when
+// their source resolves; they are marked done with a note, never deleted.
+const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const TASK_STATUSES = ['todo', 'doing', 'blocked', 'done'];
+const TASK_LINK_KINDS = ['module', 'prototype', 'chunk', 'decision', 'wishlist'];
+function loadTasks() {
+  try { const j = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf8')); return Array.isArray(j.tasks) ? j.tasks : []; }
+  catch { return []; }
+}
+function saveTasks(tasks) { fs.writeFileSync(TASKS_FILE, JSON.stringify({ tasks }, null, 2)); }
+function makeTask(fields) {
+  return { id: crypto.randomUUID().slice(0, 8), title: '', status: 'todo', created: nowIso(), notes: '', ...fields };
+}
+// Create-or-keep an auto task (idempotent by auto.key); returns true if created.
+function ensureAutoTask(tasks, key, fields) {
+  if (tasks.some((t) => t.auto && t.auto.key === key && t.status !== 'done')) return false;
+  tasks.push(makeTask({ ...fields, auto: { key } }));
+  return true;
+}
+function closeAutoTask(tasks, key, reason) {
+  let changed = false;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key === key && t.status !== 'done') {
+      t.status = 'done';
+      t.notes = (t.notes ? t.notes + ' · ' : '') + 'auto-closed: ' + reason + ' (' + nowIso() + ')';
+      changed = true;
+    }
+  }
+  return changed;
+}
+function openDecisionTitles() {
+  try {
+    return fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8').split(/^## /m)
+      .filter((b) => b.startsWith('[OPEN]')).map((b) => b.slice(6).split('\n')[0].trim());
+  } catch { return []; }
+}
+// First-status-cell parse of master-checklist rows (evidence cells embed literal
+// status words — only the dedicated column counts).
+function checklistRows() {
+  // Append-only table with pipes inside evidence cells → naive parses over-count.
+  // Method (matches the c2/c3 audit): per data line, id = first cell, status =
+  // the FIRST cell that is exactly a status token (the status column precedes
+  // evidence); duplicate ids (superseded rows) → the LAST occurrence wins.
+  const STATUSES = new Set(['UNTESTED', 'PASS', 'FAIL', 'BLOCKED', 'N-A', 'ENV-LIMITED', 'QUARANTINE']);
+  const byId = new Map();
+  try {
+    const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8');
+    for (const line of md.split('\n')) {
+      if (!line.startsWith('|')) continue;
+      const cells = line.split('|').map((c) => c.trim());
+      const id = cells[1];
+      if (!id || /^id$/i.test(id) || /^[-\s:]+$/.test(id)) continue;
+      const status = cells.slice(2).find((c) => STATUSES.has(c));
+      if (status) byId.set(id, status);
+    }
+  } catch {}
+  return [...byId.entries()].map(([id, status]) => ({ id, status }));
+}
+// The reconciler — deterministic over the state files; runs on every GET /api/tasks.
+function reconcileAutoTasks() {
+  const tasks = loadTasks();
+  let changed = false;
+  // (a) chunk follow-ups: sent chunks await a BP report.
+  let protoNames = [];
+  try { protoNames = fs.readdirSync(PROTOS_DIR).filter((n) => fs.existsSync(path.join(PROTOS_DIR, n, 'build-plan.json'))); } catch {}
+  for (const name of protoNames) {
+    let plan;
+    try { plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); } catch { continue; }
+    for (const c of plan.chunks || []) {
+      const key = 'chunk-report:' + name + '/' + c.id;
+      if (c.status === 'sent') {
+        changed = ensureAutoTask(tasks, key, {
+          title: 'Await BP report: ' + name + '/' + c.id, followUp: true,
+          due: new Date(Date.now() + 86400000).toISOString(),
+          link: { kind: 'chunk', ref: name + '/' + c.id },
+        }) || changed;
+      } else {
+        changed = closeAutoTask(tasks, key, 'chunk is ' + c.status) || changed;
+      }
+    }
+  }
+  // (b) decision todos close when the [OPEN] stub is gone (= resolved/locked).
+  const open = new Set(openDecisionTitles());
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('decision:') && t.status !== 'done') {
+      const title = t.auto.key.slice(9);
+      if (!open.has(title)) changed = closeAutoTask(tasks, t.auto.key, 'decision resolved in decisions.md') || changed;
+    }
+  }
+  // (c) checklist FAIL/QUARANTINE rows.
+  for (const row of checklistRows()) {
+    const key = 'qa:' + row.id;
+    if (row.status === 'FAIL' || row.status === 'QUARANTINE') {
+      changed = ensureAutoTask(tasks, key, { title: 'QA ' + row.status + ': ' + row.id }) || changed;
+    } else {
+      changed = closeAutoTask(tasks, key, 'row now ' + row.status) || changed;
+    }
+  }
+  // (d) sync failures: a sync-failed notification newer than the source's
+  // success stamp means the last run failed.
+  const st = loadState();
+  const stamps = { forum: st.forumCheckedAt || 0, 'release-notes': st.relnotesCheckedAt || 0, issue: st.issueCheckedAt || 0 };
+  const lastFail = {};
+  for (const n of readNotifications()) {
+    if (n.type !== 'sync-failed') continue;
+    const src = /forum/i.test(n.title) ? 'forum' : /release/i.test(n.title) ? 'release-notes' : /issue/i.test(n.title) ? 'issue' : 'other';
+    const ts = Date.parse(n.ts) || 0;
+    if (!lastFail[src] || ts > lastFail[src].ts) lastFail[src] = { ts, body: n.body };
+  }
+  for (const src of Object.keys(stamps)) {
+    const key = 'sync:' + src;
+    if (lastFail[src] && lastFail[src].ts > stamps[src]) {
+      changed = ensureAutoTask(tasks, key, { title: 'Sync failing: ' + src, notes: String(lastFail[src].body || '').slice(0, 200) }) || changed;
+    } else {
+      changed = closeAutoTask(tasks, key, 'sync succeeded') || changed;
+    }
+  }
+  // (e) due follow-ups fire one notification each.
+  for (const t of tasks) {
+    if (t.status !== 'done' && t.due && !t.notifiedDue && Date.parse(t.due) <= Date.now()) {
+      addNotification({ type: 'follow-up-due', level: 'warning', title: 'Follow-up due: ' + t.title, body: t.notes || '' });
+      t.notifiedDue = nowIso();
+      changed = true;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  return tasks;
+}
+
+// ---- P7: state self-audit + weekly digest + smoke QA -------------------------
+// All three are READ-ONLY over app state: they report drift, write digests/logs/
+// todos/notifications, and never reconcile or auto-fix anything.
+const DIGESTS_DIR = path.join(REPO_ROOT, 'brain', 'digests');
+const SMOKE_SUBSET_FILE = path.join(REPO_ROOT, 'brain', 'qa', 'smoke-subset.json');
+const SMOKE_LOG_FILE = path.join(DATA_DIR, 'smoke-qa-log.jsonl');
+
+// STATUS.md §2 per-module dimension cells (7 emoji columns). Conservative use.
+function statusSection2Map() {
+  const out = {};
+  try {
+    const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'STATUS.md'), 'utf8');
+    const sec = md.split(/^## /m).find((b) => b.startsWith('2.')) || '';
+    for (const line of sec.split('\n')) {
+      const m = line.match(/^\|\s*([^|]+?)\s*\|(.*)\|$/);
+      if (!m || /^Module$|^---/.test(m[1])) continue;
+      const cells = m[2].split('|').map((c) => c.trim());
+      if (cells.length < 7) continue;
+      out[m[1].toLowerCase()] = cells.slice(0, 7);
+    }
+  } catch {}
+  return out;
+}
+// The daily cross-check: modules.json ↔ STATUS §2 ↔ build plans ↔ open todos'
+// links ↔ prototype hashes. Reports only — a finding becomes a `state-drift:`
+// auto todo (What's-wrong row) + one warning notification with the count.
+function runStateAudit() {
+  const findings = [];
+  const mods = loadModulesDoc().modules || [];
+  const modIds = new Set(mods.map((m) => m.id));
+  const st2 = statusSection2Map();
+  for (const m of mods) {
+    const row = st2[(m.name || '').toLowerCase()];
+    if (!row) continue;
+    const reds = row.filter((c) => c.includes('🔴')).length;
+    const greens = row.filter((c) => c.includes('✅')).length;
+    if (m.status === 'done' && reds >= 2) findings.push({ key: 'mod-status:' + m.id, msg: 'modules.json says DONE but STATUS §2 shows ' + reds + '/7 dimensions 🔴 — ' + m.name });
+    if ((m.status === 'roadmap' || m.status === 'not-started') && greens >= 5) findings.push({ key: 'mod-status:' + m.id, msg: 'modules.json says ' + m.status + ' but STATUS §2 shows ' + greens + '/7 dimensions ✅ — ' + m.name });
+  }
+  const tasks = loadTasks();
+  let protoNames = [];
+  try { protoNames = fs.readdirSync(PROTOS_DIR).filter((n) => fs.existsSync(protoJsonPath(n))); } catch {}
+  const planChunks = {};
+  for (const name of protoNames) {
+    try {
+      const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8'));
+      planChunks[name] = new Map((plan.chunks || []).map((c) => [c.id, c.status]));
+      for (const [cid, cst] of planChunks[name]) {
+        if (cst === 'verified' && tasks.some((t) => t.auto && t.auto.key === 'chunk-report:' + name + '/' + cid && t.status !== 'done')) {
+          findings.push({ key: 'chunk-todo:' + name + '/' + cid, msg: 'chunk ' + name + '/' + cid + ' is verified but its await-report todo is still open' });
+        }
+      }
+      // (d) settled/built hash integrity — RAW read (the audit never mutates;
+      // protoDriftCheck would auto-revert, which is the read-path's job).
+      const j = JSON.parse(fs.readFileSync(protoJsonPath(name), 'utf8'));
+      if ((j.status === 'settled' || j.status === 'built') && j.settledHash) {
+        const cur = crypto.createHash('sha256').update(fs.readFileSync(path.join(PROTOS_DIR, name, name + '.html'))).digest('hex');
+        if (cur !== j.settledHash) findings.push({ key: 'proto-hash:' + name, msg: 'prototype ' + name + ' is ' + j.status + ' but its html no longer matches the settled hash' });
+      }
+    } catch {}
+  }
+  const openStubs = new Set(openDecisionTitles());
+  let wishlistIds = new Set();
+  try { wishlistIds = new Set((loadWishlist().items || []).map((i) => i.id)); } catch {}
+  for (const t of tasks) {
+    if (t.status === 'done' || !t.link) continue;
+    const { kind, ref } = t.link;
+    let dead = false;
+    if (kind === 'module') dead = !modIds.has(ref);
+    else if (kind === 'prototype') dead = !protoNames.includes(ref);
+    else if (kind === 'chunk') { const [pn, cid] = String(ref).split('/'); dead = !(planChunks[pn] && planChunks[pn].has(cid)); }
+    else if (kind === 'decision') dead = !openStubs.has(ref);
+    else if (kind === 'wishlist') dead = !wishlistIds.has(ref);
+    if (dead) findings.push({ key: 'dead-link:' + t.id, msg: 'open todo "' + t.title.slice(0, 60) + '" links a missing ' + kind + ' (' + String(ref).slice(0, 60) + ')' });
+  }
+  // Raise/close the drift todos (todos + notification are the audit's OUTPUT,
+  // not a reconciliation of the drifted files themselves).
+  let changed = false;
+  const activeKeys = new Set(findings.map((f) => 'state-drift:' + f.key));
+  for (const f of findings) changed = ensureAutoTask(tasks, 'state-drift:' + f.key, { title: 'State drift: ' + f.msg.slice(0, 180) }) || changed;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('state-drift:') && t.status !== 'done' && !activeKeys.has(t.auto.key)) {
+      changed = closeAutoTask(tasks, t.auto.key, 'drift no longer present') || changed;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  if (findings.length) addNotification({ type: 'warning', level: 'warning', title: 'State audit: ' + findings.length + ' mismatch' + (findings.length === 1 ? '' : 'es'), body: findings.slice(0, 3).map((f) => f.msg).join(' · ').slice(0, 900) });
+  saveState({ stateAuditAt: Date.now(), stateAuditFindings: findings.length });
+  return { findings };
+}
+
+// Weekly digest — a real file in brain/digests/YYYY-Www.md, five sections from
+// real data. Decisions have no dates by design → age = first-seen tracking.
+function isoWeekId(d) {
+  const dt = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  dt.setUTCDate(dt.getUTCDate() + 4 - (dt.getUTCDay() || 7));
+  const y = dt.getUTCFullYear();
+  const w = Math.ceil((((dt - Date.UTC(y, 0, 1)) / 86400000) + 1) / 7);
+  return y + '-W' + String(w).padStart(2, '0');
+}
+function latestDigestFile() {
+  try { return fs.readdirSync(DIGESTS_DIR).filter((f) => /^\d{4}-W\d{2}\.md$/.test(f)).sort().pop() || null; } catch { return null; }
+}
+async function runWeeklyDigest() {
+  fs.mkdirSync(DIGESTS_DIR, { recursive: true });
+  const prevFile = latestDigestFile();
+  let prevCounts = null, prevDate = null;
+  if (prevFile) {
+    try {
+      const prev = fs.readFileSync(path.join(DIGESTS_DIR, prevFile), 'utf8');
+      const cm = prev.match(/<!-- counts: (\{.*?\}) -->/);
+      if (cm) prevCounts = JSON.parse(cm[1]);
+      const dm = prev.match(/<!-- generated: ([0-9T:.Z-]+) -->/);
+      if (dm) prevDate = dm[1];
+    } catch {}
+  }
+  const commits = await gitLog(prevDate ? Math.max(1, Math.ceil((Date.now() - Date.parse(prevDate)) / 86400000)) : 7);
+  const byPrefix = {};
+  for (const line of commits.split('\n').filter(Boolean)) {
+    const m = line.match(/\d{4}-\d\d-\d\d\s+([a-z0-9-]+):/i);
+    byPrefix[m ? m[1].toLowerCase() : '(other)'] = (byPrefix[m ? m[1].toLowerCase() : '(other)'] || 0) + 1;
+  }
+  const rows = checklistRows();
+  const counts = {};
+  for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
+  const st = loadState();
+  const seen = { ...(st.decisionFirstSeen || {}) };
+  const stubs = openDecisionTitles();
+  for (const t of stubs) if (!seen[t]) seen[t] = Date.now();
+  for (const k of Object.keys(seen)) if (!stubs.includes(k)) delete seen[k];
+  saveState({ decisionFirstSeen: seen });
+  const tasks = loadTasks().filter((t) => t.status !== 'done');
+  const oldest = [...tasks].sort((a, b) => (a.created || '').localeCompare(b.created || '')).slice(0, 5);
+  const week = isoWeekId(new Date());
+  const trend = (s) => prevCounts ? (counts[s] || 0) - (prevCounts[s] || 0) : null;
+  const L = [];
+  L.push('# CRS weekly digest — ' + week);
+  L.push('');
+  L.push('<!-- generated: ' + nowIso() + ' -->');
+  L.push('<!-- counts: ' + JSON.stringify(counts) + ' -->');
+  L.push('');
+  L.push('## What shipped (commits since ' + (prevDate ? prevDate.slice(0, 10) : 'last 7 days') + ')');
+  const totalCommits = Object.values(byPrefix).reduce((a, b) => a + b, 0);
+  L.push('');
+  L.push(totalCommits + ' commits: ' + Object.entries(byPrefix).sort((a, b) => b[1] - a[1]).map(([k, v]) => k + ' ×' + v).join(' · '));
+  L.push('');
+  L.push('## Checklist trend');
+  L.push('');
+  for (const s of ['PASS', 'FAIL', 'ENV-LIMITED', 'QUARANTINE', 'UNTESTED']) {
+    const d = trend(s);
+    L.push('- ' + s + ': ' + (counts[s] || 0) + (d === null ? ' (no prior week)' : d === 0 ? ' (±0)' : d > 0 ? ' (+' + d + ')' : ' (' + d + ')'));
+  }
+  L.push('');
+  L.push('## Open decisions (age = tracked-since; stubs are undated by design)');
+  L.push('');
+  if (!stubs.length) L.push('(none — nothing blocks generation)');
+  for (const t of stubs) {
+    const days = Math.floor((Date.now() - seen[t]) / 86400000);
+    L.push('- ' + (days > 14 ? '⚠ **OPEN >14d tracked** — ' : '') + t + ' (tracked ' + days + 'd)');
+  }
+  L.push('');
+  L.push('## Sync highlights');
+  L.push('');
+  const stamp = (n, v) => '- ' + n + ': ' + (v ? new Date(v).toISOString().slice(0, 16).replace('T', ' ') : 'never');
+  L.push(stamp('forum digest', st.forumCheckedAt));
+  L.push(stamp('release notes', st.relnotesCheckedAt));
+  L.push(stamp('issue check', st.issueCheckedAt) + (st.issueLastCount ? ' (' + st.issueLastCount + ' found)' : ''));
+  L.push(stamp('state audit', st.stateAuditAt) + (st.stateAuditFindings ? ' — ' + st.stateAuditFindings + ' finding(s)' : ''));
+  L.push(stamp('smoke QA', st.smokeQaAt));
+  L.push('');
+  L.push('## Oldest untouched todos');
+  L.push('');
+  if (!oldest.length) L.push('(no open todos)');
+  for (const t of oldest) L.push('- [' + t.status + '] ' + t.title.slice(0, 100) + ' (since ' + (t.created || '').slice(0, 10) + ')');
+  L.push('');
+  const file = path.join(DIGESTS_DIR, week + '.md');
+  fs.writeFileSync(file, L.join('\n'));
+  saveState({ weeklyDigestAt: Date.now() });
+  addNotification({ type: 'info', level: 'info', title: 'Weekly digest ready — ' + week, body: totalCommits + ' commits · checklist ' + (counts.PASS || 0) + ' PASS · ' + stubs.length + ' open decisions', target: 'brain/digests/' + week + '.md' });
+  autoCommit('weekly digest ' + week);
+  return { file: 'brain/digests/' + week + '.md', week };
+}
+
+// Daily smoke QA — the ~20-row critical subset that is server-runnable
+// (brain/qa/smoke-subset.json). Read-only; failures raise todos + one
+// notification; the FULL loop stays on-demand.
+async function runSmokeQa() {
+  let subset = [];
+  try { subset = JSON.parse(fs.readFileSync(SMOKE_SUBSET_FILE, 'utf8')).checks || []; } catch { return { error: 'smoke-subset.json missing' }; }
+  const results = [];
+  for (const c of subset) {
+    let ok = false, detail = '';
+    try {
+      if (c.kind === 'file') { ok = fs.existsSync(path.join(REPO_ROOT, c.path)); detail = c.path; }
+      else if (c.kind === 'fn') {
+        if (c.fn === 'assemble-determinism') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js'))];
+          const asm = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js'));
+          const a = asm.assemble('casino_settings').sha256, b = asm.assemble('casino_settings').sha256;
+          ok = a === b; detail = a.slice(0, 12);
+        } else if (c.fn === 'guard-blocks') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js'))];
+          const hits = require(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js')).guard('01 Company own-table shape', 'smoke');
+          ok = hits.length > 0; detail = hits.length + ' hit(s)';
+        } else if (c.fn === 'plan-validate') {
+          const eng = freshChunkEngine();
+          eng.loadPlan(c.proto); ok = true; detail = c.proto + ' valid';
+        } else if (c.fn === 'registry-types') {
+          const src = fs.readFileSync(path.join(PUBLIC_DIR, 'notify-registry.js'), 'utf8');
+          const n = (src.match(/^\s*T\(/gm) || []).length;
+          ok = n >= 17; detail = n + ' types';
+        } else if (c.fn === 'sounds-count') {
+          const n = fs.readdirSync(SOUNDS_DIR).filter((f) => f.endsWith('.wav')).length;
+          ok = n === 24; detail = n + ' wavs';
+        } else if (c.fn === 'checklist-parse') {
+          const rows = checklistRows();
+          ok = rows.length >= 100 && !rows.some((r) => r.status === 'UNTESTED');
+          detail = rows.length + ' rows';
+        } else if (c.fn === 'scaffold-markers') {
+          delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js'))];
+          const sc = require(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js'));
+          const html = sc.buildScaffold('smoke', 'blank');
+          ok = sc.extractTokenBlock(html) !== null; detail = 'markers ok';
+        }
+      } else if (c.kind === 'endpoint') {
+        const r = await new Promise((resolve) => {
+          http.get({ host: '127.0.0.1', port: PORT, path: c.path }, (res) => {
+            let body = '';
+            res.on('data', (d) => (body += d));
+            res.on('end', () => resolve({ status: res.statusCode, body }));
+          }).on('error', (e) => resolve({ status: 0, body: String(e.message) }));
+        });
+        ok = r.status === (c.expect || 200) && (!c.contains || r.body.includes(c.contains));
+        detail = 'HTTP ' + r.status;
+      }
+    } catch (e) { ok = false; detail = e.message.slice(0, 120); }
+    results.push({ id: c.id, ok, detail });
+  }
+  const fails = results.filter((r) => !r.ok);
+  try { fs.appendFileSync(SMOKE_LOG_FILE, JSON.stringify({ ts: nowIso(), total: results.length, pass: results.length - fails.length, fail: fails.length, failures: fails }) + '\n'); } catch {}
+  const tasks = loadTasks();
+  let changed = false;
+  for (const f of fails) changed = ensureAutoTask(tasks, 'smoke:' + f.id, { title: 'Smoke QA FAIL: ' + f.id + ' — ' + f.detail.slice(0, 120) }) || changed;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('smoke:') && t.status !== 'done' && !fails.some((f) => 'smoke:' + f.id === t.auto.key)) {
+      changed = closeAutoTask(tasks, t.auto.key, 'smoke check green again') || changed;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  if (fails.length) addNotification({ type: 'warning', level: 'warning', title: 'Smoke QA: ' + fails.length + ' failure(s)', body: fails.map((f) => f.id).join(' · ').slice(0, 900) });
+  saveState({ smokeQaAt: Date.now(), smokeQaFails: fails.length });
+  return { total: results.length, pass: results.length - fails.length, fail: fails.length, results };
+}
+
+// ---- P8: machine-transfer handoff -------------------------------------------
+// Generates the continuation file another machine (or a future session) resumes
+// from — every claim traceable to a file or commit. Commits AND pushes.
+function sh(args, cwd) {
+  return new Promise((resolve) => {
+    const child = spawn(args[0], args.slice(1), { cwd: cwd || REPO_ROOT, windowsHide: true });
+    let out = '', err = '';
+    child.stdout.on('data', (d) => (out += d));
+    child.stderr.on('data', (d) => (err += d));
+    child.on('error', (e) => resolve({ ok: false, out: '', err: String(e.message) }));
+    child.on('close', (code) => resolve({ ok: code === 0, out: out.trim(), err: err.trim() }));
+  });
+}
+async function generateHandoff() {
+  const date = nowIso().slice(0, 10);
+  const log = await sh(['git', 'log', '--oneline', '-8']);
+  const status = await sh(['git', 'status', '--porcelain']);
+  const bpv = await sh(['buildprint', '--version']);
+  const rows = checklistRows();
+  const counts = {};
+  for (const r of rows) counts[r.status] = (counts[r.status] || 0) + 1;
+  const env = rows.filter((r) => r.status === 'ENV-LIMITED').map((r) => r.id);
+  const tasks = loadTasks().filter((t) => t.status !== 'done');
+  let progressHead = '';
+  try { progressHead = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'program-progress.md'), 'utf8').split('## Inherited')[0]; } catch {}
+  const st = loadState();
+  const L = [];
+  L.push('# Handoff — ' + date + ' (generated by brain handoff)');
+  L.push('');
+  L.push('> Resume reading order: brain/qa/program-prompt.md → program-progress.md → program-state.md → master-checklist.md. App: `cd crs-brain && npm install && node server.js` (port 4317). Conventions: CLAUDE.md + crs-brain/BRAIN_APP_PROGRESS.md.');
+  L.push('');
+  L.push('## Position (verbatim head of program-progress.md)');
+  L.push('');
+  L.push(progressHead.trim());
+  L.push('');
+  L.push('## Git');
+  L.push('');
+  L.push('```');
+  L.push(log.out || '(git log unavailable)');
+  L.push('```');
+  L.push('Working tree: ' + (status.out ? status.out.split('\n').length + ' uncommitted path(s):\n```\n' + status.out + '\n```' : 'clean'));
+  L.push('');
+  L.push('## Checklist truth');
+  L.push('');
+  L.push(rows.length + ' rows: ' + Object.entries(counts).map(([k, v]) => k + ' ' + v).join(' · '));
+  L.push('ENV-LIMITED (needs-eyes/auth): ' + (env.join(', ') || 'none'));
+  L.push('');
+  L.push('## Open tasks (' + tasks.length + ')');
+  L.push('');
+  for (const t of tasks.slice(0, 15)) L.push('- [' + t.status + '] ' + t.title.slice(0, 140) + (t.auto ? ' (auto)' : ''));
+  L.push('');
+  L.push('## Environment caveats');
+  L.push('');
+  L.push('- buildprint CLI: ' + (bpv.ok ? bpv.out : 'not found') + ' — link state per BRIDGE.1 (last checked: Unauthorized on this Mac; run `buildprint link <token>` to clear 5 ENV-LIMITED rows).');
+  L.push('- node ' + process.version + ' · platform ' + process.platform + ' · server stamps: audit ' + (st.stateAuditAt || 0) + ' / smoke ' + (st.smokeQaAt || 0) + ' / digest ' + (st.weeklyDigestAt || 0));
+  L.push('- QA rig (puppeteer-core + system Chrome) is machine-local under qa-scratch/rig — rebuild on a new machine; in-session browser panes are render-throttled, never use them for verification.');
+  L.push('- Gitignored per-machine state starts fresh on a new machine: crs-brain/data/state.json, notifications.jsonl(+read), usage.json, smtp.json.');
+  L.push('');
+  const file = path.join(REPO_ROOT, 'brain', 'qa', 'handoff-' + date + '.md');
+  fs.writeFileSync(file, L.join('\n'));
+  const add = await sh(['git', 'add', 'brain/qa']);
+  const commit = await sh(['git', 'commit', '-q', '--no-verify', '-m', 'handoff: ' + date]);
+  const push = await sh(['git', 'push']);
+  return { file: 'brain/qa/handoff-' + date + '.md', committed: commit.ok || /nothing to commit/.test(commit.out + commit.err), pushed: push.ok, pushErr: push.ok ? null : (push.err || push.out).slice(0, 300) };
+}
+
+// Engine modules are re-required per request WITHOUT the require cache — a
+// running server must always execute the current on-disk engine (a stale cached
+// chunk.js silently no-oped an engine fix during Phase-1 acceptance).
+function freshChunkEngine() {
+  for (const rel of [['brain', 'engine', 'chunk.js'], ['brain', 'engine', 'style-inventory.js']]) {
+    try { delete require.cache[require.resolve(path.join(REPO_ROOT, ...rel))]; } catch {}
+  }
+  return require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+}
+
 // Best-effort email: pipes through the local `sendmail` if present. No external
 // deps; silently no-ops when email is off, unconfigured, or sendmail is missing.
 function maybeEmailNotification(rec) {
@@ -550,6 +1271,35 @@ const PIN_PAGE = (wrong) => `<!doctype html><meta name="viewport" content="width
 <div style="color:#6B6B6B;font-size:12px;margin-bottom:14px">${wrong ? 'Wrong PIN — try again' : 'Enter the PIN shown in the Mac terminal'}</div>
 <input name="pin" inputmode="numeric" autofocus style="background:#242424;border:1px solid #333;border-radius:8px;color:#E0E0E0;padding:12px 14px;font-size:18px;text-align:center;letter-spacing:6px;width:170px;outline:none">
 </form></body>`;
+
+// ---- P10: remote bearer/cookie auth (the tunnel is transport, NOT auth) -----
+// Every request that is not the physically-local workshop browser (bare
+// loopback socket with no proxy headers — tailscale serve always adds
+// X-Forwarded-For, so tunnel traffic can never masquerade as local) must carry
+// the remote token: Authorization: Bearer <t> or the crsbrain_rt cookie.
+// Token: env CRS_BRAIN_TOKEN → else persisted crs-brain/.remote-token
+// (gitignored). Rotate: POST /api/auth/rotate-remote (local-only) — the old
+// token/cookies die instantly; re-login from /remote?token=<new>.
+function resolveRemoteToken() {
+  if (process.env.CRS_BRAIN_TOKEN) return process.env.CRS_BRAIN_TOKEN;
+  const f = path.join(__dirname, '.remote-token');
+  try { const v = fs.readFileSync(f, 'utf8').trim(); if (/^[a-f0-9]{32,}$/.test(v)) return v; } catch {}
+  const v = crypto.randomBytes(24).toString('hex');
+  try { fs.writeFileSync(f, v); } catch {}
+  return v;
+}
+let REMOTE_TOKEN = resolveRemoteToken();
+function isRemoteReq(req) {
+  if (!isLocalReq(req)) return true;
+  // loopback socket but proxied (tailscale serve / any reverse proxy) = remote
+  return !!(req.headers['x-forwarded-for'] || req.headers['tailscale-user-login'] || req.headers['x-forwarded-host']);
+}
+function remoteAuthOk(req) {
+  const h = req.headers.authorization || '';
+  if (h === 'Bearer ' + REMOTE_TOKEN) return true;
+  const cookies = Object.fromEntries((req.headers.cookie || '').split(';').map((c) => c.trim().split('=')));
+  return cookies.crsbrain_rt === REMOTE_TOKEN;
+}
 
 function lanIps() {
   const out = [];
@@ -982,6 +1732,68 @@ function walk(dir, baseRel = '') {
 // ---- claude bridge ---------------------------------------------------------
 // Spawn the claude CLI WITHOUT a shell: shell:true concatenates args unescaped,
 // so any "(" in a system prompt becomes a /bin/sh syntax error. On Windows the
+// ---- Program 3 Phase 5: error capture + audit ledger ------------------------
+const ERROR_LOG_FILE = path.join(DATA_DIR, 'error-log.jsonl');
+const AUDIT_LOG_FILE = path.join(DATA_DIR, 'audit.jsonl');
+function logError(rec) {
+  try { fs.appendFileSync(ERROR_LOG_FILE, JSON.stringify({ ts: nowIso(), source: rec.source || 'server', message: String(rec.message || '').slice(0, 500), stack: String(rec.stack || '').slice(0, 2000), url: rec.url }) + '\n'); } catch {}
+}
+// Append-only audit of server MUTATIONS: who/what/when incl. via:remote|desktop.
+function logAudit(rec) {
+  try { fs.appendFileSync(AUDIT_LOG_FILE, JSON.stringify({ ts: nowIso(), action: rec.action, target: rec.target || '', via: rec.via || 'desktop', meta: rec.meta || null }) + '\n'); } catch {}
+}
+// Client errors: N repeats of the same message → one What's-wrong todo with the stack.
+const CLIENT_ERR_COUNTS = {};
+function noteClientError(msg, stack, url) {
+  logError({ source: 'client', message: msg, stack, url });
+  const key = String(msg).slice(0, 120);
+  CLIENT_ERR_COUNTS[key] = (CLIENT_ERR_COUNTS[key] || 0) + 1;
+  if (CLIENT_ERR_COUNTS[key] === 3) {   // raise once, on the 3rd repeat
+    try {
+      const tasks = loadTasks();
+      if (ensureAutoTask(tasks, 'clienterr:' + key, { title: 'Client error ×3: ' + key, notes: String(stack || '').slice(0, 300) })) { saveTasks(tasks); addNotification({ type: 'error', level: 'error', title: 'Recurring client error', body: key }); }
+    } catch {}
+  }
+}
+// Server crash safety net — log, don't die silently.
+process.on('uncaughtException', (e) => { logError({ source: 'server-uncaught', message: e.message, stack: e.stack }); console.error('uncaughtException:', e.message); });
+process.on('unhandledRejection', (e) => { logError({ source: 'server-rejection', message: (e && e.message) || String(e), stack: e && e.stack }); });
+
+// ---- Program 3 Phase 4: per-run cost & usage telemetry ----------------------
+// Published $/million-token rates (input, output) for cost ESTIMATION — the CLI's
+// account-wide cost is not per-run-attributable, so we compute from tokens×rates
+// and mark every row estimated:true. Update rates here if pricing changes.
+const MODEL_RATES = {
+  'claude-opus-4-8': { in: 15, out: 75 },
+  'claude-sonnet-5': { in: 3, out: 15 },
+  'claude-haiku-4-5-20251001': { in: 1, out: 5 },
+  _default: { in: 3, out: 15 },
+};
+function rateFor(model) {
+  if (MODEL_RATES[model]) return MODEL_RATES[model];
+  const m = String(model || '').toLowerCase();
+  if (m.includes('opus')) return MODEL_RATES['claude-opus-4-8'];
+  if (m.includes('haiku')) return MODEL_RATES['claude-haiku-4-5-20251001'];
+  if (m.includes('sonnet')) return MODEL_RATES['claude-sonnet-5'];
+  return MODEL_RATES._default;
+}
+function estCostUsd(model, tokIn, tokOut) {
+  const r = rateFor(model);
+  return +(((tokIn || 0) * r.in + (tokOut || 0) * r.out) / 1e6).toFixed(6);
+}
+const USAGE_LOG_FILE = path.join(DATA_DIR, 'usage-log.jsonl');
+function logUsage(rec) {
+  try {
+    const row = {
+      ts: nowIso(), purpose: rec.purpose || 'chat', model: rec.model || '',
+      in: rec.in || 0, out: rec.out || 0, ms: rec.ms || 0,
+      costUsd: estCostUsd(rec.model, rec.in, rec.out), estimated: true,
+      ...(rec.outcome ? { outcome: rec.outcome } : {}), ...(rec.aborted ? { aborted: true } : {}),
+    };
+    fs.appendFileSync(USAGE_LOG_FILE, JSON.stringify(row) + '\n');
+  } catch {}
+}
+
 // cmd.exe /c wrapper resolves the claude.cmd shim while node quotes args safely.
 function spawnClaude(args, opts = {}) {
   if (process.platform === 'win32') {
@@ -1047,6 +1859,7 @@ function isModelInaccessible(text) { return MODEL_INACCESSIBLE_RE.test(String(te
 // On failure rejects with an Error tagged { stage:'pre'|'mid', retryable:bool }
 // so a caller can decide whether switching models could rescue the run.
 function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
+  const _usageStart = Date.now();   // for the Phase-4 per-run cost log (opts.purpose)
   const onDelta = hooks.onDelta || (() => {});
   const onStatus = hooks.onStatus || (() => {});
   const onThink = hooks.onThink || (() => {});   // extended-thinking text
@@ -1166,6 +1979,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       clearTimeout(timer);
       flushTool();
       if (buf.trim()) { try { handleEvent(JSON.parse(buf.trim())); } catch {} }
+      // Phase-4: record per-run token/model/cost when the caller tagged a purpose.
+      if (opts.purpose) logUsage({ purpose: opts.purpose, model: opts.model || '', in: usageIn, out: usageOut, ms: Date.now() - _usageStart, aborted });
       if (aborted) return resolve({ text: finalText, sessionId, aborted: true });
       if (timedOut) {
         // Genuine hang — no output for IDLE_MS. Keep any partial we did get.
@@ -1227,7 +2042,9 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
 function autoCommit(title) {
   if (process.env.CRS_BRAIN_AUTOCOMMIT === '0') return;
   const msg = 'brain: ' + String(title || 'update').replace(/[\r\n]+/g, ' ').slice(0, 60);
-  const add = spawn('git', ['add', 'crs-brain/data', 'brain'], { cwd: REPO_ROOT, windowsHide: true });
+  // prototypes/ is program state too (must survive machine moves / the restore
+  // drill); dir is mkdir'd at boot so the pathspec always resolves.
+  const add = spawn('git', ['add', 'crs-brain/data', 'brain', 'prototypes'], { cwd: REPO_ROOT, windowsHide: true });
   add.on('error', () => {});
   add.on('close', () => {
     const commit = spawn('git', ['commit', '-q', '--no-verify', '-m', msg], { cwd: REPO_ROOT, windowsHide: true });
@@ -1311,7 +2128,7 @@ function listChats() {
     .map((f) => {
       try {
         const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
-        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length, bp: c.bp === true };
+        return { id: c.id, title: c.title, updated: c.updated, count: (c.messages || []).length, bp: c.bp === true, pinned: c.pinned === true };
       } catch { return null; }
     })
     .filter(Boolean)
@@ -1639,6 +2456,23 @@ const server = http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://localhost:${PORT}`);
   const p = u.pathname;
 
+  // P10 remote gate: EVERY endpoint requires the token on any remote path.
+  // Uniform 401 with zero information leak; /remote?token= bootstraps the cookie.
+  if (isRemoteReq(req)) {
+    const u0 = new URL(req.url, 'http://x');
+    if (u0.pathname === '/remote' && req.method === 'GET') {
+      if (u0.searchParams.get('token') === REMOTE_TOKEN) {
+        res.writeHead(302, { 'Set-Cookie': 'crsbrain_rt=' + REMOTE_TOKEN + '; Path=/; Max-Age=7776000; HttpOnly; SameSite=Lax', Location: '/' });
+        return res.end();
+      }
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end('{"error":"unauthorized"}');
+    }
+    if (!remoteAuthOk(req)) {
+      res.writeHead(401, { 'Content-Type': 'application/json' });
+      return res.end('{"error":"unauthorized"}');
+    }
+  }
   // PIN gate for non-localhost clients (mobile/LAN mode)
   if (!pinOk(req)) {
     const tryPin = u.searchParams.get('pin');
@@ -1887,6 +2721,19 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/chats' && req.method === 'GET') {
       return send(res, 200, { chats: listChats() });
     }
+    // Polish: per-conversation metadata (pin / rename) — persisted in the chat file.
+    if (p === '/api/chat/meta' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const id = String((body && body.id) || '');
+      const file = path.join(CHATS_DIR, id + '.json');
+      if (!/^[a-z0-9-]+$/i.test(id) || !fs.existsSync(file)) return send(res, 404, { error: 'chat not found' });
+      const c = JSON.parse(fs.readFileSync(file, 'utf8'));
+      if (body.pinned !== undefined) c.pinned = !!body.pinned;
+      if (body.title !== undefined) { const t = String(body.title).trim().slice(0, 140); if (t) c.title = t; }
+      fs.writeFileSync(file, JSON.stringify(c, null, 2));
+      autoCommit('chat meta');
+      return send(res, 200, { ok: true, id, pinned: c.pinned === true, title: c.title });
+    }
 
     // Native search across chats (title + message content), returns a snippet.
     if (p === '/api/search-chats' && req.method === 'GET') {
@@ -1943,11 +2790,13 @@ const server = http.createServer(async (req, res) => {
             title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
             sessionId: null,
             bp: body.bp === true,
+            ...(body.focusModule ? { focusModule: String(body.focusModule) } : {}),   // Chat v2: session-start grounding
             created: nowIso(),
             updated: nowIso(),
             messages: [],
           };
         }
+        if (body.focusModule && chat && !chat.focusModule) chat.focusModule = String(body.focusModule);
         chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
       }
 
@@ -2005,7 +2854,7 @@ const server = http.createServer(async (req, res) => {
       // Abort the claude run if the browser hits Stop (fetch aborted → socket closes).
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       const startedAt = nowIso();
       sse({ type: 'meta', id: chat.id, title: chat.title, startedAt });
@@ -2017,6 +2866,7 @@ const server = http.createServer(async (req, res) => {
       // client builder: one flat, ordered steps[] = one folded group per reply.
       const steps = [];
       let curStep = null;
+      let usedBuildprint = false;   // set if any tool block this turn is a buildprint call → auto-tags the chat bp
       const oneLineSrv = (t) => (t || '').trim().replace(/\s+/g, ' ');
       const capBody = (t) => { t = (t || '').trim(); return t.length > 1600 ? t.slice(0, 1600) + '…' : t; };
       try {
@@ -2027,6 +2877,7 @@ const server = http.createServer(async (req, res) => {
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
+          purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
@@ -2037,7 +2888,8 @@ const server = http.createServer(async (req, res) => {
           runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
           runOpts.addDirs = [REPO_ROOT];
         } else {
-          runOpts.systemPrompt = withMemory(SYSTEM_PROMPT);   // same for the general assistant
+          const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
+          runOpts.systemPrompt = withMemory(brief ? SYSTEM_PROMPT + '\n\n' + brief : SYSTEM_PROMPT);   // general assistant, optionally grounded on a focus module
         }
         // "Remember this" → compile the message into structured memory in the
         // background; emit a toast when saved. Runs concurrently with the reply,
@@ -2058,6 +2910,12 @@ const server = http.createServer(async (req, res) => {
           },
           onBlock: (b) => {
             if (b.kind === 'tool') {
+              // Auto-tag: a general chat that actually invoked buildprint is a
+              // Buildprint conversation (feeds the sidebar terminal icon from REAL
+              // history). The MCP tool's name contains "buildprint"; a
+              // Bash(buildprint:*) call has tool name "Bash", so the command itself
+              // (arriving via onDetail) is also checked below.
+              if (/buildprint/i.test(b.tool || '')) usedBuildprint = true;
               const note = answerSeg.trim();   // interim narration between tools → a finished note step
               if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '' });
               answerSeg = '';
@@ -2066,7 +2924,7 @@ const server = http.createServer(async (req, res) => {
             steps.push(curStep);
             sse({ type: 'block', kind: b.kind, tool: b.tool || null });
           },
-          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); sse({ type: 'detail', text: t }); },
+          onDetail: (t) => { if (curStep) curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + t); if (curStep && curStep.kind === 'tool' && /buildprint/i.test(t || '')) usedBuildprint = true; sse({ type: 'detail', text: t }); },
           onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
@@ -2081,6 +2939,7 @@ const server = http.createServer(async (req, res) => {
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
         chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
+        if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
         await memPromise;   // ensure the memory save + toast land before we close the stream
@@ -2117,7 +2976,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       sse({ type: 'status', text: 'syncing from Bubble' });
       const r = await bpSyncDiff();
@@ -2139,7 +2998,7 @@ const server = http.createServer(async (req, res) => {
           onDetail: (t) => sse({ type: 'detail', text: t }),
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
-        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT] });
+        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
         chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         chat.sessionId = result.sessionId; saveChat(chat);
         // Advance the baseline ONLY on a completed ingest — an aborted run must stay
@@ -2165,7 +3024,7 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/event-stream; charset=utf-8', 'Cache-Control': 'no-cache', 'Connection': 'keep-alive' });
       const ac = new AbortController();
       let clientGone = false;
-      req.on('close', () => { clientGone = true; ac.abort(); });
+      res.on('close', () => { clientGone = true; ac.abort(); });   // res (not req): req 'close' fires at body-end, not on disconnect (Node>=16)
       const sse = (o) => { if (clientGone) return; try { res.write(`data: ${JSON.stringify(o)}\n\n`); } catch {} };
       if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
       const chat = loadBpChat();
@@ -2281,6 +3140,9 @@ const server = http.createServer(async (req, res) => {
     }
 
     // ---- sounds: local WAV store (data/sounds/) ----
+    // Browsers probe /favicon.ico automatically; without a route the first load
+    // logs a 404 console error on every fresh session (found by P2 acceptance).
+    if (p === '/favicon.ico') { res.writeHead(204); return res.end(); }
     if (p === '/api/ping') return send(res, 200, { ok: true, ts: Date.now() });
     if (p === '/api/version') return send(res, 200, { version: frontendVersion() });
     if (p === '/api/sounds/list' && req.method === 'GET') {
@@ -2456,7 +3318,7 @@ const server = http.createServer(async (req, res) => {
       const r = routeModel(cfg, 'generate prompt: ' + item.title, 'mechanical');
       let prompt = '';
       try {
-        const result = await runClaudeStream(buildWishlistPromptMsg(item), null, {}, { model: r.model, effort: r.effort, systemPrompt: WL_CC_PROMPT, cwd: os.tmpdir() });
+        const result = await runClaudeStream(buildWishlistPromptMsg(item), null, {}, { model: r.model, effort: r.effort, systemPrompt: WL_CC_PROMPT, cwd: os.tmpdir(), purpose: 'wishlist' });
         prompt = (result.text || '').trim();
         // Unwrap a single outer code fence if the model added one — the client copies raw prompt text.
         const fence = prompt.match(/^```(?:markdown|md)?\s*\n([\s\S]*?)\n```\s*$/i);
@@ -2511,31 +3373,33 @@ const server = http.createServer(async (req, res) => {
     // Text-driven EDIT prompt: Vlad types what he wants; the brain writes a proper
     // Buildprint prompt from it, grounded in the module's brain context + live workspace.
     if (p === '/api/modules/edit-prompt' && req.method === 'POST') {
+      // Generation goes through the deterministic prompt engine (brain/engine/):
+      // retrieval check → assemble (verbatim bundle) → GUARD (pre-model hard stop) →
+      // ONE model call on the strict template → archive with bundle hash.
       const body = await readJsonBody(req);
       const mod = (loadModulesDoc().modules || []).find((m) => m.id === (body && body.id));
       if (!mod) return send(res, 404, { error: 'module not found' });
       const text = (body && body.text || '').toString().trim();
       if (!text) return send(res, 400, { error: 'Describe what you want done first.' });
-      const d = moduleDetail(mod);
-      const ctx = [
-        `MODULE: ${mod.name} · section ${mod.section} · route ${mod.route || '(unset)'} · tracked status ${mod.status}${mod.note ? ' — ' + mod.note : ''}`,
-        d.statusBlock ? 'STATUS.md detail:\n' + d.statusBlock : '',
-        d.dataModel ? 'Data model (as-built reference):\n' + d.dataModel : '',
-        d.perms ? 'Permissions:\n' + d.perms : '',
-        d.workflows ? 'Workflows:\n' + d.workflows : '',
-      ].filter(Boolean).join('\n\n');
-      const userMsg = `MODULE CONTEXT (from the CRS brain — use it, don't restate it blindly):\n${ctx}\n\n---\nVLAD'S REQUEST — write the task breakdown to accomplish this on this module:\n${text}`;
-      const cfg = loadSettings();
-      let tasks = '';
+      let engine, guardHits, bundle;
       try {
-        // Writing a task breakdown is a mechanical transform — low effort, and no workspace
-        // --add-dir (Task 0 tells Buildprint to inventory real elements when it runs). The
-        // ~25-30s floor is claude CLI startup, not inference, so model choice doesn't change it.
-        const result = await runClaudeStream(userMsg, null, {}, { model: cfg.model, effort: 'low', systemPrompt: EDIT_TASKS_PROMPT });
-        tasks = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
+        const retrieved = engine.retrievalCheck(text);
+        if (retrieved) return send(res, 200, { prompt: 'RETRIEVED from ' + retrieved.rel + ', not generated (similarity ' + retrieved.sim + '):\n\n' + retrieved.content, retrieved: true });
+        bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(mod.id);
+        guardHits = require(path.join(REPO_ROOT, 'brain', 'engine', 'guard.js')).guard(text, mod.id + ' ' + mod.name);
+      } catch (e) { return send(res, 500, { error: 'prompt engine: ' + e.message }); }
+      if (guardHits.length) {
+        return send(res, 409, { decisionNeeded: true, error: 'DECISION-NEEDED: ' + guardHits.map((h) => h.title).join(' · ') + ' → decisions.md (open decision — make the call there, then regenerate)' });
+      }
+      const cfg = loadSettings();
+      try {
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
+        const out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
+        const archived = engine.archive({ intent: text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
+        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256 });
       } catch (e) { return send(res, 502, { error: e.message }); }
-      if (!tasks) return send(res, 502, { error: 'the brain returned nothing — try again' });
-      return send(res, 200, { prompt: buildEditWrapper(mod, d, text, tasks) });
     }
 
     // Ideas board (map drawer) — plain JSON, git-versioned with the rest of data/.
@@ -2548,6 +3412,514 @@ const server = http.createServer(async (req, res) => {
       fs.writeFileSync(IDEAS_FILE, JSON.stringify(body, null, 2));
       autoCommit('ideas board');
       return send(res, 200, { ok: true });
+    }
+
+    if (p === '/api/handoff' && req.method === 'POST') {
+      try { const r = await generateHandoff(); return send(res, 200, r); }
+      catch (e) { return send(res, 500, { error: e.message }); }
+    }
+    // P10: rotate the remote token (workshop-only — never from a remote path).
+    if (p === '/api/auth/rotate-remote' && req.method === 'POST') {
+      if (isRemoteReq(req)) return send(res, 401, { error: 'unauthorized' });
+      const v = crypto.randomBytes(24).toString('hex');
+      fs.writeFileSync(path.join(BRAIN_DIR, '.remote-token'), v);
+      REMOTE_TOKEN = v;
+      return send(res, 200, { ok: true, note: 'token rotated — previous cookies/bearers are dead; re-login via /remote?token=<new>' });
+    }
+    // P10: rule a decision remotely — typed confirmation, full audit trail.
+    if (p === '/api/decisions/lock' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const title = String((body && body.title) || '');
+      const ruling = String((body && body.ruling) || '').trim();
+      if (String((body && body.confirm) || '') !== 'LOCK ' + title) return send(res, 400, { error: 'typed confirmation required: "LOCK <exact stub title>"' });
+      if (!ruling) return send(res, 400, { error: 'ruling text required' });
+      const decPath = path.join(REPO_ROOT, 'decisions.md');
+      let md = fs.readFileSync(decPath, 'utf8');
+      const stubRe = new RegExp('^## \\[OPEN\\] ' + title.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\n[\\s\\S]*?(?=^## |\\Z)', 'm');
+      if (!stubRe.test(md)) return send(res, 404, { error: 'no [OPEN] stub with that exact title' });
+      const via = isRemoteReq(req) ? 'remote' : 'desktop';
+      const entry = '## ' + nowIso().slice(0, 10) + ' — ' + title + '\n\n' + ruling + '\n\n(ruled via: ' + via + ')\n\n';
+      md = md.replace(stubRe, '');
+      const anchor = md.indexOf('\n## ');
+      md = anchor > 0 ? md.slice(0, anchor + 1) + entry + md.slice(anchor + 1) : md + '\n' + entry;
+      fs.writeFileSync(decPath, md);
+      try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'decision-locked', title, via }) + '\n'); } catch {}
+      logAudit({ action: 'decision-locked', target: title, via });
+      addNotification({ type: 'success', level: 'success', title: 'Decision locked' + (via === 'remote' ? ' (remote)' : ''), body: title, target: 'decisions.md' });
+      autoCommit('decision locked: ' + title.slice(0, 40));
+      return send(res, 200, { ok: true, via });
+    }
+    // ---- P7: manual triggers for the scheduled read-only jobs ----
+    if (p === '/api/state-audit/run' && req.method === 'POST') {
+      const r = runStateAudit();
+      return send(res, 200, { ok: true, findings: r.findings });
+    }
+    if (p === '/api/smoke/run' && req.method === 'POST') {
+      const r = await runSmokeQa();
+      return send(res, 200, r);
+    }
+    if (p === '/api/digest/weekly' && req.method === 'POST') {
+      try { const r = await runWeeklyDigest(); return send(res, 200, { ok: true, ...r }); }
+      catch (e) { return send(res, 500, { error: e.message }); }
+    }
+    if (p === '/api/digest/latest' && req.method === 'GET') {
+      const f2 = latestDigestFile();
+      return send(res, 200, { file: f2 ? 'brain/digests/' + f2 : null });
+    }
+
+    // ---- Program 3 Phase 2: global search (⌘K palette) ----
+    if (p === '/api/search' && req.method === 'GET') {
+      return send(res, 200, { results: searchQuery(u.searchParams.get('q') || '') });
+    }
+    // ---- Program 3 Phase 5: manual backup + error/audit reads ----
+    if (p === '/api/backup/snapshot' && req.method === 'POST') {
+      try { const file = await backupWeeklySnapshot(); return send(res, 200, { ok: true, file }); }
+      catch (e) { return send(res, 500, { error: e.message }); }
+    }
+    if (p === '/api/audit' && req.method === 'GET') {
+      let rows = []; try { rows = fs.readFileSync(AUDIT_LOG_FILE, 'utf8').trim().split('\n').filter(Boolean).slice(-100).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch {}
+      return send(res, 200, { audit: rows.reverse() });
+    }
+    // ---- Program 3 Phase 5: client error report ----
+    if (p === '/api/client-error' && req.method === 'POST') {
+      const body = await readJsonBody(req).catch(() => ({}));
+      noteClientError(body.message || '', body.stack || '', body.url || '');
+      return send(res, 200, { ok: true });
+    }
+
+    // ---- Program 3 Phase 4: cost & usage analytics ----
+    if (p === '/api/usage-analytics' && req.method === 'GET') {
+      let rows = [];
+      try { rows = fs.readFileSync(USAGE_LOG_FILE, 'utf8').trim().split('\n').filter(Boolean).map((l) => { try { return JSON.parse(l); } catch { return null; } }).filter(Boolean); } catch {}
+      const sum = (a) => a.reduce((x, y) => x + y, 0);
+      const byDay = {}, byPurpose = {}, byModel = {};
+      let totIn = 0, totOut = 0, totCost = 0;
+      for (const r of rows) {
+        const day = (r.ts || '').slice(0, 10);
+        (byDay[day] = byDay[day] || { cost: 0, in: 0, out: 0, runs: 0 });
+        byDay[day].cost += r.costUsd || 0; byDay[day].in += r.in || 0; byDay[day].out += r.out || 0; byDay[day].runs++;
+        (byPurpose[r.purpose] = byPurpose[r.purpose] || { cost: 0, runs: 0, in: 0, out: 0 });
+        byPurpose[r.purpose].cost += r.costUsd || 0; byPurpose[r.purpose].runs++; byPurpose[r.purpose].in += r.in || 0; byPurpose[r.purpose].out += r.out || 0;
+        (byModel[r.model] = byModel[r.model] || { cost: 0, runs: 0 });
+        byModel[r.model].cost += r.costUsd || 0; byModel[r.model].runs++;
+        totIn += r.in || 0; totOut += r.out || 0; totCost += r.costUsd || 0;
+      }
+      // cost-per-outcome: verified chunks across all prototype plans.
+      let verifiedChunks = 0;
+      try { for (const name of fs.readdirSync(PROTOS_DIR)) { try { const pl = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); verifiedChunks += (pl.chunks || []).filter((c) => c.status === 'verified').length; } catch {} } } catch {}
+      // Routing audit: runs whose PURPOSE the routing policy (classifyTask, via the
+      // LIGHT_RE mechanical set) treats as mechanical, but which ran on the premium
+      // Opus model — because gen/plan/queue bypass routeModel (wired to 1 site).
+      // Flag on the task's nature, not token size (the gen bundle is a large FIXED
+      // input; the TASK is deterministic prompt engineering = mechanical).
+      const MECHANICAL_PURPOSES = { gen: 'prompt generation', wishlist: 'prompt generation', digest: 'summarize', issue: 'read-only audit', memory: 'extract/summarize' };
+      const routingFlags = [];
+      for (const r of rows) {
+        const m = String(r.model || '').toLowerCase();
+        if (m.includes('opus') && MECHANICAL_PURPOSES[r.purpose]) {
+          const target = (r.in + r.out) < 40000 ? 'Haiku' : 'Sonnet';
+          routingFlags.push({ purpose: r.purpose, model: r.model, tokens: r.in + r.out, ts: r.ts, suggestion: r.purpose + ' is ' + MECHANICAL_PURPOSES[r.purpose] + ' (mechanical per the routing policy) but ran on Opus — route to ' + target + ' (classifyTask already classifies this LIGHT; it bypasses routeModel today)' });
+        }
+      }
+      // dedupe suggestions by purpose+model
+      const seen = new Set(); const suggestions = [];
+      for (const f of routingFlags) { const k = f.purpose + '|' + f.model; if (!seen.has(k)) { seen.add(k); suggestions.push({ ...f, count: routingFlags.filter((x) => x.purpose + '|' + x.model === k).length }); } }
+      const st = loadState ? {} : {};
+      const usageJson = loadUsage ? loadUsage() : {};
+      return send(res, 200, {
+        totals: { runs: rows.length, in: totIn, out: totOut, costUsd: +totCost.toFixed(4), estimated: true },
+        byDay, byPurpose, byModel,
+        costPerOutcome: { verifiedChunks, usdPerVerifiedChunk: verifiedChunks ? +(totCost / verifiedChunks).toFixed(4) : null },
+        windows: usageJson.rate_limits || null,
+        routingAudit: suggestions,
+        rates: MODEL_RATES,
+        note: 'costUsd is ESTIMATED (tokens × published rates). Verification-subagent tokens run in external claude processes and are not captured here.',
+      });
+    }
+
+    // ---- Program 3 Phase 3: entity aggregation + backlinks ----
+    if (p === '/api/entity' && req.method === 'GET') {
+      const e = moduleEntity(u.searchParams.get('module') || '');
+      if (!e) return send(res, 404, { error: 'module not found' });
+      return send(res, 200, e);
+    }
+    if (p === '/api/backlinks' && req.method === 'GET') {
+      const ref = u.searchParams.get('ref') || '';
+      const links = backlinksFor(ref);
+      return send(res, 200, { ref, links, orphan: links.length === 0 });
+    }
+    // Entity resolver for auto-linking: module names + ids (cached via modules mtime).
+    if (p === '/api/entities' && req.method === 'GET') {
+      const mods = (loadModulesDoc().modules || []).map((m) => ({ id: m.id, name: m.name }));
+      return send(res, 200, { modules: mods });
+    }
+
+    // ---- Tasks: chief-of-staff todos & follow-ups ----
+    if (p === '/api/tasks' && req.method === 'GET') {
+      return send(res, 200, { tasks: reconcileAutoTasks(), statuses: TASK_STATUSES, linkKinds: TASK_LINK_KINDS });
+    }
+    if (p === '/api/tasks' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const title = String((body && body.title) || '').trim().slice(0, 200);
+      if (!title) return send(res, 400, { error: 'title required' });
+      const tasks = loadTasks();
+      const t = makeTask({
+        title,
+        ...(body.due ? { due: String(body.due) } : {}),
+        ...(body.followUp ? { followUp: true } : {}),
+        ...(body.notes ? { notes: String(body.notes).slice(0, 1000) } : {}),
+        ...(body.link && TASK_LINK_KINDS.includes(body.link.kind) ? { link: { kind: body.link.kind, ref: String(body.link.ref || '').slice(0, 200) } } : {}),
+      });
+      tasks.push(t);
+      saveTasks(tasks);
+      autoCommit('task add');
+      return send(res, 200, { ok: true, task: t });
+    }
+    if (p === '/api/tasks/update' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const tasks = loadTasks();
+      const t = tasks.find((x) => x.id === (body && body.id));
+      if (!t) return send(res, 404, { error: 'task not found' });
+      if (body.status !== undefined) { if (!TASK_STATUSES.includes(body.status)) return send(res, 400, { error: 'bad status' }); t.status = body.status; }
+      if (body.title !== undefined) t.title = String(body.title).trim().slice(0, 200) || t.title;
+      if (body.due !== undefined) { if (body.due) t.due = String(body.due); else delete t.due; delete t.notifiedDue; }
+      if (body.notes !== undefined) t.notes = String(body.notes).slice(0, 1000);
+      saveTasks(tasks);
+      try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'task-update', id: t.id, status: t.status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
+      logAudit({ action: 'task-update', target: t.id + '=' + t.status, via: isRemoteReq(req) ? 'remote' : 'desktop' });
+      autoCommit('task update');
+      return send(res, 200, { ok: true, task: t });
+    }
+    if (p === '/api/tasks/delete' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const tasks = loadTasks();
+      const i = tasks.findIndex((x) => x.id === (body && body.id));
+      if (i < 0) return send(res, 404, { error: 'task not found' });
+      tasks.splice(i, 1);
+      saveTasks(tasks);
+      autoCommit('task delete');
+      return send(res, 200, { ok: true });
+    }
+
+    // ---- Dashboard aggregate: EVERYTHING the board renders, from state files
+    // only (tasks, decisions.md, modules.json, build plans, master-checklist,
+    // sync stamps, wishlist). No file-tree introspection, no file counts.
+    if (p === '/api/dash' && req.method === 'GET') {
+      const tasks = reconcileAutoTasks();
+      const modsDoc = loadModulesDoc();
+      const mods = modsDoc.modules || [];
+      const focusIdx = mods.findIndex((m) => m.status !== 'done' && m.status !== 'roadmap');
+      const modCounts = {};
+      for (const m of mods) modCounts[m.status] = (modCounts[m.status] || 0) + 1;
+      const protos = listProtos().map((pr) => {
+        let unresolvedFlags = 0;
+        try {
+          const eng = freshChunkEngine();
+          const flags = eng.unresolvedFlags(pr.name);
+          unresolvedFlags = flags ? flags.length : 0;
+        } catch {}
+        return { name: pr.name, module: pr.module, status: pr.status, chunkCounts: pr.chunkCounts, unresolvedFlags };
+      });
+      const rows = checklistRows();
+      const qa = { PASS: 0, FAIL: 0, 'ENV-LIMITED': 0, UNTESTED: 0, BLOCKED: 0, 'N-A': 0, QUARANTINE: 0 };
+      for (const r of rows) qa[r.status] = (qa[r.status] || 0) + 1;
+      const failRows = rows.filter((r) => r.status === 'FAIL' || r.status === 'QUARANTINE').map((r) => r.id);
+      const envRows = rows.filter((r) => r.status === 'ENV-LIMITED').map((r) => r.id);
+      let lastRun = '';
+      try {
+        const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8');
+        const runs = [...md.matchAll(/\|\s*(20\d\d-\d\d-\d\d [a-z0-9-]+ ?c?\d*)\s*\|/gi)].map((m) => m[1]);
+        lastRun = runs.sort().pop() || '';
+      } catch {}
+      const st = loadState();
+      const cfgS = loadSettings();
+      let wl = { done: 0, 'in-progress': 0, idea: 0 };
+      try { for (const it of (loadWishlist().items || [])) wl[it.status] = (wl[it.status] || 0) + 1; } catch {}
+      const failedChunks = [];
+      for (const pr of protos) {
+        try {
+          const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, pr.name, 'build-plan.json'), 'utf8'));
+          for (const c of plan.chunks || []) if (c.status === 'failed') failedChunks.push(pr.name + '/' + c.id);
+        } catch {}
+      }
+      return send(res, 200, {
+        tasks,
+        decisionsOpen: openDecisionTitles(),
+        modules: { focus: focusIdx >= 0 ? { id: mods[focusIdx].id, name: mods[focusIdx].name, section: mods[focusIdx].section, status: mods[focusIdx].status } : null, counts: modCounts, total: mods.length },
+        protos, failedChunks,
+        qa: { counts: qa, failRows, envRows, lastRun },
+        sync: {
+          forum: { lastSync: st.forumCheckedAt || 0 }, relnotes: { lastSync: st.relnotesCheckedAt || 0 },
+          issues: { lastSync: st.issueCheckedAt || 0, lastCount: st.issueLastCount || 0 },
+          bubbleDigest: { lastSync: cfgS.bubbleCheckedAt || 0 }, manuals: { lastSync: cfgS.manualsCheckedAt || 0 },
+        },
+        wishlist: wl,
+        throughput: (() => {
+          try {
+            const q = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'task-queue.json'), 'utf8'));
+            const intents = (q.tasks || []).filter((t) => t.intent);
+            const done = intents.filter((t) => t.status === 'done' && t.started && t.finished);
+            const avg = done.length ? Math.round(done.reduce((a, t) => a + (Date.parse(t.finished) - Date.parse(t.started)), 0) / done.length) : 0;
+            const limitBlocks = (q.tasks || []).reduce((a, t) => a + (t.log || []).filter((l) => /usage limit/.test(l.msg || '') && !/stub/.test(l.msg || '')).length, 0);
+            const awaiting = [];
+            try {
+              for (const name of fs.readdirSync(PROTOS_DIR)) {
+                const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8'));
+                for (const c of plan.chunks || []) if (c.status === 'sent' || c.status === 'reported') awaiting.push(name + '/' + c.id);
+              }
+            } catch {}
+            return { processed: done.length, failed: intents.filter((t) => t.status === 'failed').length, awaitingVerify: awaiting, avgIntentToStagedMs: avg, limitBlocksSurvived: limitBlocks };
+          } catch { return { processed: 0, failed: 0, awaitingVerify: [], avgIntentToStagedMs: 0, limitBlocksSurvived: 0 }; }
+        })(),
+        ops: { stateAuditAt: st.stateAuditAt || 0, stateAuditFindings: st.stateAuditFindings || 0, smokeQaAt: st.smokeQaAt || 0, smokeQaFails: st.smokeQaFails || 0, weeklyDigestAt: st.weeklyDigestAt || 0 },
+      });
+    }
+
+    // ---- Prototypes: lifecycle (draft → settled → built) ----
+    // List with live drift check. Everything the prototype cards render.
+    if (p === '/api/protos' && req.method === 'GET') {
+      return send(res, 200, { protos: listProtos() });
+    }
+    if (p === '/api/protos/detail' && req.method === 'GET') {
+      const name = u.searchParams.get('name') || '';
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = protoDriftCheck(name, loadProto(name));
+      const dir = protoDir(name);
+      let mapping = null, plan = null;
+      try { mapping = fs.readFileSync(path.join(dir, 'mapping.md'), 'utf8'); } catch {}
+      try { plan = JSON.parse(fs.readFileSync(path.join(dir, 'build-plan.json'), 'utf8')); } catch {}
+      const reports = {};
+      try {
+        for (const f of fs.readdirSync(path.join(dir, 'chunks'))) {
+          const m = f.match(/^(.+)-report\.md$/);
+          if (m) reports[m[1]] = 'prototypes/' + name + '/chunks/' + f;
+        }
+      } catch {}
+      return send(res, 200, { proto: j, html: protoHtmlRel(name), mapping, plan, reports });
+    }
+    // Studio: scaffold a NEW prototype from canon (§2.10 tokens byte-verbatim,
+    // template built from design-system component patterns only).
+    if (p === '/api/protos/create' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+      if (!PROTO_NAME_RE.test(name)) return send(res, 400, { error: 'bad prototype name' });
+      if (fs.existsSync(protoJsonPath(name))) return send(res, 409, { error: 'prototype "' + name + '" already exists' });
+      const modId = String((body && body.module) || '');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+      if (!mod) return send(res, 400, { error: 'module required — must be a real modules.json id' });
+      let html;
+      try {
+        for (const rel of ['proto-scaffold.js', 'style-inventory.js']) {
+          try { delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', rel))]; } catch {}
+        }
+        html = require(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js')).buildScaffold(name, String(body.template || 'blank'));
+      } catch (e) { return send(res, 500, { error: 'scaffold: ' + e.message }); }
+      fs.mkdirSync(protoDir(name), { recursive: true });
+      fs.writeFileSync(protoHtmlPath(name), html);
+      const j = { name, module: mod.id, status: 'draft', settledHash: null, created: nowIso(), notes: ['scaffolded (template: ' + String(body.template || 'blank') + ')'], versions: [] };
+      saveProto(name, j);
+      autoCommit('prototype create ' + name);
+      return send(res, 200, { ok: true, proto: j, html: protoHtmlRel(name) });
+    }
+    // Studio: snapshot the current html into versions/v<N>.html (+ optional note).
+    if (p === '/api/protos/snapshot' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (!Array.isArray(j.versions)) j.versions = [];
+      const v = j.versions.length + 1;
+      const vdir = path.join(protoDir(name), 'versions');
+      fs.mkdirSync(vdir, { recursive: true });
+      fs.copyFileSync(protoHtmlPath(name), path.join(vdir, 'v' + v + '.html'));
+      j.versions.push({ v, note: String((body && body.note) || '').slice(0, 200), ts: nowIso() });
+      saveProto(name, j);
+      autoCommit('prototype snapshot ' + name + ' v' + v);
+      return send(res, 200, { ok: true, v, versions: j.versions });
+    }
+    // Studio: restore a version back to draft. REFUSES on settled/built — the
+    // Phase-1 freeze rule holds in the studio UI too; nothing is ever lost
+    // (the current html is auto-snapshotted first).
+    if (p === '/api/protos/restore' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (j.status !== 'draft') return send(res, 409, { error: 'prototype is ' + j.status + ' — the studio refuses to edit a settled prototype. Edit the file deliberately (it reverts to draft with a warning), then restore.' });
+      const v = parseInt((body && body.v) || 0, 10);
+      const vfile = path.join(protoDir(name), 'versions', 'v' + v + '.html');
+      if (!v || !fs.existsSync(vfile)) return send(res, 404, { error: 'version v' + v + ' not found' });
+      if (!Array.isArray(j.versions)) j.versions = [];
+      const autoV = j.versions.length + 1;
+      const vdir = path.join(protoDir(name), 'versions');
+      fs.mkdirSync(vdir, { recursive: true });
+      fs.copyFileSync(protoHtmlPath(name), path.join(vdir, 'v' + autoV + '.html'));
+      j.versions.push({ v: autoV, note: 'auto — before restore of v' + v, ts: nowIso() });
+      fs.copyFileSync(vfile, protoHtmlPath(name));
+      j.notes.push(nowIso() + ' — restored v' + v + ' (prior current preserved as v' + autoV + ')');
+      saveProto(name, j);
+      autoCommit('prototype restore ' + name + ' v' + v);
+      return send(res, 200, { ok: true, restored: v, autoSnapshot: autoV, versions: j.versions });
+    }
+    // Studio: mtime poll for the live-reloading preview (parent-driven — the
+    // sandboxed iframe can't poll the app origin itself).
+    if (p === '/api/protos/mtime' && req.method === 'GET') {
+      const name = u.searchParams.get('name') || '';
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      let mtime = 0;
+      try { mtime = Math.round(fs.statSync(protoHtmlPath(name)).mtimeMs); } catch {}
+      const j = protoDriftCheck(name, loadProto(name));
+      return send(res, 200, { mtime, status: j.status, versions: (j.versions || []).length });
+    }
+    // Adopt an existing repo html file as a prototype (the Phase-3 studio scaffolds
+    // new ones; this registers already-existing design html).
+    if (p === '/api/protos/register' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const src = safeRepoPath((body && body.path) || '');
+      if (!fs.existsSync(src) || !/\.html?$/i.test(src)) return send(res, 400, { error: 'source must be an existing .html file' });
+      const name = String((body && body.name) || path.basename(src).replace(/\.html?$/i, '')).toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+      if (!PROTO_NAME_RE.test(name)) return send(res, 400, { error: 'bad prototype name' });
+      if (fs.existsSync(protoJsonPath(name))) return send(res, 409, { error: 'prototype "' + name + '" already exists' });
+      const modId = String((body && body.module) || '');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+      if (!mod) return send(res, 400, { error: 'module required — must be a real modules.json id' });
+      fs.mkdirSync(protoDir(name), { recursive: true });
+      fs.copyFileSync(src, protoHtmlPath(name));
+      const j = { name, module: mod.id, status: 'draft', settledHash: null, created: nowIso(), notes: ['registered from ' + path.relative(REPO_ROOT, src)] };
+      saveProto(name, j);
+      autoCommit('prototype register ' + name);
+      return send(res, 200, { ok: true, proto: j, html: protoHtmlRel(name) });
+    }
+    // Mapping pass — writes prototypes/<name>/mapping.md (deterministic, engine).
+    if (p === '/api/protos/map' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = freshChunkEngine();
+        const m = chunkEngine.writeMapping(name);
+        autoCommit('prototype map ' + name);
+        const unresolved = m.flags.filter((f) => f.status === 'unresolved').length;
+        return send(res, 200, { ok: true, tokens: m.tokenRows.length, components: m.compRows.length, flags: m.flags.length, unresolved, mapping: 'prototypes/' + name + '/mapping.md' });
+      } catch (e) { return send(res, 409, { error: e.message }); }
+    }
+    // Resolve one FLAGGED mapping row: action map|approve-literal|fixed. The
+    // resolver is Vlad by definition — the chunker never approves anything.
+    if (p === '/api/protos/resolve-flag' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = freshChunkEngine();
+        const f = chunkEngine.resolveFlag(name, String(body.flagId || ''), String(body.action || ''), body.token ? String(body.token) : null, 'vlad');
+        autoCommit('prototype flag ' + name + ' ' + f.id);
+        return send(res, 200, { ok: true, flag: f, unresolved: chunkEngine.unresolvedFlags(name).length });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    // Chunk plan — dependency-ordered BP-sized chunks; refuses on unresolved
+    // flags; validates the reference contract before writing.
+    if (p === '/api/protos/plan' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = freshChunkEngine();
+        const plan = chunkEngine.writePlan(name);
+        autoCommit('prototype plan ' + name);
+        return send(res, 200, { ok: true, plan });
+      } catch (e) { return send(res, 409, { error: e.message }); }
+    }
+    // Emit one chunk through the engine: whole-plan GUARD → verbatim bundle →
+    // one boxed model call on the strict template → archive stamped with bundle
+    // hash + prototype hash + chunk id. 409 DECISION-NEEDED stops the WHOLE plan.
+    if (p === '/api/protos/emit' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      let chunkEngine, engine, b, bundle;
+      try {
+        chunkEngine = freshChunkEngine();
+        engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
+        b = chunkEngine.buildChunkIntent(name, String(body.chunkId || ''), body.corrections ? String(body.corrections) : null);
+        bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(b.plan.module);
+      } catch (e) {
+        if (e.decisionNeeded) {
+          addNotification({ type: 'decision-attention', level: 'warning', title: 'Chunk plan stopped — decision needed', body: name + ': ' + e.message.slice(0, 900), target: 'decisions.md' });
+          // Chief-of-staff behavior: each guard hit raises a linked decision todo
+          // (auto-closes when the [OPEN] stub disappears from decisions.md).
+          try {
+            const tasks = loadTasks();
+            let changed = false;
+            for (const h of e.hits || []) {
+              changed = ensureAutoTask(tasks, 'decision:' + h.title, {
+                title: 'Decision needed: ' + h.title,
+                link: { kind: 'decision', ref: h.title },
+                notes: 'raised by GUARD on ' + name + ' (trigger: "' + h.trigger + '")',
+              }) || changed;
+            }
+            if (changed) saveTasks(tasks);
+          } catch {}
+          return send(res, 409, { decisionNeeded: true, error: e.message });
+        }
+        return send(res, 409, { error: e.message });
+      }
+      const cfg = loadSettings();
+      try {
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
+        let out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
+        out = chunkEngine.appendVerbatimContract(name, b.chunk, out);
+        const archived = engine.archive({ intent: 'chunk ' + b.chunk.id + ' ' + name + ': ' + b.chunk.title, module: b.plan.module, bundleSha: bundle.sha256, model: cfg.model, output: out, protoSha: b.protoSha, chunkId: b.chunk.id });
+        fs.writeFileSync(chunkEngine.chunkPromptPath(name, b.chunk.id), out + '\n');
+        autoCommit('prototype emit ' + name + ' ' + b.chunk.id);
+        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256, protoSha: b.protoSha, chunkId: b.chunk.id });
+      } catch (e) { return send(res, 502, { error: e.message }); }
+    }
+    // Follow-through: status flips + paste-back report capture.
+    if (p === '/api/protos/chunk-status' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const status = String(body.status || '');
+      if (!['pending', 'sent', 'reported', 'verified', 'failed'].includes(status)) return send(res, 400, { error: 'bad status' });
+      try {
+        const chunkEngine = freshChunkEngine();
+        const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), status);
+        try { fs.appendFileSync(ACTION_LOG_FILE, JSON.stringify({ ts: nowIso(), type: 'chunk-status', chunk: name + '/' + body.chunkId, status, via: isRemoteReq(req) ? 'remote' : 'desktop' }) + '\n'); } catch {}
+        logAudit({ action: 'chunk-status', target: name + '/' + body.chunkId + '=' + status, via: isRemoteReq(req) ? 'remote' : 'desktop' });
+        autoCommit('prototype chunk ' + name + ' ' + body.chunkId + ' ' + status);
+        return send(res, 200, { ok: true, chunk: r.chunk, protoStatus: r.proto.status });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    if (p === '/api/protos/chunk-report' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const report = String((body && body.report) || '').trim();
+      if (!report) return send(res, 400, { error: 'report text required' });
+      try {
+        const chunkEngine = freshChunkEngine();
+        fs.writeFileSync(chunkEngine.chunkReportPath(name, String(body.chunkId || '')), report + '\n');
+        const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), 'reported');
+        autoCommit('prototype report ' + name + ' ' + body.chunkId);
+        return send(res, 200, { ok: true, chunk: r.chunk, saved: 'prototypes/' + name + '/chunks/' + body.chunkId + '-report.md' });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    // Freeze the current html bytes as the settled hash. Chunking requires this.
+    if (p === '/api/protos/settle' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (j.status === 'built') return send(res, 409, { error: 'prototype is built — edit the html first (it will revert to draft), then settle again' });
+      let hash;
+      try { hash = protoHash(name); } catch (e) { return send(res, 500, { error: 'cannot hash html: ' + e.message }); }
+      j.status = 'settled';
+      j.settledHash = hash;
+      j.notes.push(nowIso() + ' — settled @ ' + hash.slice(0, 12));
+      saveProto(name, j);
+      autoCommit('prototype settle ' + name);
+      return send(res, 200, { ok: true, proto: j });
     }
 
     // ---- Build packets: plan → Buildprint prompt pipeline ----
@@ -2672,8 +4044,9 @@ const server = http.createServer(async (req, res) => {
       if (open >= QUEUE_MAX) return send(res, 400, { error: `queue full (max ${QUEUE_MAX} open tasks)` });
       const title = String((body && body.title) || '').slice(0, 140).trim();
       const prompt = String((body && body.prompt) || '').slice(0, 20000).trim();
-      if (!title || !prompt) return send(res, 400, { error: 'title and prompt required' });
-      const t = { id: crypto.randomUUID().slice(0, 8), title, prompt, status: 'queued', created: nowIso(), started: null, finished: null, log: [] };
+      const intent = body && body.intent && typeof body.intent === 'object' ? body.intent : null;
+      if (!title || (!prompt && !intent)) return send(res, 400, { error: 'title and prompt (or intent) required' });
+      const t = { id: crypto.randomUUID().slice(0, 8), title, prompt, ...(intent ? { intent } : {}), status: 'queued', created: nowIso(), started: null, finished: null, log: [] };
       qlog(t, 'queued');
       q.tasks.push(t); saveQueue(q);
       return send(res, 200, t);
@@ -2914,7 +4287,7 @@ let bubbleWatching = false;
 async function runBubbleDigest(sinceIso) {
   const since = sinceIso || new Date(Date.now() - 7 * BUBBLE_DAY).toISOString().slice(0, 10);
   const msg = `Today is ${nowIso().slice(0, 10)}. Find Bubble platform changes NEW since ${since} that matter for building CRS, and write the dated digest section.`;
-  const result = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: BUBBLE_DIGEST_PROMPT, cwd: os.tmpdir() });
+  const result = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: BUBBLE_DIGEST_PROMPT, cwd: os.tmpdir(), purpose: 'digest' });
   let section = (result.text || '').trim();
   if (!section) throw new Error('watcher returned nothing');
   fs.mkdirSync(BUBBLE_WATCH_DIR, { recursive: true });
@@ -3078,7 +4451,7 @@ async function runIssueCheck() {
   if (!clean) {
     try {
       const msg = `buildprint check output from the CRS TEST branch (${ws.app}/${ws.branch}), ${date}:\n\n\`\`\`\n${raw.slice(0, 12000)}\n\`\`\`\n\nAnalyze per your rules.`;
-      const r = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: ISSUE_PROPOSAL_PROMPT, cwd: REPO_ROOT });
+      const r = await runClaudeStream(msg, null, {}, { model: MODEL_SONNET, effort: 'low', systemPrompt: ISSUE_PROPOSAL_PROMPT, cwd: REPO_ROOT, purpose: 'issue' });
       proposals = (r.text || '').trim();
     } catch (e) { proposals = '_Proposal agent unavailable: ' + e.message + '_'; }
   }
@@ -3116,6 +4489,79 @@ function maybeIssueCheck() {
     .finally(() => { issueChecking = false; });
 }
 setTimeout(maybeIssueCheck, 240 * 1000);           // ~4 min after boot
+
+// ---- P7 scheduler: daily state audit + smoke QA, weekly digest --------------
+// Same stamp-gated hourly-tick pattern as every other watcher → restart-safe.
+let dailyOpsRunning = false;
+async function maybeDailyOps() {
+  if (dailyOpsRunning) return;
+  dailyOpsRunning = true;
+  try {
+    const st = loadState();
+    if (Date.now() - (st.stateAuditAt || 0) >= BUBBLE_DAY) {
+      try { const r = runStateAudit(); console.log('  ⟳ state audit: ' + r.findings.length + ' finding(s)'); }
+      catch (e) { console.log('  ⟳ state audit failed:', e.message); }
+    }
+    if (Date.now() - (st.smokeQaAt || 0) >= BUBBLE_DAY) {
+      try { const r = await runSmokeQa(); console.log('  ⟳ smoke QA: ' + r.pass + '/' + r.total); }
+      catch (e) { console.log('  ⟳ smoke QA failed:', e.message); }
+    }
+    if (Date.now() - (st.weeklyDigestAt || 0) >= 7 * BUBBLE_DAY) {
+      try { const r = await runWeeklyDigest(); console.log('  ⟳ weekly digest → ' + r.file); }
+      catch (e) { console.log('  ⟳ weekly digest failed:', e.message); }
+    }
+    // Program 3 Phase 5: automatic backups. Daily push (only if the tree is
+    // CLEAN — never sweep uncommitted work); weekly zip snapshot with rotation.
+    if (Date.now() - (st.backupPushAt || 0) >= BUBBLE_DAY) {
+      try { await backupDailyPush(); saveState({ backupPushAt: Date.now() }); } catch (e) { console.log('  ⟳ backup push failed:', e.message); }
+    }
+    if (Date.now() - (st.backupSnapAt || 0) >= 7 * BUBBLE_DAY) {
+      try { const f = await backupWeeklySnapshot(); console.log('  ⟳ weekly snapshot → ' + f); saveState({ backupSnapAt: Date.now() }); } catch (e) { console.log('  ⟳ weekly snapshot failed:', e.message); }
+    }
+  } finally { dailyOpsRunning = false; }
+}
+// Daily push — ONLY when the working tree is clean, so we never commit/push over
+// uncommitted work-in-progress.
+function backupDailyPush() {
+  return new Promise((resolve) => {
+    const st = spawn('git', ['status', '--porcelain'], { cwd: REPO_ROOT, windowsHide: true });
+    let out = '';
+    st.stdout.on('data', (d) => (out += d));
+    st.on('error', () => resolve({ skipped: 'git' }));
+    st.on('close', () => {
+      if (out.trim()) { logAudit({ action: 'backup-push', target: 'skipped: dirty tree', via: 'scheduler' }); return resolve({ skipped: 'dirty' }); }
+      const push = spawn('git', ['push'], { cwd: REPO_ROOT, windowsHide: true });
+      let perr = '';
+      push.stderr.on('data', (d) => (perr += d));
+      push.on('error', () => resolve({ skipped: 'push' }));
+      push.on('close', (code) => { logAudit({ action: 'backup-push', target: code === 0 ? 'pushed' : 'push failed: ' + perr.slice(0, 120), via: 'scheduler' }); resolve({ pushed: code === 0 }); });
+    });
+  });
+}
+// Weekly zip snapshot into backups/, keeping the newest 8. Uses `git archive`
+// (zero-dep, cross-platform) — snapshots the COMMITTED state tree (uncommitted
+// WIP is deliberately not captured, consistent with the clean-tree push policy).
+function backupWeeklySnapshot() {
+  return new Promise((resolve, reject) => {
+    const dir = path.join(REPO_ROOT, 'backups');
+    fs.mkdirSync(dir, { recursive: true });
+    const name = 'state-' + nowIso().slice(0, 10) + '.zip';
+    const out = path.join(dir, name);
+    const ar = spawn('git', ['archive', '--format=zip', '-o', out, 'HEAD', 'crs-brain/data', 'brain', 'prototypes', 'decisions.md'], { cwd: REPO_ROOT, windowsHide: true });
+    let err = '';
+    ar.stderr.on('data', (d) => (err += d));
+    ar.on('error', reject);
+    ar.on('close', (code) => {
+      if (code !== 0) return reject(new Error('git archive: ' + err.slice(0, 200)));
+      const snaps = fs.readdirSync(dir).filter((f) => /^state-.*\.zip$/.test(f)).sort();
+      while (snaps.length > 8) { try { fs.unlinkSync(path.join(dir, snaps.shift())); } catch { break; } }
+      logAudit({ action: 'backup-snapshot', target: name, via: 'scheduler' });
+      resolve('backups/' + name);
+    });
+  });
+}
+setTimeout(maybeDailyOps, 300 * 1000);             // ~5 min after boot
+setInterval(maybeDailyOps, 3600 * 1000);           // hourly gate check
 setInterval(maybeIssueCheck, 3600 * 1000);         // hourly gate, daily action
 
 // ---- w-loops MVP: durable task queue with limit-aware auto-resume ------------
@@ -3151,6 +4597,53 @@ function limitResetMs() {
 
 let queueRunning = false;
 let queueTimer = null;
+// ---- P9: engine-intent queue tasks ------------------------------------------
+// A queue task may carry `intent` — the factory then drives the ENGINE (guard →
+// bundle → one boxed call → archive → stage) instead of a generic chat turn.
+// Limit errors bubble into the queue's proven blocked-limit machinery; a guard
+// hit fails the task with DECISION-NEEDED (never bypassed) + a linked todo.
+async function processIntentTask(t, cfg) {
+  const it = t.intent;
+  const engineDir = path.join(REPO_ROOT, 'brain', 'engine');
+  for (const rel of ['gen.js', 'assemble.js', 'guard.js']) {
+    try { delete require.cache[require.resolve(path.join(engineDir, rel))]; } catch {}
+  }
+  const gen = require(path.join(engineDir, 'gen.js'));
+  const assemble = require(path.join(engineDir, 'assemble.js')).assemble;
+  if (it.kind === 'chunk-emit') {
+    const eng = freshChunkEngine();
+    const b = eng.buildChunkIntent(it.proto, it.chunkId, it.corrections || null);   // throws decisionNeeded on guard hit
+    const bundle = assemble(b.plan.module);
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
+    let out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+    if (!out) throw new Error('the brain returned nothing');
+    out = eng.appendVerbatimContract(it.proto, b.chunk, out);
+    const archived = gen.archive({ intent: 'chunk ' + b.chunk.id + ' ' + it.proto + ': ' + b.chunk.title, module: b.plan.module, bundleSha: bundle.sha256, model: cfg.model, output: out, protoSha: b.protoSha, chunkId: b.chunk.id });
+    fs.writeFileSync(eng.chunkPromptPath(it.proto, b.chunk.id), out + '\n');
+    eng.setChunkStatus(it.proto, b.chunk.id, 'sent');
+    return 'staged prototypes/' + it.proto + '/chunks/' + b.chunk.id + '-prompt.md · archived ' + archived + ' · bundle ' + bundle.sha256.slice(0, 12) + ' · proto ' + b.protoSha.slice(0, 12) + ' · status sent (copy path — report/verify are Vlad\'s)';
+  }
+  if (it.kind === 'gen') {
+    const retrieved = gen.retrievalCheck(it.text);
+    if (retrieved) return 'RETRIEVED from ' + retrieved.rel + ', not generated (similarity ' + retrieved.sim + ') — transparency rule';
+    const mod = (loadModulesDoc().modules || []).find((m) => m.id === it.module);
+    if (!mod) throw new Error('unknown module ' + it.module);
+    const bundle = assemble(mod.id);
+    const hits = require(path.join(engineDir, 'guard.js')).guard(it.text, mod.id + ' ' + mod.name);
+    if (hits.length) {
+      const err = new Error('DECISION-NEEDED: ' + hits.map((h) => h.title + ' (trigger: "' + h.trigger + '")').join(' · ') + ' → decisions.md');
+      err.decisionNeeded = true; err.hits = hits;
+      throw err;
+    }
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, it.text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
+    const out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+    if (!out) throw new Error('the brain returned nothing');
+    const archived = gen.archive({ intent: it.text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
+    return 'generated + archived ' + archived + ' · bundle ' + bundle.sha256.slice(0, 12) + ' (copy path — run in BP, then ingest)';
+  }
+  throw new Error('unknown intent kind ' + it.kind);
+}
+
 async function runQueue() {
   if (queueRunning) return { already: true };
   const gate = loadQueue();
@@ -3166,11 +4659,16 @@ async function runQueue() {
       const cfg = loadSettings();
       try {
         if (QUEUE_STUB && QUEUE_STUB.mode === 'limit') throw new Error('usage limit reached (stub)');
+        if (t.intent) {
+          const staged = await processIntentTask(t, cfg);
+          t.status = 'done'; t.finished = nowIso(); t.result = staged; qlog(t, 'done (intent)'); saveQueue(q);
+        } else {
         const r = await runClaudeStream(t.prompt, t.sessionId || null, {
           onLabel: (l) => { try { qlog(t, l); saveQueue(q); } catch {} },
-        }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT });
+        }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT, purpose: 'queue' });
         t.sessionId = r.sessionId;
         t.status = 'done'; t.finished = nowIso(); t.result = (r.text || '').slice(0, 4000); qlog(t, 'done'); saveQueue(q);
+        }
         addNotification({ type: 'task-complete', level: 'success', title: `Queue task done: ${t.title}`, target: '/queue.html' });
       } catch (e) {
         if (looksLikeLimit(e.message)) {
@@ -3182,6 +4680,15 @@ async function runQueue() {
           break;
         }
         t.status = 'failed'; t.finished = nowIso(); qlog(t, 'failed: ' + String(e.message).slice(0, 200)); saveQueue(q);
+        if (e.decisionNeeded) {
+          try {
+            const tasks2 = loadTasks();
+            let ch2 = false;
+            for (const h of e.hits || []) ch2 = ensureAutoTask(tasks2, 'decision:' + h.title, { title: 'Decision needed: ' + h.title, link: { kind: 'decision', ref: h.title }, notes: 'raised by queue intent "' + t.title.slice(0, 80) + '"' }) || ch2;
+            if (ch2) saveTasks(tasks2);
+            addNotification({ type: 'decision-attention', level: 'warning', title: 'Queue intent stopped — decision needed', body: t.title.slice(0, 200), target: 'decisions.md' });
+          } catch {}
+        }
         addNotification({ type: 'task-failed', level: 'error', title: `Queue task failed: ${t.title}`, body: String(e.message).slice(0, 200), target: '/queue.html' });
         // no auto-retry — Vlad re-queues failures deliberately
       }

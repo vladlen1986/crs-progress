@@ -1,0 +1,513 @@
+{
+  "name": "casino-settings",
+  "module": "casino_settings",
+  "protoHash": "dd65bf739ecfb0ec006307238619fe693f2436df0237c24a96475bfd7990596a",
+  "inventorySha": "0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98",
+  "chunks": [
+    {
+      "id": "c1",
+      "type": "styles",
+      "title": "Styles that must exist (create + showcase on bUfVN0)",
+      "scope": {
+        "in": [
+          "Create 14 missing styles per §13 naming; add each to the Design System page (bUfVN0) showcase"
+        ],
+        "out": [
+          "No element layout, no workflows"
+        ]
+      },
+      "dependsOn": [],
+      "producedNames": [
+        "CRS - /*",
+        "CRS - Btn",
+        "CRS - Btn Primary",
+        "CRS - Btn Ghost",
+        "CRS - Btn Large",
+        "CRS - Btn Small",
+        "CRS - Property Avatar",
+        "CRS - /*",
+        "CRS - Toast.visible",
+        "CRS - Toast",
+        "CRS - /*",
+        "CRS - Stat",
+        "CRS - Stat Label",
+        "CRS - Stat Value"
+      ],
+      "usesNames": [
+        "bUfVN0"
+      ],
+      "mappingRows": [
+        "/*",
+        ".btn",
+        ".btn-primary",
+        ".btn-ghost",
+        ".btn-large",
+        ".btn-small",
+        ".property-avatar",
+        "/*",
+        ".toast.visible",
+        ".toast",
+        "/*",
+        ".stat",
+        ".stat-label",
+        ".stat-value"
+      ],
+      "status": "sent"
+    },
+    {
+      "id": "c2",
+      "type": "layout",
+      "title": "Layout / containers",
+      "scope": {
+        "in": [
+          "/* → CRS - Elevated Card — CRS-design-system.md §20",
+          ".card-header → CRS - Elevated Card — CRS-design-system.md §20",
+          ".card-title → CRS - Elevated Card — CRS-design-system.md §20",
+          ".card-subtitle → CRS - Elevated Card — CRS-design-system.md §20",
+          ".card-body → CRS - Elevated Card — CRS-design-system.md §20"
+        ],
+        "out": [
+          "No component internals"
+        ]
+      },
+      "dependsOn": [
+        "c1"
+      ],
+      "producedNames": [
+        "/* container",
+        "card-header container",
+        "card-title container",
+        "card-subtitle container",
+        "card-body container"
+      ],
+      "usesNames": [
+        "CRS - Elevated Card",
+        "CRS - Elevated Card",
+        "CRS - Elevated Card",
+        "CRS - Elevated Card",
+        "CRS - Elevated Card"
+      ],
+      "mappingRows": [
+        "/*",
+        ".card-header",
+        ".card-title",
+        ".card-subtitle",
+        ".card-body"
+      ],
+      "status": "sent"
+    },
+    {
+      "id": "c3",
+      "type": "components",
+      "title": "Components — Sidebar",
+      "scope": {
+        "in": [
+          "/* → REUSE Sidebar reusable",
+          ".sidebar-section → REUSE Sidebar reusable",
+          ".sidebar-section-title → REUSE Sidebar reusable",
+          ".sidebar-item → REUSE Sidebar reusable",
+          ".sidebar-item.active → REUSE Sidebar reusable"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2"
+      ],
+      "producedNames": [
+        "/* element",
+        "sidebar-section element",
+        "sidebar-section-title element",
+        "sidebar-item element",
+        "sidebar-item.active element"
+      ],
+      "usesNames": [
+        "Sidebar reusable",
+        "Sidebar reusable",
+        "Sidebar reusable",
+        "Sidebar reusable",
+        "Sidebar reusable"
+      ],
+      "mappingRows": [
+        "/*",
+        ".sidebar-section",
+        ".sidebar-section-title",
+        ".sidebar-item",
+        ".sidebar-item.active"
+      ],
+      "status": "sent"
+    },
+    {
+      "id": "c4",
+      "type": "components",
+      "title": "Components — Dropdown & filter",
+      "scope": {
+        "in": [
+          ".input, → REUSE # Dropdown - Single / Multi",
+          ".input → REUSE # Dropdown - Single / Multi",
+          ".property-list-item.selected → REUSE # Dropdown - Single / Multi"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3"
+      ],
+      "producedNames": [
+        "input, element",
+        "input element",
+        "property-list-item.selected element"
+      ],
+      "usesNames": [
+        "# Dropdown - Single / Multi",
+        "# Dropdown - Single / Multi",
+        "# Dropdown - Single / Multi"
+      ],
+      "mappingRows": [
+        ".input,",
+        ".input",
+        ".property-list-item.selected"
+      ],
+      "status": "sent"
+    },
+    {
+      "id": "c5",
+      "type": "components",
+      "title": "Components — Buttons (variants/sizes/states)",
+      "scope": {
+        "in": [
+          "/* → CRS - /*",
+          ".btn → CRS - Btn",
+          ".btn-primary → CRS - Btn Primary",
+          ".btn-ghost → CRS - Btn Ghost",
+          ".btn-large → CRS - Btn Large",
+          ".btn-small → CRS - Btn Small"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4"
+      ],
+      "producedNames": [
+        "/* element",
+        "btn element",
+        "btn-primary element",
+        "btn-ghost element",
+        "btn-large element",
+        "btn-small element"
+      ],
+      "usesNames": [
+        "CRS - /*",
+        "CRS - Btn",
+        "CRS - Btn Primary",
+        "CRS - Btn Ghost",
+        "CRS - Btn Large",
+        "CRS - Btn Small"
+      ],
+      "mappingRows": [
+        "/*",
+        ".btn",
+        ".btn-primary",
+        ".btn-ghost",
+        ".btn-large",
+        ".btn-small"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c6",
+      "type": "components",
+      "title": "Components — Selection controls (checkbox · radio · switch)",
+      "scope": {
+        "in": [
+          "/* → REUSE Theme toggle",
+          ".toggle → REUSE Theme toggle",
+          ".toggle-slider → REUSE Theme toggle"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5"
+      ],
+      "producedNames": [
+        "/* element",
+        "toggle element",
+        "toggle-slider element"
+      ],
+      "usesNames": [
+        "Theme toggle",
+        "Theme toggle",
+        "Theme toggle"
+      ],
+      "mappingRows": [
+        "/*",
+        ".toggle",
+        ".toggle-slider"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c7",
+      "type": "components",
+      "title": "Components — Chips & badges",
+      "scope": {
+        "in": [
+          "/* → REUSE Chip Active",
+          ".badge-success → REUSE Chip Active",
+          ".badge-warning → REUSE Chip Active"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6"
+      ],
+      "producedNames": [
+        "/* element",
+        "badge-success element",
+        "badge-warning element"
+      ],
+      "usesNames": [
+        "Chip Active",
+        "Chip Active",
+        "Chip Active"
+      ],
+      "mappingRows": [
+        "/*",
+        ".badge-success",
+        ".badge-warning"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c8",
+      "type": "components",
+      "title": "Components — Avatars",
+      "scope": {
+        "in": [
+          ".property-avatar → CRS - Property Avatar"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7"
+      ],
+      "producedNames": [
+        "property-avatar element"
+      ],
+      "usesNames": [
+        "CRS - Property Avatar"
+      ],
+      "mappingRows": [
+        ".property-avatar"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c9",
+      "type": "components",
+      "title": "Components — Toast / notification",
+      "scope": {
+        "in": [
+          "/* → CRS - /*",
+          ".toast.visible → CRS - Toast.visible",
+          ".toast → CRS - Toast"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8"
+      ],
+      "producedNames": [
+        "/* element",
+        "toast.visible element",
+        "toast element"
+      ],
+      "usesNames": [
+        "CRS - /*",
+        "CRS - Toast.visible",
+        "CRS - Toast"
+      ],
+      "mappingRows": [
+        "/*",
+        ".toast.visible",
+        ".toast"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c10",
+      "type": "components",
+      "title": "Components — KPI tiles",
+      "scope": {
+        "in": [
+          "/* → CRS - /*",
+          ".stat → CRS - Stat",
+          ".stat-label → CRS - Stat Label",
+          ".stat-value → CRS - Stat Value"
+        ],
+        "out": [
+          "No states/conditionals yet",
+          "No workflows"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9"
+      ],
+      "producedNames": [
+        "/* element",
+        "stat element",
+        "stat-label element",
+        "stat-value element"
+      ],
+      "usesNames": [
+        "CRS - /*",
+        "CRS - Stat",
+        "CRS - Stat Label",
+        "CRS - Stat Value"
+      ],
+      "mappingRows": [
+        "/*",
+        ".stat",
+        ".stat-label",
+        ".stat-value"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c11",
+      "type": "states",
+      "title": "States & conditionals (full style swap only)",
+      "scope": {
+        "in": [
+          ".btn states: hover",
+          ".btn-ghost states: hover",
+          ".btn-primary states: active/hover",
+          ".input states: disabled/focus/hover",
+          ".input-with-prefix states: focus",
+          ".logo-upload states: hover",
+          ".property-list-item states: hover",
+          ".sidebar-item states: hover",
+          ".tab states: hover",
+          ".toggle input states: checked"
+        ],
+        "out": [
+          "Zero property-level conditionals — full style swap per §3.2"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9",
+        "c10"
+      ],
+      "producedNames": [],
+      "usesNames": [],
+      "mappingRows": [
+        ".btn states: hover",
+        ".btn-ghost states: hover",
+        ".btn-primary states: active/hover",
+        ".input states: disabled/focus/hover",
+        ".input-with-prefix states: focus",
+        ".logo-upload states: hover",
+        ".property-list-item states: hover",
+        ".sidebar-item states: hover",
+        ".tab states: hover",
+        ".toggle input states: checked"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "c12",
+      "type": "workflows",
+      "title": "Workflows (from demonstrated behavior)",
+      "scope": {
+        "in": [
+          "script-driven behavior present (<script>/onclick) — inventory manually before workflow chunks"
+        ],
+        "out": [
+          "No data bindings"
+        ]
+      },
+      "dependsOn": [
+        "c1",
+        "c2",
+        "c3",
+        "c4",
+        "c5",
+        "c6",
+        "c7",
+        "c8",
+        "c9",
+        "c10",
+        "c11"
+      ],
+      "producedNames": [],
+      "usesNames": [],
+      "mappingRows": [
+        "script-driven behavior present (<script>/onclick) — inventory manually before workflow chunks"
+      ],
+      "status": "pending"
+    }
+  ]
+}

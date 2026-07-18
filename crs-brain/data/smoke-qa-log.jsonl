@@ -1,0 +1,9 @@
+{"ts":"2026-07-18T06:56:29.877Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T07:00:06.257Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T07:00:13.891Z","total":23,"pass":22,"fail":1,"failures":[{"id":"p7-fixture-missing-file","ok":false,"detail":"brain/qa/__p7_fixture_does_not_exist__.md"}]}
+{"ts":"2026-07-18T07:00:19.305Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T07:01:04.110Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T07:02:10.165Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T07:53:53.371Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T08:29:33.648Z","total":22,"pass":22,"fail":0,"failures":[]}
+{"ts":"2026-07-18T12:45:57.488Z","total":22,"pass":21,"fail":1,"failures":[{"id":"checklist-parse-sane","ok":false,"detail":"165 rows"}]}

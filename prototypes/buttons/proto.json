@@ -1,0 +1,29 @@
+{
+  "name": "buttons",
+  "module": "user_management",
+  "status": "settled",
+  "settledHash": "48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658",
+  "created": "2026-07-18T04:09:54.497Z",
+  "notes": [
+    "registered from crs-brain/data/docs/buttons.html",
+    "2026-07-18T04:09:54.508Z — settled @ b1d003ad045d",
+    "2026-07-18T04:09:54.517Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:15:02.086Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:29:19.412Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:29:30.369Z — settled @ a5cb27de83fc",
+    "2026-07-18T04:30:12.615Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:30:12.624Z — settled @ f708838ef97c",
+    "2026-07-18T04:32:05.455Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:32:05.505Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:38:19.970Z — settled @ 4b0e69044cef",
+    "2026-07-18T04:38:20.061Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:39:29.623Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:39:29.669Z — settled @ a5cb27de83fc",
+    "2026-07-18T04:40:17.390Z — reverted settled → draft: html changed after settle (hash mismatch)",
+    "2026-07-18T04:40:17.414Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:41:36.287Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:41:39.377Z — settled @ 48c14d6e2301",
+    "2026-07-18T04:41:50.470Z — settled @ a0e571de655e",
+    "2026-07-18T04:41:50.511Z — settled @ 48c14d6e2301"
+  ]
+}

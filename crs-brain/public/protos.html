@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prototypes · CRS Brain</title>
+<link rel="stylesheet" href="/tokens.css">
+<script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
+  .wrap{max-width:980px;margin:0 auto;padding:26px 22px 90px}
+  header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+  header.top .t{flex:1;min-width:0}
+  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
+  .sub{color:var(--secondary);font-size:12.5px;line-height:1.55}
+  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
+  .hbtn:disabled{opacity:.5;cursor:not-allowed}
+  .hbtn.acc{background:var(--accent);border-color:var(--accent);color:var(--white) /* approved literal — on-accent text */}
+  .hbtn.acc:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
+  .hbtn.danger:hover{color:var(--danger);border-color:var(--danger)}
+  .hbtn.busy{pointer-events:none;opacity:.7}
+
+  .reg{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 10px;align-items:stretch}
+  .reg input,.reg select{background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:13px;outline:none}
+  .reg input:focus,.reg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .reg .path{flex:1;min-width:220px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:10px}
+  .card:hover{border-color:var(--line2)}
+  .chead{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;flex-wrap:wrap}
+  .cname{color:var(--primary);font-weight:700;font-size:14.5px}
+  .cmod{font-size:11px;color:var(--muted);font-family:var(--mono)}
+  .stchip{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
+  .st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
+  .st-settled{background:var(--accent-tint);color:var(--accent-soft);border:1px solid var(--accent-border-active)}
+  .st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
+  .prog{display:flex;align-items:center;gap:7px;margin-left:auto}
+  .prog .n{font-family:var(--mono);font-size:11.5px;color:var(--secondary)}
+  .pbar{width:110px;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--accent)}
+  .cbody{border-top:1px solid var(--line);padding:12px 14px;display:none}
+  .card.open .cbody{display:block}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+  .note{color:var(--muted);font-size:11.5px;font-family:var(--mono);margin:6px 0}
+
+  h3{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:16px 0 8px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
+  td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--secondary)}
+  td code,.mono{font-family:var(--mono);font-size:11.5px}
+  .fl-unresolved td:first-child{color:var(--warning);font-weight:700}
+  .fl-res td:first-child{color:var(--success)}
+  .rbtns{display:flex;gap:5px;flex-wrap:wrap}
+  .rbtns .hbtn{padding:3px 8px;font-size:11px}
+  .rbtns input{width:150px;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-badge);padding:3px 7px;font:inherit;font-size:11px;outline:none}
+
+  .chunk{border:1px solid var(--line);border-radius:var(--radius-btn);padding:9px 11px;margin-bottom:7px;background:var(--bg)}
+  .chrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+  .chid{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  .chtitle{color:var(--primary);font-weight:600;font-size:12.5px;flex:1;min-width:160px}
+  .chst{font-size:10px;font-weight:700;letter-spacing:.4px;padding:1px 7px;border-radius:var(--radius-pill);text-transform:uppercase}
+  .chst-pending{background:var(--panel2);color:var(--muted)}
+  .chst-sent{background:var(--accent-tint);color:var(--accent-soft)}
+  .chst-reported{background:var(--purple);color:var(--white) /* approved literal — on-fill text */}
+  .chst-verified{background:var(--success-tint);color:var(--success)}
+  .chst-failed{background:var(--error-tint);color:var(--error-soft)}
+  .chacts{display:flex;gap:5px;flex-wrap:wrap}
+  .chacts .hbtn{padding:4px 9px;font-size:11px}
+  .chx{margin-top:8px;display:none}
+  .chunk.open .chx{display:block}
+  .chx textarea{width:100%;min-height:110px;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical}
+  .chx textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+
+  .empty{text-align:center;color:var(--muted);padding:46px 20px;font-size:13px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-secondary);border:1px solid var(--border-active);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity 420ms cubic-bezier(.16,1,.3,1),transform 420ms cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="t">
+      <h1>Prototypes</h1>
+      <div class="sub">Design prototypes → settled hash → mapping (drift dies here) → chunk plan → Buildprint. A prototype chunks only from its <b>settled</b> bytes; editing a settled file reverts it to draft.</div>
+    </div>
+    <div><button class="hbtn" onclick="location.href='/'" title="Back to app"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M15 18l-6-6 6-6"/></svg>App</button></div>
+  </header>
+
+  <div class="reg">
+    <input id="newName" type="text" placeholder="New prototype name…" style="width:200px">
+    <select id="newMod"></select>
+    <select id="newTpl"><option value="blank">blank</option><option value="cards">card grid</option><option value="form">form panel</option><option value="table">table view</option></select>
+    <button class="hbtn acc" onclick="createProto()">New prototype</button>
+  </div>
+  <div class="reg">
+    <input class="path" id="regPath" type="text" placeholder="…or register an existing .html (repo path, e.g. demos/CRS_BreakList.html)">
+    <input id="regName" type="text" placeholder="name (auto)" style="width:130px">
+    <select id="regMod"></select>
+    <button class="hbtn acc" onclick="registerProto()">Register</button>
+  </div>
+
+  <div id="list"><div class="empty">Loading…</div></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const EMBED=window.parent&&window.parent!==window;
+let PROTOS=[],MODS=[],OPEN=new Set(),DETAIL={};
+
+function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),2600)}
+async function api(p,body){const r=await fetch(p,body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:undefined);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+
+async function load(){
+  try{
+    const [pr,md]=await Promise.all([api('/api/protos'),api('/api/modules')]);
+    PROTOS=pr.protos||[];MODS=md.modules||[];
+    const modOpts='<option value="">module…</option>'+MODS.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+    $('regMod').innerHTML=modOpts; $('newMod').innerHTML=modOpts;
+    for(const n of OPEN){try{DETAIL[n]=await api('/api/protos/detail?name='+encodeURIComponent(n))}catch{}}
+    render();
+  }catch(e){$('list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
+}
+function render(){
+  if(!PROTOS.length){$('list').innerHTML='<div class="empty">No prototypes yet — register an existing design html above, or scaffold one from the studio (Phase 3).</div>';return}
+  $('list').innerHTML=PROTOS.map(p=>{
+    const cc=p.chunkCounts,total=cc?cc.total:0,ver=cc?cc.verified:0;
+    return `<div class="card ${OPEN.has(p.name)?'open':''}" data-n="${esc(p.name)}">
+      <div class="chead" onclick="toggleCard('${esc(p.name)}')">
+        <span class="cname">${esc(p.name)}</span>
+        <span class="cmod">${esc(p.module)}</span>
+        <span class="stchip st-${esc(p.status)}">${esc(p.status)}</span>
+        ${total?`<span class="prog"><span class="pbar"><i style="width:${Math.round(ver/total*100)}%"></i></span><span class="n">${ver}/${total}</span></span>`:''}
+      </div>
+      <div class="cbody">${OPEN.has(p.name)?cardBody(p):''}</div>
+    </div>`;
+  }).join('');
+}
+function cardBody(p){
+  const d=DETAIL[p.name];
+  let h=`<div class="acts">
+    <button class="hbtn" onclick="openProto('${esc(p.name)}')">Open prototype</button>
+    ${p.status==='draft'?`<button class="hbtn acc" onclick="act(this,'/api/protos/settle',{name:'${esc(p.name)}'},'Settled — hash frozen')">Mark settled</button>`:''}
+    ${p.status!=='draft'?`<button class="hbtn" onclick="act(this,'/api/protos/map',{name:'${esc(p.name)}'},'Mapping written')">Run mapping</button>`:''}
+    ${p.status!=='draft'&&p.mappingExists?`<button class="hbtn" onclick="act(this,'/api/protos/plan',{name:'${esc(p.name)}'},'Plan written')">Build plan</button>`:''}
+  </div>`;
+  if(!d)return h+'<div class="note">loading detail…</div>';
+  if(d.proto.notes&&d.proto.notes.length)h+=`<div class="note">${esc(d.proto.notes[d.proto.notes.length-1])}</div>`;
+  // FLAGS
+  const flags=(dm(d)&&dm(d).flags)||[];
+  if(flags.length){
+    h+='<h3>Mapping flags</h3><table><tr><th>id</th><th>kind</th><th>value</th><th>location</th><th>nearest</th><th>status</th><th></th></tr>';
+    for(const f of flags){
+      h+=`<tr class="${f.status==='unresolved'?'fl-unresolved':'fl-res'}"><td>${esc(f.id)}</td><td>${esc(f.kind)}</td><td><code>${esc(f.value)}</code></td><td class="mono">${esc(f.selector)} · ${esc(f.prop)} · L${f.line}</td><td class="mono">${esc(f.nearest||'—')}</td><td>${esc(f.status)}</td><td>`;
+      if(f.status==='unresolved')h+=`<span class="rbtns"><input placeholder="--token" id="tk-${esc(p.name)}-${esc(f.id)}"><button class="hbtn" onclick="resolveFlag('${esc(p.name)}','${esc(f.id)}','map')">Map</button><button class="hbtn" onclick="resolveFlag('${esc(p.name)}','${esc(f.id)}','approve-literal')">Approve literal</button><button class="hbtn" onclick="resolveFlag('${esc(p.name)}','${esc(f.id)}','fixed')">Fixed in proto</button></span>`;
+      h+='</td></tr>';
+    }
+    h+='</table>';
+  }
+  // VERSIONS
+  const vers=(d.proto.versions||[]);
+  h+=`<h3>Versions <span style="font-family:var(--mono);font-size:10px">${vers.length}</span> <button class="hbtn" style="padding:3px 9px;font-size:11px;margin-left:8px" onclick="snapProto('${esc(p.name)}')">Snapshot now</button></h3>`;
+  if(vers.length){
+    h+='<table><tr><th>v</th><th>note</th><th>when</th><th></th></tr>';
+    for(const v of vers.slice().reverse()){
+      h+=`<tr><td class="mono">v${v.v}</td><td>${esc(v.note||'—')}</td><td class="mono">${esc((v.ts||'').slice(0,16).replace('T',' '))}</td>
+        <td><span class="rbtns"><button class="hbtn" onclick="viewVersion('${esc(p.name)}',${v.v})">View ⧉ current</button>
+        <button class="hbtn" onclick="restoreProto('${esc(p.name)}',${v.v})">Restore</button></span></td></tr>`;
+    }
+    h+='</table>';
+  } else h+='<div class="note">No snapshots yet.</div>';
+  // CHUNKS
+  if(d.plan&&d.plan.chunks){
+    h+='<h3>Chunk plan</h3>';
+    for(const c of d.plan.chunks){
+      const rep=d.reports&&d.reports[c.id];
+      h+=`<div class="chunk" id="ck-${esc(p.name)}-${esc(c.id)}"><div class="chrow">
+        <span class="chid">${esc(c.id)}</span><span class="chtitle">${esc(c.title)}</span>
+        <span class="chst chst-${esc(c.status)}">${esc(c.status)}</span>
+        <span class="chacts">
+          <button class="hbtn" onclick="emitChunk(this,'${esc(p.name)}','${esc(c.id)}')">${c.status==='failed'?'Regenerate':'Generate'}</button>
+          <button class="hbtn" onclick="copyPrompt(this,'${esc(p.name)}','${esc(c.id)}')">Copy → sent</button>
+          <button class="hbtn" onclick="toggleChunk('${esc(p.name)}','${esc(c.id)}')">Report…</button>
+          <button class="hbtn" onclick="chunkStatus(this,'${esc(p.name)}','${esc(c.id)}','verified')">Verified ✓</button>
+          <button class="hbtn danger" onclick="chunkStatus(this,'${esc(p.name)}','${esc(c.id)}','failed')">Failed ✗</button>
+        </span></div>
+        <div class="chx">
+          ${c.status==='failed'?`<textarea id="cor-${esc(p.name)}-${esc(c.id)}" placeholder="Corrections for the regenerate slot — what BP got wrong, what must change…"></textarea>`:''}
+          <textarea id="rep-${esc(p.name)}-${esc(c.id)}" placeholder="Paste BP's report here…"></textarea>
+          <div style="margin-top:6px;display:flex;gap:8px"><button class="hbtn acc" onclick="saveReport(this,'${esc(p.name)}','${esc(c.id)}')">Save report → reported</button>${rep?`<span class="note">saved: ${esc(rep)}</span>`:''}</div>
+        </div></div>`;
+    }
+  } else if(p.status!=='draft'&&p.mappingExists){
+    h+='<div class="note">No plan yet — resolve all flags, then Build plan.</div>';
+  }
+  return h;
+}
+function dm(d){try{const m=d.mapping.match(/```json crs-mapping\n([\s\S]*?)\n```/);return m?JSON.parse(m[1]):null}catch{return null}}
+async function toggleCard(n){
+  if(OPEN.has(n)){OPEN.delete(n);render();return}
+  OPEN.add(n);render();
+  try{DETAIL[n]=await api('/api/protos/detail?name='+encodeURIComponent(n))}catch(e){toast(e.message)}
+  render();
+}
+function toggleChunk(n,id){const el=$('ck-'+n+'-'+id);if(el)el.classList.toggle('open')}
+function openProto(n){
+  const p=PROTOS.find(x=>x.name===n);if(!p)return;
+  if(EMBED&&window.parent.openDocWindow){window.parent.openDocWindow(p.html,{protoName:n})}   // html → fullscreen overlay with the prototype bar
+  else location.href='/api/raw?path='+encodeURIComponent(p.html);
+}
+async function act(btn,url,body,okMsg){
+  btn.classList.add('busy');
+  try{await api(url,body);toast(okMsg)}catch(e){toast('⚠ '+e.message)}
+  btn.classList.remove('busy');await load();
+}
+async function createProto(){
+  const name=$('newName').value.trim(),module=$('newMod').value,template=$('newTpl').value;
+  if(!name||!module){toast('Name + module required');return}
+  try{const r=await api('/api/protos/create',{path:'',name,module,template});OPEN.add(r.proto.name);toast('Scaffolded '+r.proto.name);$('newName').value=''}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function snapProto(n){
+  const note=prompt('Snapshot note (optional):')||'';
+  try{const r=await api('/api/protos/snapshot',{name:n,note});toast('Snapshot v'+r.v)}catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function restoreProto(n,v){
+  try{const r=await api('/api/protos/restore',{name:n,v});toast('Restored v'+v+' (prior current kept as v'+r.autoSnapshot+')')}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+function viewVersion(n,v){
+  const cur='prototypes/'+n+'/'+n+'.html', ver='prototypes/'+n+'/versions/v'+v+'.html';
+  if(EMBED&&window.parent.openDocWindow){ window.parent.openDocWindow(ver,{htmlView:true}); window.parent.openDocWindow(cur,{htmlView:true}); }
+  else location.href='/api/raw?path='+encodeURIComponent(ver);
+}
+async function registerProto(){
+  const path=$('regPath').value.trim(),name=$('regName').value.trim(),module=$('regMod').value;
+  if(!path||!module){toast('Path + module required');return}
+  try{const r=await api('/api/protos/register',{path,name:name||undefined,module});OPEN.add(r.proto.name);toast('Registered '+r.proto.name);$('regPath').value='';$('regName').value=''}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function resolveFlag(n,fid,action){
+  const tk=$('tk-'+n+'-'+fid);
+  try{await api('/api/protos/resolve-flag',{name:n,flagId:fid,action,token:action==='map'?(tk&&tk.value.trim()):undefined});toast(fid+' → '+action)}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function emitChunk(btn,n,id){
+  btn.classList.add('busy');btn.textContent='Generating… (~30s)';
+  const cor=$('cor-'+n+'-'+id);
+  try{const r=await api('/api/protos/emit',{name:n,chunkId:id,corrections:cor&&cor.value.trim()||undefined});toast('Emitted '+id+' — archived w/ both hashes')}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function copyPrompt(btn,n,id){
+  try{
+    const r=await fetch('/api/file?path='+encodeURIComponent('prototypes/'+n+'/chunks/'+id+'-prompt.md'));
+    if(!r.ok)throw new Error('no emitted prompt yet — Generate first');
+    const j=await r.json();
+    await navigator.clipboard.writeText(j.content||j.text||'');
+    await api('/api/protos/chunk-status',{name:n,chunkId:id,status:'sent'});
+    toast('Copied — '+id+' → sent');
+  }catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function chunkStatus(btn,n,id,st){
+  try{const r=await api('/api/protos/chunk-status',{name:n,chunkId:id,status:st});toast(id+' → '+st+(r.protoStatus==='built'?' — prototype BUILT 🎉':''))}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function saveReport(btn,n,id){
+  const ta=$('rep-'+n+'-'+id);
+  if(!ta||!ta.value.trim()){toast('Paste the report first');return}
+  btn.classList.add('busy');
+  try{await api('/api/protos/chunk-report',{name:n,chunkId:id,report:ta.value});toast('Report saved — '+id+' → reported')}
+  catch(e){toast('⚠ '+e.message)}
+  btn.classList.remove('busy');await load();
+}
+(function boot(){
+  const m=location.hash.match(/#register=(.+)/);
+  if(m)$('regPath').value=decodeURIComponent(m[1]);
+  if(location.hash==='#new') setTimeout(()=>$('newName').focus(),50);
+  load();
+})();
+</script>
+</body>
+</html>

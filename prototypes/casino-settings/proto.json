@@ -1,0 +1,18 @@
+{
+  "name": "casino-settings",
+  "module": "casino_settings",
+  "status": "settled",
+  "settledHash": "dd65bf739ecfb0ec006307238619fe693f2436df0237c24a96475bfd7990596a",
+  "created": "2026-07-18T05:29:16.005Z",
+  "notes": [
+    "registered from demos/casino_property_settings.html",
+    "2026-07-18T05:29:16.022Z — settled @ dd65bf739ecf"
+  ],
+  "versions": [
+    {
+      "v": 1,
+      "note": "as registered from demos/ (pilot)",
+      "ts": "2026-07-18T05:29:16.014Z"
+    }
+  ]
+}

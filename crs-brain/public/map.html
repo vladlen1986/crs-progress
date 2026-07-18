@@ -15,7 +15,7 @@
     --c-mem6:#E879F9; --c-mem7:#9333EA; --c-mem8:#C4B5FD;
     --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
     --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
-    --board-h:40vh;   /* bottom board sheet height (user override 2026-07-17: bottom, not right) */
+    --board-w:420px;  /* right board drawer width (user instruction 2026-07-18: right drawer, supersedes the 07-17 bottom-sheet override) */
   }
   *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
   /* scrollbars — §2.2: track --bg-secondary, thumb --border-hover → --border-active, --accent while dragging */
@@ -40,7 +40,8 @@
   .menu-btn:hover{background:var(--bg-tertiary);color:var(--text-primary);border-color:var(--border-hover)}
   .menu-btn.on{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-default)}
   /* board open → toolbar buttons slide left of the drawer so BOARD stays reachable/toggleable */
-  
+  body.board-open .menu-btn{transform:translateX(calc(-1 * var(--board-w)))}
+
   .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
   .panel input[type=search]{width:100%;height:36px;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:0 10px;font-size:12px;font-family:inherit;outline:none}
@@ -67,46 +68,49 @@
   .bake:hover{background:var(--accent-hover)}
   .bake:active{background:var(--accent-active)}
 
-  /* kanban board drawer — right-side collapsible panel; folders/status as columns, files as cards */
-  .board{position:fixed;left:0;right:0;bottom:0;height:var(--board-h);min-height:280px;z-index:12;background:var(--bg-secondary);border-top:1px solid var(--border-default);transform:translateY(105%);transition:transform var(--transition);display:flex;flex-direction:column}
-  .board.open{transform:translateY(0)}
-  .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 40px 6px 16px;color:var(--text-primary);font-size:11px;font-weight:700;letter-spacing:.1em}
-  .board .bhead .n{color:var(--text-muted);font-weight:400;letter-spacing:.3px}
+  /* kanban board drawer — right-side panel, full height of the map area; folders/status
+     as stacked sections, files as cards. Slides in/out on the 160ms token transition. */
+  .board{position:fixed;top:0;right:0;bottom:0;width:var(--board-w);max-width:100vw;z-index:12;background:var(--bg-secondary);border-left:1px solid var(--border-default);transform:translateX(105%);transition:transform var(--transition);display:flex;flex-direction:column}
+  .board.open{transform:translateX(0)}
+  .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 36px 6px 14px;color:var(--text-primary);font-size:11px}
+  .board .bhead .n{color:var(--text-muted);font-weight:400}
   .board .bhead .close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit}
   .board .bhead .close:hover{color:var(--text-primary)}
-  .board .cols{flex:1;display:flex;gap:12px;overflow-x:auto;overflow-y:hidden;padding:6px 16px 16px}
-  .bcol{flex:0 0 210px;display:flex;flex-direction:column;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden}
-  .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border-default);font-size:11px;font-weight:700;color:var(--text-primary);letter-spacing:.8px;flex:0 0 auto}
-  .bcol .chead .dot{width:8px;height:8px;border-radius:50%;flex:0 0 8px}
+  /* columns stack vertically — a 420px drawer reads as one clean flow (§20.6) */
+  .board .cols{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;padding:6px 14px 16px}
+  .bcol{flex:0 0 auto;width:100%;display:flex;flex-direction:column;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden}
+  .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border-default);font-size:11px;font-weight:600;color:var(--text-secondary);flex:0 0 auto}
+  .bcol .chead .dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px}
   .bcol .chead .cnt{margin-left:auto;color:var(--text-muted);font-weight:600;font-size:10px;font-family:var(--mono);background:var(--na);border-radius:var(--radius-pill);padding:1px 7px}
-  .bcol .cards{flex:1;overflow-y:auto;padding:7px}
-  /* card anatomy — title Body Strong 13/600 --text-primary, meta Caption 11 --text-muted */
-  .bcard{display:flex;align-items:center;gap:7px;padding:8px 10px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-left:2px solid var(--cc,var(--border-hover));border-radius:var(--radius-btn);font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
-  .bcard:hover{border-color:var(--border-hover);border-left-color:var(--cc)}
-  .bcard .ext{margin-left:auto;font-size:11px;color:var(--text-muted);text-transform:uppercase;flex:0 0 auto}
+  .bcol .cards{flex:none;overflow:visible;padding:7px}
+  /* card anatomy — §20.7: --radius-card surface, neutral 1px border (no colored stripes),
+     folder identity = 6px chip-dot; title Body Strong 13/600, ext = neutral status badge */
+  .bcard{display:flex;align-items:center;gap:7px;padding:8px 10px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
+  .bcard:hover{border-color:var(--border-hover)}
+  .bcard .cdot{width:6px;height:6px;border-radius:50%;background:var(--cc,var(--border-hover));flex:0 0 6px}
+  .bcard .ext{margin-left:auto;font-size:10px;font-weight:600;color:var(--text-secondary);background:var(--na);border-radius:var(--radius-badge);padding:1px 6px;text-transform:uppercase;flex:0 0 auto}
   .bcard .nm{overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text-primary)}
   /* map-node hover → its board card(s) light up (§20.7 Chip-Active border) */
   .bcard.linked,.tile.linked{border-color:var(--accent-border-active)}
-  body.board-open .dock{bottom:calc(var(--board-h) + 14px)}
+  body.board-open .dock{left:calc((100vw - var(--board-w))/2);width:min(720px,calc(100vw - var(--board-w) - 28px))}
   body.board-open .hint{display:none}
-  body.board-open .pv{bottom:calc(var(--board-h) + 12px)}
-  body.board-open .panel{max-height:calc(100dvh - var(--board-h) - 70px);overflow-y:auto;z-index:13}
-  .bhead .bseg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
-  .bhead .bseg button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.5px}
-  .bhead .bseg button.on{background:var(--bg-elevated);color:var(--text-primary)}
-  .bhead .btabs{display:flex;gap:3px}
-  .bhead .btabs button{background:none;border:none;color:var(--text-secondary);padding:3px 10px;font-size:11px;font-weight:700;letter-spacing:1.2px;cursor:pointer;font-family:inherit;border-radius:var(--radius-btn)}
-  .bhead .btabs button:hover:not(.on){background:var(--bg-tertiary);color:var(--text-primary)}
-  .bhead .btabs button.on{color:var(--text-primary);background:var(--bg-elevated)}
+  body.board-open .pv{right:calc(var(--board-w) + 12px)}
+  body.board-open .panel{right:calc(var(--board-w) + 16px);max-height:calc(100dvh - 70px);overflow-y:auto;z-index:13}
+  /* §20.1: ONE segmented-control language for tabs + scope — active = greyscale
+     (--bg-elevated + --text-primary), never accent fill (standing user override) */
+  .bhead .bseg,.bhead .btabs{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
+  .bhead .bseg button,.bhead .btabs button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+  .bhead .bseg button.on,.bhead .btabs button.on{background:var(--bg-elevated);color:var(--text-primary)}
+  .bhead .bseg button:hover:not(.on),.bhead .btabs button:hover:not(.on){color:var(--text-primary)}
   .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:auto;flex:1 1 120px;min-width:110px}
   .bhead .bsearch:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
   .bfilters{display:flex;gap:5px;align-items:center;padding:0 16px 6px;flex-wrap:wrap;flex:0 0 auto}
   .bfilters .fc{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-pill);padding:2px 11px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px}
   .bfilters .fc.on{background:var(--bg-elevated);border-color:var(--border-active);color:var(--text-primary)}
   .bfilters .fl{font-size:9px;letter-spacing:1.2px;color:var(--text-muted);text-transform:uppercase;margin-right:2px}
-  /* ideas cards */
-  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-left:3px solid var(--pc,var(--border-active));border-radius:var(--radius-btn);padding:8px 10px;margin-bottom:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.45;position:relative}
-  .icard:hover{border-color:var(--border-hover);border-left-color:var(--pc)}
+  /* ideas cards — §20.7: --radius-card, neutral border; priority identity = the .pbadge */
+  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:8px 10px;margin-bottom:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.45;position:relative}
+  .icard:hover{border-color:var(--border-hover)}
   .icard .tags{margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
   .icard .tag{font-size:10px;font-weight:600;color:var(--accent-soft);background:var(--accent-tint);border-radius:var(--radius-badge);padding:1px 7px}
   /* priority badge — §20.7 status-badge tints (status itself = the column) */
@@ -124,12 +128,9 @@
   .iadd button{background:var(--accent);border:none;color:var(--white);border-radius:var(--radius-btn);width:26px;font-weight:700;cursor:pointer;font-family:inherit}
   .iadd button:hover{background:var(--accent-hover)}
   /* tile view — sneak-peek thumbnails */
-  .bcol.tiles{flex-basis:246px}
   .bcol.tiles .cards{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}
-  /* LIST layout — same board data, folder columns stacked into one vertical list */
-  body.blist .board .cols{flex-direction:column;overflow-x:hidden;overflow-y:auto;gap:10px}
-  body.blist .bcol{flex:0 0 auto;width:100%}
-  body.blist .bcol .cards{overflow:visible;flex:none}
+  /* LIST layout — same data; the drawer already stacks sections vertically, list mode
+     just relaxes the tile grid to auto-fill */
   body.blist .bcol.tiles .cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .tile{position:relative;aspect-ratio:1;border:1px solid var(--border-default);border-radius:var(--radius-card);background:var(--bg-secondary);overflow:hidden;cursor:pointer}
   .tile:hover{border-color:var(--border-hover)}
@@ -244,19 +245,20 @@
     .panel{top:50px;right:12px;left:auto;width:min(84vw,290px);max-height:calc(100dvh - 140px);overflow-y:auto}
     .dock{left:10px;right:10px;width:auto;bottom:10px;transform:none}
     .dock .dbody{max-height:32vh}
-    /* On a phone the bottom sheet takes the full screen. */
-    .board{height:100dvh;min-height:0}
+    /* On a phone the drawer takes the full screen (100dvw wide, already full height). */
+    .board{width:100dvw}
+    /* Full-screen board covers the toolbar — don't slide the buttons offscreen. */
+    body.board-open .menu-btn{transform:none}
     /* Embedded on a phone: the kanban/list board fills the screen — no galaxy behind
        it, no floating map chrome. (The app's own header switches views.) transform:none
        pins it full-screen deterministically instead of relying on the slide translate. */
-    body.embed.board-open .board{background:var(--bg-primary);border-top:none;height:100dvh;transform:none;transition:none}
+    body.embed.board-open .board{background:var(--bg-primary);border-left:none;width:100dvw;transform:none;transition:none}
     body.embed.board-open .brand,
     body.embed.board-open .menu-btn,
     body.embed.board-open .panel,
     body.embed.board-open .hint{display:none}
     .board .bhead{padding:10px 40px 6px 13px}
     .board .cols{padding:6px 13px 14px}
-    .bcol,.bcol.tiles{flex-basis:80vw;max-width:88vw}
     .pv{left:10px;right:10px;top:54px;bottom:10px}
     .pv .pvhead{flex-wrap:wrap;gap:8px}
     .pv .pvhead .sp{display:none}
@@ -270,16 +272,16 @@
   <div class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></svg></div>
   <div><b>CRS BRAIN</b> <span>SECOND BRAIN</span><div class="by">CASINO REPORTING SUITE</div></div>
 </div>
-<button class="menu-btn" id="boardBtn" style="right:170px" title="Folder board" onclick="toggleBoard()">▦ BOARD</button>
+<button class="menu-btn" id="boardBtn" style="right:170px" title="Folder board" onclick="toggleBoard()">▦ Board</button>
 <button class="menu-btn" id="fsBtn" style="right:118px" title="Fullscreen" onclick="toggleFS()">⛶</button>
 <button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
 <div class="board" id="board">
   <div class="bhead">
     <span class="btabs" id="boardTabs">
-      <button data-t="files" class="on">▦ FILES</button><button data-t="ideas">💡 IDEAS</button>
+      <button data-t="files" class="on">▦ Files</button><button data-t="ideas">💡 Ideas</button>
     </span>
     <span class="bseg" id="boardSeg">
-      <button data-c="all" class="on" title="Every file in the repo">ALL</button><button data-c="crs" title="Only files for building the CRS Bubble app — hides this second-brain app's own files (crs-brain/, scripts/) and the reference manuals">CRS ONLY</button>
+      <button data-c="all" class="on" title="Every file in the repo">All</button><button data-c="crs" title="Only files for building the CRS Bubble app — hides this second-brain app's own files (crs-brain/, scripts/) and the reference manuals">CRS only</button>
     </span>
     <input class="bsearch" id="boardQ" placeholder="Search…" autocomplete="off">
     <span class="n" id="boardN"></span><button class="close" onclick="toggleBoard()">✕</button></div>
@@ -1348,8 +1350,7 @@ let boardOpen=false, searchMatches=null;
 let boardTab='files', boardQ='', extFilter=null, tagFilter=null, priFilter=null;
 let ideas=null;   // {columns:{inbox,exploring,planned,done}}
 // DOM-injected colors reference tokens directly so they theme-flip with the page (§2)
-const IDEA_COLS=[['inbox','💡 INBOX','var(--accent-soft)'],['exploring','🔍 EXPLORING','var(--purple)'],['planned','📌 PLANNED','var(--warning)'],['done','✅ DONE','var(--success)']];
-const PRI={high:'var(--error)',med:'var(--warning)',low:'var(--text-muted)'};
+const IDEA_COLS=[['inbox','💡 Inbox','var(--accent-soft)'],['exploring','🔍 Exploring','var(--purple)'],['planned','📌 Planned','var(--warning)'],['done','✅ Done','var(--success)']];
 function parseIdea(text){ // native parsing: #tags and !priority
   const tags=[...text.matchAll(/#([\w-]+)/g)].map(m=>m[1]);
   const pri=(text.match(/!(high|med|low)\b/)||[])[1]||null;
@@ -1370,7 +1371,7 @@ function toggleBoard(){ boardOpen=!boardOpen;
 // Hovering a file card draws a temporary routing edge from the drawer edge to the file's
 // map node — same curved, low-opacity accent language as the reference-edge overlay —
 // and hovering a map node lights up its card(s) in the drawer (.linked, §20.7 border).
-let boardLink=null;   // {path, sx, sy, t0} — screen-space start at the sheet’s top edge
+let boardLink=null;   // {path, sx, sy, t0} — screen-space start at the drawer’s left edge
 function drawBoardLink(now){
   if(!boardLink||!boardOpen) return;
   let t=byId[boardLink.path];
@@ -1432,10 +1433,10 @@ function showHover(f,x,y){
   moveHover(x,y); hpv.classList.add('show');
 }
 function moveHover(x,y){
-  // keep the floating preview above the bottom sheet so it never covers the hovered card
-  const sTop=boardOpen?document.getElementById('board').getBoundingClientRect().top:innerHeight;
-  hpv.style.left=Math.max(10,Math.min(innerWidth-372,x+18))+'px';
-  hpv.style.top=Math.max(10,Math.min(sTop-312,y-310))+'px';
+  // keep the floating preview left of the right drawer so it never covers the hovered card
+  const bLeft=boardOpen?document.getElementById('board').getBoundingClientRect().left:innerWidth;
+  hpv.style.left=Math.max(10,Math.min(bLeft-372,x+18))+'px';
+  hpv.style.top=Math.max(10,Math.min(innerHeight-312,y-310))+'px';
 }
 function hideHover(){ hpv.classList.remove('show'); hpv.innerHTML=''; }
 // lazy-load tile iframes only when scrolled into view
@@ -1459,7 +1460,7 @@ function renderFiles(){
       && (!boardQ || (f.path||f.name).toLowerCase().includes(boardQ)));
     if(!files.length) return; total+=files.length;
     const col=document.createElement('div'); col.className='bcol'+(S.btiles?' tiles':'');
-    col.innerHTML=`<div class="chead"><span class="dot" style="background:${color};color:${color}"></span>${name.toUpperCase()}<span class="cnt">${files.length}</span></div><div class="cards"></div>`;
+    col.innerHTML=`<div class="chead"><span class="dot" style="background:${color};color:${color}"></span>${name}<span class="cnt">${files.length}</span></div><div class="cards"></div>`;
     const cards=col.querySelector('.cards');
     files.sort((a,b)=>a.name.localeCompare(b.name)).forEach(f=>{
       const html=/\.html?$/i.test(f.name), img=/\.(png|jpe?g|gif|svg|webp)$/i.test(f.name);
@@ -1474,14 +1475,15 @@ function renderFiles(){
       } else {
         c=document.createElement('div'); c.className='bcard'; c.style.setProperty('--cc',color);
         const ext=(f.name.split('.').pop()||'').slice(0,4);
-        c.innerHTML=`<span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
+        c.innerHTML=`<span class="cdot"></span><span class="nm">${f.name.replace(/</g,'&lt;')}</span><span class="ext">${ext}</span>`;
       }
       c.title=f.path+' — click to preview';
       c.dataset.path=f.path;
       c.onclick=()=>openPreview({path:f.path,label:f.name});
       c.onmouseenter=(e)=>{ const n=byId[f.path]; if(n){ matches=new Set([f.path, n.cluster].filter(Boolean)); }
-        const r=c.getBoundingClientRect(), bTop=document.getElementById('board').getBoundingClientRect().top;
-        boardLink={path:f.path, sx:r.left+r.width/2, sy:bTop, t0:performance.now()};
+        // curve originates at the drawer's LEFT edge, at the hovered card's vertical center
+        const r=c.getBoundingClientRect(), bLeft=document.getElementById('board').getBoundingClientRect().left;
+        boardLink={path:f.path, sx:bLeft, sy:r.top+r.height/2, t0:performance.now()};
         showHover({path:f.path,name:f.name},e.clientX,e.clientY); };
       c.onmousemove=(e)=>moveHover(e.clientX,e.clientY);
       c.onmouseleave=()=>{ matches=searchMatches; boardLink=null; hideHover(); };
@@ -1531,7 +1533,6 @@ async function renderIdeas(keepFocus){
     items.forEach(it=>{
       const p=parseIdea(it.text);
       const c=document.createElement('div'); c.className='icard';
-      c.style.setProperty('--pc', p.pri?PRI[p.pri]:color);
       const txt=it.text.replace(/</g,'&lt;').replace(/#([\w-]+)/g,'').replace(/!(high|med|low)\b/g,'').trim();
       c.innerHTML=`<div>${txt||'—'}</div>`
         +(p.tags.length||p.pri?`<div class="tags">${p.pri?'<span class="pbadge '+p.pri+'">'+p.pri+'</span>':''}${p.tags.map(t=>'<span class="tag">#'+t+'</span>').join('')}</div>`:'')

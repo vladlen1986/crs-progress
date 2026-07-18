@@ -1,0 +1,12 @@
+{"ts":"2026-07-18T13:37:25.925Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
+{"ts":"2026-07-18T13:37:25.935Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
+{"ts":"2026-07-18T13:37:25.943Z","source":"client","message":"TestError: harden probe","stack":"at foo (x:1)","url":"/#test"}
+{"ts":"2026-07-18T13:47:42.033Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T13:47:42.043Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T13:47:42.052Z","source":"client","message":"XErr probe unique-30656-32330","stack":"at z (a:1)","url":"/#t"}
+{"ts":"2026-07-18T14:28:12.414Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
+{"ts":"2026-07-18T14:28:12.423Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
+{"ts":"2026-07-18T14:28:12.432Z","source":"client","message":"HARDEN-p5c1-probe-1784384892","stack":"probe stack","url":"/test"}
+{"ts":"2026-07-18T14:49:39.384Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}
+{"ts":"2026-07-18T14:49:39.396Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}
+{"ts":"2026-07-18T14:49:39.405Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}

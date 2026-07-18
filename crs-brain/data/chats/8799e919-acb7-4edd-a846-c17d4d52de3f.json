@@ -1,0 +1,33 @@
+{
+  "id": "8799e919-acb7-4edd-a846-c17d4d52de3f",
+  "title": "Count from 1 to 60, one number per line with a short comment",
+  "sessionId": "f4b9d0cc-2cc0-4e60-852b-13a005fa4761",
+  "bp": false,
+  "created": "2026-07-18T12:32:57.778Z",
+  "updated": "2026-07-18T12:33:07.331Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Count from 1 to 60, one number per line with a short comment each.",
+      "ts": "2026-07-18T12:32:57.778Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "1. One — starting the count.\n2. Two — first even number.\n3. Three — first odd prime after two.\n4. Four — two squared.\n5. Five — halfway to ten.\n6. Six — first perfect number.\n7. Seven — lucky by reputation.\n8. Eight — two cubed.\n9. Nine — three squared.\n10. Ten — base of our number system.\n11. Eleven — first repdigit.\n12. Twelve — a dozen.\n13. Thirteen — the superstitious one.\n14. Fourteen — two weeks of days.\n15. Fifteen — quarter past",
+      "ts": "2026-07-18T12:33:07.331Z",
+      "startedAt": "2026-07-18T12:32:57.778Z",
+      "completedAt": "2026-07-18T12:33:07.331Z",
+      "steps": [
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": ""
+        }
+      ],
+      "partial": true
+    }
+  ],
+  "pinned": false
+}

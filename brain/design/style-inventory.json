@@ -1,0 +1,632 @@
+{
+  "note": "Deterministic inventory — built by brain/engine/style-inventory.js. The find-first source for the prototype mapping pass. design-system-export.md ABSENT (curated attested list in use).",
+  "sourcesSha256": "0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98",
+  "tokens": [
+    {
+      "name": "--bg-primary",
+      "dark": "#181818",
+      "light": "#FAFAFA",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--bg-secondary",
+      "dark": "#1E1E1E",
+      "light": "#FFFFFF",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--bg-tertiary",
+      "dark": "#242424",
+      "light": "#F4F4F5",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--bg-elevated",
+      "dark": "#2A2A2A",
+      "light": "#FFFFFF",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--border-default",
+      "dark": "#242424",
+      "light": "#EAEAEB",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--border-hover",
+      "dark": "#333333",
+      "light": "#DCDCDE",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--border-active",
+      "dark": "#3D3D3D",
+      "light": "#C8C8CB",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--input-border",
+      "dark": "#2A2A2A",
+      "light": "#E4E4E6",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent",
+      "dark": "#3B82F6",
+      "light": "#3B82F6",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-hover",
+      "dark": "#2563EB",
+      "light": "#2563EB",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-active",
+      "dark": "#1D4ED8",
+      "light": "#1D4ED8",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-text",
+      "dark": "#3B82F6",
+      "light": "#1D4ED8",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-soft",
+      "dark": "#60A5FA",
+      "light": "#2563EB",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-glow",
+      "dark": "rgba(59,130,246,0.13)",
+      "light": "rgba(59,130,246,0.13)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-tint",
+      "dark": "rgba(59,130,246,0.08)",
+      "light": "rgba(59,130,246,0.08)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--accent-border-active",
+      "dark": "rgba(59,130,246,0.55)",
+      "light": "rgba(59,130,246,0.55)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--text-primary",
+      "dark": "#E0E0E0",
+      "light": "#18181B",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--text-secondary",
+      "dark": "#A6A6A6",
+      "light": "#5F5F66",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--text-muted",
+      "dark": "#6B6B6B",
+      "light": "#8E8E95",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--text-disabled",
+      "dark": "#565656",
+      "light": "#B6B6BB",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--success",
+      "dark": "#22C55E",
+      "light": "#16A34A",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--success-soft",
+      "dark": "#4ADE80",
+      "light": "#22C55E",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--error",
+      "dark": "#EF4444",
+      "light": "#DC2626",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--error-soft",
+      "dark": "#F87171",
+      "light": "#DC2626",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--warning",
+      "dark": "#F59E0B",
+      "light": "#D97706",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--purple",
+      "dark": "#8B5CF6",
+      "light": "#7C3AED",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--purple-accent",
+      "dark": "#A855F7",
+      "light": "#9333EA",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--cyan",
+      "dark": "#06B6D4",
+      "light": "#0891B2",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--na",
+      "dark": "#2B2B2B",
+      "light": "#E6E6E8",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--success-tint",
+      "dark": "rgba(34,197,94,0.13)",
+      "light": "rgba(22,163,74,0.10)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--warning-tint",
+      "dark": "rgba(245,158,11,0.13)",
+      "light": "rgba(217,119,6,0.10)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--error-tint",
+      "dark": "rgba(239,68,68,0.13)",
+      "light": "rgba(220,38,38,0.10)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--white",
+      "dark": "#FFFFFF",
+      "light": "#FFFFFF",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--black",
+      "dark": "#000000",
+      "light": "#000000",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--transparent",
+      "dark": "rgba(255,255,255,0)",
+      "light": "rgba(255,255,255,0)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--shadow-modal",
+      "dark": "0 24px 60px rgba(0,0,0,0.6)",
+      "light": "0 16px 40px rgba(0,0,0,0.10)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--shadow-dropdown",
+      "dark": "0 12px 40px rgba(0,0,0,0.55)",
+      "light": "0 12px 40px rgba(0,0,0,0.08)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--transition",
+      "dark": "160ms cubic-bezier(.4,0,.2,1)",
+      "light": "160ms cubic-bezier(.4,0,.2,1)",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--transition-colors",
+      "dark": "200ms ease-in",
+      "light": "200ms ease-in",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-card",
+      "dark": "10px",
+      "light": "10px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-btn",
+      "dark": "7px",
+      "light": "7px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-input",
+      "dark": "7px",
+      "light": "7px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-modal",
+      "dark": "12px",
+      "light": "12px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-badge",
+      "dark": "5px",
+      "light": "5px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--radius-pill",
+      "dark": "20px",
+      "light": "20px",
+      "source": "CRS-design-system.md §2.10"
+    },
+    {
+      "name": "--tag-coming-bg",
+      "dark": "#1A1025",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--tag-coming-border",
+      "dark": "#3D2D6E",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--tag-coming-text",
+      "dark": "#C084FC",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--tag-roadmap-bg",
+      "dark": "#111827",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--tag-roadmap-border",
+      "dark": "#1F2D45",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--tag-roadmap-text",
+      "dark": "#60A5FA",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--font-sans",
+      "dark": "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--font-mono",
+      "dark": "'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--h-button-sm",
+      "dark": "28px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--h-button",
+      "dark": "32px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--h-button-lg",
+      "dark": "40px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--h-input",
+      "dark": "36px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--h-input-lg",
+      "dark": "44px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--shadow-card",
+      "dark": "none",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--sidebar-width",
+      "dark": "256px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--sidebar-padding",
+      "dark": "12px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-xs",
+      "dark": "4px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-sm",
+      "dark": "8px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-md",
+      "dark": "12px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-lg",
+      "dark": "16px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-xl",
+      "dark": "24px",
+      "light": null,
+      "source": "design/tokens.css"
+    },
+    {
+      "name": "--space-2xl",
+      "dark": "32px",
+      "light": null,
+      "source": "design/tokens.css"
+    }
+  ],
+  "aliases": {
+    "--bg": "--bg-primary",
+    "--surface-1": "--bg-secondary",
+    "--surface-2": "--bg-tertiary",
+    "--surface-3": "--bg-elevated",
+    "--panel": "--bg-secondary",
+    "--panel2": "--bg-tertiary",
+    "--elev": "--bg-elevated",
+    "--border": "--border-default",
+    "--line": "--border-default",
+    "--line2": "--border-hover",
+    "--line3": "--border-active",
+    "--primary": "--text-primary",
+    "--secondary": "--text-secondary",
+    "--muted": "--text-muted",
+    "--accent2": "--accent-soft",
+    "--good": "--success",
+    "--warn": "--warning",
+    "--danger": "--error",
+    "--r-button": "--radius-btn",
+    "--r-input": "--radius-input",
+    "--r-card": "--radius-card",
+    "--r-modal": "--radius-modal",
+    "--r-badge": "--radius-badge",
+    "--r-pill": "--radius-pill",
+    "--ease": "--transition",
+    "--ease-enter": "--transition",
+    "--h-btn": "--h-button",
+    "--h-btn-sm": "--h-button-sm",
+    "--h-btn-lg": "--h-button-lg"
+  },
+  "styles": [
+    {
+      "name": "CRS - Primary",
+      "kind": "style",
+      "appliesTo": "DateInput",
+      "provenance": "CRS-design-system.md §20.3"
+    },
+    {
+      "name": "CRS - Elevated Card",
+      "kind": "style",
+      "appliesTo": "Group",
+      "provenance": "CRS-design-system.md §20"
+    },
+    {
+      "name": "CRS - Input 36px",
+      "kind": "style",
+      "appliesTo": "Input",
+      "provenance": "CRS-design-system.md §20"
+    },
+    {
+      "name": "Chip Active",
+      "kind": "style",
+      "appliesTo": "Group/Text chip",
+      "provenance": "CRS-design-system.md §20.7"
+    },
+    {
+      "name": "Chip Dot 6px",
+      "kind": "style",
+      "appliesTo": "Shape",
+      "provenance": "CRS-design-system.md §20.7"
+    },
+    {
+      "name": "zzactive",
+      "kind": "swap-style",
+      "appliesTo": "conditional full-swap (dark)",
+      "provenance": "CRS-design-system.md §20.1"
+    },
+    {
+      "name": "zzactivelight",
+      "kind": "swap-style",
+      "appliesTo": "conditional full-swap (light)",
+      "provenance": "CRS-design-system.md §20.1"
+    }
+  ],
+  "reusables": [
+    {
+      "name": "Design System page",
+      "ids": [
+        "bUfVN0"
+      ],
+      "status": "✅",
+      "notes": "canonical `crs-design-system.html` (Jul 13); approval gate for all styles",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "User menu",
+      "ids": [
+        "bUXME",
+        "bUFck"
+      ],
+      "status": "✅ themed",
+      "notes": "sectioned, role badge, theme toggle",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "User card",
+      "ids": [
+        "bUCur"
+      ],
+      "status": "✅",
+      "notes": "sidebar-bottom trigger",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "Theme toggle",
+      "ids": [],
+      "status": "✅",
+      "notes": "",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "RE Nav Toggle",
+      "ids": [],
+      "status": "✅",
+      "notes": "shell-level, mirror-counter pattern",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "# Toggle - Status",
+      "ids": [],
+      "status": "🟡",
+      "notes": "segmented, confirm-on-disable",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "# People Filter",
+      "ids": [],
+      "status": "🟡",
+      "notes": "photos + status dots",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "# Dropdown - Single / Multi",
+      "ids": [],
+      "status": "🟡",
+      "notes": "searchable, `search_tokens` (V7 galleries built)",
+      "provenance": "brain/STATUS.md §6"
+    },
+    {
+      "name": "Sidebar reusable",
+      "ids": [],
+      "status": "✅",
+      "notes": "theme-aware, mobile overlay + scrim",
+      "provenance": "brain/STATUS.md §6"
+    }
+  ],
+  "families": [
+    {
+      "id": "20.1",
+      "name": "Button groups / segmented controls",
+      "ref": "CRS-design-system.md §20.1"
+    },
+    {
+      "id": "20.2",
+      "name": "Selection controls (checkbox · radio · switch)",
+      "ref": "CRS-design-system.md §20.2"
+    },
+    {
+      "id": "20.3",
+      "name": "Pickers",
+      "ref": "CRS-design-system.md §20.3"
+    },
+    {
+      "id": "20.4",
+      "name": "KPI tiles",
+      "ref": "CRS-design-system.md §20.4"
+    },
+    {
+      "id": "20.5",
+      "name": "Avatars",
+      "ref": "CRS-design-system.md §20.5"
+    },
+    {
+      "id": "20.6",
+      "name": "Tables & lists",
+      "ref": "CRS-design-system.md §20.6"
+    },
+    {
+      "id": "20.7",
+      "name": "Chips & badges",
+      "ref": "CRS-design-system.md §20.7"
+    },
+    {
+      "id": "buttons",
+      "name": "Buttons (variants/sizes/states)",
+      "ref": "CRS-design-system.md §14 + design/CRS_UI_Kit.html §3"
+    },
+    {
+      "id": "modal",
+      "name": "Modal / popup",
+      "ref": "CRS-design-system.md §5"
+    },
+    {
+      "id": "menu",
+      "name": "User menu / dropdown menu",
+      "ref": "CRS-design-system.md §6"
+    },
+    {
+      "id": "dropdown",
+      "name": "Dropdown & filter",
+      "ref": "CRS-design-system.md §7"
+    },
+    {
+      "id": "matrix",
+      "name": "Permission matrix",
+      "ref": "CRS-design-system.md §8"
+    },
+    {
+      "id": "toast",
+      "name": "Toast / notification",
+      "ref": "CRS-design-system.md §9"
+    },
+    {
+      "id": "sidebar",
+      "name": "Sidebar",
+      "ref": "CRS-design-system.md §10"
+    },
+    {
+      "id": "layout",
+      "name": "Layout / containers (page scaffold)",
+      "ref": "CRS-design-system.md §15"
+    }
+  ]
+}

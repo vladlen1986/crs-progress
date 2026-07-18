@@ -6,6 +6,55 @@ Each entry: date, decision, why, alternatives considered, required artifacts.
 Do not edit historical entries. If a decision is reversed, add a new entry 
 explaining the reversal and link to the original.
 
+**Status tagging (added 2026-07-18 for the prompt engine):** every dated
+`## YYYY-MM-DD — …` entry is a **LOCKED** ruling — this file's historical default,
+no tag needed. Undecided questions are registered as `## [OPEN] …` stubs in the
+registry below. Each stub carries a `Triggers:` keyword line scanned by
+`brain/engine/guard.js` before any prompt generation; a hit hard-stops generation
+with `DECISION-NEEDED`. Stubs are pointers — full context stays at the cited source
+(one fact, one file). When a call is made, add a normal dated entry at the top and
+delete the stub.
+
+---
+
+## Open decisions registry (guard input — stubs, not rulings)
+
+## [OPEN] Company/Property own-table privacy-rule shape (Pattern A exceptions)
+`01 Company` company-only + `01.1 Property` property-only — confirm as decisions.md
+Pattern-A exceptions (they ARE the tenant tables).
+Source: `brain/STATUS.md` §4 · `brain/security.md` §Pending.
+Triggers: 01 Company, 01.1 Property, company-only, property-only, own-table, tenant table, privacy rule on Company, privacy rule on Property, Pattern A exception
+
+## [OPEN] Pattern A rollout order & batching
+Module-by-module vs one big privacy-rule sweep (blocks `brain/STATUS.md` §0.5 remediation).
+Source: `brain/STATUS.md` §4.
+Triggers: Pattern A rollout, privacy-rule sweep, privacy sweep, rollout order, all 46 DTs, batch privacy rules
+
+## [OPEN] Permission matrix vs checklist for view-only gates
+One matrix for pilot, or split?
+Source: `brain/STATUS.md` §4.
+Triggers: permission matrix, view-only gate, matrix vs checklist
+
+## [OPEN] action_type attribute on OS - Permission
+Add + backfill now, or defer?
+Source: `brain/STATUS.md` §4.
+Triggers: action_type, permission action type
+
+## [OPEN] Matrix resource row derivation
+Derive from permission name vs add `resource` attribute?
+Source: `brain/STATUS.md` §4.
+Triggers: resource attribute, matrix resource row, derive resource
+
+## [OPEN] Status-toggle confirm-on-disable scope
+Confirm-on-disable for which toggles app-wide?
+Source: `brain/STATUS.md` §4.
+Triggers: confirm-on-disable, confirm on disable
+
+## [OPEN] Fate of the 64 soft-deleted data types
+Restore-or-purge review (Bubble keeps them in payload).
+Source: `brain/database.md` §Pending checkboxes.
+Triggers: soft-deleted, deleted data types, deleted DTs, restore or purge
+
 ---
 
 ## 2026-07-16 — CRS Brain UI/UX overhaul (branch `ui-ux-overhaul`)
