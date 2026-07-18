@@ -33,40 +33,39 @@
   .seg button:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow)}
   .list{display:flex;flex-direction:column;gap:7px;margin-top:8px}
   .sec-label{font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:14px 2px 2px}
-  .item{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--panel);overflow:hidden}
+  .item{border:1px solid var(--line);border-radius:var(--radius-card);background:var(--panel);overflow:hidden;transition:margin-top var(--transition),margin-bottom var(--transition),transform var(--transition),box-shadow var(--transition),background-color var(--transition-colors),color var(--transition-colors),border-color var(--transition-colors)}
   .item:hover{border-color:var(--line2)}
   .item.open{border-color:var(--line3)}
   .item.focus-now{border-color:var(--accent)}
-  .row{position:relative;display:flex;align-items:center;gap:10px;padding:9px 12px 11px}
-  .row.dragging{opacity:.45}
-  .item.drop-above{box-shadow:0 -2px 0 var(--accent)} .item.drop-below{box-shadow:0 2px 0 var(--accent)}
-  /* per-row slim checklist progress bar (ptree) */
-  .rowprog{position:absolute;left:12px;right:12px;bottom:4px;height:2px;border-radius:2px;background:var(--bg-tertiary);display:flex;overflow:hidden}
-  .rowprog i{display:block;height:100%}
-  .rowprog .pd{background:var(--good)} .rowprog .pp{background:var(--warn);opacity:.75}
-  .grip{color:var(--muted);cursor:grab;font-size:15px;line-height:1;user-select:none;padding:0 2px}
-  .grip:active{cursor:grabbing}
+  .row{position:relative;display:flex;align-items:center;gap:10px;padding:7px 12px;cursor:grab}
+  .row.dragging{cursor:grabbing}
+  /* whole-row drag: the picked-up card lifts; siblings open the gap via margin */
+  .item.dragging{transform:scale(1.01);box-shadow:var(--shadow-dropdown);opacity:.95}
+  .item.drop-above{margin-top:18px} .item.drop-below{margin-bottom:18px}
+  @keyframes settle{from{transform:translateY(-6px);opacity:.6}to{transform:none;opacity:1}}
+  .item.settle{animation:settle 200ms cubic-bezier(0,0,.2,1)}
   .ord{font-family:var(--mono);font-size:12px;color:var(--muted);width:22px;text-align:right;flex:0 0 auto}
-  .body{flex:1;min-width:0;cursor:pointer;display:flex;align-items:center;gap:9px}
-  .caret{flex:0 0 auto;color:var(--muted);transition:transform var(--transition);font-size:10px}
-  .item.open .caret{transform:rotate(90deg);color:var(--accent2)}
-  .bodytext{min-width:0}
+  .body{flex:1;min-width:0;display:flex;align-items:center;gap:9px}
   .nm{color:var(--primary);font-weight:600;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .sec-tag{font-size:10px;font-weight:600;color:var(--muted);border:1px solid var(--line2);border-radius:var(--radius-badge);padding:1px 6px}
   .doc-tag{font-size:10px;font-weight:600;color:var(--success);background:var(--success-tint);border-radius:var(--radius-badge);padding:1px 5px;letter-spacing:.03em}
-  .note{color:var(--secondary);font-size:12px;margin-top:2px;opacity:.9}
-  .note:empty{display:none}
-  .pill{flex:0 0 auto;border:1px solid var(--transparent);border-radius:var(--radius-badge);padding:3px 11px;font-size:11px;font-weight:600;cursor:pointer;white-space:nowrap;background:none;font-family:inherit}
-  .pill:hover{border-color:var(--border-default)}
-  .pill.done{color:var(--success);background:var(--success-tint)}
-  .pill.in-progress{color:var(--warning);background:var(--warning-tint)}
-  .pill.not-started{color:var(--text-secondary);background:var(--bg-tertiary)}
-  .pill.roadmap{color:var(--accent-text);background:var(--accent-tint)}
-  .mv{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
-  .mv button{width:28px;height:16px;border:none;background:none;color:var(--text-muted);border-radius:var(--radius-btn);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;font-family:inherit}
-  .mv button:hover:not(:disabled){color:var(--text-primary);background:var(--bg-tertiary)}
-  .mv button:disabled{opacity:.5;cursor:default}
-  .mv svg{width:11px;height:11px}
+  .pct{flex:0 0 auto;font-family:var(--mono);font-size:10.5px;color:var(--text-muted);min-width:32px;text-align:right}
+  /* status = plain word, subtly colored per the old pill palette (cycling lives in the ⋮ menu) */
+  .stword{flex:0 0 auto;font-size:11px;font-weight:600;white-space:nowrap}
+  .stword.done{color:var(--success)}
+  .stword.in-progress{color:var(--warning)}
+  .stword.not-started{color:var(--text-secondary)}
+  .stword.roadmap{color:var(--accent-text)}
+  /* hover-revealed row actions */
+  .dots{flex:0 0 auto;width:28px;height:28px;border:none;background:none;color:var(--text-muted);border-radius:var(--radius-btn);cursor:pointer;font-size:15px;line-height:1;padding:0;font-family:inherit;opacity:0;transition:opacity var(--transition),background-color var(--transition-colors),color var(--transition-colors)}
+  .row:hover .dots,.dots:focus-visible,.dots[aria-expanded="true"]{opacity:1}
+  .dots:hover{background:var(--bg-tertiary);color:var(--text-primary)}
+  .dots:focus-visible{outline:none;box-shadow:0 0 0 3px var(--accent-glow)}
+  .rowmenu{position:fixed;z-index:320;min-width:176px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:9px;box-shadow:var(--shadow-dropdown);padding:5px;display:none}
+  .rowmenu.show{display:block}
+  .rowmenu button{display:block;width:100%;background:none;border:0;color:var(--text-secondary);padding:6px 10px;border-radius:6px;cursor:pointer;font:inherit;font-size:12px;text-align:left}
+  .rowmenu button:hover:not(:disabled){background:var(--bg-tertiary);color:var(--text-primary)}
+  .rowmenu button:disabled{opacity:.5;cursor:default}
   /* detail panel */
   .detail{border-top:1px solid var(--line);padding:14px 14px 16px;background:var(--bg-primary);display:none}
   .item.open .detail{display:block}
@@ -149,7 +148,7 @@
     <div>
       <a class="back" href="/">← CRS Brain</a>
       <h1>Progress Tree</h1>
-      <div class="sub" id="sub">Modules in build-priority order. Drag or ↑↓ to reorder · click a status to cycle · click a name to expand its brain detail + generate a Buildprint prompt.</div>
+      <div class="sub" id="sub">Modules in build-priority order. Drag a row to reorder · click a row to expand its brain detail + generate a Buildprint prompt · ⋮ for move / status.</div>
     </div>
     <div class="saved" id="saved"></div>
   </header>
@@ -170,12 +169,13 @@
 
   <div class="list" id="list"><div class="empty">Loading…</div></div>
 </div>
+<div class="rowmenu" id="rowmenu" role="menu"></div>
 
 <script>
 const VOCAB=['done','in-progress','not-started','roadmap'];
 const LABEL={'done':'Done','in-progress':'In progress','not-started':'Not started','roadmap':'Roadmap'};
 const COLOR={done:'var(--good)','in-progress':'var(--warn)','not-started':'var(--na)',roadmap:'var(--accent2)'};
-let DATA={modules:[]}, saveTimer=null, dragId=null;
+let DATA={modules:[]}, saveTimer=null, dragId=null, justDragged=false, menuIdx=null;
 const expanded=new Set(), detailCache={}, promptCache={}, lastKind={}, editReq={};
 const KLABEL={edit:'EDIT prompt — paste into the Buildprint app (applies directly)',sync:'SYNC prompt — read-only, reports back into the brain'};
 // single-app rule (override #37): when embedded, files open via the parent app, never a browser tab
@@ -222,6 +222,30 @@ function renderSummary(){
 function logAct(type,summary){ try{ fetch('/api/action-log',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type,summary})}); }catch(e){} }
 function move(idx,dir){ const j=idx+dir; if(j<0||j>=DATA.modules.length)return; const[m]=DATA.modules.splice(idx,1); DATA.modules.splice(j,0,m); render(); scheduleSave(); logAct('module-update',`Reordered "${m.name}" ${dir<0?'up':'down'} to build position ${j+1}`); }
 function cycle(idx){ const m=DATA.modules[idx]; m.status=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length]; render(); scheduleSave(); logAct('module-update',`Set "${m.name}" status → ${m.status}`); }
+// ⋮ row menu — keeps keyboard/AT-accessible reorder (Move up/down) + status cycling off the row itself
+function openMenu(ev,idx){
+  const menu=document.getElementById('rowmenu'); if(!menu) return;
+  if(menu.classList.contains('show')&&menuIdx===idx){ closeMenu(); return; }
+  closeMenu(); menuIdx=idx;
+  const m=DATA.modules[idx], next=VOCAB[(VOCAB.indexOf(m.status)+1)%VOCAB.length];
+  menu.innerHTML=
+    `<button role="menuitem" ${idx===0?'disabled':''} onclick="closeMenu();move(${idx},-1)">Move up</button>`+
+    `<button role="menuitem" ${idx===DATA.modules.length-1?'disabled':''} onclick="closeMenu();move(${idx},1)">Move down</button>`+
+    `<button role="menuitem" onclick="closeMenu();cycle(${idx})">Set status → ${LABEL[next]}</button>`+
+    `<button role="menuitem" onclick="closeMenu();toggle('${m.id}')">${expanded.has(m.id)?'Collapse':'Expand'}</button>`;
+  menu.classList.add('show');
+  const b=ev.currentTarget.getBoundingClientRect(), mw=menu.offsetWidth, mh=menu.offsetHeight;
+  menu.style.left=Math.max(8,Math.min(window.innerWidth-mw-8,b.right-mw))+'px';
+  menu.style.top=Math.max(8,Math.min(window.innerHeight-mh-8,b.bottom+4))+'px';
+  ev.currentTarget.setAttribute('aria-expanded','true');
+}
+function closeMenu(){
+  const menu=document.getElementById('rowmenu'); if(!menu) return;
+  menu.classList.remove('show'); menuIdx=null;
+  document.querySelectorAll('.dots[aria-expanded]').forEach(d=>d.removeAttribute('aria-expanded'));
+}
+document.addEventListener('mousedown',e=>{ if(!e.target.closest('#rowmenu')&&!e.target.closest('.dots')) closeMenu(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeMenu(); });
 function findMod(id){ return DATA.modules.find(m=>m.id===id); }
 function cycleChk(id,ci){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; const s=m.checklist[ci].state; m.checklist[ci].state=s==='todo'?'partial':s==='partial'?'done':'todo'; render(); scheduleSave(); }
 function setChkDetail(id,ci,v){ const m=findMod(id); if(!m||!m.checklist||!m.checklist[ci])return; m.checklist[ci].detail=v; scheduleSave(); } // no re-render: keeps input focus
@@ -374,6 +398,7 @@ function detailHTML(id){
 }
 
 function render(){
+  closeMenu(); // indices go stale on re-render
   renderSummary();
   const filt=document.getElementById('secFilter').value;
   const grouped=document.getElementById('groupSec').checked;
@@ -389,30 +414,27 @@ function render(){
     item.className='item'+(open?' open':'')+(idx===focusIdx?' focus-now':'');
     item.dataset.idx=idx; item.dataset.mid=m.id;
     const docTag=(detailCache[m.id]&&detailCache[m.id].documented)?'<span class="doc-tag">DOCS</span>':'';
-    // slim per-row progress bar from the checklist ratio (done + partial segments)
-    const cl=m.checklist||[], ct=cl.length||8;
-    const cd=cl.filter(c=>c.state==='done').length, cp=cl.filter(c=>c.state==='partial').length;
-    const rowprog=`<span class="rowprog" title="checklist: ${cd} done · ${cp} partial · ${ct} total"><i class="pd" style="width:${(cd/ct*100).toFixed(1)}%"></i><i class="pp" style="width:${(cp/ct*100).toFixed(1)}%"></i></span>`;
+    // % straight from the checklist — empty checklist shows an honest dash, no fake denominator
+    const cl=m.checklist||[];
+    const cd=cl.filter(c=>c.state==='done').length;
+    const pct=cl.length?Math.round(cd/cl.length*100)+'%':'—';
     item.innerHTML=
       `<div class="row" draggable="true">`+
-        `<span class="grip" title="Drag to reorder">⠿</span>`+
         `<span class="ord">${idx+1}</span>`+
-        `<div class="mv">`+
-          `<button title="Move up" ${idx===0?'disabled':''} onclick="event.stopPropagation();move(${idx},-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 15l6-6 6 6"/></svg></button>`+
-          `<button title="Move down" ${idx===DATA.modules.length-1?'disabled':''} onclick="event.stopPropagation();move(${idx},1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M6 9l6 6 6-6"/></svg></button>`+
-        `</div>`+
-        `<div class="body" onclick="toggle('${m.id}')"><span class="caret">▶</span><div class="bodytext"><div class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span>${docTag}</div><div class="note">${esc(m.note||'')}</div></div></div>`+
-        `<span class="chkprog" title="checklist done / total">${cd}/${ct}</span>`+
-        `<button class="pill ${m.status}" title="Click to change status" onclick="event.stopPropagation();cycle(${idx})">${LABEL[m.status]||m.status}</button>`+
-        rowprog+
+        `<div class="body"><span class="nm">${esc(m.name)}<span class="sec-tag">${esc(m.section)}</span>${docTag}</span></div>`+
+        `<span class="pct" title="definition of done: ${cd} of ${cl.length} complete">${pct}</span>`+
+        `<span class="stword ${m.status}">${LABEL[m.status]||m.status}</span>`+
+        `<button class="dots" title="Row actions" aria-haspopup="menu" onclick="event.stopPropagation();openMenu(event,${idx})">⋮</button>`+
       `</div>`+
       (open?detailHTML(m.id):'');
     const row=item.querySelector('.row');
-    row.addEventListener('dragstart',e=>{dragId=idx;row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
-    row.addEventListener('dragend',()=>{row.classList.remove('dragging');document.querySelectorAll('.item').forEach(r=>r.classList.remove('drop-above','drop-below'));});
+    // whole row expands — except mid-drag and except the ⋮ / its menu
+    row.addEventListener('click',e=>{if(justDragged)return;if(e.target.closest('.dots')||e.target.closest('.rowmenu'))return;toggle(m.id);});
+    row.addEventListener('dragstart',e=>{dragId=idx;justDragged=true;item.classList.add('dragging');row.classList.add('dragging');e.dataTransfer.effectAllowed='move';});
+    row.addEventListener('dragend',()=>{item.classList.remove('dragging');row.classList.remove('dragging');document.querySelectorAll('.item').forEach(r=>r.classList.remove('drop-above','drop-below'));setTimeout(()=>{justDragged=false;},0);});
     item.addEventListener('dragover',e=>{e.preventDefault();const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;item.classList.toggle('drop-below',below);item.classList.toggle('drop-above',!below);});
     item.addEventListener('dragleave',()=>item.classList.remove('drop-above','drop-below'));
-    item.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(item.dataset.idx);if(dragId===null||dragId===to)return;const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const[mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();});
+    item.addEventListener('drop',e=>{e.preventDefault();const to=parseInt(item.dataset.idx);if(dragId===null||dragId===to)return;const b=item.getBoundingClientRect();const below=e.clientY>b.top+b.height/2;let dest=below?to+1:to;const[mm]=DATA.modules.splice(dragId,1);if(dragId<dest)dest--;DATA.modules.splice(dest,0,mm);dragId=null;render();scheduleSave();const el=document.querySelector('.item[data-mid="'+(window.CSS&&CSS.escape?CSS.escape(mm.id):mm.id)+'"]');if(el){el.classList.add('settle');el.addEventListener('animationend',()=>el.classList.remove('settle'),{once:true});}});
     // restore prompt if it was generated
     list.appendChild(item);
     if(open){
