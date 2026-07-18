@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRS Buttons</title>
+<style>
+:root{
+  --bg:#181818; --surface-1:#1E1E1E; --surface-2:#242424; --surface-3:#2A2A2A;
+  --border:#242424; --border-hover:#333333; --border-active:#3D3D3D;
+  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-soft:#60A5FA;
+  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B;
+  --error:#EF4444;
+  --font-sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+  --r-button:6px; --h-btn-sm:28px; --h-btn:32px; --h-btn-lg:40px;
+  --ease:160ms cubic-bezier(.4,0,.2,1);
+}
+*{box-sizing:border-box;}
+html{background:var(--bg);color:var(--text-primary);font-family:var(--font-sans);font-size:13px;-webkit-font-smoothing:antialiased;}
+body{margin:0;padding:40px;max-width:900px;}
+h1{font-size:20px;font-weight:700;letter-spacing:-0.02em;margin:0 0 4px;}
+.sub{color:var(--text-muted);font-size:12px;font-family:var(--font-mono);margin:0 0 32px;}
+h2{font-size:12px;font-weight:600;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;margin:32px 0 14px;}
+.row{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:18px;background:var(--surface-1);border:1px solid var(--border);border-radius:10px;}
+.note{color:var(--text-muted);font-size:11px;font-family:var(--font-mono);margin:8px 0 0;}
+
+button{font-family:inherit;cursor:pointer;}
+.btn{
+  height:var(--h-btn);padding:0 12px;border-radius:var(--r-button);
+  font-family:var(--font-sans);font-size:12.5px;font-weight:700;letter-spacing:-0.005em;
+  cursor:pointer;display:inline-flex;align-items:center;gap:6px;border:none;
+  transition:all var(--ease);white-space:nowrap;text-decoration:none;
+}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-primary:active{background:var(--accent-active);transform:scale(0.99);}
+
+.btn-secondary{background:transparent;border:1px solid var(--surface-3);color:var(--text-secondary);}
+.btn-secondary:hover{border-color:var(--border-active);color:var(--text-primary);background:var(--surface-2);}
+.btn-secondary:active{transform:scale(0.99);}
+
+.btn-danger{background:var(--error);color:#fff;}
+.btn-danger:hover{background:#DC2626;}
+.btn-danger:active{background:#B91C1C;transform:scale(0.99);}
+
+.btn-ghost{background:transparent;color:var(--text-secondary);border:none;}
+.btn-ghost:hover{background:var(--surface-2);color:var(--text-primary);}
+
+.btn-link{background:transparent;color:var(--accent);border:none;padding:0 4px;font-weight:600;}
+.btn-link:hover{color:var(--accent-soft);text-decoration:underline;text-underline-offset:3px;}
+
+.btn-sm{height:var(--h-btn-sm);padding:0 10px;font-size:12px;}
+.btn-lg{height:var(--h-btn-lg);padding:0 16px;font-size:13px;}
+
+.btn:disabled,.btn.disabled{opacity:0.45;cursor:not-allowed;pointer-events:none;}
+
+.ic{width:14px;height:14px;stroke:currentColor;stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+</style>
+</head>
+<body>
+<h1>CRS Buttons</h1>
+<p class="sub">design/tokens.css · matches design/CRS_UI_Kit.html §3</p>
+
+<h2>Variants</h2>
+<div class="row">
+  <button class="btn btn-primary">Primary</button>
+  <button class="btn btn-secondary">Secondary</button>
+  <button class="btn btn-danger">Danger</button>
+  <button class="btn btn-ghost">Ghost</button>
+  <button class="btn btn-link">Link action</button>
+</div>
+
+<h2>Sizes</h2>
+<div class="row">
+  <button class="btn btn-primary btn-sm">Small · 28px</button>
+  <button class="btn btn-primary">Default · 32px</button>
+  <button class="btn btn-primary btn-lg">Large · 40px</button>
+</div>
+
+<h2>With icons</h2>
+<div class="row">
+  <button class="btn btn-primary">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+    New record
+  </button>
+  <button class="btn btn-secondary">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+    Export
+  </button>
+  <button class="btn btn-danger">
+    <svg class="ic" viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>
+    Delete
+  </button>
+  <button class="btn btn-ghost">
+    <svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+    More
+  </button>
+</div>
+
+<h2>Disabled</h2>
+<div class="row">
+  <button class="btn btn-primary" disabled>Primary</button>
+  <button class="btn btn-secondary" disabled>Secondary</button>
+  <button class="btn btn-danger" disabled>Danger</button>
+</div>
+<p class="note">Active state = background + text change only. No border-through, no combined bg+border+text on active per CLAUDE.md rules.</p>
+</body>
+</html>

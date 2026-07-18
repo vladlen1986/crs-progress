@@ -1,0 +1,11 @@
+{
+  "name": "chatv2probe",
+  "module": "user_management",
+  "status": "settled",
+  "settledHash": "b1d003ad045d88e0c62bfe275c4c4fe889f390791d7e3ac5ed68655f45a2bdf4",
+  "created": "2026-07-18T12:10:18.705Z",
+  "notes": [
+    "registered from crs-brain/data/docs/buttons.html",
+    "2026-07-18T12:10:18.715Z — settled @ b1d003ad045d"
+  ]
+}
