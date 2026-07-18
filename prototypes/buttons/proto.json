@@ -2,7 +2,7 @@
   "name": "buttons",
   "module": "user_management",
   "status": "settled",
-  "settledHash": "a0e571de655eefdcd0d4002c6dd1e8de05ae8b7f3cc9470bdb34d7c42c445b35",
+  "settledHash": "48c14d6e2301ba1dbac6e4fc9c074d975f6e478c47aa18ce13223a406d8f7658",
   "created": "2026-07-18T04:09:54.497Z",
   "notes": [
     "registered from crs-brain/data/docs/buttons.html",
@@ -23,6 +23,7 @@
     "2026-07-18T04:40:17.414Z — settled @ 48c14d6e2301",
     "2026-07-18T04:41:36.287Z — settled @ 48c14d6e2301",
     "2026-07-18T04:41:39.377Z — settled @ 48c14d6e2301",
-    "2026-07-18T04:41:50.470Z — settled @ a0e571de655e"
+    "2026-07-18T04:41:50.470Z — settled @ a0e571de655e",
+    "2026-07-18T04:41:50.511Z — settled @ 48c14d6e2301"
   ]
 }
