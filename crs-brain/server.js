@@ -429,6 +429,138 @@ function listProtos() {
   return out;
 }
 
+// ---- tasks: chief-of-staff todos & follow-ups --------------------------------
+// data/tasks.json — the dashboard's task store. Manual todos + AUTO items the
+// reconciler derives from other state files (chunk plans, decisions.md [OPEN]
+// stubs, master-checklist rows, sync stamps). Auto items close THEMSELVES when
+// their source resolves; they are marked done with a note, never deleted.
+const TASKS_FILE = path.join(DATA_DIR, 'tasks.json');
+const TASK_STATUSES = ['todo', 'doing', 'blocked', 'done'];
+const TASK_LINK_KINDS = ['module', 'prototype', 'chunk', 'decision', 'wishlist'];
+function loadTasks() {
+  try { const j = JSON.parse(fs.readFileSync(TASKS_FILE, 'utf8')); return Array.isArray(j.tasks) ? j.tasks : []; }
+  catch { return []; }
+}
+function saveTasks(tasks) { fs.writeFileSync(TASKS_FILE, JSON.stringify({ tasks }, null, 2)); }
+function makeTask(fields) {
+  return { id: crypto.randomUUID().slice(0, 8), title: '', status: 'todo', created: nowIso(), notes: '', ...fields };
+}
+// Create-or-keep an auto task (idempotent by auto.key); returns true if created.
+function ensureAutoTask(tasks, key, fields) {
+  if (tasks.some((t) => t.auto && t.auto.key === key && t.status !== 'done')) return false;
+  tasks.push(makeTask({ ...fields, auto: { key } }));
+  return true;
+}
+function closeAutoTask(tasks, key, reason) {
+  let changed = false;
+  for (const t of tasks) {
+    if (t.auto && t.auto.key === key && t.status !== 'done') {
+      t.status = 'done';
+      t.notes = (t.notes ? t.notes + ' · ' : '') + 'auto-closed: ' + reason + ' (' + nowIso() + ')';
+      changed = true;
+    }
+  }
+  return changed;
+}
+function openDecisionTitles() {
+  try {
+    return fs.readFileSync(path.join(REPO_ROOT, 'decisions.md'), 'utf8').split(/^## /m)
+      .filter((b) => b.startsWith('[OPEN]')).map((b) => b.slice(6).split('\n')[0].trim());
+  } catch { return []; }
+}
+// First-status-cell parse of master-checklist rows (evidence cells embed literal
+// status words — only the dedicated column counts).
+function checklistRows() {
+  // Append-only table with pipes inside evidence cells → naive parses over-count.
+  // Method (matches the c2/c3 audit): per data line, id = first cell, status =
+  // the FIRST cell that is exactly a status token (the status column precedes
+  // evidence); duplicate ids (superseded rows) → the LAST occurrence wins.
+  const STATUSES = new Set(['UNTESTED', 'PASS', 'FAIL', 'BLOCKED', 'N-A', 'ENV-LIMITED', 'QUARANTINE']);
+  const byId = new Map();
+  try {
+    const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8');
+    for (const line of md.split('\n')) {
+      if (!line.startsWith('|')) continue;
+      const cells = line.split('|').map((c) => c.trim());
+      const id = cells[1];
+      if (!id || /^id$/i.test(id) || /^[-\s:]+$/.test(id)) continue;
+      const status = cells.slice(2).find((c) => STATUSES.has(c));
+      if (status) byId.set(id, status);
+    }
+  } catch {}
+  return [...byId.entries()].map(([id, status]) => ({ id, status }));
+}
+// The reconciler — deterministic over the state files; runs on every GET /api/tasks.
+function reconcileAutoTasks() {
+  const tasks = loadTasks();
+  let changed = false;
+  // (a) chunk follow-ups: sent chunks await a BP report.
+  let protoNames = [];
+  try { protoNames = fs.readdirSync(PROTOS_DIR).filter((n) => fs.existsSync(path.join(PROTOS_DIR, n, 'build-plan.json'))); } catch {}
+  for (const name of protoNames) {
+    let plan;
+    try { plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8')); } catch { continue; }
+    for (const c of plan.chunks || []) {
+      const key = 'chunk-report:' + name + '/' + c.id;
+      if (c.status === 'sent') {
+        changed = ensureAutoTask(tasks, key, {
+          title: 'Await BP report: ' + name + '/' + c.id, followUp: true,
+          due: new Date(Date.now() + 86400000).toISOString(),
+          link: { kind: 'chunk', ref: name + '/' + c.id },
+        }) || changed;
+      } else {
+        changed = closeAutoTask(tasks, key, 'chunk is ' + c.status) || changed;
+      }
+    }
+  }
+  // (b) decision todos close when the [OPEN] stub is gone (= resolved/locked).
+  const open = new Set(openDecisionTitles());
+  for (const t of tasks) {
+    if (t.auto && t.auto.key.startsWith('decision:') && t.status !== 'done') {
+      const title = t.auto.key.slice(9);
+      if (!open.has(title)) changed = closeAutoTask(tasks, t.auto.key, 'decision resolved in decisions.md') || changed;
+    }
+  }
+  // (c) checklist FAIL/QUARANTINE rows.
+  for (const row of checklistRows()) {
+    const key = 'qa:' + row.id;
+    if (row.status === 'FAIL' || row.status === 'QUARANTINE') {
+      changed = ensureAutoTask(tasks, key, { title: 'QA ' + row.status + ': ' + row.id }) || changed;
+    } else {
+      changed = closeAutoTask(tasks, key, 'row now ' + row.status) || changed;
+    }
+  }
+  // (d) sync failures: a sync-failed notification newer than the source's
+  // success stamp means the last run failed.
+  const st = loadState();
+  const stamps = { forum: st.forumCheckedAt || 0, 'release-notes': st.relnotesCheckedAt || 0, issue: st.issueCheckedAt || 0 };
+  const lastFail = {};
+  for (const n of readNotifications()) {
+    if (n.type !== 'sync-failed') continue;
+    const src = /forum/i.test(n.title) ? 'forum' : /release/i.test(n.title) ? 'release-notes' : /issue/i.test(n.title) ? 'issue' : 'other';
+    const ts = Date.parse(n.ts) || 0;
+    if (!lastFail[src] || ts > lastFail[src].ts) lastFail[src] = { ts, body: n.body };
+  }
+  for (const src of Object.keys(stamps)) {
+    const key = 'sync:' + src;
+    if (lastFail[src] && lastFail[src].ts > stamps[src]) {
+      changed = ensureAutoTask(tasks, key, { title: 'Sync failing: ' + src, notes: String(lastFail[src].body || '').slice(0, 200) }) || changed;
+    } else {
+      changed = closeAutoTask(tasks, key, 'sync succeeded') || changed;
+    }
+  }
+  // (e) due follow-ups fire one notification each.
+  for (const t of tasks) {
+    if (t.status !== 'done' && t.due && !t.notifiedDue && Date.parse(t.due) <= Date.now()) {
+      addNotification({ type: 'follow-up-due', level: 'warning', title: 'Follow-up due: ' + t.title, body: t.notes || '', target: '/#dashboard' });
+      t.notifiedDue = nowIso();
+      changed = true;
+    }
+  }
+  if (changed) saveTasks(tasks);
+  return tasks;
+}
+
 // Engine modules are re-required per request WITHOUT the require cache — a
 // running server must always execute the current on-disk engine (a stale cached
 // chunk.js silently no-oped an engine fix during Phase-1 acceptance).
@@ -2634,6 +2766,107 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, { ok: true });
     }
 
+    // ---- Tasks: chief-of-staff todos & follow-ups ----
+    if (p === '/api/tasks' && req.method === 'GET') {
+      return send(res, 200, { tasks: reconcileAutoTasks(), statuses: TASK_STATUSES, linkKinds: TASK_LINK_KINDS });
+    }
+    if (p === '/api/tasks' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const title = String((body && body.title) || '').trim().slice(0, 200);
+      if (!title) return send(res, 400, { error: 'title required' });
+      const tasks = loadTasks();
+      const t = makeTask({
+        title,
+        ...(body.due ? { due: String(body.due) } : {}),
+        ...(body.followUp ? { followUp: true } : {}),
+        ...(body.notes ? { notes: String(body.notes).slice(0, 1000) } : {}),
+        ...(body.link && TASK_LINK_KINDS.includes(body.link.kind) ? { link: { kind: body.link.kind, ref: String(body.link.ref || '').slice(0, 200) } } : {}),
+      });
+      tasks.push(t);
+      saveTasks(tasks);
+      autoCommit('task add');
+      return send(res, 200, { ok: true, task: t });
+    }
+    if (p === '/api/tasks/update' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const tasks = loadTasks();
+      const t = tasks.find((x) => x.id === (body && body.id));
+      if (!t) return send(res, 404, { error: 'task not found' });
+      if (body.status !== undefined) { if (!TASK_STATUSES.includes(body.status)) return send(res, 400, { error: 'bad status' }); t.status = body.status; }
+      if (body.title !== undefined) t.title = String(body.title).trim().slice(0, 200) || t.title;
+      if (body.due !== undefined) { if (body.due) t.due = String(body.due); else delete t.due; delete t.notifiedDue; }
+      if (body.notes !== undefined) t.notes = String(body.notes).slice(0, 1000);
+      saveTasks(tasks);
+      autoCommit('task update');
+      return send(res, 200, { ok: true, task: t });
+    }
+    if (p === '/api/tasks/delete' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const tasks = loadTasks();
+      const i = tasks.findIndex((x) => x.id === (body && body.id));
+      if (i < 0) return send(res, 404, { error: 'task not found' });
+      tasks.splice(i, 1);
+      saveTasks(tasks);
+      autoCommit('task delete');
+      return send(res, 200, { ok: true });
+    }
+
+    // ---- Dashboard aggregate: EVERYTHING the board renders, from state files
+    // only (tasks, decisions.md, modules.json, build plans, master-checklist,
+    // sync stamps, wishlist). No file-tree introspection, no file counts.
+    if (p === '/api/dash' && req.method === 'GET') {
+      const tasks = reconcileAutoTasks();
+      const modsDoc = loadModulesDoc();
+      const mods = modsDoc.modules || [];
+      const focusIdx = mods.findIndex((m) => m.status !== 'done' && m.status !== 'roadmap');
+      const modCounts = {};
+      for (const m of mods) modCounts[m.status] = (modCounts[m.status] || 0) + 1;
+      const protos = listProtos().map((pr) => {
+        let unresolvedFlags = 0;
+        try {
+          const eng = freshChunkEngine();
+          const flags = eng.unresolvedFlags(pr.name);
+          unresolvedFlags = flags ? flags.length : 0;
+        } catch {}
+        return { name: pr.name, module: pr.module, status: pr.status, chunkCounts: pr.chunkCounts, unresolvedFlags };
+      });
+      const rows = checklistRows();
+      const qa = { PASS: 0, FAIL: 0, 'ENV-LIMITED': 0, UNTESTED: 0, BLOCKED: 0, 'N-A': 0, QUARANTINE: 0 };
+      for (const r of rows) qa[r.status] = (qa[r.status] || 0) + 1;
+      const failRows = rows.filter((r) => r.status === 'FAIL' || r.status === 'QUARANTINE').map((r) => r.id);
+      const envRows = rows.filter((r) => r.status === 'ENV-LIMITED').map((r) => r.id);
+      let lastRun = '';
+      try {
+        const md = fs.readFileSync(path.join(REPO_ROOT, 'brain', 'qa', 'master-checklist.md'), 'utf8');
+        const runs = [...md.matchAll(/\|\s*(20\d\d-\d\d-\d\d [a-z0-9-]+ ?c?\d*)\s*\|/gi)].map((m) => m[1]);
+        lastRun = runs.sort().pop() || '';
+      } catch {}
+      const st = loadState();
+      const cfgS = loadSettings();
+      let wl = { done: 0, 'in-progress': 0, idea: 0 };
+      try { for (const it of (loadWishlist().items || [])) wl[it.status] = (wl[it.status] || 0) + 1; } catch {}
+      const failedChunks = [];
+      for (const pr of protos) {
+        try {
+          const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, pr.name, 'build-plan.json'), 'utf8'));
+          for (const c of plan.chunks || []) if (c.status === 'failed') failedChunks.push(pr.name + '/' + c.id);
+        } catch {}
+      }
+      return send(res, 200, {
+        tasks,
+        decisionsOpen: openDecisionTitles(),
+        modules: { focus: focusIdx >= 0 ? { id: mods[focusIdx].id, name: mods[focusIdx].name, section: mods[focusIdx].section, status: mods[focusIdx].status } : null, counts: modCounts, total: mods.length },
+        protos, failedChunks,
+        qa: { counts: qa, failRows, envRows, lastRun },
+        sync: {
+          forum: { lastSync: st.forumCheckedAt || 0 }, relnotes: { lastSync: st.relnotesCheckedAt || 0 },
+          issues: { lastSync: st.issueCheckedAt || 0, lastCount: st.issueLastCount || 0 },
+          bubbleDigest: { lastSync: cfgS.bubbleCheckedAt || 0 }, manuals: { lastSync: cfgS.manualsCheckedAt || 0 },
+        },
+        wishlist: wl,
+      });
+    }
+
     // ---- Prototypes: lifecycle (draft → settled → built) ----
     // List with live drift check. Everything the prototype cards render.
     if (p === '/api/protos' && req.method === 'GET') {
@@ -2730,6 +2963,20 @@ const server = http.createServer(async (req, res) => {
       } catch (e) {
         if (e.decisionNeeded) {
           addNotification({ type: 'decision-attention', level: 'warning', title: 'Chunk plan stopped — decision needed', body: name + ': ' + e.message.slice(0, 900), target: 'decisions.md' });
+          // Chief-of-staff behavior: each guard hit raises a linked decision todo
+          // (auto-closes when the [OPEN] stub disappears from decisions.md).
+          try {
+            const tasks = loadTasks();
+            let changed = false;
+            for (const h of e.hits || []) {
+              changed = ensureAutoTask(tasks, 'decision:' + h.title, {
+                title: 'Decision needed: ' + h.title,
+                link: { kind: 'decision', ref: h.title },
+                notes: 'raised by GUARD on ' + name + ' (trigger: "' + h.trigger + '")',
+              }) || changed;
+            }
+            if (changed) saveTasks(tasks);
+          } catch {}
           return send(res, 409, { decisionNeeded: true, error: e.message });
         }
         return send(res, 409, { error: e.message });

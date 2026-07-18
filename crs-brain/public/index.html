@@ -647,6 +647,37 @@
   .dash section{margin-bottom:30px}
   .dash .lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 13px}
   /* KPI row — even grid, calm monochrome numbers, thin accent bar per metric */
+  /* Chief-of-staff board (P2) */
+  .rowlbl{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:8px}
+  .rowlbl::after{content:'';flex:1;height:1px;background:var(--line)}
+  .rowlbl.warn{color:var(--warn)} .rowlbl.danger{color:var(--danger)}
+  .dnum{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--primary);font-weight:600}
+  .pmini{display:inline-block;width:64px;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden;vertical-align:middle;margin-right:6px}
+  .pmini i{display:block;height:100%;background:var(--accent)}
+  .tadd{display:flex;gap:6px;margin-bottom:8px}
+  .tadd input{flex:1;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:7px 10px;font:inherit;font-size:12.5px;outline:none}
+  .tadd input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .hbtn-sm{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+  .hbtn-sm:hover{color:var(--primary);border-color:var(--line2)}
+  .trow{display:flex;align-items:center;gap:7px;padding:6px 4px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .trow:last-child{border-bottom:none}
+  .trow.overdue{background:var(--warning-tint);border-radius:var(--radius-btn);padding-left:7px}
+  .trow.overdue .ttitle{color:var(--warning)}
+  .tchk{width:17px;height:17px;flex:0 0 auto;border-radius:5px;border:1.5px solid var(--input-border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--transparent);padding:0}
+  .tchk:hover{border-color:var(--line3)}
+  .tchk.on{border-color:var(--success);background:var(--success);color:var(--white) /* approved literal — check on --success fill */}
+  .tchk svg{width:11px;height:11px}
+  .ttitle{flex:1;min-width:70px;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tover{font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--warning);text-transform:uppercase}
+  .tchip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 8px;font:inherit;font-size:10.5px;font-family:var(--mono);cursor:pointer;white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
+  .tchip:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
+  .tst{border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:var(--radius-badge);padding:1px 7px;font:inherit;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+  .tst.st-doing{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale active per override #36 */
+  .tst.st-blocked{color:var(--warning);border-color:var(--warning)}
+  .tdel{border:none;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;opacity:0}
+  .trow:hover .tdel{opacity:1}
+  .tdel:hover{color:var(--danger);background:var(--panel2)}
+  .envlist{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 2px;line-height:1.7}
   .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
   .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:var(--transition);text-align:left;font-family:inherit;cursor:pointer}
   .kpi:hover{border-color:var(--line2);background:var(--elev)}
@@ -668,7 +699,7 @@
   .tool:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
   .tool .ti{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--qc-bg,var(--accent-tint));color:var(--qc,var(--accent2));flex:0 0 26px}
   .tool .ti .ic{width:15px;height:15px}
-  .dash-cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
   /* min-width:0 lets grid items shrink below their nowrap content (long chat titles) */
   .dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 18px;min-width:0}
   .drow .rt{min-width:0}
@@ -2069,47 +2100,147 @@ function showDashboard(){
   if(innerWidth<=900) mob(null);
   renderDashboard();
 }
+// Chief-of-staff board (Steps-2+3 program, Phase 2). Rendered EXCLUSIVELY from
+// state files via /api/dash (+ chats list for the background card). No file
+// counts, no repo introspection. Rows: Now · Needs me · What's wrong · Synced
+// & background. All figures in JBMono (--mono).
+function dashRel(ts){ if(!ts)return '—'; const s=(Date.now()-ts)/1000; if(s<90)return 'just now'; if(s<5400)return Math.round(s/60)+'m ago'; if(s<129600)return Math.round(s/3600)+'h ago'; return Math.round(s/86400)+'d ago'; }
+function dashChip(link){
+  if(!link) return '';
+  const k=link.kind, r=esc(link.ref);
+  const open={module:`openPageWindow('/tree.html#module=${r}','Progress Tree')`,
+    prototype:`openPageWindow('/protos.html','Prototypes')`,
+    chunk:`openPageWindow('/protos.html','Prototypes')`,
+    decision:`openDocWindow('decisions.md')`,
+    wishlist:`openPageWindow('/wishlist.html','Wishlist')`}[k]||'';
+  return `<button class="tchip" onclick="${open}" title="${esc(k)}: ${r}">${esc(k)}: ${r.length>28?esc(link.ref.slice(0,28))+'…':r}</button>`;
+}
 async function renderDashboard(){
   const box=$('dashView');
-  const [files,chatsR,progress,ideas,plansD]=await Promise.all([
-    api('/api/files').catch(()=>({tree:[]})),
+  const [dash,chatsR,plansD]=await Promise.all([
+    api('/api/dash').catch(()=>null),
     api('/api/chats').catch(()=>({chats:[]})),
-    api('/api/progress').catch(()=>({columns:{},missing:[]})),
-    fetch('/api/ideas').then(r=>r.json()).catch(()=>({columns:{}})),
     api('/api/plans').catch(()=>null),
   ]);
-  const protosD=await api('/api/protos').catch(()=>({protos:[]}));
   if(plansD) plansCache=plansD;
-  let nFiles=0,bubble=0,build=0,forum=0,docs=0;
-  (function walk(ns,pfx){ for(const n of ns){ if(n.type==='dir') walk(n.children,pfx+n.name+'/');
-    else { nFiles++; const p=pfx+n.name;
-      if(p.startsWith('brain/bubble/'))bubble++; else if(p.startsWith('brain/buildprint/'))build++;
-      else if(p.startsWith('brain/bubble-forum/'))forum++;
-      if(p.startsWith('crs-brain/data/docs/'))docs++; } } })(files.tree||[],'');
+  if(!dash){ box.innerHTML='<div class="dash-inner"><div class="dempty">Dashboard data unavailable — is the server up?</div></div>'; return; }
   const chats=chatsR.chats||[];
-  const ideaCount=Object.values(ideas.columns||{}).flat().length;
-  const col=k=>(progress.columns&&progress.columns[k])||[];
-  const now=col('now'),next=col('next'),done=col('done'),missing=progress.missing||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  // themed accents via tokens (§2); tint backgrounds via color-mix (13% ≈ status-tint alpha)
   const c={accent:'var(--accent)',purple:'var(--purple)',cyan:'var(--cyan)',green:'var(--good)',amber:'var(--warn)',soft:'var(--accent2)'};
   const tint=x=>`color-mix(in srgb, ${x} 12%, transparent)`;
   const A=(icon,title,desc,onclick,color)=>`<button class="action" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ai">${svg(icon)}</span><span class="atxt"><span class="at">${title}</span><span class="ad">${desc}</span></span></button>`;
   const T=(icon,title,onclick,color)=>`<button class="tool" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ti">${svg(icon)}</span>${title}</button>`;
-  const kpi=(v,k,color,onclick)=>`<button class="kpi" style="--kc:${color}"${onclick?` onclick="${onclick}"`:''}><div class="v">${v}</div><div class="k">${k}</div></button>`;
-  const chatRows=chats.slice(0,6).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>';
+  const num=v=>`<span class="dnum">${v}</span>`;
+
+  // -- tasks (todos & follow-ups) --
+  const open=(dash.tasks||[]).filter(t=>t.status!=='done');
+  const overdue=open.filter(t=>t.due&&Date.parse(t.due)<=Date.now());
+  const doing=open.filter(t=>t.status==='doing');
+  const taskRow=t=>{
+    const od=t.due&&Date.parse(t.due)<=Date.now()&&t.status!=='done';
+    return `<div class="trow${od?' overdue':''}${t.status==='done'?' tdone':''}" data-id="${esc(t.id)}">
+      <button class="tchk${t.status==='done'?' on':''}" title="toggle done" onclick="dashTaskDone('${esc(t.id)}','${esc(t.status)}')">${t.status==='done'?svg('i-check','sm'):''}</button>
+      <span class="ttitle">${esc(t.title)}</span>
+      ${od?'<span class="tover">overdue</span>':''}
+      ${dashChip(t.link)}
+      <button class="tst st-${esc(t.status)}" title="cycle status" onclick="dashTaskCycle('${esc(t.id)}','${esc(t.status)}')">${esc(t.status)}</button>
+      <button class="tdel" title="delete" onclick="dashTaskDel('${esc(t.id)}')">✕</button>
+    </div>`;
+  };
+  const sortedTasks=[...open].sort((a,b)=>{
+    const ao=a.due&&Date.parse(a.due)<=Date.now()?0:1, bo=b.due&&Date.parse(b.due)<=Date.now()?0:1;
+    return ao-bo || (b.created||'').localeCompare(a.created||'');
+  });
+
+  // -- row pieces --
+  const plansInFlight=(dash.protos||[]).filter(p=>p.chunkCounts);
+  const flagged=(dash.protos||[]).filter(p=>p.unresolvedFlags>0);
+  const q=dash.qa.counts;
+  const wrongEmpty=!dash.failedChunks.length&&!dash.qa.failRows.length&&!open.some(t=>t.auto&&t.auto.key.startsWith('sync:'))&&!dash.qa.envRows.length;
+  const syncRow=(name,s,extra)=>`<div class="drow"><span class="rt">${name}</span><span class="rmeta"><span class="dnum">${dashRel(s.lastSync)}</span>${extra||''}</span></div>`;
+
   box.innerHTML=`<div class="dash-inner">
     <div class="dash-head">
       <h2>${greet}, Vlad</h2>
-      <div class="subline">CRS build console — everything grounded, versioned, and searchable.</div>
+      <div class="subline">Chief-of-staff board — what's in flight, what needs you, what's wrong, what synced.</div>
     </div>
 
-    <section><div class="kpis">
-      ${kpi(nFiles.toLocaleString(),'files',c.purple,"openExpl('')")}
-      ${kpi(chats.length,'conversations',c.accent,"setTab('chats')")}
-      ${kpi(ideaCount,'ideas',c.amber,"showMap('ideas')")}
-      ${kpi(done.length,'shipped',c.green,"openDocWindow('brain/changelog.md')")}
-      ${kpi((bubble+build+forum).toLocaleString(),'manual pages',c.cyan,"openExpl('brain/bubble')")}
+    <section><div class="rowlbl">Now</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Current focus</h3>
+        ${dash.modules.focus?`<div class="np-mod">${esc(dash.modules.focus.section)}</div>
+          <div class="np-title">${esc(dash.modules.focus.name)} <span class="cnt">${esc(dash.modules.focus.status)}</span></div>
+          <button class="np-draft" onclick="openPageWindow('/tree.html#module=${esc(dash.modules.focus.id)}','Progress Tree')">${svg('i-gauge','sm')} Open in tree</button>`
+          :'<div class="dempty">Nothing in flight — every module is done or roadmap.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-doc','sm')} Build plans in flight <span class="cnt">${plansInFlight.length}</span></h3>
+        ${plansInFlight.length?plansInFlight.map(p=>{const cc=p.chunkCounts;
+          return `<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
+            <span class="rt">${esc(p.name)}</span>
+            <span class="rmeta"><span class="pmini"><i style="width:${Math.round(cc.verified/cc.total*100)}%"></i></span><span class="dnum">${cc.verified}/${cc.total}</span></span></div>`;}).join('')
+          :'<div class="dempty">No chunk plans yet — settle a prototype and build its plan.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
+        ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-flag','sm')} Decisions needed <span class="cnt">${dash.decisionsOpen.length}</span></h3>
+        ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt">${esc(d)}</span>
+          <button class="tchip" onclick="openDocWindow('decisions.md')">open decisions.md</button></div>`).join('')
+          :'<div class="dempty">No open decisions — the guard has nothing to block on.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-list','sm')} Todos &amp; follow-ups <span class="cnt">${open.length}</span></h3>
+        <div class="tadd"><input id="dashTaskInput" placeholder="Add a todo…  (Enter)" onkeydown="if(event.key==='Enter')dashTaskAdd()"><button class="hbtn-sm" onclick="dashTaskAdd()">Add</button></div>
+        ${sortedTasks.length?sortedTasks.slice(0,10).map(taskRow).join(''):'<div class="dempty">Nothing open. Add one above, or say “add todo …” in chat.</div>'}
+        ${sortedTasks.length>10?`<div class="dempty">+${sortedTasks.length-10} more</div>`:''}
+      </div>
+      <div class="dcard"><h3>${svg('i-flag','sm')} Unresolved mapping flags <span class="cnt">${flagged.reduce((a,p)=>a+p.unresolvedFlags,0)}</span></h3>
+        ${flagged.length?flagged.map(p=>`<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
+          <span class="rt">${esc(p.name)}</span><span class="rmeta">${num(p.unresolvedFlags)} flag${p.unresolvedFlags===1?'':'s'}</span></div>`).join('')
+          :'<div class="dempty">No unresolved flags — mappings are clean.</div>'}
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl danger">What's wrong</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-doc','sm')} Failed chunks <span class="cnt">${dash.failedChunks.length}</span></h3>
+        ${dash.failedChunks.length?dash.failedChunks.map(fc=>`<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')"><span class="rt">${esc(fc)}</span></div>`).join(''):'<div class="dempty">None.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-list','sm')} QA failures <span class="cnt">${dash.qa.failRows.length}</span></h3>
+        ${dash.qa.failRows.length?dash.qa.failRows.map(r=>`<div class="drow"><span class="rt">${esc(r)}</span>
+          <button class="tchip" onclick="openDocWindow('brain/qa/master-checklist.md')">open checklist</button></div>`).join(''):'<div class="dempty">Zero FAIL / quarantine rows.</div>'}
+      </div>
+      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync failures &amp; needs-eyes <span class="cnt">${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).length+dash.qa.envRows.length}</span></h3>
+        ${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).map(taskRow).join('')||''}
+        ${dash.qa.envRows.length?`<div class="drow"><span class="rt">ENV-LIMITED (needs your eyes)</span><span class="rmeta">${num(dash.qa.envRows.length)}</span></div>
+          <div class="envlist">${dash.qa.envRows.map(esc).join(' · ')}</div>`:''}
+        ${wrongEmpty?'<div class="dempty">All quiet.</div>':''}
+      </div>
+    </div></section>
+
+    <section><div class="rowlbl">Synced &amp; background</div><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync</h3>
+        ${syncRow('Forum digest',dash.sync.forum)}
+        ${syncRow('Release notes',dash.sync.relnotes)}
+        ${syncRow('Issue check',dash.sync.issues,dash.sync.issues.lastCount?` · ${num(dash.sync.issues.lastCount)} found`:'')}
+        ${syncRow('Manuals mirror',dash.sync.manuals)}
+        ${syncRow('Bubble digest',dash.sync.bubbleDigest)}
+      </div>
+      <div class="dcard"><h3>${svg('i-check','sm')} QA cycle</h3>
+        <div class="drow"><span class="rt">PASS</span><span class="rmeta">${num(q.PASS)}</span></div>
+        <div class="drow"><span class="rt">ENV-LIMITED</span><span class="rmeta">${num(q['ENV-LIMITED'])}</span></div>
+        <div class="drow"><span class="rt">FAIL / quarantine</span><span class="rmeta">${num(q.FAIL+(q.QUARANTINE||0))}</span></div>
+        <div class="drow"><span class="rt">Last run</span><span class="rmeta"><span class="dnum">${esc(dash.qa.lastRun||'—')}</span></span></div>
+      </div>
+      <div class="dcard"><h3>${svg('i-gauge','sm')} Progress Tree</h3>
+        <div class="drow"><span class="rt">Done</span><span class="rmeta">${num(dash.modules.counts['done']||0)} / ${num(dash.modules.total)}</span></div>
+        <div class="drow"><span class="rt">In progress</span><span class="rmeta">${num(dash.modules.counts['in-progress']||0)}</span></div>
+        <div class="drow"><span class="rt">Focus</span><span class="rmeta">${esc(dash.modules.focus?dash.modules.focus.name:'—')}</span></div>
+        <button class="np-draft" onclick="openPageWindow('/tree.html','Progress Tree')">${svg('i-gauge','sm')} Open tree</button>
+      </div>
+      <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>
+        ${chats.slice(0,5).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>'}
+      </div>
     </div></section>
 
     <section><div class="lbl">Quick actions</div><div class="actions">
@@ -2129,29 +2260,29 @@ async function renderDashboard(){
       ${T('i-book','Memory',"openPageWindow('/memory.html','Memory')",c.purple)}
       ${T('i-flag','Wishlist',"openPageWindow('/wishlist.html','Wishlist')",c.accent)}
       ${T('i-list','Task queue',"openPageWindow('/queue.html','Task queue')",c.accent)}
-    </div></section>
-
-    <section><div class="dash-cols">
-      <div class="dcard"><h3>${svg('i-doc','sm')} Prototypes <span class="cnt">${protosD.protos.length}</span></h3>
-        ${protosD.protos.length?protosD.protos.slice(0,5).map(pr=>{const cc=pr.chunkCounts;
-          return `<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
-            <span style="color:var(--primary);font-weight:600">${esc(pr.name)}</span>
-            <span style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${esc(pr.status)}${cc?` · ${cc.verified}/${cc.total}`:''}</span></div>`;}).join('')
-          :'<div class="dempty">No prototypes yet — register a design html in the panel.</div>'}
-        <button class="np-draft" onclick="openPageWindow('/protos.html','Prototypes')">${svg('i-doc','sm')} Open prototype panel</button>
-      </div>
-      <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>${chatRows}</div>
-      <div class="dcard"><h3>${svg('i-gauge','sm')} Next build step</h3>
-        ${(()=>{ const pk=activePacket(); const st=pk&&pk.steps.find(s=>s.status==='pending');
-          if(pk&&st) return `<div class="np-mod">${esc(pk.module)}</div>
-            <div class="np-title">${esc(st.title)}</div>
-            ${st.verify?`<div class="np-verify">Verify: ${esc(st.verify)}</div>`:''}
-            <button class="np-draft" onclick="draftStepPrompt('${pk.id}','${st.id}')">${svg('i-send','sm')} Draft Buildprint prompt</button>`;
-          if(pk) return `<div class="dempty">All steps in “${esc(pk.module)}” are past pending — advance them in Progress Tree.</div>`;
-          return '<div class="dempty">No build packet yet — open Progress Tree to generate one.</div>'; })()}
-      </div>
+      ${T('i-doc','Prototypes',"openPageWindow('/protos.html','Prototypes')",c.cyan)}
     </div></section>
   </div>`;
+}
+async function dashTaskAdd(){
+  const el=$('dashTaskInput'); const title=(el&&el.value||'').trim();
+  if(!title) return;
+  try{ await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title})}); el.value=''; toast('Todo added'); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskDone(id,cur){
+  try{ await api('/api/tasks/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:cur==='done'?'todo':'done'})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskCycle(id,cur){
+  const order=['todo','doing','blocked']; const next=order[(order.indexOf(cur)+1)%order.length]||'todo';
+  try{ await api('/api/tasks/update',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,status:next})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
+}
+async function dashTaskDel(id){
+  if(!await crsConfirm('Delete this todo?')) return;
+  try{ await api('/api/tasks/delete',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id})}); }catch(e){ toast('⚠ '+e.message); }
+  renderDashboard();
 }
 function startIngest(){ newChat(); toast('Attach a Buildprint report (📎), then hit Ingest to Brain'); $('input').focus(); }
 
@@ -2159,6 +2290,16 @@ function sendMsg(ingest){
   const input=$('input'); const text=input.value.trim();
   const atts=(state.pending||[]).filter(a=>a.path);
   if(!text && !atts.length) return;
+  // Chief-of-staff command: "add todo <text>" goes to the tasks store, not the
+  // model — no chat turn is spent.
+  const todoCmd=text.match(/^add\s+todo\s*[:—-]?\s+(.+)/i);
+  if(todoCmd && !atts.length){
+    api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:todoCmd[1].trim()})})
+      .then(()=>{ toast('Todo added: '+todoCmd[1].trim().slice(0,60)); if($('dashView').style.display!=='none') renderDashboard(); })
+      .catch(e=>toast('⚠ '+e.message));
+    input.value=''; autoGrow(input);
+    return;
+  }
   ensureChatView();  // sending from map/file/dashboard drops into the conversation
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   input.value=''; input.style.height='auto';
