@@ -1,7 +1,7 @@
 # Mapping — buttons
 
 Prototype: prototypes/buttons/buttons.html
-Settled-SHA256: a5cb27de83fca567a0bd3e674bfb3487786ca032cdabee1d00a2111ce1cec214
+Settled-SHA256: f708838ef97c22ead4183b1f68a3a5f0e6ee355fd50ae505afdc59c29f6a0f1e
 Module: user_management
 Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98 (design-system-export.md ABSENT — curated attested set)
 
@@ -93,6 +93,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 |---|---|---|---|---|---|---|
 | f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | unresolved |  |
 | f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | unresolved |  |
+| f3 | literal | `#FF00AA` | .planted · color · L58 | --error | unresolved |  |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -107,7 +108,7 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 {
   "name": "buttons",
   "module": "user_management",
-  "settledHash": "a5cb27de83fca567a0bd3e674bfb3487786ca032cdabee1d00a2111ce1cec214",
+  "settledHash": "f708838ef97c22ead4183b1f68a3a5f0e6ee355fd50ae505afdc59c29f6a0f1e",
   "inventorySha": "0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fcd766bc8a98",
   "tokenRows": [
     {
@@ -528,6 +529,17 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 44,
       "nearest": "--error",
       "id": "f2",
+      "status": "unresolved",
+      "resolution": ""
+    },
+    {
+      "kind": "literal",
+      "value": "#FF00AA",
+      "selector": ".planted",
+      "prop": "color",
+      "line": 58,
+      "nearest": "--error",
+      "id": "f3",
       "status": "unresolved",
       "resolution": ""
     }
