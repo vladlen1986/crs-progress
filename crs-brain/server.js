@@ -2892,6 +2892,80 @@ const server = http.createServer(async (req, res) => {
       } catch {}
       return send(res, 200, { proto: j, html: protoHtmlRel(name), mapping, plan, reports });
     }
+    // Studio: scaffold a NEW prototype from canon (§2.10 tokens byte-verbatim,
+    // template built from design-system component patterns only).
+    if (p === '/api/protos/create' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '').toLowerCase().replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '');
+      if (!PROTO_NAME_RE.test(name)) return send(res, 400, { error: 'bad prototype name' });
+      if (fs.existsSync(protoJsonPath(name))) return send(res, 409, { error: 'prototype "' + name + '" already exists' });
+      const modId = String((body && body.module) || '');
+      const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+      if (!mod) return send(res, 400, { error: 'module required — must be a real modules.json id' });
+      let html;
+      try {
+        for (const rel of ['proto-scaffold.js', 'style-inventory.js']) {
+          try { delete require.cache[require.resolve(path.join(REPO_ROOT, 'brain', 'engine', rel))]; } catch {}
+        }
+        html = require(path.join(REPO_ROOT, 'brain', 'engine', 'proto-scaffold.js')).buildScaffold(name, String(body.template || 'blank'));
+      } catch (e) { return send(res, 500, { error: 'scaffold: ' + e.message }); }
+      fs.mkdirSync(protoDir(name), { recursive: true });
+      fs.writeFileSync(protoHtmlPath(name), html);
+      const j = { name, module: mod.id, status: 'draft', settledHash: null, created: nowIso(), notes: ['scaffolded (template: ' + String(body.template || 'blank') + ')'], versions: [] };
+      saveProto(name, j);
+      autoCommit('prototype create ' + name);
+      return send(res, 200, { ok: true, proto: j, html: protoHtmlRel(name) });
+    }
+    // Studio: snapshot the current html into versions/v<N>.html (+ optional note).
+    if (p === '/api/protos/snapshot' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (!Array.isArray(j.versions)) j.versions = [];
+      const v = j.versions.length + 1;
+      const vdir = path.join(protoDir(name), 'versions');
+      fs.mkdirSync(vdir, { recursive: true });
+      fs.copyFileSync(protoHtmlPath(name), path.join(vdir, 'v' + v + '.html'));
+      j.versions.push({ v, note: String((body && body.note) || '').slice(0, 200), ts: nowIso() });
+      saveProto(name, j);
+      autoCommit('prototype snapshot ' + name + ' v' + v);
+      return send(res, 200, { ok: true, v, versions: j.versions });
+    }
+    // Studio: restore a version back to draft. REFUSES on settled/built — the
+    // Phase-1 freeze rule holds in the studio UI too; nothing is ever lost
+    // (the current html is auto-snapshotted first).
+    if (p === '/api/protos/restore' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const j = loadProto(name);
+      if (j.status !== 'draft') return send(res, 409, { error: 'prototype is ' + j.status + ' — the studio refuses to edit a settled prototype. Edit the file deliberately (it reverts to draft with a warning), then restore.' });
+      const v = parseInt((body && body.v) || 0, 10);
+      const vfile = path.join(protoDir(name), 'versions', 'v' + v + '.html');
+      if (!v || !fs.existsSync(vfile)) return send(res, 404, { error: 'version v' + v + ' not found' });
+      if (!Array.isArray(j.versions)) j.versions = [];
+      const autoV = j.versions.length + 1;
+      const vdir = path.join(protoDir(name), 'versions');
+      fs.mkdirSync(vdir, { recursive: true });
+      fs.copyFileSync(protoHtmlPath(name), path.join(vdir, 'v' + autoV + '.html'));
+      j.versions.push({ v: autoV, note: 'auto — before restore of v' + v, ts: nowIso() });
+      fs.copyFileSync(vfile, protoHtmlPath(name));
+      j.notes.push(nowIso() + ' — restored v' + v + ' (prior current preserved as v' + autoV + ')');
+      saveProto(name, j);
+      autoCommit('prototype restore ' + name + ' v' + v);
+      return send(res, 200, { ok: true, restored: v, autoSnapshot: autoV, versions: j.versions });
+    }
+    // Studio: mtime poll for the live-reloading preview (parent-driven — the
+    // sandboxed iframe can't poll the app origin itself).
+    if (p === '/api/protos/mtime' && req.method === 'GET') {
+      const name = u.searchParams.get('name') || '';
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      let mtime = 0;
+      try { mtime = Math.round(fs.statSync(protoHtmlPath(name)).mtimeMs); } catch {}
+      const j = protoDriftCheck(name, loadProto(name));
+      return send(res, 200, { mtime, status: j.status, versions: (j.versions || []).length });
+    }
     // Adopt an existing repo html file as a prototype (the Phase-3 studio scaffolds
     // new ones; this registers already-existing design html).
     if (p === '/api/protos/register' && req.method === 'POST') {
