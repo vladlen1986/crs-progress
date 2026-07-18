@@ -721,41 +721,6 @@
       "status": "todo",
       "created": "2026-07-18T10:36:51.362Z",
       "notes": ""
-    },
-    {
-      "id": "d634e31e",
-      "title": "verify chat path works",
-      "status": "todo",
-      "created": "2026-07-18T10:36:51.423Z",
-      "notes": ""
-    },
-    {
-      "id": "860eef00",
-      "title": "Rig UI todo DASH2a",
-      "status": "todo",
-      "created": "2026-07-18T10:48:44.094Z",
-      "notes": ""
-    },
-    {
-      "id": "a7cd3640",
-      "title": "verify chat path works",
-      "status": "todo",
-      "created": "2026-07-18T10:48:44.143Z",
-      "notes": ""
-    },
-    {
-      "id": "3a5e98a5",
-      "title": "Rig UI todo DASH2a",
-      "status": "todo",
-      "created": "2026-07-18T10:53:28.510Z",
-      "notes": ""
-    },
-    {
-      "id": "f2dbb230",
-      "title": "verify chat path works",
-      "status": "todo",
-      "created": "2026-07-18T10:53:28.557Z",
-      "notes": ""
     }
   ]
 }
