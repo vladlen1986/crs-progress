@@ -531,7 +531,120 @@ function savePlan(name, plan) {
   fs.writeFileSync(protoPaths(name).plan, JSON.stringify(plan, null, 2) + '\n');
 }
 
-module.exports = { protoPaths, loadProto, htmlHash, requireSettled, computeMapping, writeMapping, readMappingData, unresolvedFlags, resolveFlag, computePlan, validatePlan, writePlan, loadPlan, savePlan, styleNameFor };
+// ---- emission (T4) ----------------------------------------------------------
+// Builds the guarded intent for ONE chunk. The model call itself happens in the
+// server (runClaudeStream + GEN_SYSTEM_PROMPT) or gen.js — never here.
+// GUARD semantics: the guard runs over EVERY chunk's scope text — if ANY chunk
+// of the plan touches an [OPEN] decision, the WHOLE plan stops (DECISION-NEEDED,
+// zero chunks emitted), not just the offending chunk.
+function planGuardText(plan) {
+  return plan.chunks.map((c) => [c.title, ...(c.scope.in || []), ...(c.mappingRows || []), ...(c.producedNames || [])].join(' ')).join(' ');
+}
+// The verbatim mapping rows a chunk must carry: its component/interaction table
+// lines exactly as they stand in mapping.md, plus the full tokens table.
+function verbatimRows(name, chunk) {
+  const md = fs.readFileSync(protoPaths(name).mapping, 'utf8');
+  const lines = md.split('\n');
+  const rows = [];
+  const tokTable = [];
+  let inTok = false;
+  for (const l of lines) {
+    if (l.startsWith('## Tokens used')) { inTok = true; continue; }
+    if (inTok && l.startsWith('## ')) inTok = false;
+    if (inTok && l.startsWith('|')) tokTable.push(l);
+  }
+  for (const sel of chunk.mappingRows || []) {
+    const esc = sel.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const row = lines.find((l) => new RegExp('^\\| `?' + esc + '`? \\|').test(l) || (l.startsWith('- ') && l.includes(sel)));
+    if (row) rows.push(row);
+  }
+  return { tokTable, rows };
+}
+function buildChunkIntent(name, chunkId) {
+  const { proto, hash } = requireSettled(name);
+  const plan = loadPlan(name);   // re-validates the contract on every load
+  if (plan.protoHash !== hash) throw new Error('build-plan.json was made from a different settled hash — re-plan first');
+  const chunk = plan.chunks.find((c) => c.id === chunkId);
+  if (!chunk) throw new Error('chunk ' + chunkId + ' not in plan (' + plan.chunks.map((c) => c.id).join(', ') + ')');
+  const guard = require('./guard.js');
+  const hits = guard.guard(planGuardText(plan), plan.module + ' ' + name);
+  if (hits.length) {
+    const msg = 'DECISION-NEEDED: ' + hits.map((h) => h.title + ' (trigger: "' + h.trigger + '")').join(' · ') + ' → decisions.md. WHOLE PLAN STOPPED — zero chunks emitted.';
+    const err = new Error(msg);
+    err.decisionNeeded = true;
+    err.hits = hits;
+    throw err;
+  }
+  const v = verbatimRows(name, chunk);
+  const intent = [
+    'Implement chunk ' + chunk.id + ' of the settled prototype "' + name + '" (module: ' + plan.module + '): ' + chunk.title + '.',
+    '',
+    'SCOPE IN: ' + chunk.scope.in.join(' · '),
+    'SCOPE OUT: ' + chunk.scope.out.join(' · '),
+    chunk.dependsOn.length ? 'DEPENDS ON (already built): ' + chunk.dependsOn.map((d) => { const dc = plan.chunks.find((x) => x.id === d); return d + ' (' + (dc ? dc.producedNames.join(', ') || dc.title : '?') + ')'; }).join('; ') : 'DEPENDS ON: nothing — this is the first chunk.',
+    '',
+    'PRODUCED NAMES — create EXACTLY these, byte-for-byte (later chunks reference them):',
+    ...(chunk.producedNames.length ? chunk.producedNames.map((n) => '- ' + n) : ['- (none — this chunk produces no new named artifacts)']),
+    '',
+    'MAPPING ROWS (verbatim from prototypes/' + name + '/mapping.md — the design contract for this chunk):',
+    'Tokens used:',
+    ...v.tokTable,
+    'Chunk rows:',
+    ...(v.rows.length ? v.rows : ['(interaction-scope chunk — see SCOPE IN)']),
+    '',
+    'Prototype settled hash: ' + hash,
+  ].join('\n');
+  return { proto, plan, chunk, intent, protoSha: hash };
+}
+// The mapping contract is appended MECHANICALLY after the model output — the
+// model may restructure its prose, but the verbatim rows + exact producedNames
+// ride on every emitted prompt by construction, never by model compliance.
+function appendVerbatimContract(name, chunk, modelOut) {
+  const v = verbatimRows(name, chunk);
+  return modelOut.trimEnd() + '\n\n' + [
+    '---',
+    '',
+    '## MAPPING CONTRACT (verbatim from prototypes/' + name + '/mapping.md — do not reinterpret)',
+    '',
+    'Produced names — create EXACTLY these, byte-for-byte:',
+    ...(chunk.producedNames.length ? chunk.producedNames.map((n) => '- `' + n + '`') : ['- (none)']),
+    '',
+    'Tokens used:',
+    '', ...v.tokTable, '',
+    'Chunk rows:',
+    '', ...(v.rows.length ? v.rows : ['(interaction-scope chunk — see scope above)']), '',
+  ].join('\n');
+}
+function chunkPromptPath(name, chunkId) {
+  const p = protoPaths(name);
+  fs.mkdirSync(p.chunks, { recursive: true });
+  return path.join(p.chunks, chunkId + '-prompt.md');
+}
+function chunkReportPath(name, chunkId) {
+  const p = protoPaths(name);
+  fs.mkdirSync(p.chunks, { recursive: true });
+  return path.join(p.chunks, chunkId + '-report.md');
+}
+function setChunkStatus(name, chunkId, status, extra) {
+  const plan = loadPlan(name);
+  const chunk = plan.chunks.find((c) => c.id === chunkId);
+  if (!chunk) throw new Error('chunk ' + chunkId + ' not in plan');
+  chunk.status = status;
+  Object.assign(chunk, extra || {});
+  savePlan(name, plan);
+  // All chunks verified → the prototype is built.
+  const proto = loadProto(name);
+  if (plan.chunks.every((c) => c.status === 'verified')) {
+    if (proto.status !== 'built') {
+      proto.status = 'built';
+      proto.notes = (proto.notes || []).concat(new Date().toISOString() + ' — all ' + plan.chunks.length + ' chunks verified → built');
+      fs.writeFileSync(protoPaths(name).json, JSON.stringify(proto, null, 2));
+    }
+  }
+  return { plan, chunk, proto };
+}
+
+module.exports = { protoPaths, loadProto, htmlHash, requireSettled, computeMapping, writeMapping, readMappingData, unresolvedFlags, resolveFlag, computePlan, validatePlan, writePlan, loadPlan, savePlan, styleNameFor, buildChunkIntent, chunkPromptPath, chunkReportPath, setChunkStatus, planGuardText, appendVerbatimContract };
 
 // ---- CLI --------------------------------------------------------------------
 if (require.main === module) {
@@ -550,6 +663,23 @@ if (require.main === module) {
       loadPlan(name);
       process.stderr.write('plan: VALID\n');
       process.exit(0);
+    } else if (cmd === 'emit' && name && rest[0]) {
+      (async () => {
+        const gen = require('./gen.js');
+        const assemble = require('./assemble.js').assemble;
+        const b = buildChunkIntent(name, rest[0]);
+        const bundle = assemble(b.plan.module);
+        process.stderr.write('bundle: ' + bundle.text.length + ' bytes, sha256 ' + bundle.sha256.slice(0, 12) + '… | guard: PASS (whole plan)\n');
+        const mi = process.argv.indexOf('--model');
+        const model = mi > 0 ? process.argv[mi + 1] : 'sonnet';
+        const out = await gen.callModel(gen.buildGenMessage(bundle.text, b.intent), { model });
+        const clean = appendVerbatimContract(name, b.chunk, out.replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim());
+        const archived = gen.archive({ intent: 'chunk ' + b.chunk.id + ' ' + name + ': ' + b.chunk.title, module: b.plan.module, bundleSha: bundle.sha256, model, output: clean, protoSha: b.protoSha, chunkId: b.chunk.id });
+        fs.writeFileSync(chunkPromptPath(name, b.chunk.id), clean + '\n');
+        process.stderr.write('archived → ' + archived + '\nprompt → prototypes/' + name + '/chunks/' + b.chunk.id + '-prompt.md\n');
+        process.stdout.write(clean + '\n');
+        process.exit(0);
+      })().catch((e) => { process.stderr.write('chunk: ' + e.message + '\n'); process.exit(e.decisionNeeded ? 2 : 3); });
     } else if (cmd === 'resolve' && name && rest[0] && rest[1]) {
       const f = resolveFlag(name, rest[0], rest[1], rest[2]);
       process.stderr.write('flag ' + f.id + ' → ' + f.status + '\n');

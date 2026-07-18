@@ -2704,6 +2704,66 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, { ok: true, plan });
       } catch (e) { return send(res, 409, { error: e.message }); }
     }
+    // Emit one chunk through the engine: whole-plan GUARD → verbatim bundle →
+    // one boxed model call on the strict template → archive stamped with bundle
+    // hash + prototype hash + chunk id. 409 DECISION-NEEDED stops the WHOLE plan.
+    if (p === '/api/protos/emit' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      let chunkEngine, engine, b, bundle;
+      try {
+        chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
+        b = chunkEngine.buildChunkIntent(name, String(body.chunkId || ''));
+        bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(b.plan.module);
+      } catch (e) {
+        if (e.decisionNeeded) {
+          addNotification({ type: 'decision-attention', level: 'warning', title: 'Chunk plan stopped — decision needed', body: name + ': ' + e.message.slice(0, 900), target: 'decisions.md' });
+          return send(res, 409, { decisionNeeded: true, error: e.message });
+        }
+        return send(res, 409, { error: e.message });
+      }
+      const cfg = loadSettings();
+      try {
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+        let out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+        if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
+        out = chunkEngine.appendVerbatimContract(name, b.chunk, out);
+        const archived = engine.archive({ intent: 'chunk ' + b.chunk.id + ' ' + name + ': ' + b.chunk.title, module: b.plan.module, bundleSha: bundle.sha256, model: cfg.model, output: out, protoSha: b.protoSha, chunkId: b.chunk.id });
+        fs.writeFileSync(chunkEngine.chunkPromptPath(name, b.chunk.id), out + '\n');
+        autoCommit('prototype emit ' + name + ' ' + b.chunk.id);
+        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256, protoSha: b.protoSha, chunkId: b.chunk.id });
+      } catch (e) { return send(res, 502, { error: e.message }); }
+    }
+    // Follow-through: status flips + paste-back report capture.
+    if (p === '/api/protos/chunk-status' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const status = String(body.status || '');
+      if (!['pending', 'sent', 'reported', 'verified', 'failed'].includes(status)) return send(res, 400, { error: 'bad status' });
+      try {
+        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), status);
+        autoCommit('prototype chunk ' + name + ' ' + body.chunkId + ' ' + status);
+        return send(res, 200, { ok: true, chunk: r.chunk, protoStatus: r.proto.status });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
+    if (p === '/api/protos/chunk-report' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      const report = String((body && body.report) || '').trim();
+      if (!report) return send(res, 400, { error: 'report text required' });
+      try {
+        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        fs.writeFileSync(chunkEngine.chunkReportPath(name, String(body.chunkId || '')), report + '\n');
+        const r = chunkEngine.setChunkStatus(name, String(body.chunkId || ''), 'reported');
+        autoCommit('prototype report ' + name + ' ' + body.chunkId);
+        return send(res, 200, { ok: true, chunk: r.chunk, saved: 'prototypes/' + name + '/chunks/' + body.chunkId + '-report.md' });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
     // Freeze the current html bytes as the settled hash. Chunking requires this.
     if (p === '/api/protos/settle' && req.method === 'POST') {
       const body = await readJsonBody(req);

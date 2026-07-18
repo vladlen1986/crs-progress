@@ -71,7 +71,7 @@ function retrievalCheck(intent, threshold = 0.8) {
 function slugify(s, max = 44) {
   return String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, max).replace(/-+$/, '');
 }
-function archive({ intent, module: modId, bundleSha, model, output }) {
+function archive({ intent, module: modId, bundleSha, model, output, protoSha, chunkId }) {
   const date = new Date().toISOString().slice(0, 10);
   let name = date + '-' + modId + '-' + slugify(intent) + '.md', n = 2;
   while (fs.existsSync(path.join(GENERATED_DIR, name))) name = date + '-' + modId + '-' + slugify(intent) + '-' + (n++) + '.md';
@@ -80,6 +80,10 @@ function archive({ intent, module: modId, bundleSha, model, output }) {
     'Module: ' + modId,
     'Generated: ' + new Date().toISOString(),
     'Bundle-SHA256: ' + bundleSha,
+    // Chunk emissions (brain/engine/chunk.js) stamp their provenance pair too:
+    // the settled prototype hash + the chunk id the prompt was emitted for.
+    ...(protoSha ? ['Prototype-SHA256: ' + protoSha] : []),
+    ...(chunkId ? ['Chunk-Id: ' + chunkId] : []),
     'Model: ' + model, '', '---', '', ''].join('\n');
   fs.writeFileSync(path.join(GENERATED_DIR, name), head + output + '\n');
   return 'brain/buildprint/generated/' + name;
@@ -103,7 +107,9 @@ function callModel(message, { model = 'sonnet', effort = 'low' } = {}) {
   });
 }
 
-module.exports = { GEN_SYSTEM_PROMPT, buildGenMessage, retrievalCheck, archive, jaccard };
+// callModel exported for chunk.js's CLI emission path (same boxed call, same
+// template); the server keeps supplying runClaudeStream instead.
+module.exports = { GEN_SYSTEM_PROMPT, buildGenMessage, retrievalCheck, archive, jaccard, callModel };
 
 if (require.main === module) {
   (async () => {
