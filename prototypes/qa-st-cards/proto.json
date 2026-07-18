@@ -1,18 +1,11 @@
 {
   "name": "qa-st-cards",
   "module": "roles_permissions",
-  "status": "settled",
-  "settledHash": "113a32c846b9aaf63563d42d49bab69fafe11351395bebacd7f4daaa5f5d5061",
-  "created": "2026-07-18T11:40:01.668Z",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T11:41:24.445Z",
   "notes": [
-    "scaffolded (template: cards)",
-    "2026-07-18T11:40:53.637Z — settled @ 113a32c846b9"
+    "scaffolded (template: cards)"
   ],
-  "versions": [
-    {
-      "v": 1,
-      "note": "c2 setup v1",
-      "ts": "2026-07-18T11:40:53.627Z"
-    }
-  ]
+  "versions": []
 }

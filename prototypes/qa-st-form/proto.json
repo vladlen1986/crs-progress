@@ -3,42 +3,9 @@
   "module": "user_management",
   "status": "draft",
   "settledHash": null,
-  "created": "2026-07-18T11:40:01.681Z",
+  "created": "2026-07-18T11:41:24.456Z",
   "notes": [
-    "scaffolded (template: form)",
-    "2026-07-18T11:40:16.257Z — restored v1 (prior current preserved as v3)",
-    "2026-07-18T11:41:06.513Z — restored v1 (prior current preserved as v6)"
+    "scaffolded (template: form)"
   ],
-  "versions": [
-    {
-      "v": 1,
-      "note": "first snap — rig note one",
-      "ts": "2026-07-18T11:40:16.205Z"
-    },
-    {
-      "v": 2,
-      "note": "second snap — rig note two",
-      "ts": "2026-07-18T11:40:16.228Z"
-    },
-    {
-      "v": 3,
-      "note": "auto — before restore of v1",
-      "ts": "2026-07-18T11:40:16.257Z"
-    },
-    {
-      "v": 4,
-      "note": "first snap — rig note one",
-      "ts": "2026-07-18T11:41:06.444Z"
-    },
-    {
-      "v": 5,
-      "note": "second snap — rig note two",
-      "ts": "2026-07-18T11:41:06.484Z"
-    },
-    {
-      "v": 6,
-      "note": "auto — before restore of v1",
-      "ts": "2026-07-18T11:41:06.513Z"
-    }
-  ]
+  "versions": []
 }
