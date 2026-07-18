@@ -149,6 +149,26 @@ function memoryForPrompt() {
   return 'PERSISTENT MEMORY — the user asked you to ALWAYS remember and honor these. Consider them before any action or answer; if one conflicts with the current request, surface the conflict instead of silently ignoring it:\n' + lines.join('\n');
 }
 function withMemory(base) { const m = memoryForPrompt(); return m ? (base + '\n\n' + m) : base; }
+// Chat v2 (Program 3): a compact focus-module brief injected at session start when
+// a chat opts in (chat.focusModule). Groundedness without bloat — the FULL engine
+// bundle (~96KB) is reserved for /gen through the engine; the chat gets a brief.
+function focusModuleBrief(modId) {
+  try {
+    const mod = (loadModulesDoc().modules || []).find((m) => m.id === modId);
+    if (!mod) return '';
+    const done = (mod.checklist || []).filter((c) => c.state === 'done').length;
+    const total = (mod.checklist || []).length;
+    const open = (mod.checklist || []).filter((c) => c.state !== 'done').map((c) => c.label).slice(0, 6);
+    const decisions = openDecisionTitles().filter((t) => t.toLowerCase().includes((mod.name || '').toLowerCase()) || t.toLowerCase().includes(modId));
+    return ['=== FOCUS MODULE CONTEXT (brain-injected) ===',
+      'Module: ' + mod.name + ' (' + mod.section + ') — status ' + mod.status + ' — ' + done + '/' + total + ' DoD done.',
+      mod.note ? 'Note: ' + mod.note.slice(0, 300) : '',
+      open.length ? "What's left: " + open.join('; ') : '',
+      decisions.length ? 'Open decisions touching it: ' + decisions.join(' · ') : '',
+      'Conventions: follow CLAUDE.md (Pattern A company+property on every business DT; design tokens; no fabrication). Use `brain gen` / the engine for Buildprint prompts — never freelance a prompt.',
+      '=== END FOCUS CONTEXT ==='].filter(Boolean).join('\n');
+  } catch { return ''; }
+}
 function looksLikeSecret(s) { return /\b(bp_[A-Za-z0-9]{6,}|sk-[A-Za-z0-9]{10,})\b|\b(password|passwd|secret|api[_-]?key|token)\b\s*[:=]\s*\S+/i.test(s || ''); }
 // Add compiled entries; dedup by (category + normalized title) → update in place.
 function addMemories(entries) {
@@ -2536,11 +2556,13 @@ const server = http.createServer(async (req, res) => {
             title: forcedTitle || (body.ingest === true ? 'Ingest — ' + nowIso().slice(0, 10) : '') || message.slice(0, 60) || 'Attached files',
             sessionId: null,
             bp: body.bp === true,
+            ...(body.focusModule ? { focusModule: String(body.focusModule) } : {}),   // Chat v2: session-start grounding
             created: nowIso(),
             updated: nowIso(),
             messages: [],
           };
         }
+        if (body.focusModule && chat && !chat.focusModule) chat.focusModule = String(body.focusModule);
         chat.messages.push({ role: 'user', content: message, ts: nowIso(), attachments });
       }
 
@@ -2610,6 +2632,7 @@ const server = http.createServer(async (req, res) => {
       // client builder: one flat, ordered steps[] = one folded group per reply.
       const steps = [];
       let curStep = null;
+      let usedBuildprint = false;   // set if any tool block this turn is a buildprint call → auto-tags the chat bp
       const oneLineSrv = (t) => (t || '').trim().replace(/\s+/g, ' ');
       const capBody = (t) => { t = (t || '').trim(); return t.length > 1600 ? t.slice(0, 1600) + '…' : t; };
       try {
@@ -2630,7 +2653,8 @@ const server = http.createServer(async (req, res) => {
           runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
           runOpts.addDirs = [REPO_ROOT];
         } else {
-          runOpts.systemPrompt = withMemory(SYSTEM_PROMPT);   // same for the general assistant
+          const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
+          runOpts.systemPrompt = withMemory(brief ? SYSTEM_PROMPT + '\n\n' + brief : SYSTEM_PROMPT);   // general assistant, optionally grounded on a focus module
         }
         // "Remember this" → compile the message into structured memory in the
         // background; emit a toast when saved. Runs concurrently with the reply,
@@ -2651,6 +2675,10 @@ const server = http.createServer(async (req, res) => {
           },
           onBlock: (b) => {
             if (b.kind === 'tool') {
+              // Auto-tag: a general chat that actually invoked buildprint (Bash or
+              // MCP) is a Buildprint conversation (feeds the sidebar terminal icon
+              // from REAL history, not the title).
+              if (/buildprint/i.test(b.tool || '')) usedBuildprint = true;
               const note = answerSeg.trim();   // interim narration between tools → a finished note step
               if (note) steps.push({ kind: 'note', tool: null, label: oneLineSrv(note).slice(0, 240), body: (note.length > 72 || /\n/.test(note)) ? capBody(note) : '' });
               answerSeg = '';
@@ -2674,6 +2702,7 @@ const server = http.createServer(async (req, res) => {
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
         chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
+        if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
         await memPromise;   // ensure the memory save + toast land before we close the stream

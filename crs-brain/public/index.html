@@ -2359,6 +2359,11 @@ function sendMsg(ingest){
     input.value=''; input.style.height='auto';
     return;
   }
+  // Operator slash-commands (Chat v2): known verb + space → routed through the
+  // existing engine/bridge/state APIs with a confirm step, never freelance to the
+  // model. `/help` lists them. Unknown /foo falls through to the model as normal text.
+  const slash=text.match(/^\/(settle|chunk|send|todo|decide|gen|help)\b\s*(.*)$/is);
+  if(slash && !atts.length){ input.value=''; input.style.height='auto'; runSlashCommand(slash[1].toLowerCase(), slash[2].trim()); return; }
   ensureChatView();  // sending from map/file/dashboard drops into the conversation
   const attachments=atts.map(a=>a.path); const attachmentNames=atts.map(a=>a.name);
   input.value=''; input.style.height='auto';
@@ -2369,6 +2374,35 @@ function sendMsg(ingest){
   runJob(job);
 }
 function runJob(job){ streamChat(job.text,{attachments:job.attachments,attachmentNames:job.attachmentNames,ingest:job.ingest}); }
+// Operator commands — each routes to an EXISTING API; state-mutating ones confirm first.
+const SLASH_HELP=[
+  ['/settle <proto>','freeze the prototype hash (POST /api/protos/settle)'],
+  ['/chunk <proto>','map + build-plan, then open the Prototypes panel'],
+  ['/send <proto/chunk>','mark a chunk sent (copy path; bridge ENV-LIMITED)'],
+  ['/todo <text>','add a dashboard todo (also: "add todo …")'],
+  ['/decide <stub>','open decisions.md + type LOCK to rule (POST /api/decisions/lock)'],
+  ['/gen <intent>','engine prompt for the focus module (POST /api/modules/edit-prompt)'],
+  ['/help','list these commands'],
+];
+async function dashFocusModule(){ try{ const d=await api('/api/dash'); return d.modules&&d.modules.focus; }catch{ return null; } }
+async function runSlashCommand(cmd, arg){
+  try{
+    if(cmd==='help'){ toast('Operator commands'); openDocOverlayText('Operator commands', SLASH_HELP.map(([c,d])=>c+'  —  '+d).join('\n')); return; }
+    if(cmd==='todo'){ if(!arg) return toast('Usage: /todo <text>'); await api('/api/tasks',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({title:arg})}); toast('Todo added'); if($('dashView').style.display!=='none') renderDashboard(); return; }
+    if(cmd==='settle'){ if(!arg) return toast('Usage: /settle <proto>'); if(!await crsConfirm({title:'Settle "'+arg+'"?',body:'Freezes the current html hash. Editing after reverts it to draft.',confirmLabel:'Settle',danger:false})) return; const r=await api('/api/protos/settle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}); toast('Settled '+arg); return; }
+    if(cmd==='chunk'){ if(!arg) return toast('Usage: /chunk <proto>'); await api('/api/protos/map',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}).catch(e=>{throw new Error('map: '+e.message);}); try{ await api('/api/protos/plan',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:arg})}); toast('Mapped + planned '+arg); }catch(e){ toast('Mapped '+arg+' — plan blocked: '+e.message); } openTarget('/protos.html',{title:'Prototypes'}); return; }
+    if(cmd==='send'){ if(!arg||arg.indexOf('/')<0) return toast('Usage: /send <proto>/<chunkId>'); const [name,cid]=arg.split('/'); if(!await crsConfirm({title:'Send '+arg+'?',body:'Marks the chunk sent (copy path — the bridge is ENV-LIMITED). Copy the prompt from the panel to run it in Buildprint.',confirmLabel:'Send',danger:false})) return; await api('/api/protos/chunk-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,chunkId:cid,status:'sent'})}); toast(arg+' → sent'); if($('dashView').style.display!=='none') renderDashboard(); return; }
+    if(cmd==='decide'){ openDocWindow('decisions.md'); toast(arg?('Rule "'+arg+'" — use the decisions doc or the mobile Lock flow'):'Opened decisions.md'); return; }
+    if(cmd==='gen'){ if(!arg) return toast('Usage: /gen <intent>'); const fm=await dashFocusModule(); if(!fm) return toast('No focus module to generate against'); if(!await crsConfirm({title:'Generate for '+fm.name+'?',body:'Runs the engine (retrieval → assemble → GUARD → one model call) for the focus module. Intent: '+arg.slice(0,120),confirmLabel:'Generate',danger:false})) return; toast('Generating for '+fm.name+'… (~30s)'); try{ const r=await api('/api/modules/edit-prompt',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:fm.id,text:arg})}); openDocOverlayText('Generated prompt · '+fm.name, r.prompt||JSON.stringify(r)); }catch(e){ toast('⚠ '+e.message); } return; }
+  }catch(e){ toast('⚠ '+e.message); }
+}
+// Small read-only text overlay (reuses the html-fullscreen chrome pattern, plain text).
+function openDocOverlayText(title, body){
+  const h=ensureHtmlFull();
+  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(title)}</span><button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
+    <div style="flex:1;overflow:auto;padding:20px;font-family:var(--mono);font-size:12.5px;line-height:1.65;color:var(--secondary);white-space:pre-wrap">${esc(body)}</div>`;
+  h.classList.add('show');
+}
 function renderQueue(){
   const el=$('queueStrip'); if(!el) return;
   const q=state.queue||[];
