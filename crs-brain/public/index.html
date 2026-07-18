@@ -2190,6 +2190,12 @@ async function renderDashboard(){
       <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
         ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
       </div>
+      <div class="dcard"><h3>${svg('i-terminal','sm')} Factory throughput</h3>
+        <div class="drow"><span class="rt">Intents processed</span><span class="rmeta">${num(dash.throughput?dash.throughput.processed:0)}</span></div>
+        <div class="drow"><span class="rt">Awaiting my verify</span><span class="rmeta">${num(dash.throughput?dash.throughput.awaitingVerify.length:0)}</span></div>
+        <div class="drow"><span class="rt">Avg intent → staged</span><span class="rmeta"><span class="dnum">${dash.throughput&&dash.throughput.avgIntentToStagedMs?Math.round(dash.throughput.avgIntentToStagedMs/1000)+'s':'—'}</span></span></div>
+        <div class="drow"><span class="rt">Limit blocks survived</span><span class="rmeta">${num(dash.throughput?dash.throughput.limitBlocksSurvived:0)}</span></div>
+      </div>
     </div></section>
 
     <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">

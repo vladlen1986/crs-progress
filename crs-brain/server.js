@@ -3209,6 +3209,23 @@ const server = http.createServer(async (req, res) => {
           bubbleDigest: { lastSync: cfgS.bubbleCheckedAt || 0 }, manuals: { lastSync: cfgS.manualsCheckedAt || 0 },
         },
         wishlist: wl,
+        throughput: (() => {
+          try {
+            const q = JSON.parse(fs.readFileSync(path.join(DATA_DIR, 'task-queue.json'), 'utf8'));
+            const intents = (q.tasks || []).filter((t) => t.intent);
+            const done = intents.filter((t) => t.status === 'done' && t.started && t.finished);
+            const avg = done.length ? Math.round(done.reduce((a, t) => a + (Date.parse(t.finished) - Date.parse(t.started)), 0) / done.length) : 0;
+            const limitBlocks = (q.tasks || []).reduce((a, t) => a + (t.log || []).filter((l) => /usage limit/.test(l.msg || '')).length, 0);
+            const awaiting = [];
+            try {
+              for (const name of fs.readdirSync(PROTOS_DIR)) {
+                const plan = JSON.parse(fs.readFileSync(path.join(PROTOS_DIR, name, 'build-plan.json'), 'utf8'));
+                for (const c of plan.chunks || []) if (c.status === 'sent' || c.status === 'reported') awaiting.push(name + '/' + c.id);
+              }
+            } catch {}
+            return { processed: done.length, failed: intents.filter((t) => t.status === 'failed').length, awaitingVerify: awaiting, avgIntentToStagedMs: avg, limitBlocksSurvived: limitBlocks };
+          } catch { return { processed: 0, failed: 0, awaitingVerify: [], avgIntentToStagedMs: 0, limitBlocksSurvived: 0 }; }
+        })(),
         ops: { stateAuditAt: st.stateAuditAt || 0, stateAuditFindings: st.stateAuditFindings || 0, smokeQaAt: st.smokeQaAt || 0, smokeQaFails: st.smokeQaFails || 0, weeklyDigestAt: st.weeklyDigestAt || 0 },
       });
     }
@@ -3580,8 +3597,9 @@ const server = http.createServer(async (req, res) => {
       if (open >= QUEUE_MAX) return send(res, 400, { error: `queue full (max ${QUEUE_MAX} open tasks)` });
       const title = String((body && body.title) || '').slice(0, 140).trim();
       const prompt = String((body && body.prompt) || '').slice(0, 20000).trim();
-      if (!title || !prompt) return send(res, 400, { error: 'title and prompt required' });
-      const t = { id: crypto.randomUUID().slice(0, 8), title, prompt, status: 'queued', created: nowIso(), started: null, finished: null, log: [] };
+      const intent = body && body.intent && typeof body.intent === 'object' ? body.intent : null;
+      if (!title || (!prompt && !intent)) return send(res, 400, { error: 'title and prompt (or intent) required' });
+      const t = { id: crypto.randomUUID().slice(0, 8), title, prompt, ...(intent ? { intent } : {}), status: 'queued', created: nowIso(), started: null, finished: null, log: [] };
       qlog(t, 'queued');
       q.tasks.push(t); saveQueue(q);
       return send(res, 200, t);
@@ -4084,6 +4102,53 @@ function limitResetMs() {
 
 let queueRunning = false;
 let queueTimer = null;
+// ---- P9: engine-intent queue tasks ------------------------------------------
+// A queue task may carry `intent` — the factory then drives the ENGINE (guard →
+// bundle → one boxed call → archive → stage) instead of a generic chat turn.
+// Limit errors bubble into the queue's proven blocked-limit machinery; a guard
+// hit fails the task with DECISION-NEEDED (never bypassed) + a linked todo.
+async function processIntentTask(t, cfg) {
+  const it = t.intent;
+  const engineDir = path.join(REPO_ROOT, 'brain', 'engine');
+  for (const rel of ['gen.js', 'assemble.js', 'guard.js']) {
+    try { delete require.cache[require.resolve(path.join(engineDir, rel))]; } catch {}
+  }
+  const gen = require(path.join(engineDir, 'gen.js'));
+  const assemble = require(path.join(engineDir, 'assemble.js')).assemble;
+  if (it.kind === 'chunk-emit') {
+    const eng = freshChunkEngine();
+    const b = eng.buildChunkIntent(it.proto, it.chunkId, it.corrections || null);   // throws decisionNeeded on guard hit
+    const bundle = assemble(b.plan.module);
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, b.intent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+    let out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+    if (!out) throw new Error('the brain returned nothing');
+    out = eng.appendVerbatimContract(it.proto, b.chunk, out);
+    const archived = gen.archive({ intent: 'chunk ' + b.chunk.id + ' ' + it.proto + ': ' + b.chunk.title, module: b.plan.module, bundleSha: bundle.sha256, model: cfg.model, output: out, protoSha: b.protoSha, chunkId: b.chunk.id });
+    fs.writeFileSync(eng.chunkPromptPath(it.proto, b.chunk.id), out + '\n');
+    eng.setChunkStatus(it.proto, b.chunk.id, 'sent');
+    return 'staged prototypes/' + it.proto + '/chunks/' + b.chunk.id + '-prompt.md · archived ' + archived + ' · bundle ' + bundle.sha256.slice(0, 12) + ' · proto ' + b.protoSha.slice(0, 12) + ' · status sent (copy path — report/verify are Vlad\'s)';
+  }
+  if (it.kind === 'gen') {
+    const retrieved = gen.retrievalCheck(it.text);
+    if (retrieved) return 'RETRIEVED from ' + retrieved.rel + ', not generated (similarity ' + retrieved.sim + ') — transparency rule';
+    const mod = (loadModulesDoc().modules || []).find((m) => m.id === it.module);
+    if (!mod) throw new Error('unknown module ' + it.module);
+    const bundle = assemble(mod.id);
+    const hits = require(path.join(engineDir, 'guard.js')).guard(it.text, mod.id + ' ' + mod.name);
+    if (hits.length) {
+      const err = new Error('DECISION-NEEDED: ' + hits.map((h) => h.title + ' (trigger: "' + h.trigger + '")').join(' · ') + ' → decisions.md');
+      err.decisionNeeded = true; err.hits = hits;
+      throw err;
+    }
+    const r = await runClaudeStream(gen.buildGenMessage(bundle.text, it.text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: gen.GEN_SYSTEM_PROMPT, cwd: os.tmpdir() });
+    const out = (r.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
+    if (!out) throw new Error('the brain returned nothing');
+    const archived = gen.archive({ intent: it.text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
+    return 'generated + archived ' + archived + ' · bundle ' + bundle.sha256.slice(0, 12) + ' (copy path — run in BP, then ingest)';
+  }
+  throw new Error('unknown intent kind ' + it.kind);
+}
+
 async function runQueue() {
   if (queueRunning) return { already: true };
   const gate = loadQueue();
@@ -4099,11 +4164,16 @@ async function runQueue() {
       const cfg = loadSettings();
       try {
         if (QUEUE_STUB && QUEUE_STUB.mode === 'limit') throw new Error('usage limit reached (stub)');
+        if (t.intent) {
+          const staged = await processIntentTask(t, cfg);
+          t.status = 'done'; t.finished = nowIso(); t.result = staged; qlog(t, 'done (intent)'); saveQueue(q);
+        } else {
         const r = await runClaudeStream(t.prompt, t.sessionId || null, {
           onLabel: (l) => { try { qlog(t, l); saveQueue(q); } catch {} },
         }, { model: cfg.model, effort: cfg.effort, systemPrompt: withMemory(SYSTEM_PROMPT), cwd: REPO_ROOT });
         t.sessionId = r.sessionId;
         t.status = 'done'; t.finished = nowIso(); t.result = (r.text || '').slice(0, 4000); qlog(t, 'done'); saveQueue(q);
+        }
         addNotification({ type: 'task-complete', level: 'success', title: `Queue task done: ${t.title}`, target: '/queue.html' });
       } catch (e) {
         if (looksLikeLimit(e.message)) {
@@ -4115,6 +4185,15 @@ async function runQueue() {
           break;
         }
         t.status = 'failed'; t.finished = nowIso(); qlog(t, 'failed: ' + String(e.message).slice(0, 200)); saveQueue(q);
+        if (e.decisionNeeded) {
+          try {
+            const tasks2 = loadTasks();
+            let ch2 = false;
+            for (const h of e.hits || []) ch2 = ensureAutoTask(tasks2, 'decision:' + h.title, { title: 'Decision needed: ' + h.title, link: { kind: 'decision', ref: h.title }, notes: 'raised by queue intent "' + t.title.slice(0, 80) + '"' }) || ch2;
+            if (ch2) saveTasks(tasks2);
+            addNotification({ type: 'decision-attention', level: 'warning', title: 'Queue intent stopped — decision needed', body: t.title.slice(0, 200), target: 'decisions.md' });
+          } catch {}
+        }
         addNotification({ type: 'task-failed', level: 'error', title: `Queue task failed: ${t.title}`, body: String(e.message).slice(0, 200), target: '/queue.html' });
         // no auto-retry — Vlad re-queues failures deliberately
       }
