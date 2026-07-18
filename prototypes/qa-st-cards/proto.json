@@ -1,0 +1,12 @@
+{
+  "name": "qa-st-cards",
+  "module": "user_management",
+  "status": "settled",
+  "settledHash": "134d49846624bb11c33d0b83428f741cfa790d436704da8e0b9896a82b8f4882",
+  "created": "2026-07-18T05:41:59.102Z",
+  "notes": [
+    "scaffolded (template: cards)",
+    "2026-07-18T05:41:59.113Z — settled @ 134d49846624"
+  ],
+  "versions": []
+}
