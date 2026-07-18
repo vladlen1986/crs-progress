@@ -152,6 +152,19 @@ document.addEventListener('click',(e)=>{
     if(imgs.length) openDocWindow(imgs[i],{ivImgs:imgs,ivIdx:i});
     return;
   }
+  // hover-action: ⛶ on a chat image → open the viewer straight into NATIVE
+  // fullscreen (same gallery seeding as a plain click).
+  const fsb=e.target.closest('.mda-fs');
+  if(fsb){
+    const scope=fsb.closest('.body')||document;
+    const imgs=[...scope.querySelectorAll('img.md-img')]
+      .map(im=>{ const mm=/[?&]path=([^&]+)/.exec(im.getAttribute('src')||''); return mm?decodeURIComponent(mm[1]):null; })
+      .filter(Boolean);
+    const p=fsb.dataset.path;
+    (async()=>{ const w=await openDocWindow(p,{ivImgs:imgs.length?imgs:[p],ivIdx:Math.max(0,imgs.indexOf(p))}); if(w&&w.iv&&!dwIsFs(w)) dwFsToggle(w); })();
+    return;
+  }
+  if(e.target.closest('.mda-dl')) return;   // download anchor: let the browser handle it natively
   // markdown-embedded repo images (![…](path) → img.md-img) get the SAME viewer,
   // seeded with every md-img in the same reply as its gallery. External http
   // images are left alone (no repo path to open).

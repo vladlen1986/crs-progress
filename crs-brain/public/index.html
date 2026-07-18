@@ -575,6 +575,13 @@
   .md li{margin:.25em 0}
   .md .md-img{max-width:100%;border:1px solid var(--line);border-radius:10px;margin:.5em 0;display:block;cursor:zoom-in;transition:border-color .15s ease,filter .15s ease}
   .md .md-img:hover{border-color:var(--accent);filter:brightness(1.05)}
+  /* figure wrapper: hover reveals fullscreen + download without opening the viewer */
+  .md .md-fig{position:relative;display:block;margin:.5em 0;max-width:100%;width:fit-content}
+  .md .md-fig .md-img{margin:0}
+  .md-acts{position:absolute;top:8px;right:8px;display:flex;gap:6px;opacity:0;transition:opacity .15s ease;z-index:2}
+  .md-fig:hover .md-acts,.md-acts:focus-within{opacity:1}
+  .md-acts button,.md-acts a{width:30px;height:30px;border:0;border-radius:8px;background:rgba(18,18,22,.72);color:#E0E0E0;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
+  .md-acts button:hover,.md-acts a:hover{background:rgba(18,18,22,.95)}
   .md a[data-path]{color:var(--accent2);border-bottom:1px dashed var(--accent-border-active)}
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
 
@@ -1571,7 +1578,15 @@ function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g
 const FILE_RE=/(^|[\s>(])((?:[\w][\w.-]*\/)+[\w][\w.-]*\.(?:md|html|css|js|py|json|txt|csv|ya?ml|png|jpe?g|gif|svg|webp|xlsx))(?=[\s)<.,;:!?]|$)/g;
 function mdInline(s){
   return esc(s)
-    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,(m,alt,src)=>`<img class="md-img" alt="${alt}" src="${/^https?:/.test(src)?src:'/api/raw?path='+encodeURIComponent(src)}">`)
+    .replace(/!\[([^\]]*)\]\(([^)]+)\)/g,(m,alt,src)=>{
+      if(/^https?:/.test(src)) return `<img class="md-img" alt="${alt}" src="${src}">`;   // external: plain img, no repo actions
+      const enc=encodeURIComponent(src);
+      // repo image → figure with hover actions: fullscreen (native) + download
+      return `<span class="md-fig"><img class="md-img" alt="${alt}" src="/api/raw?path=${enc}"><span class="md-acts">`
+        +`<button type="button" class="mda-fs" data-path="${src}" title="Fullscreen"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>`
+        +`<a class="mda-dl" href="/api/raw?path=${enc}&dl=1" download title="Download"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg></a>`
+        +`</span></span>`;
+    })
     .replace(/`([^`]+)`/g,'<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
     .replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>')
