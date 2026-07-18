@@ -521,6 +521,20 @@
       "auto": {
         "key": "state-drift:mod-status:casino_settings"
       }
+    },
+    {
+      "id": "6d0076d2",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T08:21:56.306Z",
+      "notes": ""
+    },
+    {
+      "id": "b21a7a20",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T08:21:56.369Z",
+      "notes": ""
     }
   ]
 }
