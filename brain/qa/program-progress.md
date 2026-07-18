@@ -4,8 +4,9 @@
 
 ## Position
 
-- **Current phase:** PHASE 9 — Production throughput (queue-driven, limit-aware)
-- **Current task:** P9 plan — honest scoping: Pattern A still [OPEN], bridge ENV-LIMITED
+- **Current phase:** PHASE 10 — Remote command post
+- **Current task:** P10 plan (bearer auth → mobile subset → tunnel recon)
+- **PHASE 9 COMPLETE** — gate PASS (checkpoint phase-9.md): 5 real intents through the engine-queue (c2/c3/c4 staged + 2 FWM gens), guard probe refused w/ zero emission, telemetry recomputed byte-equal. P9.2 limit-crossing ENV-LIMITED honestly (no real window; mocking forbidden).
 - **PHASE 8 COMPLETE** — gate PASS 4/4 + loop c3+c4 both CLEAN 132/10/0 over 142 rows (checkpoint phase-8.md). Guide walkthrough found+fixed 2 real app bugs (autoGrow ghost, bad notification targets). Handoff/USER-GUIDE/restore-drill/review-digest all shipped.
 - **PHASE 7 COMPLETE** — gate PASS 5/5 (checkpoint phase-7.md): state audit (read-only, proven), weekly digest 2026-W29 real, smoke QA 22 checks daily, scheduler restart-safe.
 - **PHASE 6 COMPLETE** — gate PASS, copy-path variant (checkpoint phase-6.md): audit prompt engine-generated + archived; guard blocks proven on 3 paths; Pattern-A decision todo linked+notified via real mechanism; drafts file written; P6.2 report/ingest ENV-LIMITED (Vlad's BP session — follow-up todo has the steps).
