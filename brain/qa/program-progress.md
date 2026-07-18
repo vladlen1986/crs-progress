@@ -5,36 +5,69 @@
 ## Position
 
 - **Current phase:** PHASE 0 — deep comprehension
-- **Current task:** P0.1 full-codebase parallel read fan-out (launched)
-- **Just completed:** p0: persist program prompt (59e1083); progress file initialized (this commit)
-- **Next:** collect fan-out results → refresh brain/design/app-map.md → reconcile Phases 1–10 vs as-built → write Phase-1 plan → P0 verification subagent
+- **Current task:** P0.4 — verification subagent on app-map + reconciliation (about to run)
+- **Just completed:** P0.1 six-agent fan-out (all returned) · P0.2 app-map.md refreshed to as-built (this commit) · P0.3 reconciliation written below · Phase-1 plan written below
+- **Next:** verification subagent (5 app-map spot-checks + reconciliation completeness) → Phase-0 checkpoint report → gate → Phase 1 task 1
+- **App server:** not yet verified running on :4317 this session — check before any UI work.
 
-## Inherited context (from program-state.md / resume-2026-07-17.md — verified 2026-07-18)
+## Inherited context (verified 2026-07-18)
 
-- Master program P1–P11 DONE; QA loop CLOSED clean (cycles 2+3, 98 rows: 91 PASS / 7 ENV-LIMITED / 0 FAIL). Any code change resets the two-green counter — this program WILL reset it; Phase 5 loop-to-green re-earns it over the grown checklist.
-- 7 standing ENV-LIMITED rows = needs-eyes list (real-OS drag/clipboard, >100MB upload, queue restart persistence, 2 Buildprint-link-gated rows).
-- Buildprint CLI on this Mac: installed but link was Unauthorized on 2026-07-17 (CLI 4.1.6→4.2.5 update pending). Phase 4 precondition check will decide ENV-LIMITED honestly.
-- Standing USER OVERRIDES (judgment-calls #35–#37): kanban = bottom sheet; all toggles greyscale (active = --bg-elevated + --text-primary, never accent fill); single-app — nothing opens a browser tab (openPageWindow / openDocWindow; external links ↗ system browser).
-- Engine exists as of yesterday's commits (779e76b..ef3f1a1): context-map.json, assemble.js (deterministic bundler), guard.js ([OPEN] hard stop), `brain gen` wired into chat. Fan-out agent confirms as-built shape.
-- App: crs-brain/ zero-dep Node server :4317 + vanilla single-file pages. spawnClaude() without shell:true. Cross-platform Mac/Windows — keep all platform guards.
+- Master program P1–P11 DONE; QA loop CLOSED clean (c2+c3: 93 checklist rows — 86 PASS / 7 ENV-LIMITED / 0 FAIL). This program's code changes reset the two-green counter; Phase 5 re-earns it.
+- Buildprint CLI on this Mac: was Unauthorized 2026-07-17 — Phase 4 precondition re-verifies honestly.
+- Standing USER OVERRIDES (judgment-calls #35–#37): kanban bottom sheet · greyscale toggles (active = --bg-elevated + --text-primary) · single-app (openPageWindow/openDocWindow, never browser tabs).
+- QA verification: in-session browser pane ruled unusable for verification (background-throttled) per Vlad's 2026-07-17 directive — verification rig = puppeteer-core driving system Chrome headless:'new' with throttling disabled; rig is machine-local, rebuild on this Mac at first browser-verify need (sanity-prove on a known-PASS row first). Both themes always.
+- Commits auto-fire from server saves (autoCommit on crs-brain/data + brain) — expect interleaved `data:`-style commits; phase commits stay `<phase>: <task>`.
+
+## P0.3 — Reconciliation: program Phases 1–10 vs as-built
+
+**Pre-existing overlaps (gate: verify + reuse, never rebuild):**
+1. **Engine** (P1.4): gen/assemble/guard/archive fully built (commits f9e52a0..ef3f1a1). Chunker CALLS it. Archive() takes an object → extend stamps with prototype hash + chunk id without breaking existing fields.
+2. **Task queue** (P9): durable limit-aware queue with blocked-limit/resumeAt/boot-requeue already shipped (w-loops). P9 runner extends it (per-intent gen→send pipeline), does not rebuild.
+3. **Notification system** (P2/P7/P10): notifyT + 16-type registry + per-type settings matrix + bell exist. New program events = ADD REGISTRY TYPES (settings UI auto-includes them via NOTIFY_ORDER); never a parallel path.
+4. **Watchers/schedulers** (P7): stamp-gated hourly-tick pattern + the three Bubble syncs exist and are wired (forum/relnotes/issue; manuals weekly; optional bubbleWatch). P7 adds state-audit + digest + smoke-QA as new watchers in the same pattern.
+5. **Build packets** (plans.json + step-prompt): an older chunk-ish system. It STAYS (queue page, data). The dashboard "Next build step" card is superseded by the Phase-2 board. New per-prototype build-plan.json is a separate store — no merge.
+6. **Weekly digest**: exists as EPHEMERAL chat (runDigest). P7 builds the real file store (brain/digests/) and re-points the existing card to open the latest digest (program says exactly this — no conflict).
+7. **PIN gate** (LAN mode, server L1643): P10's bearer-token auth extends this chokepoint — every request already flows through one handler.
+8. **QA loop machinery**: recipe + checklist conventions proven (c1–c3). Phase 5 reuses the recipe over the grown checklist.
+
+**Approach conflicts + adjusted approaches (flagged here, again at checkpoint):**
+A. **P1.2 mapping "from the export (find-first)": the export does not exist.** `design-system-export.md` (referenced by design-system §20 L438) is absent repo-wide. Attested style names: CRS - Primary, CRS - Elevated Card, CRS - Input 36px, Chip Active, Chip Dot 6px, zzactive/zzactivelight + STATUS.md §6 reusables + §13 naming rules. ADJUSTED: find-first over this attested set (assembled into a single lookup file `brain/design/style-inventory.json` built by script from the canon docs — honest provenance per entry); any token with no attested style → mapping row says "no existing style — plan chunk 1 creates `<CRS - name>` per §13/§20", which feeds the chunk-type-1 (styles that must exist) rule. The chunker still never invents an *approval* — creation rows are explicit and reviewable in mapping.md. Vlad: if a real Bubble style export exists outside the repo, dropping it in as `brain/design/design-system-export.md` upgrades the lookup automatically (loader prefers it when present).
+B. **Token canon duality.** Prototypes are CRS-product designs → canon = CRS-design-system.md §2 (+§2.10 paired dark+light blocks). design/tokens.css is dark-only short-names; app tokens.css is long-names. ADJUSTED: Phase-3 scaffold injects the §2.10 blocks verbatim (assembled by script from the canonical doc, as the program requires); Phase-1 mapping resolves var names against §2 canonical names accepting BOTH naming schemes as aliases (mapping table carries the §2 canonical name).
+C. **`brain chunk` / `brain handoff` CLI naming.** No `brain` CLI wrapper exists; "brain gen" is `node brain/engine/gen.js`. ADJUSTED: `node brain/engine/chunk.js <name> [--emit <id>|--send <id>]` + server endpoints + UI buttons, matching the established reality. (A thin `brain` bin wrapper is trivial to add later if wanted — not in scope.)
+D. **P2/P6/P10 "[LOCKED] tag" semantics.** decisions.md has NO literal [LOCKED] tag — a decision is resolved by adding a dated `## YYYY-MM-DD —` entry and DELETING the [OPEN] stub (guard scans stubs only). ADJUSTED everywhere: "tagged [LOCKED]" = stub removed + dated entry present. Auto-close of decision todos watches for the stub's disappearance. P10's remote "tag [LOCKED]" action = append dated entry + delete stub + `via: remote` audit stamp + typed confirmation phrase.
+E. **P6 "Pattern A / User company field" decisions.** No "User company field" [OPEN] stub exists — that ruling is LOCKED 2026-07-16 (User DT = property-only exception). The guard's Pattern-A stop fires via the *Company/Property own-table privacy-rule shape* (+ rollout-order) stubs. ADJUSTED: P6 raises decision todos from whatever the audit REPORT's Decisions-needed section actually contains, linked to existing stubs where they match; the acceptance's "Pattern A decision todo" = the own-table stub. If the report resurfaces User-company-field, it becomes a decision CANDIDATE appended per CLAUDE.md rules (never silently resolved).
+F. **P1.1/P3 fullscreen window + live-reload.** The fullscreen HTML viewer is a sandboxed iframe (allow-scripts only, /api/raw src, no cache headers). ADJUSTED (mechanics, not scope): prototype bar = PARENT chrome (like the existing .hf-bar); live-reload = parent-driven mtime poll + iframe.src reset with ?v= cache-buster (matches the app's zero-dep poll pattern — versionGuard precedent). Stated per program 3.2 requirement: POLL, not fs.watch (cross-platform safety on network/USB drives + matches precedent).
+G. **P2 "master-checklist counts".** Naive grep over-counts (evidence cells embed literal `| PASS |`). Dashboard parser counts the FIRST status cell per row only.
+H. **P2 sync stamps split across two files.** state.json (forum/relnotes/issue — gitignored) + settings.json (bubbleCheckedAt/manualsCheckedAt). Dashboard reads /api/sync/status EXTENDED to include the settings stamps (one endpoint, one truth).
+I. **P7 "stale-token grep"/"engine determinism grep"** exists only as a concept. Phase 3 implements the token-block diff script (scaffold acceptance needs it anyway); Phase 7's smoke subset invokes it.
+J. **P2 Tools row.** Program's 4-row board doesn't mention the Tools navigation strip; single-app rule needs the page links somewhere. PLAN: compact Tools strip survives inside Row 4 (navigation ≠ introspection). Judgment call — will log in judgment-calls.md.
+K. **Engine template vs PROMPT-STANDARD 8-section check** (7-part condensed). Not this program's conflict to resolve silently — chunk prompts inherit the engine template (program says "the standard BP template" = engine's). Logged as a known divergence; flagged to Vlad in the checkpoint, no code change unless he rules.
+
+**Program-prompt items already partially existing:** none of Phases 1–3 core (prototypes/, tasks.json, brain/digests/ all greenfield — confirmed absent). P4 transport helpers exist (spawnBuildprint/runBuildprint). P9 queue exists. P7 scheduler pattern exists. P10 PIN gate exists.
+
+## P0.4 / Phase-1 PLAN (written before first edit)
+
+Sequence (single writer on server.js + index.html; new standalone files parallel-safe):
+1. **T1 — prototype store + lifecycle (server):** `prototypes/<name>/{<name>.html, proto.json}`; proto.json `{name, module, status: draft|settled|built, settledHash, created, notes}`. Endpoints: `GET /api/protos` (list, live hash-check: settled+hash-mismatch → auto-revert to draft + warning notification + note), `POST /api/protos/settle {name}` (sha256 freeze), `POST /api/protos/register {path,name,module}` (adopt an existing html — used for the sample), `GET /api/protos/detail?name=`. sha256 over file bytes. Sample: copy `crs-brain/data/docs/buttons.html` → `prototypes/buttons/buttons.html`, module=`user_management`? NO — buttons is a UI-kit demo; module must be real for engine assemble. Use module `casino_settings`? Sample maps to §20.x button family — module choice only drives bundle MODULE BLOCK; pick `user_management` (active build) for realistic acceptance. Decide at implementation; record in mapping.md header.
+2. **T2 — style inventory + mapping pass:** script `brain/engine/style-inventory.js` → `brain/design/style-inventory.json` (attested styles + §2 token names both schemes + §20 families + STATUS §6 reusables; provenance per entry; prefers design-system-export.md if it ever appears). `brain/engine/chunk.js` stage 1: parse html → mapping.md (token rows, component rows → §20 family + reusable/style IDs, interaction inventory, FLAGGED rows for off-canon literals with value/location/nearest token). Refuse-to-chunk while unresolved FLAGs. Flag resolution: `POST /api/protos/resolve-flag {name, flagId, action: map|approve-literal|fixed}` rewrites the mapping.md row (audit trail appended in mapping.md).
+3. **T3 — chunk plan:** chunk.js stage 2 → `prototypes/<name>/build-plan.json` (6 ordered chunk types; `{id,title,scopeIn,scopeOut,dependsOn,producedNames,status}`); contract validator (refs ⊆ earlier producedNames ∪ style-inventory IDs) rejects broken plans (unit-testable pure function).
+4. **T4 — emission:** `--emit <id>` → guard FIRST over the WHOLE plan's scopes (any hit → DECISION-NEEDED, zero chunks, whole plan stopped) → engine gen with chunk scope as intent (mapping rows verbatim + producedNames embedded in the intent block) → archive extended `{Prototype-SHA256, Chunk-Id}` → prompt saved to `prototypes/<name>/chunks/<id>-prompt.md`. Refuse emit if proto not settled or hash drifted.
+5. **T5 — UI:** prototype cards (dashboard panel + explorer context-menu "Register as prototype" for html files); prototype panel window (chunk list: Generate/Copy→sent/paste-report→`chunks/<id>-report.md`/verified/failed/regenerate slot); Mark settled button; settled-edit warning (Tier-1 editor save on a settled proto → server auto-revert + banner via notifyT). All §20 patterns, both themes, greyscale toggles.
+6. **T6 — micro-loop (implement→verify→fix ≤3) then independent verification subagent runs CHUNKER.1–5** (plant one extra off-canon literal for test 1; broken-ref plan for test 2; Pattern-A-triggering scope for test 4 — e.g. a chunk scope mentioning "privacy rule on Company"); append CHUNKER.1–5 to master-checklist; commit per task (`p1: <task>`); checkpoint report.
+
+Files to touch: server.js (proto endpoints, +sync-status extension NO — that's P2), index.html (cards/panel/UI), NEW brain/engine/chunk.js, NEW brain/engine/style-inventory.js, NEW prototypes/. Risks: index.html regressions (single-writer, minimal diffs, respect fragile spots §6 of app-map); guard trigger phrasing in chunk scopes must not accidentally hit stubs (scopes are UI-component language — low risk, but validator warns); autoCommit interleaving; hash determinism CRLF (read bytes, no normalization — document).
 
 ## Open threads
 
-- Fan-out results pending (6 agents, see P0 plan below).
-- program-state.md says P9.3/9.4/9.5 were later completed and verified (resume file + c2/c3) despite gate-audit TODO rows — git wins; treat window system/editors/viewer as SHIPPED.
-
-## P0 plan (written before any edit)
-
-1. Fan out 6 read-only agents in one message: (1) server.js end-to-end; (2) index.html by region; (3) engine as-built; (4) design-system export style inventory (for §1.2 mapping); (5) prototypes' current home + fullscreen-window mechanics + sample-prototype pick; (6) dashboard-as-is + every state file feeding Phase 2 (STATUS.md, decisions.md [OPEN], modules.json, master-checklist, sync stamps, wishlist.json, notification registry) + brain/qa + brain/bubble skim.
-2. Refresh brain/design/app-map.md into as-built truth; list every doc-vs-reality disagreement.
-3. Reconcile program Phases 1–10 vs as-built: pre-existing overlaps (gate, don't rebuild), approach conflicts (propose adjustment here, flag in checkpoint).
-4. Write Phase-1 plan here. Verification subagent: spot-check 5 app-map claims + confirm reconciliation lists every overlap. Then gate opens.
-
-Risks: index.html is huge (agent must chunk its reads); engine layout assumed under brain/engine (verify); "design-system export" = Bubble style-name export — locate it (design/Styles.txt? brain/design/?); prototypes may not exist yet anywhere (then 1.1 builds fresh — confirm absence is real, not missed).
+- Verification subagent for P0 acceptance: not yet run (next action).
+- brain/qa/checkpoints/ dir to create with phase-0.md at gate.
+- Server running? verify before UI phases.
+- Sample prototype module choice (T1) — decide at implementation.
 
 ## Task log
 
 | when | task | commit |
 |---|---|---|
 | 2026-07-18 | p0: persist program prompt | 59e1083 |
-| 2026-07-18 | p0: init progress file + launch fan-out | (this) |
+| 2026-07-18 | p0: init progress file + launch fan-out | ae1ac69 |
+| 2026-07-18 | p0: app-map refresh + reconciliation + phase-1 plan | (this) |
