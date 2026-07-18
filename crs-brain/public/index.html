@@ -1684,9 +1684,9 @@ function autoLinkEntities(body){
     rx.lastIndex=0; const frag=document.createDocumentFragment(); const str=t.nodeValue; let last=0, m;
     while(m=rx.exec(str)){
       if(m.index>last) frag.appendChild(document.createTextNode(str.slice(last,m.index)));
-      const id=byName[m[1]]; const chip=document.createElement('a'); chip.className='ent-chip'; chip.href='#'; chip.textContent=m[1];
-      chip.onclick=e=>{ e.preventDefault(); openTarget('/entity.html#module='+id,{title:m[1]}); };
-      frag.appendChild(chip); last=m.index+m[1].length;
+      const nm=m[1], id=byName[nm]; const chip=document.createElement('a'); chip.className='ent-chip'; chip.href='#'; chip.textContent=nm;
+      chip.onclick=e=>{ e.preventDefault(); openTarget('/entity.html#module='+id,{title:nm}); };   // capture nm/id per-iteration (m is null after the loop)
+      frag.appendChild(chip); last=m.index+nm.length;
     }
     if(last<str.length) frag.appendChild(document.createTextNode(str.slice(last)));
     t.replaceWith(frag);
