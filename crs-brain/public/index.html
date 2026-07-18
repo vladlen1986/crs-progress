@@ -2078,6 +2078,7 @@ async function renderDashboard(){
     fetch('/api/ideas').then(r=>r.json()).catch(()=>({columns:{}})),
     api('/api/plans').catch(()=>null),
   ]);
+  const protosD=await api('/api/protos').catch(()=>({protos:[]}));
   if(plansD) plansCache=plansD;
   let nFiles=0,bubble=0,build=0,forum=0,docs=0;
   (function walk(ns,pfx){ for(const n of ns){ if(n.type==='dir') walk(n.children,pfx+n.name+'/');
@@ -2131,6 +2132,14 @@ async function renderDashboard(){
     </div></section>
 
     <section><div class="dash-cols">
+      <div class="dcard"><h3>${svg('i-doc','sm')} Prototypes <span class="cnt">${protosD.protos.length}</span></h3>
+        ${protosD.protos.length?protosD.protos.slice(0,5).map(pr=>{const cc=pr.chunkCounts;
+          return `<div class="drow" style="cursor:pointer" onclick="openPageWindow('/protos.html','Prototypes')">
+            <span style="color:var(--primary);font-weight:600">${esc(pr.name)}</span>
+            <span style="font-size:10.5px;color:var(--muted);font-family:var(--mono)">${esc(pr.status)}${cc?` · ${cc.verified}/${cc.total}`:''}</span></div>`;}).join('')
+          :'<div class="dempty">No prototypes yet — register a design html in the panel.</div>'}
+        <button class="np-draft" onclick="openPageWindow('/protos.html','Prototypes')">${svg('i-doc','sm')} Open prototype panel</button>
+      </div>
       <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>${chatRows}</div>
       <div class="dcard"><h3>${svg('i-gauge','sm')} Next build step</h3>
         ${(()=>{ const pk=activePacket(); const st=pk&&pk.steps.find(s=>s.status==='pending');
@@ -3654,7 +3663,8 @@ function explBuildMenu(target){
       + (/^(md|txt|json|yml|csv|html|css|js|py)$/.test(kind)?mi('Copy content','copycontent'):'')
       + (kind==='img' && window.ClipboardItem && navigator.clipboard?.write ? mi('Copy image','copyimage'):'');
   if(node.type==='dir') return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+div+newFileSub+mi('New folder inside','newfolder')+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
-  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
+  const protoItem=/\.html?$/i.test(node.path)?mi('Register as prototype','protoreg',{dis:multi}):'';
+  return mi('Open','open')+mi('Rename','rename',{sh:'F2',dis:multi})+mi('Duplicate','duplicate',{dis:multi})+protoItem+div+mi('Cut','cut',{sh:'⌘X'})+mi('Copy','copy',{sh:'⌘C'})+mi('Delete','delete',{sh:'⌫'})+div+dlItems+favItem+mi('Copy path','copypath')+mi('Properties','props');
 }
 async function explReload(){ try{ EX.tree=await FS.tree(); }catch{} renderExpl(); }
 function explSelectPath(p){ EX.sel=new Set([p]); EX.cur=p; renderExpl(); }
@@ -3666,6 +3676,7 @@ async function explAct(act,target){
     else if(act.startsWith('newfile')){ const ext=act.split(':')[1]||'md'; explNew('file', target!=null&&explVisible().find(n=>n.path===target)?.type==='dir'?target:EX.path, ext); }
     else if(act.startsWith('sort:')){ explDoSort(act.slice(5)); }
     else if(act.startsWith('view:')){ explSetView(act.slice(5)); }
+    else if(act==='protoreg'){ openPageWindow('/protos.html#register='+encodeURIComponent(target),'Prototypes'); }
     else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
     else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }

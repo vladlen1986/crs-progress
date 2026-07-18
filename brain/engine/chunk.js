@@ -560,7 +560,7 @@ function verbatimRows(name, chunk) {
   }
   return { tokTable, rows };
 }
-function buildChunkIntent(name, chunkId) {
+function buildChunkIntent(name, chunkId, corrections) {
   const { proto, hash } = requireSettled(name);
   const plan = loadPlan(name);   // re-validates the contract on every load
   if (plan.protoHash !== hash) throw new Error('build-plan.json was made from a different settled hash — re-plan first');
@@ -593,6 +593,7 @@ function buildChunkIntent(name, chunkId) {
     ...(v.rows.length ? v.rows : ['(interaction-scope chunk — see SCOPE IN)']),
     '',
     'Prototype settled hash: ' + hash,
+    ...(corrections ? ['', 'CORRECTIONS FROM THE FAILED PREVIOUS ATTEMPT (address each explicitly):', String(corrections).trim()] : []),
   ].join('\n');
   return { proto, plan, chunk, intent, protoSha: hash };
 }

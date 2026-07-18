@@ -2715,7 +2715,7 @@ const server = http.createServer(async (req, res) => {
       try {
         chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
         engine = require(path.join(REPO_ROOT, 'brain', 'engine', 'gen.js'));
-        b = chunkEngine.buildChunkIntent(name, String(body.chunkId || ''));
+        b = chunkEngine.buildChunkIntent(name, String(body.chunkId || ''), body.corrections ? String(body.corrections) : null);
         bundle = require(path.join(REPO_ROOT, 'brain', 'engine', 'assemble.js')).assemble(b.plan.module);
       } catch (e) {
         if (e.decisionNeeded) {
