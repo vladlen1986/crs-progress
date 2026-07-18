@@ -398,6 +398,40 @@ async function compileMemory(userText) {
   } catch { return []; }
 }
 
+// ---- self-learning: distill operational lessons from Buildprint sessions ----
+// After a bp-chat turn with LEARNABLE SIGNAL (tool errors, blocked commands,
+// long exploratory runs), a cheap Haiku pass extracts at most 3 NEW operational
+// lessons into persistent memory — which withMemory() already injects into
+// EVERY future session. Goal: never make the same mistake twice. Turns with no
+// signal are skipped entirely (zero model spend — token-economy rule).
+const LESSON_SIGNAL_RE = /✗|\berror\b|failed|not recognized|blocked|refused|hung|invalid|cannot|denied|unauthorized|no such|ENOENT|exit [1-9]|reserved name|safety gate/i;
+function turnLearnable(steps, ms) {
+  const s = steps || [];
+  if (s.some((x) => LESSON_SIGNAL_RE.test((x.label || '') + ' ' + (x.body || '')))) return true;
+  return s.length >= 15 || (ms || 0) > 5 * 60 * 1000;   // long exploration = discoveries worth keeping
+}
+async function distillLessons(userMessage, steps, finalText) {
+  const existing = loadMemory().filter((m) => m.category === 'Technical' || m.category === 'Workflow');
+  const known = existing.map((m) => `- ${m.title}: ${m.fact}`).join('\n').slice(0, 4000);
+  const digest = (steps || []).map((s) => {
+    const err = LESSON_SIGNAL_RE.test(s.body || '');
+    return '· ' + (s.label || s.kind || '') + (err ? ' :: ' + (s.body || '').slice(0, 220).replace(/\s+/g, ' ') : '');
+  }).join('\n').slice(0, 6000);
+  const instruction =
+    'From this Buildprint work-session digest, extract AT MOST 3 genuinely NEW operational lessons worth remembering forever: platform gotchas, tool errors with their exact working fixes, workspace rules discovered the hard way. ' +
+    'NOT task-specific facts, NOT praise, NOT anything semantically covered by the KNOWN LESSONS below (even if worded differently). ' +
+    'Output ONLY a JSON array of {"category":"Technical"|"Workflow","title":"a <=8-word label","fact":"1-2 self-contained sentences including the exact fix/rule"}. Output [] if nothing genuinely new.\n\n' +
+    'KNOWN LESSONS:\n' + (known || '(none)') + '\n\nTASK GIVEN:\n' + String(userMessage || '').slice(0, 400) +
+    '\n\nSESSION DIGEST (· step — :: = error detail):\n' + digest + '\n\nFINAL REPORT (tail):\n' + String(finalText || '').slice(-1500);
+  const res = await runClaudeStream(instruction, null, {}, { model: 'claude-haiku-4-5-20251001', effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'lesson' });
+  const m = (res.text || '').match(/\[[\s\S]*\]/);
+  if (!m) return [];
+  let arr; try { arr = JSON.parse(m[0]); } catch { return []; }
+  const saved = addMemories((Array.isArray(arr) ? arr : []).slice(0, 3).map((x) => ({ category: x.category === 'Workflow' ? 'Workflow' : 'Technical', title: x.title, fact: x.fact })));
+  if (saved.length) addNotification({ type: 'info', level: 'info', title: 'Brain learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), body: saved.map((s) => s.title).join(' · ') });
+  return saved;
+}
+
 // ---- wishlist (Brain-app improvement todos, managed in the UI) --------------
 // Canonical JSON the Wishlist page edits; WISHLIST.md is regenerated for humans/git.
 const WISHLIST_JSON = path.join(DATA_DIR, 'wishlist.json');
@@ -1938,6 +1972,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onDetail = hooks.onDetail || (() => {});  // tool parameters for the current work block
   const onLabel = hooks.onLabel || (() => {});    // concise action label once tool inputs are known
   const onUsage = hooks.onUsage || (() => {});    // running token counts { in, out }
+  const onToolResult = hooks.onToolResult || (() => {});   // short tool-outcome tail { text, isError }
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -2022,6 +2057,20 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
           else if (e.delta.type === 'input_json_delta' && toolAcc) toolAcc.json += e.delta.partial_json || '';
         } else if (e.type === 'content_block_stop' || e.type === 'message_stop') {
           flushTool();
+        }
+      } else if (ev.type === 'user' && ev.message && Array.isArray(ev.message.content)) {
+        // Tool RESULTS (the CLI echoes them back as user-turn events). Surface a
+        // short outcome tail — errors especially — so the timeline and the
+        // self-learning distiller can see WHAT HAPPENED, not just what ran.
+        for (const c of ev.message.content) {
+          if (!c || c.type !== 'tool_result') continue;
+          let txt = '';
+          if (typeof c.content === 'string') txt = c.content;
+          else if (Array.isArray(c.content)) txt = c.content.map((x) => (x && x.text) || '').join('\n');
+          txt = (txt || '').trim();
+          if (!txt) continue;
+          const errish = c.is_error || /error|not recognized|failed|denied|blocked|invalid|cannot|no such|ENOENT|unauthorized|reserved name/i.test(txt.slice(0, 400));
+          onToolResult({ text: txt.replace(/\s+/g, ' ').slice(0, errish ? 300 : 160), isError: !!(c.is_error || errish) });
         }
       } else if (ev.type === 'result') {
         sawResult = true;
@@ -3037,6 +3086,11 @@ const server = http.createServer(async (req, res) => {
             sse({ type: 'detail', text: t });
           },
           onLabel: (t) => { if (curStep) curStep.label = t; sse({ type: 'label', text: t }); },
+          onToolResult: (r) => {
+            const line = '⇒ ' + (r.isError ? '✗ ' : '') + r.text;
+            if (curStep && curStep.kind === 'tool') curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + line);
+            sse({ type: 'detail', text: line });
+          },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
           onModelSwitch: (m) => { liveModel = m.to || liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
@@ -3053,6 +3107,11 @@ const server = http.createServer(async (req, res) => {
         if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
+        // Self-learning: distill lessons from this BP session in the background
+        // (only when the turn carries learnable signal — zero spend otherwise).
+        if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
+          distillLessons(message, steps, finalText).catch(() => {});
+        }
         await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
       } catch (e) {
@@ -3400,6 +3459,16 @@ const server = http.createServer(async (req, res) => {
       if (body.text && !body.fact) saved = await compileMemory(body.text);   // compile free text
       else saved = addMemories([{ category: body.category, title: body.title, fact: body.fact }]);
       return send(res, 200, { ok: true, entries: saved });
+    }
+    if (p === '/api/memory/distill' && req.method === 'POST') {   // backfill: learn from a past chat's last turn
+      const body = await readJsonBody(req) || {};
+      const c = loadChat((body.chatId || '').toString());
+      if (!c) return send(res, 404, { error: 'no such chat' });
+      const lastA = [...c.messages].reverse().find((m) => m.role === 'assistant' && m.steps && m.steps.length);
+      if (!lastA) return send(res, 400, { error: 'no steps to learn from' });
+      const lastU = [...c.messages].reverse().find((m) => m.role === 'user');
+      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content);
+      return send(res, 200, { ok: true, learned: saved });
     }
     if (p === '/api/memory' && req.method === 'DELETE') {
       const id = u.searchParams.get('id');
