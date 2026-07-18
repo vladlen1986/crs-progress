@@ -42,10 +42,15 @@ if (process.platform !== 'win32') {
 // Resolve a binary to its full path across the extended PATH (for pty/exec that
 // don't do their own PATH lookup reliably).
 function resolveBin(name) {
-  for (const dir of (process.env.PATH || '').split(path.sep === '\\' ? ';' : ':')) {
-    if (!dir) continue;
-    const full = path.join(dir, name);
-    try { if (fs.existsSync(full)) return full; } catch {}
+  // Windows binaries carry an extension; prefer .exe (direct-spawnable) over
+  // .cmd/.bat shims (which need a cmd.exe wrapper).
+  const exts = process.platform === 'win32' ? ['.exe', '.cmd', '.bat', ''] : [''];
+  for (const ext of exts) {
+    for (const dir of (process.env.PATH || '').split(path.sep === '\\' ? ';' : ':')) {
+      if (!dir) continue;
+      const full = path.join(dir, name + ext);
+      try { if (fs.existsSync(full)) return full; } catch {}
+    }
   }
   return null;
 }
@@ -1794,9 +1799,17 @@ function logUsage(rec) {
   } catch {}
 }
 
-// cmd.exe /c wrapper resolves the claude.cmd shim while node quotes args safely.
+// Windows: spawn the resolved claude.exe DIRECTLY — never through cmd.exe when
+// avoidable. cmd re-parses the command line with its own rules (it doesn't
+// understand node's \" escaping, so a quote inside --append-system-prompt flips
+// its quote state and the next '<' becomes a redirect: `claude exited 1: < was
+// unexpected at this time.`). The cmd.exe /c wrapper remains ONLY as a fallback
+// for npm-installed claude.cmd shims (node refuses to spawn .cmd shell-less);
+// that path still can't carry '<'/'"' args — install the native CLI to fix.
 function spawnClaude(args, opts = {}) {
   if (process.platform === 'win32') {
+    const exe = resolveBin('claude');
+    if (exe && /\.exe$/i.test(exe)) return spawn(exe, args, { windowsHide: true, ...opts });
     return spawn('cmd.exe', ['/c', 'claude', ...args], { windowsHide: true, ...opts });
   }
   return spawn('claude', args, opts);   // PATH extended at startup
