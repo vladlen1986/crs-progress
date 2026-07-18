@@ -1071,6 +1071,13 @@
   .htmlfull .hf-bar button{width:30px;height:30px;border-radius:7px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer}
   .htmlfull .hf-bar button:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .htmlfull iframe{flex:1;border:0;background:#fff}
+  /* prototype-studio chrome on the fullscreen bar (parent chrome — the sandboxed iframe can't host it) */
+  .htmlfull .hf-bar button.hf-pbtn{width:auto;padding:0 11px;font:inherit;font-size:12px;font-weight:600;height:30px}
+  .hf-proto{display:flex;align-items:center;gap:7px}
+  .hf-chip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
+  .hf-chip.st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
+  .hf-chip.st-settled{background:var(--accent-tint);color:var(--accent2);border:1px solid var(--accent-border-active)}
+  .hf-chip.st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
   /* undo toast (interactive, unlike .toast) */
   .utoast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:9px 10px 9px 16px;border-radius:11px;font-size:13px;display:none;align-items:center;gap:12px;z-index:370;box-shadow:var(--shadow-dropdown)}
   .utoast.show{display:flex}
@@ -2178,6 +2185,7 @@ async function renderDashboard(){
             <span class="rt">${esc(p.name)}</span>
             <span class="rmeta"><span class="pmini"><i style="width:${Math.round(cc.verified/cc.total*100)}%"></i></span><span class="dnum">${cc.verified}/${cc.total}</span></span></div>`;}).join('')
           :'<div class="dempty">No chunk plans yet — settle a prototype and build its plan.</div>'}
+        <button class="np-draft" onclick="openPageWindow('/protos.html#new','Prototypes')">${svg('i-doc','sm')} New prototype</button>
       </div>
       <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
         ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
@@ -2998,7 +3006,7 @@ async function openDocWindow(p, opts){
   if(!p) return null;
   p=String(p).replace(/^\.\//,'').replace(/^\/+/,'');
   if(typeof hidePeek==='function') hidePeek();
-  if(isHtml(p) && !opts.editSource){ openHtmlOverlay(p); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor)
+  if(isHtml(p) && !opts.editSource && !opts.htmlView){ openHtmlOverlay(p, opts.protoName); return null; }   // html keeps its sandboxed fullscreen viewer (✎ there opens the source editor); htmlView renders in a doc window instead
   const ivSeed=opts.ivImgs&&opts.ivImgs.length ? {imgs:opts.ivImgs.slice(), idx:opts.ivIdx||0} : null;   // chat-gallery: explicit image set + start index
   const dup=dwFind(p); if(dup){ dwFocus(dup); if(ivSeed&&dup.kind==='img'){ dup.ivSeed=ivSeed; ivFill(dup); } return dup; }   // same path already open → focus (re-seed gallery if asked)
   if(DW.wins.size>=DW.CAP){   // soft cap: retire the oldest unfocused window — never one with unsaved edits
@@ -3008,7 +3016,7 @@ async function openDocWindow(p, opts){
   const id=++DW.seq, name=p.split('/').pop();
   const el=document.createElement('div'); el.className='docwin'; el.tabIndex=-1; el.dataset.path=p;
   const w={id,path:p,name,el,rect:opts.rect||dwNextRect(),snap:null,fs:null,min:false,z:0,lastFocus:0,chip:null,
-    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null,ivSeed};
+    kind:dwKind(name),mode:'view',dirty:false,text:null,ed:null,ivSeed,htmlView:!!opts.htmlView};
   if(w.kind==='img') el.classList.add('imgwin');   // P9.5: viewer species (same window manager, different body)
   el.innerHTML=dwHeadHtml(w)+'<div class="dp-body"><div class="dp-card"><span class="pk-load">Loading…</span></div></div>';
   document.body.appendChild(el); DW.wins.set(id,w);
@@ -3074,6 +3082,9 @@ function dwWire(w){ const el=w.el;
 async function dwFill(w){
   const p=w.path, name=w.name, raw='/api/raw?path='+encodeURIComponent(p);
   const body=w.el.querySelector('.dp-body'); const show=(h)=>{ body.innerHTML=h; };
+  // Sandboxed html render inside a normal doc window (prototype version
+  // side-by-side view) — same isolation as the fullscreen overlay.
+  if(w.htmlView){ w.kind='htmlview'; return show(`<iframe class="dp-embed" sandbox="allow-scripts" src="${raw}" title="${esc(name)}"></iframe>`); }
   const k=w.kind=dwKind(name);
   if(k==='img') return ivFill(w);   // P9.5 viewer species
   // pdf: NATIVE Chromium viewer — shipped via <iframe> (an <embed> here stayed
@@ -3474,15 +3485,54 @@ function dwLinkClick(w,e){
 // fullscreen sandboxed HTML overlay — scripts run isolated (no same-origin access)
 function ensureHtmlFull(){ let h=$('htmlFull'); if(h) return h;
   h=document.createElement('div'); h.className='htmlfull'; h.id='htmlFull'; document.body.appendChild(h); return h; }
-function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } }
-function openHtmlOverlay(p){
+let protoPoll=null;
+function closeHtmlOverlay(){ const h=$('htmlFull'); if(h){ h.classList.remove('show'); h.innerHTML=''; } if(protoPoll){ clearInterval(protoPoll); protoPoll=null; } }
+// The fullscreen HTML viewer. With protoName set (prototype studio path) the
+// bar gains prototype chrome (status chip, versions, theme toggle, Snapshot,
+// Mark settled) and the parent polls /api/protos/mtime — the sandboxed iframe
+// (allow-scripts, no same-origin) cannot poll the app itself, so live-reload is
+// parent-driven: mtime change → reset iframe.src with a ?v= cache-buster.
+function openHtmlOverlay(p, protoName){
   hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
-  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>
+  const protoBtns=protoName?`
+    <span class="hf-proto" id="hfProtoMeta">…</span>
+    <button class="hf-pbtn" title="Toggle prototype theme" onclick="protoOverlayTheme()">◐ Theme</button>
+    <button class="hf-pbtn" title="Snapshot the current html into versions/" onclick="protoOverlaySnapshot('${jsq(protoName)}')">⬇ Snapshot</button>
+    <button class="hf-pbtn" title="Freeze this exact html as the settled hash" onclick="protoOverlaySettle('${jsq(protoName)}')">✓ Mark settled</button>`:'';
+  h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>${protoBtns}
     <button title="Edit source (html is a Tier-1 text format)" onclick="closeHtmlOverlay();openDocWindow('${jsq(p)}',{editSource:true})">✎</button>
     <button title="Open externally" onclick="apiOpen('${jsq(p)}')">↗</button>
     <button title="Close (Esc)" onclick="closeHtmlOverlay()">✕</button></div>
-    <iframe sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
+    <iframe id="hfFrame" sandbox="allow-scripts" src="/api/raw?path=${encodeURIComponent(p)}"></iframe>`;
   h.classList.add('show');
+  if(protoPoll){ clearInterval(protoPoll); protoPoll=null; }
+  if(protoName){
+    let last=0, theme='dark';
+    h.dataset.protoTheme=theme;
+    const tick=async()=>{ try{
+      const m=await api('/api/protos/mtime?name='+encodeURIComponent(protoName));
+      const meta=$('hfProtoMeta');
+      if(meta) meta.innerHTML=`<span class="hf-chip st-${esc(m.status)}">${esc(m.status)}</span> <span style="font-family:var(--mono);font-size:10.5px">v${m.versions}</span>`;
+      if(last && m.mtime!==last){ const f=$('hfFrame'); if(f) f.src='/api/raw?path='+encodeURIComponent(p)+'&v='+m.mtime+(h.dataset.protoTheme==='light'?'&theme=light':''); }
+      last=m.mtime;
+    }catch{} };
+    tick(); protoPoll=setInterval(tick,1000);
+  }
+}
+function protoOverlayTheme(){
+  const h=$('htmlFull'), f=$('hfFrame'); if(!h||!f) return;
+  const next=h.dataset.protoTheme==='light'?'dark':'light';
+  h.dataset.protoTheme=next;
+  // Scaffolded prototypes listen for this; legacy registered html may not.
+  try{ f.contentWindow.postMessage({type:'crs-theme',theme:next},'*'); }catch{}
+}
+async function protoOverlaySnapshot(name){
+  try{ const r=await api('/api/protos/snapshot',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}); toast('Snapshot v'+r.v+' saved'); }
+  catch(e){ toast('⚠ '+e.message); }
+}
+async function protoOverlaySettle(name){
+  try{ await api('/api/protos/settle',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name})}); toast('Settled — hash frozen'); }
+  catch(e){ toast('⚠ '+e.message); }
 }
 document.addEventListener('keydown',(e)=>{ if(e.key!=='Escape') return;
   if(e.target.closest && e.target.closest('.modal-wrap,.pal-wrap,.upop,.ninbox')) return;   // overlays own their Esc
@@ -3789,7 +3839,7 @@ function explBuildMenu(target){
   if(target==null){
     const sortSub=sub('Sort by', ['name','date','type','size'].map(k=>mi(k[0].toUpperCase()+k.slice(1)+(EX.sortKey===k?(EX.sortDir>0?'  ▲':'  ▼'):''),'sort:'+k)).join(''));
     const viewSub=sub('View', mi('List'+(EX.view==='list'?'  ✓':''),'view:list')+mi('Grid'+(EX.view==='grid'?'  ✓':''),'view:grid'));
-    return mi('New folder','newfolder',{sh:'⌘N'})+newFileSub+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+sortSub+viewSub;
+    return mi('New folder','newfolder',{sh:'⌘N'})+newFileSub+mi('New prototype','protonew')+div+mi('Paste','paste',{sh:'⌘V',dis:!hasClip})+mi('Select all','selall',{sh:'⌘A'})+div+sortSub+viewSub;
   }
   const node=explVisible().find(n=>n.path===target)||{type:'file'};
   const multi=EX.sel.size>1;
@@ -3818,6 +3868,7 @@ async function explAct(act,target){
     else if(act.startsWith('sort:')){ explDoSort(act.slice(5)); }
     else if(act.startsWith('view:')){ explSetView(act.slice(5)); }
     else if(act==='protoreg'){ openPageWindow('/protos.html#register='+encodeURIComponent(target),'Prototypes'); }
+    else if(act==='protonew'){ openPageWindow('/protos.html#new','Prototypes'); }
     else if(act==='duplicate'){ const r=await FS.duplicate(target); await explReload(); explSelectPath(r.path); toast('Duplicated'); }
     else if(act==='cut'){ EX.clip={mode:'cut',paths:[...EX.sel]}; toast(EX.sel.size+' cut'); }
     else if(act==='copy'){ EX.clip={mode:'copy',paths:[...EX.sel]}; toast(EX.sel.size+' copied'); }

@@ -89,7 +89,13 @@
   </header>
 
   <div class="reg">
-    <input class="path" id="regPath" type="text" placeholder="Repo path of an existing .html (e.g. demos/CRS_BreakList.html)">
+    <input id="newName" type="text" placeholder="New prototype name…" style="width:200px">
+    <select id="newMod"></select>
+    <select id="newTpl"><option value="blank">blank</option><option value="cards">card grid</option><option value="form">form panel</option><option value="table">table view</option></select>
+    <button class="hbtn acc" onclick="createProto()">New prototype</button>
+  </div>
+  <div class="reg">
+    <input class="path" id="regPath" type="text" placeholder="…or register an existing .html (repo path, e.g. demos/CRS_BreakList.html)">
     <input id="regName" type="text" placeholder="name (auto)" style="width:130px">
     <select id="regMod"></select>
     <button class="hbtn acc" onclick="registerProto()">Register</button>
@@ -112,7 +118,8 @@ async function load(){
   try{
     const [pr,md]=await Promise.all([api('/api/protos'),api('/api/modules')]);
     PROTOS=pr.protos||[];MODS=md.modules||[];
-    $('regMod').innerHTML='<option value="">module…</option>'+MODS.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+    const modOpts='<option value="">module…</option>'+MODS.map(m=>`<option value="${esc(m.id)}">${esc(m.name)}</option>`).join('');
+    $('regMod').innerHTML=modOpts; $('newMod').innerHTML=modOpts;
     for(const n of OPEN){try{DETAIL[n]=await api('/api/protos/detail?name='+encodeURIComponent(n))}catch{}}
     render();
   }catch(e){$('list').innerHTML='<div class="empty">'+esc(e.message)+'</div>'}
@@ -153,6 +160,18 @@ function cardBody(p){
     }
     h+='</table>';
   }
+  // VERSIONS
+  const vers=(d.proto.versions||[]);
+  h+=`<h3>Versions <span style="font-family:var(--mono);font-size:10px">${vers.length}</span> <button class="hbtn" style="padding:3px 9px;font-size:11px;margin-left:8px" onclick="snapProto('${esc(p.name)}')">Snapshot now</button></h3>`;
+  if(vers.length){
+    h+='<table><tr><th>v</th><th>note</th><th>when</th><th></th></tr>';
+    for(const v of vers.slice().reverse()){
+      h+=`<tr><td class="mono">v${v.v}</td><td>${esc(v.note||'—')}</td><td class="mono">${esc((v.ts||'').slice(0,16).replace('T',' '))}</td>
+        <td><span class="rbtns"><button class="hbtn" onclick="viewVersion('${esc(p.name)}',${v.v})">View ⧉ current</button>
+        <button class="hbtn" onclick="restoreProto('${esc(p.name)}',${v.v})">Restore</button></span></td></tr>`;
+    }
+    h+='</table>';
+  } else h+='<div class="note">No snapshots yet.</div>';
   // CHUNKS
   if(d.plan&&d.plan.chunks){
     h+='<h3>Chunk plan</h3>';
@@ -189,13 +208,35 @@ async function toggleCard(n){
 function toggleChunk(n,id){const el=$('ck-'+n+'-'+id);if(el)el.classList.toggle('open')}
 function openProto(n){
   const p=PROTOS.find(x=>x.name===n);if(!p)return;
-  if(EMBED&&window.parent.openDocWindow){window.parent.openDocWindow(p.html)}   // html → fullscreen overlay in the app
+  if(EMBED&&window.parent.openDocWindow){window.parent.openDocWindow(p.html,{protoName:n})}   // html → fullscreen overlay with the prototype bar
   else location.href='/api/raw?path='+encodeURIComponent(p.html);
 }
 async function act(btn,url,body,okMsg){
   btn.classList.add('busy');
   try{await api(url,body);toast(okMsg)}catch(e){toast('⚠ '+e.message)}
   btn.classList.remove('busy');await load();
+}
+async function createProto(){
+  const name=$('newName').value.trim(),module=$('newMod').value,template=$('newTpl').value;
+  if(!name||!module){toast('Name + module required');return}
+  try{const r=await api('/api/protos/create',{path:'',name,module,template});OPEN.add(r.proto.name);toast('Scaffolded '+r.proto.name);$('newName').value=''}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function snapProto(n){
+  const note=prompt('Snapshot note (optional):')||'';
+  try{const r=await api('/api/protos/snapshot',{name:n,note});toast('Snapshot v'+r.v)}catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+async function restoreProto(n,v){
+  try{const r=await api('/api/protos/restore',{name:n,v});toast('Restored v'+v+' (prior current kept as v'+r.autoSnapshot+')')}
+  catch(e){toast('⚠ '+e.message)}
+  await load();
+}
+function viewVersion(n,v){
+  const cur='prototypes/'+n+'/'+n+'.html', ver='prototypes/'+n+'/versions/v'+v+'.html';
+  if(EMBED&&window.parent.openDocWindow){ window.parent.openDocWindow(ver,{htmlView:true}); window.parent.openDocWindow(cur,{htmlView:true}); }
+  else location.href='/api/raw?path='+encodeURIComponent(ver);
 }
 async function registerProto(){
   const path=$('regPath').value.trim(),name=$('regName').value.trim(),module=$('regMod').value;
@@ -244,6 +285,7 @@ async function saveReport(btn,n,id){
 (function boot(){
   const m=location.hash.match(/#register=(.+)/);
   if(m)$('regPath').value=decodeURIComponent(m[1]);
+  if(location.hash==='#new') setTimeout(()=>$('newName').focus(),50);
   load();
 })();
 </script>
