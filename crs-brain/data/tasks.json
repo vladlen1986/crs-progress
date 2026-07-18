@@ -928,6 +928,13 @@
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
       }
+    },
+    {
+      "id": "c042f254",
+      "title": "chatv2probe-todo-x",
+      "status": "todo",
+      "created": "2026-07-18T14:51:32.972Z",
+      "notes": ""
     }
   ]
 }
