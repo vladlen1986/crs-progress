@@ -5,7 +5,8 @@
 ## Position
 
 - **Current phase:** PHASE 3 — Prototyping studio
-- **Current task:** P3 UNDERSTAND/PLAN (write plan below, then implement)
+- **Current task:** T6 — independent verification (STUDIO.1–4)
+- **T1–T5 DONE** (commits 5a1e8a2, d224eae): rawCss210() + proto-scaffold.js (byte-verbatim §2.10 between markers, 4 var-only templates — scaffold maps ZERO flags after token-block mapper fixes: [data-theme] blocks theme-aware in stale check, --custom-prop decls exempt from literal scan); /api/protos/create|snapshot|restore|mtime (restore REFUSES on settled — proven; auto-snapshot before restore — proven v3); overlay prototype bar (status chip+vN live, theme postMessage, Snapshot, Mark settled) + 1s parent poll → iframe ?v= reload (proven on external touch; poll cleared on close); openDocWindow {htmlView:true} → sandboxed iframe in a doc window (side-by-side); panel create form + versions list (View ⧉ current / Restore); board "New prototype" btn + explorer bg menu item. studio-sample proto (settled, v1 snap) kept as demo.
 - **PHASE 2 COMPLETE** — gate PASS (one cycle, 53/53 rig checks; checkpoint brain/qa/checkpoints/phase-2.md; DASH.1–5 PASS appended). Favicon 204 route added post-gate. Checklist truth: 113 ids — PASS 111 / ENV-LIMITED 7 / FAIL 0 after DASH rows.
 - **PHASE 1 COMPLETE** — gate PASS (checkpoint phase-1.md). f1/f2 = Vlad's homework.
 - P3 pointers: scaffold injects CRS-design-system.md §2.10 blocks verbatim (script-assembled); live-reload = PARENT-driven poll + iframe.src ?v= cache-buster (sandbox allow-scripts only — reconciliation F); prototype bar = parent chrome like .hf-bar; versions/ + snapshot/restore w/ auto-snapshot-before-restore; settled protos refuse studio edits (Phase-1 drift rule holds); Tier-1 editor (dwEditToggle/dwSave) is THE editor — studio adds reload trigger only (overlap 11); stale-token diff = chunk.js localTokens verdicts (STALE/UNKNOWN flags).
