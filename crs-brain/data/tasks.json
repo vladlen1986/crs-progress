@@ -511,23 +511,6 @@
       "auto": {
         "key": "sync:forum"
       }
-    },
-    {
-      "id": "70cbb312",
-      "title": "QA guide walkthrough todo A",
-      "status": "done",
-      "created": "2026-07-18T07:52:17.096Z",
-      "notes": ""
-    },
-    {
-      "id": "d1169757",
-      "title": "QA overdue drill (p8-accept)",
-      "status": "todo",
-      "created": "2026-07-18T07:52:22.814Z",
-      "notes": "",
-      "due": "2026-07-17T00:00:00.000Z",
-      "followUp": true,
-      "notifiedDue": "2026-07-18T07:52:22.824Z"
     }
   ]
 }
