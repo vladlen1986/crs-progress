@@ -1485,6 +1485,7 @@ const BP_PROMPT = (ws) => [
   '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
+  'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task.',
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
