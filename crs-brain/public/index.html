@@ -4305,7 +4305,10 @@ async function palFilter(q){
   try{
     const {results}=await api('/api/search?q='+encodeURIComponent(q));
     if(mySeq!==palSeq) return;   // a newer keystroke won
-    const server=results.filter(r=>r.kind!=='file').map(r=>({kind:r.kind,label:r.label,go:()=>{closePal();(PAL_OPEN[r.kind]||(()=>{}))(r);}}));
+    const KORDER=['module','decision','chat','report','prompt','checklist','todo','wishlist'];
+    const server=results.filter(r=>r.kind!=='file')
+      .sort((a,b)=>(KORDER.indexOf(a.kind)+1||99)-(KORDER.indexOf(b.kind)+1||99))   // cluster by kind so group headers don't repeat
+      .map(r=>({kind:r.kind,label:r.label,go:()=>{closePal();(PAL_OPEN[r.kind]||(()=>{}))(r);}}));
     palItems=[...files,...server]; palRender();
   }catch{}
 }
