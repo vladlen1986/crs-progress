@@ -109,8 +109,11 @@ const IGNORE_VALUES = new Set(['transparent', 'currentcolor', 'inherit', 'initia
 function buildTokenIndex(inv) {
   const byName = new Map(inv.tokens.map((t) => [t.name, t]));
   const byValue = new Map();
-  for (const t of inv.tokens) {
-    for (const [theme, v] of [['dark', t.dark], ['light', t.light]]) {
+  // Two passes: every dark value first, then light — a hex that exists in both
+  // themes resolves to its dark (canonical-theme) token, never a light stand-in.
+  for (const theme of ['dark', 'light']) {
+    for (const t of inv.tokens) {
+      const v = t[theme];
       if (!v) continue;
       const norm = normColor(v) || String(v).trim();
       if (!byValue.has(norm)) byValue.set(norm, { token: t.name, theme });
@@ -186,8 +189,9 @@ function computeMapping(name) {
       if (!d.prop.startsWith('--')) continue;
       const canonical = canonicalName(d.prop, inv, idx);
       const canon = canonical ? idx.byName.get(canonical) : null;
-      const fileNorm = (normColor(d.value) || d.value.replace(/\s+/g, ' ').trim()).replace(/'/g, '');
-      const canonNorm = canon ? (normColor(canon.dark) || String(canon.dark).replace(/\s+/g, ' ').trim()).replace(/'/g, '') : null;
+      const nrm = (s) => String(s).replace(/\s*,\s*/g, ',').replace(/\s+/g, ' ').replace(/["']/g, '').trim();
+      const fileNorm = normColor(d.value) || nrm(d.value);
+      const canonNorm = canon ? (normColor(canon.dark) || nrm(canon.dark)) : null;
       localTokens.push({
         declared: d.prop, value: d.value, canonical, canonDark: canon ? canon.dark : null,
         verdict: !canonical ? 'UNKNOWN' : (fileNorm === canonNorm ? 'MATCH' : 'STALE'),
