@@ -193,8 +193,8 @@
   .uchip .ic{width:14px;height:14px;color:var(--muted);flex:0 0 auto}
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
   .uchip .usep{width:1px;height:12px;background:var(--line3);display:inline-block;margin:0 4px}
-  .uchip.warn{border-color:var(--warning)} .uchip.warn .ic{color:var(--warn)}
-  .uchip.crit{border-color:var(--error)} .uchip.crit .ic{color:var(--danger)}
+  /* polish: chip stays neutral in every state — severity lives in the dot + popover
+     (was: .uchip.warn/.crit amber/red border tints at 75%/90% usage) */
   .upop{position:absolute;top:50px;right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
   .upop.show{display:block;animation:msgIn .16s ease both}
   .upop-head{display:flex;align-items:center;gap:8px;padding:12px 14px 11px;border-bottom:1px solid var(--line);color:var(--primary);font-size:12.5px;font-weight:600}
@@ -1383,10 +1383,7 @@
       <span class="spacer"></span>
       <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
-      <div class="seg hseg" id="themeSeg" title="Theme — Dark / Light">
-        <button id="thDark" onclick="setTheme('dark')" aria-label="Dark theme"><svg viewBox="0 0 24 24"><use href="#i-moon"/></svg></button>
-        <button id="thLight" onclick="setTheme('light')" aria-label="Light theme"><svg viewBox="0 0 24 24"><use href="#i-sun"/></svg></button>
-      </div>
+      <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
         <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
@@ -4481,7 +4478,7 @@ function usageRow(label, w){
     `<div class="sub"><span class="reset">${w.resets_at?fmtReset(w.resets_at):''}</span></div></div>`;
 }
 // header usage chip + popover (usage moved out of the removed right rail)
-function setUsageChip(html, cls){ const el=$('usageChipTxt'); if(el){ el.innerHTML=html; el.classList.remove('dim'); } const chip=$('usageChip'); if(chip){ chip.classList.remove('warn','crit'); if(cls) chip.classList.add(cls); } }
+function setUsageChip(html){ const el=$('usageChipTxt'); if(el){ el.innerHTML=html; el.classList.remove('dim'); } const chip=$('usageChip'); if(chip) chip.classList.remove('warn','crit'); }   // polish: chip never carries severity classes
 function toggleUsagePop(e, force){ if(e&&e.stopPropagation) e.stopPropagation(); const p=$('usagePop'); if(!p) return; const show = force===undefined ? !p.classList.contains('show') : !!force; p.classList.toggle('show', show); if(show){ renderAcctInfo(); loadAuth(); loadUsage(); setTimeout(()=>document.addEventListener('click', closeUsageOnOut),0); } else document.removeEventListener('click', closeUsageOnOut); }
 function closeUsageOnOut(ev){ const p=$('usagePop'), c=$('usageChip'); if(p && !p.contains(ev.target) && c && !c.contains(ev.target)){ p.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } }
 async function loadUsage(){
@@ -4533,7 +4530,7 @@ async function loadUsage(){
   const sessP = d.rate_limits&&d.rate_limits.five_hour ? Math.round(d.rate_limits.five_hour.used_percentage||0) : null;
   const wkP = d.rate_limits&&d.rate_limits.seven_day ? Math.round(d.rate_limits.seven_day.used_percentage||0) : null;
   const maxP = Math.max(sessP||0, wkP||0);
-  setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'), maxP>=90?'crit':maxP>=75?'warn':'');
+  setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'));
   const stamp = d.rate_limits ? (d.rate_limits_at||d.at) : d.at;
   const stampLbl = d.rate_limits ? 'Limits read' : 'Updated';
   box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} ${stampLbl} ${fmtAgo(stamp)}</div>`+
@@ -4678,7 +4675,7 @@ let SETTINGS=null;
 function themeParam(){ try{ return new URLSearchParams(location.search).get('theme'); }catch{ return null; } }
 try{ document.documentElement.setAttribute('data-theme', themeParam()||localStorage.getItem('crs-theme')||'dark'); }catch{}
 function applyTheme(t){ const th=(t==='light')?'light':'dark'; document.documentElement.setAttribute('data-theme',th); try{ localStorage.setItem('crs-theme',th); }catch{}
-  const d=$('thDark'),l=$('thLight'); if(d&&l){ d.classList.toggle('on',th==='dark'); l.classList.toggle('on',th==='light'); } }
+  const ic=$('themeToggleIcon'); if(ic) ic.setAttribute('href', th==='light'?'#i-moon':'#i-sun'); }
 // Cross-window theme sync: standalone pages (map/tree/wishlist/queue/…) follow via the storage event.
 addEventListener('storage',e=>{ if(e.key==='crs-theme'&&e.newValue) applyTheme(e.newValue); });
 async function loadSettingsCache(){ try{ SETTINGS=await api('/api/settings'); }catch{ SETTINGS={theme:'dark',notify:{inApp:true,sound:true,email:false,emailTo:''},sounds:{volume:80,events:Object.assign({},SOUNDS.defaults)},notifyPrefs:{dnd:false,bannerSec:4,types:{}}}; } applyTheme(themeParam()||SETTINGS.theme); SOUNDS.configure(SETTINGS.sounds); if(typeof renderBellDnd==='function') renderBellDnd(); return SETTINGS; }
