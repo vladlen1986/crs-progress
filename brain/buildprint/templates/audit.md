@@ -46,6 +46,9 @@ Count "Do a search for" per render and per action; hunt for missing `:filtered` 
 ## Task 8 — Style-system compliance + mobile
 Named paired styles vs inline colors; swap-only theming (`dark_theme is "no"`); and mobile behavior at the breakpoints (sheet/drawer, touch targets).
 
+## Task 9 — Run-mode screenshots (visual evidence + design reuse)
+Capture the module's key views with `buildprint screenshot` (agent-browser under the hood): each primary view/state you audited, in **both themes** (flip the test user's `theme_is_dark`, restore after) and **both viewports** (desktop + `--viewport mobile`). Save to `crs-brain/data/screenshots/{module_id}/<view>-<dark|light>-<desktop|mobile>.png` — predictable names; these feed later UI analysis and design prototyping. READ each PNG after capture (you see images) and use what you SAW as evidence in Tasks 1/2/8; embed the most telling shots in the report as `![…](crs-brain/data/screenshots/{module_id}/….png)`. List every captured file in the report. If the CLI reports agent-browser missing, say so and skip — never fake a capture.
+
 ## Flags to verify (confirm or refute — these are hypotheses, NOT facts)
 <!-- generator: EVERY tracked/known item becomes one confirm/refute line here. Never write a status here. -->
 - **Confirm or refute:** {flag_1 — e.g. "the mobile Filters button opens a working sheet"} — report the element + workflow, or "not found".
