@@ -91,8 +91,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 
 | id | kind | value | location | nearest token | status | resolution |
 |---|---|---|---|---|---|---|
-| f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | fixed | prototype fixed by qa-test (T3 machinery check — reset before acceptance) — re-map to re-verify |
-| f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | approved-literal | approved as literal by qa-test (T3 machinery check — reset before acceptance) |
+| f1 | stale-token | `--r-button:6px` | :root · --r-button · L7 | --radius-btn = 7px | unresolved |  |
+| f2 | literal | `#B91C1C` | .btn-danger:active · background · L44 | --error | unresolved |  |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -517,8 +517,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 7,
       "nearest": "--radius-btn = 7px",
       "id": "f1",
-      "status": "fixed",
-      "resolution": "prototype fixed by qa-test (T3 machinery check — reset before acceptance) — re-map to re-verify"
+      "status": "unresolved",
+      "resolution": ""
     },
     {
       "kind": "literal",
@@ -528,8 +528,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 44,
       "nearest": "--error",
       "id": "f2",
-      "status": "approved-literal",
-      "resolution": "approved as literal by qa-test (T3 machinery check — reset before acceptance)"
+      "status": "unresolved",
+      "resolution": ""
     }
   ],
   "matched": [
