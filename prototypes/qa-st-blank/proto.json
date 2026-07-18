@@ -1,0 +1,11 @@
+{
+  "name": "qa-st-blank",
+  "module": "user_management",
+  "status": "draft",
+  "settledHash": null,
+  "created": "2026-07-18T06:24:46.370Z",
+  "notes": [
+    "scaffolded (template: blank)"
+  ],
+  "versions": []
+}
