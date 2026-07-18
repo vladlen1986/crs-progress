@@ -140,18 +140,18 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
 
 | id | kind | value | location | nearest token | status | resolution |
 |---|---|---|---|---|---|---|
-| f1 | unknown-token | `--status-cyan:#06B6D4` | :root · --status-cyan · L10 | — | unresolved |  |
-| f2 | unknown-token | `--status-error:#EF4444` | :root · --status-error · L10 | — | unresolved |  |
-| f3 | unknown-token | `--status-purple:#8B5CF6` | :root · --status-purple · L10 | — | unresolved |  |
-| f4 | unknown-token | `--status-success:#22C55E` | :root · --status-success · L10 | — | unresolved |  |
-| f5 | unknown-token | `--status-warning:#F59E0B` | :root · --status-warning · L10 | — | unresolved |  |
-| f6 | literal | `22px` | .toggle-slider · border-radius · L403 | --radius-pill | unresolved |  |
-| f7 | literal | `rgba(34, 197, 94, 0.1)` | .badge-success · background · L444 | --success | unresolved |  |
-| f8 | literal | `rgba(34, 197, 94, 0.3)` | .badge-success · border-color · L444 | --success | unresolved |  |
-| f9 | literal | `rgba(245, 158, 11, 0.1)` | .badge-warning · background · L450 | --warning | unresolved |  |
-| f10 | literal | `rgba(245, 158, 11, 0.3)` | .badge-warning · border-color · L450 | --warning | unresolved |  |
-| f11 | literal | `rgba(0, 0, 0, 0.6)` | /* Inline edit toggle */ .save-bar · box-shadow · L573 | --black | unresolved |  |
-| f12 | literal | `rgba(0, 0, 0, 0.55)` | /* Toast */ .toast · box-shadow · L599 | --black | unresolved |  |
+| f1 | unknown-token | `--status-cyan:#06B6D4` | :root · --status-cyan · L10 | — | mapped | mapped to --cyan by vlad |
+| f2 | unknown-token | `--status-error:#EF4444` | :root · --status-error · L10 | — | mapped | mapped to --error by vlad |
+| f3 | unknown-token | `--status-purple:#8B5CF6` | :root · --status-purple · L10 | — | mapped | mapped to --purple by vlad |
+| f4 | unknown-token | `--status-success:#22C55E` | :root · --status-success · L10 | — | mapped | mapped to --success by vlad |
+| f5 | unknown-token | `--status-warning:#F59E0B` | :root · --status-warning · L10 | — | mapped | mapped to --warning by vlad |
+| f6 | literal | `22px` | .toggle-slider · border-radius · L403 | --radius-pill | mapped | mapped to --radius-pill by vlad |
+| f7 | literal | `rgba(34, 197, 94, 0.1)` | .badge-success · background · L444 | --success | mapped | mapped to --success-tint by vlad |
+| f8 | literal | `rgba(34, 197, 94, 0.3)` | .badge-success · border-color · L444 | --success | approved-literal | approved as literal by vlad |
+| f9 | literal | `rgba(245, 158, 11, 0.1)` | .badge-warning · background · L450 | --warning | mapped | mapped to --warning-tint by vlad |
+| f10 | literal | `rgba(245, 158, 11, 0.3)` | .badge-warning · border-color · L450 | --warning | approved-literal | approved as literal by vlad |
+| f11 | literal | `rgba(0, 0, 0, 0.6)` | /* Inline edit toggle */ .save-bar · box-shadow · L573 | --black | mapped | mapped to --shadow-modal by vlad |
+| f12 | literal | `rgba(0, 0, 0, 0.55)` | /* Toast */ .toast · box-shadow · L599 | --black | mapped | mapped to --shadow-dropdown by vlad |
 
 ## Value-matched literals (auto-mapped, non-blocking — fix in prototype when convenient)
 
@@ -742,8 +742,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 10,
       "nearest": null,
       "id": "f1",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --cyan by vlad"
     },
     {
       "kind": "unknown-token",
@@ -753,8 +753,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 10,
       "nearest": null,
       "id": "f2",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --error by vlad"
     },
     {
       "kind": "unknown-token",
@@ -764,8 +764,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 10,
       "nearest": null,
       "id": "f3",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --purple by vlad"
     },
     {
       "kind": "unknown-token",
@@ -775,8 +775,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 10,
       "nearest": null,
       "id": "f4",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --success by vlad"
     },
     {
       "kind": "unknown-token",
@@ -786,8 +786,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 10,
       "nearest": null,
       "id": "f5",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --warning by vlad"
     },
     {
       "kind": "literal",
@@ -797,8 +797,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 403,
       "nearest": "--radius-pill",
       "id": "f6",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --radius-pill by vlad"
     },
     {
       "kind": "literal",
@@ -808,8 +808,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 444,
       "nearest": "--success",
       "id": "f7",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --success-tint by vlad"
     },
     {
       "kind": "literal",
@@ -819,8 +819,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 444,
       "nearest": "--success",
       "id": "f8",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     },
     {
       "kind": "literal",
@@ -830,8 +830,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 450,
       "nearest": "--warning",
       "id": "f9",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --warning-tint by vlad"
     },
     {
       "kind": "literal",
@@ -841,8 +841,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 450,
       "nearest": "--warning",
       "id": "f10",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "approved-literal",
+      "resolution": "approved as literal by vlad"
     },
     {
       "kind": "literal",
@@ -852,8 +852,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 573,
       "nearest": "--black",
       "id": "f11",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --shadow-modal by vlad"
     },
     {
       "kind": "literal",
@@ -863,8 +863,8 @@ Inventory-Sources-SHA256: 0f8421ebb93f1ad3ad80c08a15614d4e87724fa95e88a9a49c45fc
       "line": 599,
       "nearest": "--black",
       "id": "f12",
-      "status": "unresolved",
-      "resolution": ""
+      "status": "mapped",
+      "resolution": "mapped to --shadow-dropdown by vlad"
     }
   ],
   "matched": [
