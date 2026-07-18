@@ -292,15 +292,25 @@
     {
       "id": "c9ea1c53",
       "title": "Decision needed: Company/Property own-table privacy-rule shape (Pattern A exceptions)",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T06:23:05.942Z",
-      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\")",
+      "notes": "raised by GUARD on buttons (trigger: \"privacy rule on Company\") · closed manually by loop-c1 rig: guard fixture, stub intentionally left [OPEN]",
       "link": {
         "kind": "decision",
         "ref": "Company/Property own-table privacy-rule shape (Pattern A exceptions)"
       },
       "auto": {
         "key": "decision:Company/Property own-table privacy-rule shape (Pattern A exceptions)"
+      }
+    },
+    {
+      "id": "6a7dd257",
+      "title": "QA QUARANTINE: DASHFIX.1",
+      "status": "todo",
+      "created": "2026-07-18T06:23:07.353Z",
+      "notes": "",
+      "auto": {
+        "key": "qa:DASHFIX.1"
       }
     }
   ]
