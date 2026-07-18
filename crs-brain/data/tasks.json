@@ -928,6 +928,22 @@
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
       }
+    },
+    {
+      "id": "b1fea3ad",
+      "title": "Await BP report: casino-settings/c1",
+      "status": "todo",
+      "created": "2026-07-18T14:55:45.300Z",
+      "notes": "",
+      "followUp": true,
+      "due": "2026-07-19T14:55:45.299Z",
+      "link": {
+        "kind": "chunk",
+        "ref": "casino-settings/c1"
+      },
+      "auto": {
+        "key": "chunk-report:casino-settings/c1"
+      }
     }
   ]
 }
