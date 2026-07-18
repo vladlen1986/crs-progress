@@ -463,29 +463,6 @@
       }
     },
     {
-      "id": "be382d7c",
-      "title": "Rig UI todo DASH2a",
-      "status": "todo",
-      "created": "2026-07-18T07:48:33.370Z",
-      "notes": ""
-    },
-    {
-      "id": "b9fb29c5",
-      "title": "verify chat path works",
-      "status": "todo",
-      "created": "2026-07-18T07:48:33.435Z",
-      "notes": ""
-    },
-    {
-      "id": "640987a0",
-      "title": "Overdue fixture DASH2d mrq2f2il",
-      "status": "todo",
-      "created": "2026-07-18T07:48:36.101Z",
-      "notes": "",
-      "due": "2026-07-18T06:48:36.093Z",
-      "notifiedDue": "2026-07-18T07:48:36.108Z"
-    },
-    {
       "id": "9bd79074",
       "title": "Await BP report: buttons/c1",
       "status": "done",
@@ -518,11 +495,21 @@
     {
       "id": "cd02f03f",
       "title": "QA QUARANTINE: DASHFIX.1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T07:48:40.246Z",
-      "notes": "",
+      "notes": "auto-closed: row now PASS (2026-07-18T07:48:41.588Z)",
       "auto": {
         "key": "qa:DASHFIX.1"
+      }
+    },
+    {
+      "id": "7eaf0f5a",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-18T07:48:41.602Z",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T07:48:43.713Z)",
+      "auto": {
+        "key": "sync:forum"
       }
     }
   ]
