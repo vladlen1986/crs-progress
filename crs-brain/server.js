@@ -1455,7 +1455,8 @@ const BP_PROMPT = (ws) => [
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
   '- BOTH themes: set that user\'s `theme_is_dark` via `buildprint data` (yes=dark, no=light), screenshot each, then set it back.',
-  '- `--viewport mobile` / `tablet` to check responsive.',
+  '- Responsive checks: the screenshot subcommand has NO --viewport flag. Set the viewport first, reload, then capture: `agent-browser set viewport 390 844` (mobile) / `set device "iPhone 14"` / `set viewport 1440 900` (desktop), then `agent-browser reload`, then screenshot.',
+  '- WINDOWS git-bash gotcha: a leading-slash argument like `buildprint screenshot "/"` gets MANGLED by MSYS path conversion into a C:/Program Files/Git/… path. Prefix the command with `MSYS_NO_PATHCONV=1` (it is allowlisted) whenever an argument starts with `/`: `MSYS_NO_PATHCONV=1 buildprint screenshot "/" --output …`. Do not stop to ask about this — it is pre-approved.',
   `- SAVE FOR REUSE: on audits/UI reviews capture the module's key views to \`${SCREENSHOTS_DIR}/<module-id>/<view>-<dark|light>-<desktop|mobile>.png\` (predictable names — these feed later UI analysis and design prototyping), and list every captured file at the end of your report.`,
   `Then READ the PNG (you see images) to inspect it, and when it helps the user, EMBED it in your reply as \`![what it shows](crs-brain/data/screenshots/<name>.png)\` — the chat renders it inline. Report what you SAW (pass/fail per item), not just that you captured it.`,
   'INTERACTIVE checks (click a flow, verify behavior, read console/errors): use `agent-browser` — `agent-browser open <run-mode-url>`, `agent-browser snapshot -i` (clickable refs), click/fill via refs, `agent-browser console` / `errors`. If either `buildprint screenshot` or `agent-browser` reports "agent-browser not found", tell Vlad it needs a one-time install (`npm install -g agent-browser`) — do not try to work around it.',
@@ -1926,7 +1927,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks) + local scripting + MCP + web
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web
       '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
