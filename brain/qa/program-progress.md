@@ -4,8 +4,9 @@
 
 ## Position
 
-- **Current phase:** PHASE 5 — End-to-end pilot + loop-to-green (COPY PATH — bridge ENV-LIMITED)
-- **Current task:** P5 plan → pilot prototype through the whole pipe
+- **Current phase:** PHASE 6 — First production run: the UM audit through the pipe
+- **Current task:** P6 plan (locate/combine the UM audit prompt; copy path)
+- **PHASE 5 COMPLETE** — gate PASS (checkpoint phase-5.md): pilot casino-settings settled dd65bf73 → 12 real flags resolved (vlad resolver) → 12-chunk plan → c1 emitted (dual-hash archive) → sent + live follow-up; report capture = Vlad's homework (PILOT.3 ENV-LIMITED, honest deviation). LOOP GOAL MET: two consecutive clean runs c1+c2, both 119 PASS / 9 ENV-LIMITED / 0 FAIL over 128 rows (commits 5db0d65, 8e669b5). Quarantine empty. Needs-eyes: 9 rows (see checkpoint).
 - **PHASE 4 = ENV-LIMITED STOP** (checkpoint phase-4.md): CLI 4.1.6 installed, `buildprint project list` → Unauthorized. BRIDGE.1 PASS (honest stop) · BRIDGE.2/3 ENV-LIMITED. Needs-eyes todo 56acaf0b: `buildprint link <token>`. NO bridge code built (never mock). P5+P6 use the copy path.
 - **PHASE 3 COMPLETE** — gate PASS (24/24 rig checks; checkpoint brain/qa/checkpoints/phase-3.md; STUDIO.1–4 PASS appended). prototypes/ = buttons + studio-sample only.
 - P3 pointers: scaffold injects CRS-design-system.md §2.10 blocks verbatim (script-assembled); live-reload = PARENT-driven poll + iframe.src ?v= cache-buster (sandbox allow-scripts only — reconciliation F); prototype bar = parent chrome like .hf-bar; versions/ + snapshot/restore w/ auto-snapshot-before-restore; settled protos refuse studio edits (Phase-1 drift rule holds); Tier-1 editor (dwEditToggle/dwSave) is THE editor — studio adds reload trigger only (overlap 11); stale-token diff = chunk.js localTokens verdicts (STALE/UNKNOWN flags).
