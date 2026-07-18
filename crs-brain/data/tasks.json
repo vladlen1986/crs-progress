@@ -828,6 +828,13 @@
       "status": "todo",
       "created": "2026-07-18T11:33:51.167Z",
       "notes": ""
+    },
+    {
+      "id": "e2d8d68e",
+      "title": "CHATV2 parser probe todo",
+      "status": "todo",
+      "created": "2026-07-18T12:05:02.831Z",
+      "notes": ""
     }
   ]
 }
