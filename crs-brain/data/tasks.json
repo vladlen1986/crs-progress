@@ -26,6 +26,13 @@
       "auto": {
         "key": "chunk-report:buttons/c1"
       }
+    },
+    {
+      "id": "ef344048",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T04:58:33.197Z",
+      "notes": ""
     }
   ]
 }
