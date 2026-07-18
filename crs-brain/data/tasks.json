@@ -889,6 +889,13 @@
       "status": "todo",
       "created": "2026-07-18T14:08:21.085Z",
       "notes": ""
+    },
+    {
+      "id": "d2e0566c",
+      "title": "verify chat path works",
+      "status": "todo",
+      "created": "2026-07-18T14:08:21.131Z",
+      "notes": ""
     }
   ]
 }
