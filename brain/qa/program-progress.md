@@ -5,7 +5,8 @@
 ## Position
 
 - **Current phase:** PHASE 1 — Prototype → BP chunker
-- **Current task:** T2 — style inventory + mapping pass
+- **Current task:** T3 — chunk plan + contract validator
+- **T2 DONE:** brain/engine/style-inventory.js (deterministic, no timestamps; 67 tokens/7 attested styles/9 STATUS§6 reusables; curated alias map; auto-upgrades if design-system-export.md ever appears) + chunk.js map stage (settle-gated; var→canonical rows; stale-token diff vs §2.10 [the "stale-token grep" now EXISTS]; literal scan → FLAG w/ nearest-token, value-matched literals auto-map dark-first; component→family find-first; interaction inventory; flags carry over resolutions across re-maps; resolve via CLI or POST /api/protos/map|resolve-flag). Buttons sample: 2 natural flags (f1 stale --r-button 6px≠7px, f2 #B91C1C) — left UNRESOLVED deliberately (resolution is Vlad's; acceptance re-tests blocking). exit codes: map=4 while unresolved.
 - **Just completed:** T1 prototype lifecycle (server): PROTOS_DIR + helpers, GET /api/protos(+/detail), POST /api/protos/register|settle, byte-hash drift check auto-reverting settled/built → draft + warning notification; autoCommit add-list extended with prototypes/ (dir mkdir'd at boot so pathspec always resolves). Tested live: register buttons (module user_management) → settle b1d003ad… → 1-byte append → auto-revert + notification. Sample proto at prototypes/buttons/buttons.html (currently draft with a trailing extra newline from the drift test — harmless; settle again at T2 test time).
 - **Next:** T2 style-inventory.js + chunk.js mapping stage → T3 plan/validator → T4 emission → T5 UI → T6 verify/checklist/checkpoint (plan details in §P0.4 below)
 - **App server:** restarted 2026-07-18 (fresh code, /api/version ok). Two stale processes killed (60679, 41898). Runs via nohup, log /tmp/crs-brain-server.log.

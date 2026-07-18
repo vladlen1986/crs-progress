@@ -2665,6 +2665,32 @@ const server = http.createServer(async (req, res) => {
       autoCommit('prototype register ' + name);
       return send(res, 200, { ok: true, proto: j, html: protoHtmlRel(name) });
     }
+    // Mapping pass — writes prototypes/<name>/mapping.md (deterministic, engine).
+    if (p === '/api/protos/map' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const m = chunkEngine.writeMapping(name);
+        autoCommit('prototype map ' + name);
+        const unresolved = m.flags.filter((f) => f.status === 'unresolved').length;
+        return send(res, 200, { ok: true, tokens: m.tokenRows.length, components: m.compRows.length, flags: m.flags.length, unresolved, mapping: 'prototypes/' + name + '/mapping.md' });
+      } catch (e) { return send(res, 409, { error: e.message }); }
+    }
+    // Resolve one FLAGGED mapping row: action map|approve-literal|fixed. The
+    // resolver is Vlad by definition — the chunker never approves anything.
+    if (p === '/api/protos/resolve-flag' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const name = String((body && body.name) || '');
+      if (!PROTO_NAME_RE.test(name) || !fs.existsSync(protoJsonPath(name))) return send(res, 404, { error: 'prototype not found' });
+      try {
+        const chunkEngine = require(path.join(REPO_ROOT, 'brain', 'engine', 'chunk.js'));
+        const f = chunkEngine.resolveFlag(name, String(body.flagId || ''), String(body.action || ''), body.token ? String(body.token) : null, 'vlad');
+        autoCommit('prototype flag ' + name + ' ' + f.id);
+        return send(res, 200, { ok: true, flag: f, unresolved: chunkEngine.unresolvedFlags(name).length });
+      } catch (e) { return send(res, 400, { error: e.message }); }
+    }
     // Freeze the current html bytes as the settled hash. Chunking requires this.
     if (p === '/api/protos/settle' && req.method === 'POST') {
       const body = await readJsonBody(req);
