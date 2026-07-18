@@ -1,0 +1,33 @@
+{
+  "id": "8045813c-51e4-4c4d-b16a-21b61450b8db",
+  "title": "Reply with exactly: ok",
+  "sessionId": "031f87b2-0251-4ffa-aec8-39bc0c587524",
+  "bp": false,
+  "created": "2026-07-18T21:52:27.260Z",
+  "updated": "2026-07-18T21:52:31.412Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with exactly: ok",
+      "ts": "2026-07-18T21:52:27.260Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "ok",
+      "ts": "2026-07-18T21:52:31.412Z",
+      "startedAt": "2026-07-18T21:52:27.261Z",
+      "completedAt": "2026-07-18T21:52:31.412Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
