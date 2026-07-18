@@ -5,7 +5,8 @@
   "settledHash": null,
   "created": "2026-07-18T06:26:07.345Z",
   "notes": [
-    "scaffolded (template: form)"
+    "scaffolded (template: form)",
+    "2026-07-18T06:26:29.326Z — restored v1 (prior current preserved as v3)"
   ],
   "versions": [
     {
@@ -17,6 +18,11 @@
       "v": 2,
       "note": "second snap — rig note two",
       "ts": "2026-07-18T06:26:29.297Z"
+    },
+    {
+      "v": 3,
+      "note": "auto — before restore of v1",
+      "ts": "2026-07-18T06:26:29.325Z"
     }
   ]
 }
