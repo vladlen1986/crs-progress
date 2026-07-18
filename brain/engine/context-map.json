@@ -1,0 +1,39 @@
+{
+  "$comment": "Context roles → canonical repo files for the deterministic prompt engine. POINTERS ONLY — content is injected byte-for-byte by assemble.js, never copied here. 'anchor' = a heading line; assemble.js slices from that heading to the next heading of the same or higher level. The two brain/engine/context/*.md files are Task-1 VERBATIM EXTRACTIONS (rules that previously lived only inside server.js prompt constants / scattered docs), each quote source-cited — they are compilations, not new rules. Roles are bundled in the order of the 'order' array.",
+  "order": [
+    "design-canon",
+    "conventions",
+    "security-rules",
+    "wu-guardrails",
+    "bp-capabilities",
+    "bubble-platform-notes"
+  ],
+  "roles": {
+    "design-canon": [
+      { "path": "design/tokens.css", "note": "source of truth for all color/spacing/type tokens (header comment says so; overrides design.md on token conflicts, e.g. Inter over IBM Plex per decisions.md 2026-07-16)" },
+      { "path": "design/design.md", "note": "authoritative design system narrative. brain/design/CRS-design-system.md is a byte-identical mirror — mapped file is design/design.md per decisions.md 2026-07-16 operating rule; dedupe flagged in the Task 0 report" }
+    ],
+    "conventions": [
+      { "path": "brain/engine/context/conventions.md", "note": "Task-1 extraction: TEST-branch-only, savepoint-before-apply, reusable-clone-by-ID, paired styles, zero property-level conditionals, approved literals — all verbatim quotes with citations" }
+    ],
+    "security-rules": [
+      { "path": "CLAUDE.md", "anchor": "### Locked architecture decisions", "note": "Pattern A + permissions + GDPR locked rulings" },
+      { "path": "CLAUDE.md", "anchor": "## Things NOT to do", "note": "hard don'ts incl. company-only privacy rules and missing company/property fields" },
+      { "path": "brain/security.md", "note": "locked tenant-scoping rule (header blockquote) + as-built privacy tracker for all 46 live DTs + pending security work" }
+    ],
+    "wu-guardrails": [
+      { "path": "brain/engine/context/wu-guardrails.md", "note": "Task-1 extraction: server-side constraints, load-once client filter, :count behavior, derived/denormalized fields — verbatim quotes with citations; gaps flagged inline" }
+    ],
+    "bp-capabilities": [
+      { "path": "brain/buildprint/CLI-MCP-PLAYBOOK.md", "note": "capability matrix (§1), Plan vs Build modes (§3), CLI surface + limits (§8-9)" },
+      { "path": "brain/buildprint/crs-brain-operations.md", "note": "CRS-specific HARD GUARDRAILS that override the docs" }
+    ],
+    "bubble-platform-notes": [
+      { "path": "brain/bubble/conditional-style-swapping.md", "note": "June 2026 platform feature that confirms the locked paired-styles pattern" },
+      { "path": "brain/bubble/global-expressions.md", "note": "3 CRS candidates, all PROPOSALS — nothing locked" }
+    ]
+  },
+  "moduleBlock": {
+    "$comment": "Assembled after the roles, per --module: (1) the module's crs-brain/data/modules.json entry; (2) decisions.md dated entries whose text mentions the module's name/id/route, plus the '## Locked Architecture Decisions' footer section always; [OPEN] stubs are deliberately EXCLUDED from bundles — they are guard.js input, and injecting them would invite the model to argue with an open decision; (3) brain/STATUS.md: the module's §2 table row(s), its §3 '### <Module>' slice when present, and §6 Reusable Components always (the output template's EXISTING-REUSABLES-BY-ID section draws from it)."
+  }
+}
