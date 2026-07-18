@@ -1,54 +1,50 @@
-# Buildprint Prompt — Create 9 button Styles (chunk c1) + showcase on Design System page
+# Buildprint Prompt — Create 9 button styles + showcase on Design System page
 
 **TEST/DEV branch only. Never live. Savepoint: "Before button styles c1". Run `buildprint check` after each task. Do not push to live. Apply directly without confirmation.**
 
 ## TARGET
-- Branch: **TEST** (`casinoreportingsystem` Test branch).
-- Surface changed: **Global Styles** (Global tab) + the **Design System page `#App`… — actually the Design System page (`bUfVN0`)** showcase area. (Design System page ID from bundle STATUS §6: `Design System page (bUfVN0)`.)
-- Savepoint name: **"Before button styles c1"**.
+
+Branch: TEST/DEV. Page: Design System page (`bUfVN0`) — showcase host for the new styles. Module context: User Management (`user_management`), section Admin / Core. This chunk creates styles only — no reusable element or page layout is targeted for edit beyond adding showcase instances to `bUfVN0`. Savepoint name: **"Before button styles c1"**.
 
 ## EXISTING REUSABLES BY ID
-- **Design System page — `bUfVN0`** (the showcase target; also the "approval gate for all styles" per STATUS §6). This chunk *adds* to it — do not recreate it.
-- No existing button reusable/style is listed in the bundle for this chunk. The mapping rows all state **CREATE (no attested match)** for every one of the 9 names. Recreating an existing element is FORBIDDEN — so **Task 0 must first confirm none of the 9 names already exist** before creating.
+
+The bundle lists no existing button styles or button reusables with an attested match for this chunk — every row in the mapping table is marked `CREATE (no attested match — new style per §13 naming, add to Design System page bUfVN0 showcase)`. No relevant existing reusable to clone. **Task 0 below is the locate step; do not recreate anything Task 0 finds already existing.**
 
 ## STEPS FOR BP
 
-**Task 0 — Locate & report (no changes).**
-- Report the Design System page node: confirm `bUfVN0` resolves and print its name + ID and where new showcase elements should mount (`buildprint context bUfVN0` / `tree`).
-- List the Global tab Styles and confirm **none** of these 9 names already exist (search each byte-for-byte): `CRS - Button`, `CRS - Btn`, `CRS - Btn Primary`, `CRS - Btn Secondary`, `CRS - Btn Danger`, `CRS - Btn Ghost`, `CRS - Btn Link`, `CRS - Btn Sm`, `CRS - Btn Lg`.
-- Confirm the color/font/radius/height **variables** referenced below exist in Globals (canonical §2 tokens): `--accent`, `--accent-hover`, `--accent-active`, `--accent-soft`, `--bg-secondary`, `--bg-tertiary`, `--bg-elevated`, `--border-default`, `--border-active`, `--error`, `--text-primary`, `--text-secondary`, `--text-muted`, `--font-sans`, `--font-mono`, `--radius-btn`, `--h-button` (32px), `--h-button-lg` (40px), `--h-button-sm` (28px), `--transition` (160ms cubic-bezier(.4,0,.2,1)).
-- Report exact variable names/IDs before any create. Data types touched: **none** (styles-only chunk).
+0. **Locate and report** (before any change): confirm in the TEST branch workspace whether any of the 9 target style names already exist (`CRS - Button`, `CRS - Btn`, `CRS - Btn Primary`, `CRS - Btn Secondary`, `CRS - Btn Danger`, `CRS - Btn Ghost`, `CRS - Btn Link`, `CRS - Btn Sm`, `CRS - Btn Lg`), report exact names + IDs if found, and confirm the exact element ID/name for the Design System page (`bUfVN0`) showcase section where new styles are demoed. Do not proceed to creation for any name Task 0 finds already present — flag it instead.
 
-> ⚠️ **VERIFY (do not resolve — hand back to Vlad): naming conflict.** The chunk's PRODUCED NAMES are the bare names above with **no `(Dark)` / `(Light)` suffix**, but the locked standing rule (conventions §4; design.md §3.2) requires **`Name (Dark)` / `Name (Light)`** paired naming so the light variant can slot in via the `bptheme` state, and PROMPT-STANDARD §2 requires new styles be **showcased on the `design_system` page**. Creating `CRS - Btn Primary` (bare) contradicts `CRS - Btn Primary (Dark)`. **VERIFY: should these 9 be created byte-for-byte as written, or as `… (Dark)` per the paired-styles convention?** Do not silently rename and do not silently add a suffix — get Vlad's decision, then create exactly the approved spelling.
+1. **Create the 9 named styles**, byte-for-byte per the PRODUCED NAMES list:
+   - `CRS - Button`
+   - `CRS - Btn`
+   - `CRS - Btn Primary`
+   - `CRS - Btn Secondary`
+   - `CRS - Btn Danger`
+   - `CRS - Btn Ghost`
+   - `CRS - Btn Link`
+   - `CRS - Btn Sm`
+   - `CRS - Btn Lg`
 
-**Task 1 — Create the 9 Styles (Dark values).** One `apply` per savepoint step; if Task 0's VERIFY is unresolved, stop and surface it first. Build each from the MAPPING ROWS (Dark column), named-variable references only — **zero inline/literal hex**:
-- `CRS - Button` — base button token (font `--font-sans`, radius `--radius-btn` 7px, height `--h-button` 32px, transition `--transition`). *(mapping: `button` / `.btn`.)*
-- `CRS - Btn` — the `.btn` base (same as above; both `button` and `.btn` map to the base — VERIFY whether these are one style or two, since the produced list names both `CRS - Button` and `CRS - Btn`).
-- `CRS - Btn Primary` — fill `--accent`; hover `--accent-hover`; active `--accent-active`; white label.
-- `CRS - Btn Secondary` — bg `--bg-elevated`; label `--text-secondary`; hover bg `--bg-tertiary` + border `--border-active` + label `--text-primary`.
-- `CRS - Btn Danger` — `--error`.
-- `CRS - Btn Ghost` — transparent bg; label `--text-secondary`; hover bg `--bg-tertiary` + label `--text-primary`.
-- `CRS - Btn Link` — label `--accent`; hover `--accent-soft`.
-- `CRS - Btn Sm` — height `--h-button-sm` (28px).
-- `CRS - Btn Lg` — height `--h-button-lg` (40px).
+   Per the mapping table, back each with the canonical §2 tokens (not inline literals): `--accent`, `--accent-hover`, `--accent-active`, `--accent-soft`, `--bg-secondary`, `--bg-tertiary`, `--bg-elevated`, `--border-default`, `--border-active`, `--error`, `--text-primary`, `--text-secondary`, `--text-muted`, `--font-sans`, `--font-mono`, `--radius-btn` (7px), and height tokens `--h-button` (32px) / `--h-button-lg` (40px) / `--h-button-sm` (28px) per the size-variant styles. Use `--transition` (160ms cubic-bezier(.4,0,.2,1)) for interaction-state transitions.
 
-Styling discipline: named paired styles per the standing rule, theme = full style swap on `dark_theme is "no"` only, **zero property-level color conditionals**, approved literals stay literal, reuse existing variables — do not fork near-duplicates. Hover/focus/active are **basic states inside each style definition** (not element-level theme conditionals). All color/background/border transitions use 160ms `--transition` (per mapping) — note design.md §2.8 specifies 200ms ease-in for color transitions; **VERIFY which applies** (mapping says `--ease`=160ms for `.btn`).
+   Follow the paired-styles convention: name each in dark/light-ready pairs using the **`Name (Dark)` / `Name (Light)`** suffix if the Style editor requires separate dark/light entities for these 9 base names — build the `(Dark)` variant now per the standing rule; if light isn't being built in this chunk, still name it so the `(Light)` variant slots in later via `bptheme`. Zero property-level color conditionals — swap whole styles only. Reuse existing styles; do not fork near-duplicates found in Task 0.
 
-**Task 2 — Showcase on Design System page (`bUfVN0`).** Add a Buttons showcase block rendering each of the 9 styles across its states (default/hover/active/disabled) so the page remains the approval gate (PROMPT-STANDARD §2: "new styles must be showcased on the `design_system` page"). No workflows, no data binding — display only. SCOPE OUT: no element layout beyond the showcase, no workflows.
+2. **Showcase each of the 9 styles on the Design System page (`bUfVN0`)** by adding a demo instance of each to the page's existing showcase pattern, verifiable independently: each style must be visibly present and inspectable on `bUfVN0` after apply.
 
-Each task independently verifiable via `buildprint check` + visual confirmation on `bUfVN0`.
+3. **Verify** — `buildprint check` after each task; confirm all 9 style names exist exactly as specified and each appears in the `bUfVN0` showcase before considering the chunk complete.
 
 ## DATA / PRIVACY
-No Data Type, field, record, or workflow is touched — this chunk creates Global Styles and adds display elements to a page. Tenant-scoping privacy rules do not apply to Styles.
 
-For reference, the locked Pattern A rule (verbatim, security.md / CLAUDE.md) that governs any *future* data-touching chunk — **not** invoked here: `Current User's company = This Thing's company AND Current User's property = This Thing's property`. Any write in a later chunk must route through a private server-guarded backend workflow — no UI-only or auto-bound writes. **This chunk performs no writes.**
+This chunk creates Global styles only — no Data Type, workflow, or record-level change is in scope, so Pattern A tenant scoping (`Current User's company = This Thing's company AND Current User's property = This Thing's property`) does not apply to this chunk's work. No writes are introduced; SCOPE OUT explicitly excludes workflows. If any future chunk in this prototype adds a write, it must route through a private server-guarded backend workflow — no UI-only or auto-bound write.
 
 ## WU NOTES
-No WU-relevant surface in this change. — This chunk creates Styles and static showcase elements; it runs no searches, `:count`, filters, or workflows, so none of the wu-guardrails (server-side constraints, load-once client filter, `:count`, denormalized fields) apply.
+
+No WU-relevant surface in this change — this chunk only creates Global styles and adds static showcase instances to `bUfVN0`; it involves no searches, no lists, no `:count`, and no data-bound elements per the mapping table (all rows are style/token definitions, not data sources).
 
 ## MANUAL VERIFICATION
-- [NEG] None applicable to this chunk — Styles and a display-only showcase are app-owner-visible with no tenant, permission, or privacy dimension, so there is no cross-tenant or lesser-privileged negative for Buildprint to be unable to exercise. (Security [NEG] testing for User Management remains a later, separate to-do per STATUS §3 row 18 — not part of chunk c1.)
-- [NEG] After Task 0's naming VERIFY is resolved by Vlad: manually confirm in the Bubble editor Global tab that exactly the approved 9 style names exist, spelled byte-for-byte, and each shows on `bUfVN0` in both dark and (once built) light.
+
+- [NEG] Vlad: manually confirm on `bUfVN0` in a lesser-privileged/non-admin test-user session that the showcase page's visibility does not leak any restricted content — the bundle's privacy inventory shows `bUfVN0`'s own DT-level access is out of scope for this chunk, but confirm no unintended data exposure was introduced by the new showcase instances.
+- [NEG] Vlad: manually verify none of the 9 new style names collide with an existing Style that Task 0 may have missed (e.g., via a stale local sync) — re-run `buildprint sync` and `buildprint audit` before the next chunk depends on these names.
 
 ---
 
