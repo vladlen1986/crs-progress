@@ -455,12 +455,19 @@
     {
       "id": "5316bad2",
       "title": "Sync failing: forum",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T07:46:16.463Z",
-      "notes": "planted fixture (loop-c1 rig)",
+      "notes": "planted fixture (loop-c1 rig) · auto-closed: sync succeeded (2026-07-18T07:48:29.337Z)",
       "auto": {
         "key": "sync:forum"
       }
+    },
+    {
+      "id": "be382d7c",
+      "title": "Rig UI todo DASH2a",
+      "status": "todo",
+      "created": "2026-07-18T07:48:33.370Z",
+      "notes": ""
     }
   ]
 }
