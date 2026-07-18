@@ -4,8 +4,9 @@
 
 ## Position
 
-- **Current phase:** PHASE 7 — Scheduled operations + state self-audit
-- **Current task:** P7 plan
+- **Current phase:** PHASE 8 — Self-documentation + resilience
+- **Current task:** P8 plan (handoff cmd · USER-GUIDE · restore drill · review digest)
+- **PHASE 7 COMPLETE** — gate PASS 5/5 (checkpoint phase-7.md): state audit (read-only, proven), weekly digest 2026-W29 real, smoke QA 22 checks daily, scheduler restart-safe.
 - **PHASE 6 COMPLETE** — gate PASS, copy-path variant (checkpoint phase-6.md): audit prompt engine-generated + archived; guard blocks proven on 3 paths; Pattern-A decision todo linked+notified via real mechanism; drafts file written; P6.2 report/ingest ENV-LIMITED (Vlad's BP session — follow-up todo has the steps).
 - **PHASE 5 COMPLETE** — gate PASS (checkpoint phase-5.md): pilot casino-settings settled dd65bf73 → 12 real flags resolved (vlad resolver) → 12-chunk plan → c1 emitted (dual-hash archive) → sent + live follow-up; report capture = Vlad's homework (PILOT.3 ENV-LIMITED, honest deviation). LOOP GOAL MET: two consecutive clean runs c1+c2, both 119 PASS / 9 ENV-LIMITED / 0 FAIL over 128 rows (commits 5db0d65, 8e669b5). Quarantine empty. Needs-eyes: 9 rows (see checkpoint).
 - **PHASE 4 = ENV-LIMITED STOP** (checkpoint phase-4.md): CLI 4.1.6 installed, `buildprint project list` → Unauthorized. BRIDGE.1 PASS (honest stop) · BRIDGE.2/3 ENV-LIMITED. Needs-eyes todo 56acaf0b: `buildprint link <token>`. NO bridge code built (never mock). P5+P6 use the copy path.
