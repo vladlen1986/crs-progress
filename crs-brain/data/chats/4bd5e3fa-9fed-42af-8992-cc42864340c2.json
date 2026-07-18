@@ -1,0 +1,207 @@
+{
+  "id": "4bd5e3fa-9fed-42af-8992-cc42864340c2",
+  "title": "Give me a screenshot of the index page.",
+  "sessionId": "70f6d335-2454-47e9-bd53-7663f6ea6bd4",
+  "bp": true,
+  "created": "2026-07-18T20:08:33.546Z",
+  "updated": "2026-07-18T20:11:14.167Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Give me a screenshot of the index page.",
+      "ts": "2026-07-18T20:08:33.547Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's the index page (anonymous view) at **3840×2160** (1920×1080 @2x retina), full-page.\n\n![CRS index — sign-in page, dark theme](crs-brain/data/screenshots/adhoc/index-dark-desktop.png)\n\n## What it shows\n- **Sign-in gate** — the index route for a logged-out visitor is the login screen: **CRS logo** + \"Casino Reporting Suite\" wordmark, then a centered **Sign in** card with Email and Password fields, a \"Forgot password?\" link, and a **Sign in** button.\n- **Dark theme**, single centered card on a near-black (`#181818`) background; footer legal line (\"Terms & Privacy Policy\") and a green **\"All systems operational\"** status pill at the bottom (wired to the crs.statuspage.io embed).\n- Layout is clean and correctly centered at desktop width — no overflow or broken elements.\n\n## Notes\n- This is the **anonymous** view. To see the actual authenticated dashboard/home, I'd capture it as a logged-in test user (`buildprint screenshot <testuser-email> \"/\"`). Say the word and I'll grab that, plus a light-theme and/or mobile version.\n- Saved to `crs-brain/data/screenshots/adhoc/index-dark-desktop.png`.",
+      "ts": "2026-07-18T20:11:14.167Z",
+      "startedAt": "2026-07-18T20:08:33.548Z",
+      "completedAt": "2026-07-18T20:11:14.167Z",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI ready — v4.2.7, linked",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "I'll capture the index page at our desktop standard (1920×1080 @2x retina). First I'll set the viewport and locate the app's run-mode URL.",
+          "body": "I'll capture the index page at our desktop standard (1920×1080 @2x retina). First I'll set the viewport and locate the app's run-mode URL.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Set browser viewport to desktop retina",
+          "body": "description: Set browser viewport to desktop retina\ncommand: agent-browser set viewport 1920 1080 2",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep bubbleapps\\.io|version-test|appname|app_url|doma…",
+          "body": "pattern: bubbleapps\\.io|version-test|appname|app_url|domain\noutput_mode: content\n-i: true\nhead_limit: 20",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Viewport set. Found custom domain `crsapp.live`. Let me confirm the full URL structure.",
+          "body": "Viewport set. Found custom domain `crsapp.live`. Let me confirm the full URL structure.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read client-safe.json",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\projects\\crs-bubble\\casinoreportingsystem\\test\\settings\\client-safe.json",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Custom domain is `crsapp.live` with redirect-to-domain enabled, so the test run-mode index is `https://crsapp.live/version-test/`. Opening it now.",
+          "body": "Custom domain is `crsapp.live` with redirect-to-domain enabled, so the test run-mode index is `https://crsapp.live/version-test/`. Opening it now.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Open the index page in run mode",
+          "body": "description: Open the index page in run mode\ncommand: agent-browser open \"https://crsapp.live/version-test/\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Page loaded. Reloading to ensure the retina viewport is fully applied before capture.",
+          "body": "Page loaded. Reloading to ensure the retina viewport is fully applied before capture.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Reload page to apply viewport",
+          "body": "description: Reload page to apply viewport\ncommand: agent-browser reload",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Capturing the full page at the desktop retina standard.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture full-page screenshot of index",
+          "body": "description: Capture full-page screenshot of index\ncommand: agent-browser screenshot --full \"C:/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/screenshots/adhoc/index-dark-desktop.png\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "The `adhoc` directory doesn't exist yet. Creating it, then re-capturing.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Create adhoc screenshots directory",
+          "body": "description: Create adhoc screenshots directory\ncommand: mkdir -p \"C:/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/screenshots/adhoc\"",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture full-page screenshot of index",
+          "body": "description: Capture full-page screenshot of index\ncommand: agent-browser screenshot --full \"C:/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/screenshots/adhoc/index-dark-desktop.png\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Screenshot saved. Now reading it to verify and report what it shows.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index-dark-desktop.png",
+          "body": "file_path: C:/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/screenshots/adhoc/index-dark-desktop.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
