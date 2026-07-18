@@ -5,7 +5,8 @@
 ## Position
 
 - **Current phase:** POLISH PASS (Vlad's 2026-07-18 prompt — brain/qa/polish-prompt.md; supersedes the P10 final loop in priority per his "program is done")
-- **Current task:** polish recon fan-out (tree rows/detail · header · map kanban · sidebar · window policy)
+- **Current task:** polish implementation — T3/T5/T6 DONE + rig-verified (commits f83fd5e header, 47bfe72 sidebar, 5f9e0f3 window-policy); T1/T2 (tree agent) + T4-map (map agent) IN FLIGHT; T4-index (delete kb-* kanban + reconcile entry points) waits on the map agent; then POLISH.1–7 + P10.3 verification.
+- **QUEUED NEXT: Brain Program 3** (5 phases — chat-v2-on-Claude-Code · ⌘K palette · entity pages+backlinks · cost intelligence · hardening/module-split). Prompt persisted at brain/qa/program3-prompt.md. Start only after the polish pass reaches its two-green close. Governance carries over verbatim (per-phase gates, `p3-<phase>:` commits, final loop to two greens).
 - **PHASE 10 status:** auth gate + decision-lock + via-stamps + mobile command post IMPLEMENTED and committed (0fb33e8); security probes PASS locally through the tunnel-identical code path (P10.2 PASS); tunnel ENV-LIMITED — Tailscale Serve needs Vlad's one-click tailnet enable (todo raised w/ URL); P10.3 phone-flow verification UNTESTED, to run with the polish verification. Final P9–P10 loop NOT yet run — do it after the polish pass unless Vlad says otherwise (nothing skipped silently).
 - **STALE CHIP NOTE:** background task task_841958e5 (autoGrow/notification-target fix) duplicates commit 58e9661 — already fixed; that session will find no work. task_62463df2 (bpTrack bp-flag) still valid.
 - **PHASE 9 COMPLETE** — gate PASS (checkpoint phase-9.md): 5 real intents through the engine-queue (c2/c3/c4 staged + 2 FWM gens), guard probe refused w/ zero emission, telemetry recomputed byte-equal. P9.2 limit-crossing ENV-LIMITED honestly (no real window; mocking forbidden).
