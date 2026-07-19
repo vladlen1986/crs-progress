@@ -146,9 +146,16 @@
   .surface-back:hover{color:var(--primary);border-color:var(--line2)}
   .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
   .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:8px 12px 3px}
-  .item .chi,.item .bpi{width:16px;height:16px;flex:0 0 auto}   /* polish: 16px leading conversation type icon (spec) */
-  .item .chi{color:var(--muted)}
-  .item .pinned-ic{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
+  .item .chi{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}   /* 16px leading conversation type icon */
+  /* sidebar3: Buildprint rows carry a mono "BP" wordmark chip (accent tint) instead of a glyph */
+  .item .bpchip{font:600 9px/16px var(--mono);letter-spacing:.04em;color:var(--accent-soft);background:var(--accent-tint);border-radius:4px;height:16px;padding:0 4px;flex:0 0 auto}
+  /* sidebar3: live-turn signal — the leading icon/chip pulses while that chat's turn streams */
+  @keyframes sb-live{0%,100%{opacity:1}50%{opacity:.35}}
+  .item.live .chi,.item.live .bpchip{animation:sb-live 1.6s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){
+    .item.live .chi,.item.live .bpchip{animation:none}
+    .item.live::after{content:'';position:absolute;left:24px;top:7px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+  }
   .item .cmenu{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;opacity:0;min-width:24px}
   .item:hover .cmenu{opacity:1}
   .item .cmenu:hover{background:var(--panel2);color:var(--primary)}
@@ -159,11 +166,10 @@
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
 
-  .item{padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
+  .item{position:relative;padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
   .item:hover{background:var(--panel2)}
-  .item.on{background:var(--accent-glow);color:var(--primary)}
-  .item .meta{margin-left:auto;color:var(--muted);font-size:11px;background:var(--veil);border-radius:20px;padding:0 7px;line-height:17px}
-  .item .bpi{color:var(--accent2);flex:0 0 auto}
+  /* sidebar3: selected = accent wash + 2px accent bar (design-system selected-row language, §Tables) */
+  .item.on{background:var(--accent-glow);color:var(--primary);box-shadow:inset 2px 0 0 var(--accent)}
   .item .x{opacity:0;color:var(--muted);font-size:13px;transition:var(--transition)}
   .item:hover .x{opacity:.7}
   .item .x:hover{color:var(--danger)}
@@ -1747,13 +1753,22 @@ function filterTree(tree){ if(!state.crsOnly) return tree;
 
 // ---------- chats ----------
 function chatItemEl(c){
-  const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
-  // Leading 16px type icon: terminal glyph = the conversation ran with Buildprint
-  // CLI tooling (the bp flag — per-message tool events are not persisted); plain
-  // chat icon otherwise. Pinned rows carry a small filled pin.
-  d.innerHTML=`<svg class="ic sm ${c.bp?'bpi':'chi'}" viewBox="0 0 24 24"><use href="${c.bp?'#i-terminal':'#i-chat'}"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span>${c.pinned?`<svg class="ic pinned-ic" viewBox="0 0 24 24"><use href="#i-pin"/></svg>`:''}<span class="meta">${c.count}</span><button class="cmenu" title="Actions">⋮</button>`;
+  const live=state.live && !state.live.done && state.live.chatId===c.id;
+  const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'')+(live?' live':'');
+  d.dataset.chatId=c.id;
+  // sidebar3 rest state = leading type mark + truncated title ONLY. Mark: "BP" chip =
+  // the conversation ran with Buildprint CLI tooling (the bp flag — per-message tool
+  // events are not persisted); plain chat icon otherwise. Hover reveals only the ⋮.
+  d.innerHTML=`${c.bp?`<span class="bpchip">BP</span>`:`<svg class="ic sm chi" viewBox="0 0 24 24"><use href="#i-chat"/></svg>`}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><button class="cmenu" title="Actions">⋮</button>`;
   d.onclick=(e)=>{ if(e.target.closest('.cmenu')){ chatMenuAt(e, c); return; } openChat(c.id); };
   return d;
+}
+// sidebar3: toggle the .live pulse on the sidebar row of the in-flight turn.
+// Called when a stream starts, when it finishes/errors, and after every list render.
+function syncLiveRow(){
+  const id=(state.live && !state.live.done) ? state.live.chatId : null;
+  document.querySelectorAll('#paneChats .item.live').forEach(el=>{ if(el.dataset.chatId!==id) el.classList.remove('live'); });
+  if(id){ const el=document.querySelector('#paneChats .item[data-chat-id="'+CSS.escape(id)+'"]'); if(el) el.classList.add('live'); }
 }
 // Per-conversation ⋮ menu — same visual language as the explorer menu.
 function chatMenuAt(e, c){
@@ -1784,7 +1799,7 @@ function onChatSearch(q){ clearTimeout(chatSearchT);
       box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations match “'+esc(q)+'”.</div>';
       for(const c of chats){ const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
         d.style.flexDirection='column'; d.style.alignItems='stretch';
-        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center">${c.bp?`<svg class="ic sm bpi" viewBox="0 0 24 24"><use href="#i-terminal"/></svg>`:''}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span><span class="meta">${c.count}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
+        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center">${c.bp?`<span class="bpchip">BP</span>`:''}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
         d.onclick=()=>openChat(c.id); box.appendChild(d); }
     }catch{}
   }, 180);
@@ -1805,6 +1820,7 @@ async function loadChats(){
     const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Recents'; box.appendChild(h2);
   }
   for(const c of rest) box.appendChild(chatItemEl(c));
+  syncLiveRow();
 }
 // mode-aware chat starter templates — clicking a card seeds the input
 const TEMPLATES={
@@ -2670,6 +2686,7 @@ async function streamChat(text, opts={}){
   // returns, and so it stops touching the composer once it's no longer the view.
   const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, turn, userText:text, atts:(opts.attachments&&opts.attachments.length)?opts.attachments:opts.attachmentNames, bp:state.bp===true };
   state.live=live;
+  syncLiveRow();   // sidebar3: start the live pulse on this chat's sidebar row
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
@@ -2864,6 +2881,7 @@ async function streamChat(text, opts={}){
     }
   }finally{
     live.done=true; clearInterval(timerIv); clearInterval(meterIv); if(gm&&mine()) gm.classList.remove('show');
+    syncLiveRow();   // sidebar3: stop the live pulse the moment the turn completes
     try{ brainEl.remove(); }catch{}
     // Only touch the composer/queue if this stream still owns the active view —
     // otherwise the user has moved on and a different stream (or none) is in charge.
