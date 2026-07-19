@@ -930,7 +930,8 @@
       },
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:18:29.310Z"
     },
     {
       "id": "b1fea3ad",
@@ -978,7 +979,8 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c1"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:18:29.311Z"
     },
     {
       "id": "e207b7c4",
@@ -993,9 +995,9 @@
     {
       "id": "dfe73e75",
       "title": "Smoke QA FAIL: plan-validate-buttons — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:plan-validate-buttons"
       }
@@ -1003,9 +1005,9 @@
     {
       "id": "b0cb5aa5",
       "title": "Smoke QA FAIL: plan-validate-pilot — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:plan-validate-pilot"
       }
@@ -1013,9 +1015,9 @@
     {
       "id": "75969b84",
       "title": "Smoke QA FAIL: scaffold-token-markers — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:scaffold-token-markers"
       }
@@ -1026,6 +1028,36 @@
       "status": "todo",
       "created": "2026-07-18T21:53:02.623Z",
       "notes": "Seen 2026-07-19 during the UM screenshot session; buildprint screenshot <email> also hung ~7min. Workaround shipped in BP_PROMPT (form sign-in via crs-brain/.bp-test-user)."
+    },
+    {
+      "id": "6ac8b8f9",
+      "title": "Smoke QA FAIL: sounds-24-wavs — 26 wavs",
+      "status": "todo",
+      "created": "2026-07-19T12:48:49.105Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:sounds-24-wavs"
+      }
+    },
+    {
+      "id": "3f9e4189",
+      "title": "Sync failing: forum",
+      "status": "todo",
+      "created": "2026-07-19T16:18:29.310Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "1da12beb",
+      "title": "Sync failing: release-notes",
+      "status": "todo",
+      "created": "2026-07-19T16:18:29.310Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:release-notes"
+      }
     }
   ]
 }
