@@ -66,3 +66,4 @@
 {"ts":"2026-07-19T11:51:19.885Z","purpose":"chat","model":"claude-sonnet-5","in":44656,"out":4,"ms":4597,"costUsd":0.134028,"estimated":true}
 {"ts":"2026-07-19T11:57:18.595Z","purpose":"chat","model":"claude-sonnet-5","in":70750,"out":155,"ms":34067,"costUsd":0.214575,"estimated":true}
 {"ts":"2026-07-19T12:01:57.291Z","purpose":"chat","model":"claude-sonnet-5","in":73302,"out":824,"ms":40131,"costUsd":0.232266,"estimated":true}
+{"ts":"2026-07-19T12:26:54.058Z","purpose":"chat","model":"claude-haiku-4-5-20251001","in":32927,"out":31,"ms":6393,"costUsd":0.033082,"estimated":true}
