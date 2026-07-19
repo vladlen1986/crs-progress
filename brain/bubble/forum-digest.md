@@ -48,3 +48,7 @@
 - **2026-07-14** [Too many triggers events](https://forum.bubble.io/t/too-many-triggers-events/398231) — Working on a app for energy calculations and expressions. Everything work fine, although slow, but now the preview is not working anymore. After loading the app the workflows will not work and ther is a message “could no
 - **2026-07-17** [Cause of 140+ WU recursive loop](https://forum.bubble.io/t/cause-of-140-wu-recursive-loop/398346) — I was running a recursive WF with a much higher WU cost that expected. 140+ per loop. The set up: doing an update on all products in system (5000+) Sent all products to loop Made one update to each product (eac…
 
+## 2026-07-19 — forum check
+- **2026-07-19** [Resize Bubble Table widths](https://forum.bubble.io/t/resize-bubble-table-widths/398389) — So the new property editor is hiding the ID Attribute for Table cells and kinda made it a hassle to use my original plugin that did this. You can still add an ID to the Table itself so I vibe-coded (as in I haven’t done 
+- **2026-07-19** [Building any plugins for you in reasonable price](https://forum.bubble.io/t/building-any-plugins-for-you-in-reasonable-price/398384) — Hello, do you need a bubble plugin? I am here to build them. DM is welcomed!
+
