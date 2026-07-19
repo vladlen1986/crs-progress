@@ -546,6 +546,22 @@
   .ask-hint3{display:inline-block;margin-left:8px;font-size:10.5px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 7px;vertical-align:middle;font-weight:500}
   .ask-receipt{margin:8px 0;font-size:12px;color:var(--muted)}
   .ask-receipt b{color:var(--primary);font-weight:600}
+  /* ── learn toasts: the brain learning / applying knowledge (top-right, expandable) ── */
+  #learnToasts{position:fixed;top:14px;right:14px;z-index:340;display:flex;flex-direction:column;gap:8px;width:330px;pointer-events:none}
+  .ltoast{pointer-events:auto;background:var(--panel);border:1px solid var(--line2);border-left:3px solid var(--accent);border-radius:11px;padding:10px 12px;box-shadow:var(--shadow-modal);font-size:12px;color:var(--secondary);overflow:hidden}
+  .ltoast .lt-head{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .ltoast .lt-ic{width:22px;height:22px;border-radius:7px;background:var(--accent-glow);display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto;font-size:12px}
+  .ltoast .lt-t{font-weight:600;color:var(--primary);font-size:12.5px;flex:1;min-width:0}
+  .ltoast .lt-x{border:0;background:none;color:var(--muted);cursor:pointer;padding:2px;font-size:12px}
+  .ltoast .lt-x:hover{color:var(--primary)}
+  .ltoast .lt-d{margin-top:6px;white-space:pre-wrap;max-height:54px;overflow:hidden;word-break:break-word}
+  .ltoast .lt-more{color:var(--muted);font-size:10.5px;margin-top:4px}
+  .ltoast.expanded{position:fixed;top:14px;right:14px;bottom:14px;width:430px;overflow:auto;z-index:350}
+  .ltoast.expanded .lt-d{max-height:none}
+  .ltoast.expanded .lt-more{display:none}
+  .ltoast.learning{border-left-color:var(--purple)}
+  .ltoast.applied{border-left-color:var(--good)}
+  .ltoast.recurrence{border-left-color:var(--danger)}
   /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
   .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
@@ -1920,6 +1936,37 @@ document.addEventListener('keydown',(e)=>{
   if(n>=1&&n<=btns.length){ e.preventDefault(); card.dataset.sel=n; btns.forEach((b,i)=>b.style.borderColor=i===n-1?'var(--accent)':''); }
   else if(e.key==='Enter'&&card.dataset.sel){ e.preventDefault(); btns[+card.dataset.sel-1].click(); }
 });
+// ---- learn toasts: visible "brain is learning / applying knowledge" (top-right) ----
+let LEARN_SINCE=new Date().toISOString();
+const LEARN_KINDS={
+  'learning-start':{ic:'🧠',cls:'learning',label:'Learning'},
+  'learning-saved':{ic:'🧠',cls:'learning',label:'Learned'},
+  'playbook-applied':{ic:'⚡',cls:'applied',label:'Applying knowledge'},
+  'recurrence':{ic:'⚠',cls:'recurrence',label:'Known mistake repeated'},
+};
+async function pollLearnEvents(){
+  try{
+    const r=await api('/api/learn-events?since='+encodeURIComponent(LEARN_SINCE));
+    for(const ev of (r.events||[])){
+      if(ev.ts>LEARN_SINCE) LEARN_SINCE=ev.ts;
+      if(LEARN_KINDS[ev.kind]) showLearnToast(ev);   // learning-clean stays silent by design
+    }
+  }catch{}
+}
+function showLearnToast(ev){
+  const k=LEARN_KINDS[ev.kind];
+  let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
+  while(host.children.length>=3) host.firstChild.remove();
+  const el=document.createElement('div'); el.className='ltoast '+k.cls;
+  el.innerHTML=`<div class="lt-head"><span class="lt-ic">${k.ic}</span><span class="lt-t">${esc(k.label)} — ${esc(ev.title)}</span><button class="lt-x" title="Dismiss">✕</button></div>`
+    +(ev.detail?`<div class="lt-d">${esc(ev.detail)}</div><div class="lt-more">click to expand</div>`:'');
+  el.querySelector('.lt-x').onclick=(e)=>{ e.stopPropagation(); el.remove(); };
+  el.querySelector('.lt-head').onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };
+  const d=el.querySelector('.lt-d'); if(d) d.onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };
+  host.appendChild(el);
+  el._t=setTimeout(()=>{ if(!el.classList.contains('expanded')) el.remove(); }, 11000);
+}
+setInterval(pollLearnEvents, 6000);
 // human model names — used by the live meter, turn stamps and the ⚡ fallback note
 function modelNice(m){ return ({'auto':'Auto','claude-opus-4-8':'Opus 4.8','claude-opus-4-7':'Opus 4.7','claude-sonnet-5':'Sonnet 5','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-fable-5':'Fable 5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'})[m]||m||''; }
 // ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
@@ -2260,6 +2307,8 @@ async function renderDashboard(){
       </div>
       <div class="dcard"><h3>${svg('i-refresh','sm')} Sync failures &amp; needs-eyes <span class="cnt">${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).length+dash.qa.envRows.length}</span></h3>
         ${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).map(taskRow).join('')||''}
+        ${(dash.playbook&&dash.playbook.recurredThisWeek||[]).length?`<div class="drow"><span class="rt" style="color:var(--danger)">Playbook — top traps (recurred this week)</span><span class="rmeta">${num(dash.playbook.recurredThisWeek.length)}</span></div>
+          ${dash.playbook.recurredThisWeek.map(t=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="openTarget('/playbook.html',{title:'Playbook'})">${esc(t.rule)}</span><span class="rmeta">${num(t.recurred)}×</span></div>`).join('')}`:''}
         ${dash.qa.envRows.length?`<div class="drow"><span class="rt">ENV-LIMITED (needs your eyes)</span><span class="rmeta">${num(dash.qa.envRows.length)}</span></div>
           <div class="envlist">${dash.qa.envRows.map(esc).join(' · ')}</div>`:''}
         ${wrongEmpty?'<div class="dempty">All quiet.</div>':''}
@@ -3557,7 +3606,7 @@ async function dwDocxFill(w){
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
 // Window policy (polish): ONE router decides by target type. App surfaces open
 // full-area with a ← back; files open in their popup window/viewer.
-const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html'];
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html','/playbook.html'];
 function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
 function openTarget(target, opts){
   opts=opts||{};
