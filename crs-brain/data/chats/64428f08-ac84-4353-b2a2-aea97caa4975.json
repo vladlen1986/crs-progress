@@ -1,0 +1,33 @@
+{
+  "id": "64428f08-ac84-4353-b2a2-aea97caa4975",
+  "title": "Reply with just: ok",
+  "sessionId": "d98c0d20-b0b1-4fe9-a98b-831863394c1c",
+  "bp": false,
+  "created": "2026-07-19T01:40:03.051Z",
+  "updated": "2026-07-19T01:40:07.351Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Reply with just: ok",
+      "ts": "2026-07-19T01:40:03.051Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "ok",
+      "ts": "2026-07-19T01:40:07.351Z",
+      "startedAt": "2026-07-19T01:40:03.052Z",
+      "completedAt": "2026-07-19T01:40:07.351Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
