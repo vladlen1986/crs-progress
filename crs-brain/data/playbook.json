@@ -124,5 +124,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T02:41:19.591Z"
+  },
+  {
+    "id": "d2993ddf",
+    "category": "platform-gotcha",
+    "trigger": "shell loops, shell scripts, bash execution in sandbox",
+    "rule": "Sandbox blocks shell scripts with certain syntax patterns (simple_expansion, conditionals) — use Node or HTML/JS artifacts instead.",
+    "fix": "Use `node <script.js>` for local scripts or create an HTML artifact with embedded JavaScript for browser-based output.",
+    "errorSig": "contains simple expansion",
+    "source": "chat 91ad2d67 · 2026-07-19",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T16:22:24.603Z"
   }
 ]

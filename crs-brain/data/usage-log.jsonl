@@ -70,3 +70,4 @@
 {"ts":"2026-07-19T16:21:29.048Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1640,"costUsd":0,"estimated":true}
 {"ts":"2026-07-19T16:21:30.748Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1699,"costUsd":0,"estimated":true}
 {"ts":"2026-07-19T16:21:53.038Z","purpose":"bp-chat","model":"claude-sonnet-5","in":42686,"out":128,"ms":22290,"costUsd":0.129978,"estimated":true}
+{"ts":"2026-07-19T16:22:24.602Z","purpose":"lesson","model":"claude-haiku-4-5-20251001","in":29011,"out":2494,"ms":31561,"costUsd":0.041481,"estimated":true}
