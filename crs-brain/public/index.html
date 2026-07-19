@@ -1923,7 +1923,7 @@ function showLearnToast(ev){
   const k=LEARN_KINDS[ev.kind];
   if(!k) return;   // undefined kinds no-op (kept in sync with the pollLearnEvents filter)
   playLearnSound(ev.kind);
-  window.LIVEMAP&&LIVEMAP.ping(ev.kind);   // live map learning pulses — same guarded path as the chime (learning-clean stays invisible)
+  window.LIVEMAP&&LIVEMAP.ping(ev.kind, ev);   // live map learning pulses — full event → lesson motes + ticker (learning-clean stays invisible)
   let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
   while(host.children.length>=3) host.firstChild.remove();
   const el=document.createElement('div'); el.className='ltoast '+k.cls;
@@ -3045,7 +3045,7 @@ async function streamChat(text, opts={}){
             // reclaim it from the answer body into a timeline note, then start the tool step.
             if(ev.kind==='tool' && full.trim()){ addNoteStep(full); full=''; revealed=0; answerEl.innerHTML=''; answerEl.appendChild(caret); }
             startCard(ev.kind, ev.tool, ev.actor);
-            if(ev.kind==='tool') window.LIVEMAP&&LIVEMAP.ping(ev.actor==='buildprint'?'bp-step':'tool');   // live map: Model→Tools (→Buildprint→Bubble)
+            if(ev.kind==='tool') window.LIVEMAP&&LIVEMAP.ping(ev.actor==='buildprint'?'bp-step':'tool',{tool:ev.tool});   // live map: Model→Tools (→Buildprint→Bubble) + tool-name child molecule
           }
         }
         else if(ev.type==='actor'){
@@ -3056,7 +3056,7 @@ async function streamChat(text, opts={}){
         }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
-        else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
+        else if(ev.type==='detail'){ if(activeStep){ if(!activeStep.lmCmd&&activeStep.kind==='tool'&&ev.text){ activeStep.lmCmd=true; window.LIVEMAP&&LIVEMAP.ping('tool-detail',{cmd:String(ev.text).split('\n')[0]}); } setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
         else if(ev.type==='question'){
           // session is BLOCKED on this — render the card right in the turn
@@ -3097,7 +3097,7 @@ async function streamChat(text, opts={}){
   }finally{
     live.done=true; clearInterval(timerIv); clearInterval(meterIv); if(gm&&mine()) gm.classList.remove('show');
     syncLiveRow();   // sidebar3: stop the live pulse the moment the turn completes
-    window.LIVEMAP&&LIVEMAP.ping('turn-end');   // live map: path back to idle
+    window.LIVEMAP&&LIVEMAP.ping('turn-end',{secs:Math.round((performance.now()-genStart)/1000)});   // live map: path back to idle + "✓ done · Ns" ticker
     try{ brainEl.remove(); }catch{}
     // Only touch the composer/queue if this stream still owns the active view —
     // otherwise the user has moved on and a different stream (or none) is in charge.

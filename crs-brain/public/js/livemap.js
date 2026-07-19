@@ -1,22 +1,28 @@
-/* CRS Brain — LIVE SYSTEM MAP (floating molecule panel).
- * A live, draggable mini-map of what the system is doing RIGHT NOW: You →
- * Brain → Model → Tools → Buildprint → Bubble, plus the learning loop
+/* CRS Brain — LIVE SYSTEM MAP v3 (chromeless nebula molecule panel).
+ * A live, draggable, resizable mini-map of what the system is doing RIGHT NOW:
+ * You → Brain → Model → Tools → Buildprint → Bubble, plus the learning loop
  * (Playbook / Distiller → Ledger). Real signals only — wired to state.live,
  * the SSE step stream and the learn-events feed via window.LIVEMAP.ping().
- * Visual language borrowed from map.html's galaxy: soft radial-gradient halos
- * on token colors, luminous curved edges with animated dash-flow, comet-trail
- * pulses, node event ripples, an orbital ring + electrons around Brain and a
- * thinking arc on Model while a turn runs. CSS/SVG animations only (no rAF);
- * everything is scoped inside #lmPanel so a closed/collapsed map runs zero
- * animations, and prefers-reduced-motion kills all motion. Tokens only;
- * light theme dims decorative glow (map.html decoDim() ≈ .55 → --lm-deco).
- * Classic script sharing the app's global scope (loads after the core). */
+ * v3 adds: (A) ephemeral CHILD MOLECULES — real activity (tool names, bp
+ * subcommands, lesson motes) spawns tiny labeled satellites that orbit their
+ * parent node on offset-path ellipses and TTL-decay (max 6, LRU, deduped);
+ * (B) a TYPEWRITER TICKER strip at the bottom that types real events
+ * char-by-char and fades; (C) a CHROMELESS window — no header/border/buttons
+ * until hover/focus reveals them (200ms), drag anywhere on the body, resize
+ * grip 300-640px with fixed scene aspect, size persisted; (D) a NEBULA idle
+ * skin — token-hue radial-gradient layers drifting on 75/90s keyframes so the
+ * un-hovered panel reads as slowly-breathing space smoke; hover sharpens to
+ * solid panel chrome. CSS/SVG animations only (no rAF); everything scoped in
+ * #lmPanel so closed/pill = zero animations; prefers-reduced-motion kills all
+ * motion (static gradient, instant ticker). Tokens only; light theme dims
+ * decorative glow (--lm-deco). Classic script sharing the app's global scope. */
 
 (function () {
   'use strict';
   if (window.LIVEMAP) return;
-  const LS_POS = 'crs-livemap-pos', LS_MODE = 'crs-livemap-mode', LS_MODEL = 'crs-livemap-lastmodel';
-  const PANEL_W = 380, PANEL_H = 272, PILL_W = 56, PILL_H = 34;
+  const LS_POS = 'crs-livemap-pos', LS_MODE = 'crs-livemap-mode', LS_MODEL = 'crs-livemap-lastmodel', LS_SIZE = 'crs-livemap-size';
+  const SCENE_W = 380, SCENE_H = 236, TICK_H = 20, PANEL_W = 380, PILL_W = 56, PILL_H = 34;
+  const W_MIN = 300, W_MAX = 640;
 
   // ---- scene: nodes sized by importance, molecule layout -------------------
   // color keys → tokens (gradients + --ec) — one place, both themes
@@ -47,7 +53,7 @@
   // ---- live state (updated by pings + the 3s poll) --------------------------
   const S = {
     mode: localStorage.getItem(LS_MODE) || 'closed',      // open | pill | closed
-    turnLive: false, remoteTurn: false,
+    turnLive: false, remoteTurn: false, turnT0: 0,
     model: localStorage.getItem(LS_MODEL) || '',          // last-used model id
     until: {},                                            // edgeId → ts (active while > now)
     nodePing: {},                                         // nodeId → ts of last direct activity
@@ -56,14 +62,34 @@
   };
   const now = () => Date.now();
   const nice = (m) => (typeof modelNice === 'function' ? modelNice(m) : m) || '';
+  const clean = (s) => String(s || '').replace(/\s+/g, ' ').trim();
+  // learn events carry "• [tag] Lesson text — …" details → tag = the trigger word
+  function evTag(ev) {
+    const d = clean(ev && (ev.detail || ev.title) || '');
+    const m = d.match(/\[([^\]]{1,16})\]/);
+    return (m ? m[1] : (d.replace(/^[•\-\s]+/, '').split(' ')[0] || '')).slice(0, 12);
+  }
+  function evSnip(ev) {
+    let d = clean(ev && (ev.detail || ev.title) || '');
+    return d.replace(/^•\s*/, '').replace(/^\[[^\]]*\]\s*/, '').slice(0, 46);
+  }
+
+  // ---- size: width 300-640, height locked to scene aspect + ticker ----------
+  function loadW() { try { const s = JSON.parse(localStorage.getItem(LS_SIZE)); return Math.min(W_MAX, Math.max(W_MIN, (s && s.w) || PANEL_W)); } catch { return PANEL_W; } }
+  let curW = loadW();
+  const curH = () => Math.round(curW * SCENE_H / SCENE_W) + TICK_H;
 
   // ---- CSS (tokens only; light theme dims glow like map.html decoDim) -------
   const css = document.createElement('style');
   css.textContent = `
-  #lmPanel{position:fixed;width:${PANEL_W}px;z-index:260;background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);overflow:hidden;--lm-deco:1;user-select:none}
+  /* chromeless panel: translucent smoke base by default, solid chrome on hover */
+  #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:1;user-select:none;cursor:grab;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
+  #lmPanel.chrome{background:var(--panel);border-color:var(--line2);box-shadow:var(--shadow-dropdown)}
+  #lmPanel.dragging{cursor:grabbing}
   [data-theme="light"] #lmPanel{--lm-deco:.6}
-  #lmPanel .lm-head{display:flex;align-items:center;gap:8px;height:34px;padding:0 6px 0 12px;border-bottom:1px solid var(--line);cursor:grab;touch-action:none}
-  #lmPanel .lm-head.drag{cursor:grabbing}
+  /* hover chrome: floating header line + buttons, hidden until .chrome */
+  #lmPanel .lm-head{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  #lmPanel.chrome .lm-head{opacity:1;pointer-events:auto}
   #lmPanel .lm-live-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex:0 0 7px}
   #lmPanel.live .lm-live-dot{background:var(--accent);box-shadow:0 0 8px var(--accent-glow),0 0 4px var(--accent)}
   #lmPanel .lm-ttl{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-primary)}
@@ -71,9 +97,30 @@
   #lmPanel.live .lm-sub{color:var(--accent-text)}
   #lmPanel .lm-hbtn{background:none;border:none;color:var(--text-muted);width:26px;height:26px;border-radius:var(--radius-btn);cursor:pointer;font-size:12px;line-height:1;font-family:inherit;flex:0 0 auto}
   #lmPanel .lm-hbtn:hover{color:var(--text-primary);background:var(--panel2)}
-  #lmPanel .lm-scene{position:relative;background:radial-gradient(circle at 36% 60%,var(--accent-tint),transparent 62%)}
-  #lmPanel svg{display:block;width:100%}
+  /* resize grip — bottom-right, chrome-only */
+  #lmPanel .lm-grip{position:absolute;right:1px;bottom:1px;width:16px;height:16px;z-index:4;cursor:nwse-resize;opacity:0;pointer-events:none;transition:opacity .2s ease;color:var(--text-muted)}
+  #lmPanel.chrome .lm-grip{opacity:.9;pointer-events:auto}
+  #lmPanel .lm-grip svg{display:block;width:100%;height:100%;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round}
+  /* nebula idle skin — token hues only, low alpha, slow drift; hover sharpens away */
+  #lmPanel .lm-scene{position:relative}
+  #lmPanel .lm-scene svg{display:block;width:100%;position:relative;z-index:1}
+  #lmPanel .lm-neb{position:absolute;inset:0;pointer-events:none;opacity:var(--lm-deco);transition:opacity .25s ease;-webkit-mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%);mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%)}
+  #lmPanel .lm-neb1{background:
+    radial-gradient(90% 80% at 25% 30%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 65%),
+    radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 62%);
+    background-size:165% 165%,175% 175%;background-repeat:no-repeat}
+  #lmPanel .lm-neb2{background:
+    radial-gradient(80% 70% at 72% 18%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 60%),
+    radial-gradient(95% 90% at 28% 88%,color-mix(in srgb,var(--accent-soft) 8%,transparent),transparent 66%);
+    background-size:185% 185%,155% 155%;background-repeat:no-repeat}
+  #lmPanel.chrome .lm-neb{opacity:0;animation-play-state:paused}
+  /* typewriter ticker — one mono line at the bottom */
+  #lmTicker{position:relative;z-index:2;height:${TICK_H}px;display:flex;align-items:center;padding:0 12px;font:500 10px/1 var(--mono);letter-spacing:.02em;color:var(--text-muted);white-space:nowrap;overflow:hidden;transition:opacity .3s ease}
+  #lmTicker.f-acc{color:var(--accent-text)}
+  #lmTicker.f-warn{color:var(--warning)}
+  #lmTicker.fade{opacity:0}
   /* nodes — glow halo (radial gradient on token color) + flat token core */
+  .lm-node{cursor:pointer}
   .lm-node .lm-halo{opacity:calc(.14*var(--lm-deco));transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
   .lm-node .lm-core{opacity:.5;transition:opacity var(--transition-colors)}
   .lm-node .lm-ic{color:var(--white);opacity:.55;transition:opacity var(--transition-colors)}
@@ -88,6 +135,15 @@
   .lm-node .lm-warnring{fill:none;stroke:var(--warning);stroke-width:1.6;opacity:0;transition:opacity var(--transition-colors)}
   .lm-node.warn .lm-warnring{opacity:.95}
   .lm-node.warn .lm-halo{opacity:calc(.9*var(--lm-deco));fill:url(#lmg-warn)}
+  /* child molecules — ephemeral satellites orbiting their parent, TTL fade */
+  .lm-kid{offset-rotate:0deg;transition:opacity 2.4s linear}
+  .lm-kid.dying{opacity:0}
+  .lm-kid .lm-kid-in{transform-box:fill-box;transform-origin:center}
+  .lm-kid circle{fill:var(--ec);opacity:.92;filter:drop-shadow(0 0 2.5px var(--ec))}
+  .lm-kid text{fill:var(--text-secondary);font:600 5.5px var(--mono);letter-spacing:.06em;text-anchor:middle}
+  .lm-kid.mote circle{opacity:.85}
+  .lm-kid.mote text{font:600 5px var(--mono);letter-spacing:.02em;fill:var(--text-muted)}
+  .lm-mote-travel{fill:var(--purple);r:2.2;filter:drop-shadow(0 0 3px var(--purple));offset-rotate:0deg;opacity:0}
   /* brain core life — faint orbital ring (always-on idle) + electrons + 2nd halo layer (turn only) */
   .lm-orbit{fill:none;stroke:var(--accent);stroke-width:.7;opacity:calc(.18*var(--lm-deco));transform-box:fill-box;transform-origin:center}
   .lm-halo2{opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
@@ -121,20 +177,30 @@
     .lm-ripple{animation:lmRipple .7s cubic-bezier(0,.55,.45,1) forwards}
     .lm-ripple-big{animation-name:lmRippleBig;animation-duration:.9s}
     .lm-edge.flick .lm-eglow{animation:lmFlick .9s linear 1}
+    .lm-kid{animation:lmTravel var(--kd,13s) linear infinite}
+    .lm-kid .lm-kid-in{animation:lmKidPop .5s cubic-bezier(.34,1.56,.64,1) both}
+    .lm-mote-travel{opacity:1;animation:lmTravelOnce 1.35s cubic-bezier(.4,0,.2,1) forwards}
+    #lmPanel .lm-neb1{animation:lmNebA 75s ease-in-out infinite alternate}
+    #lmPanel .lm-neb2{animation:lmNebB 90s ease-in-out infinite alternate}
   }
   @media (prefers-reduced-motion: reduce){
-    .lm-dot,.lm-eflow,.lm-elec,.lm-spin,.lm-ripple,.lm-halo2,.lm-orbit{display:none}
+    .lm-dot,.lm-eflow,.lm-elec,.lm-spin,.lm-ripple,.lm-halo2,.lm-orbit,.lm-mote-travel{display:none}
+    #lmPanel{transition:none!important}
     #lmPanel *{transition:none!important}
   }
   @keyframes lmTravel{from{offset-distance:0%}to{offset-distance:100%}}
+  @keyframes lmTravelOnce{from{offset-distance:0%}to{offset-distance:100%}}
   @keyframes lmFlow{to{stroke-dashoffset:-18}}
   @keyframes lmBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
   @keyframes lmIdleBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
   @keyframes lmOrbit{to{transform:rotate(360deg)}}
   @keyframes lmSpin{to{transform:rotate(360deg)}}
+  @keyframes lmKidPop{from{transform:scale(0)}to{transform:scale(1)}}
   @keyframes lmRipple{from{r:var(--r0);opacity:calc(.9*var(--lm-deco))}to{r:var(--r1);opacity:0}}
   @keyframes lmRippleBig{from{r:var(--r0);opacity:calc(.95*var(--lm-deco))}to{r:var(--r1);opacity:0}}
   @keyframes lmFlick{0%,100%{opacity:calc(.6*var(--lm-deco))}12%,44%,76%{opacity:.04}28%,60%,92%{opacity:calc(.95*var(--lm-deco))}}
+  @keyframes lmNebA{from{background-position:0% 0%,100% 100%}to{background-position:100% 60%,0% 20%}}
+  @keyframes lmNebB{from{background-position:100% 0%,0% 100%}to{background-position:20% 100%,80% 0%}}
   /* tooltip */
   #lmTip{position:absolute;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:6px 10px;font-size:11px;color:var(--text-primary);display:none;max-width:220px;z-index:2}
   #lmTip .t2{color:var(--text-muted);font-size:10px;margin-top:1px}
@@ -190,12 +256,15 @@
       <button class="lm-hbtn" id="lmX" title="Close">✕</button>
     </div>
     <div class="lm-scene">
-      <svg viewBox="0 0 380 236" aria-label="Live system map">
+      <div class="lm-neb lm-neb1"></div><div class="lm-neb lm-neb2"></div>
+      <svg viewBox="0 0 ${SCENE_W} ${SCENE_H}" preserveAspectRatio="xMidYMid meet" aria-label="Live system map">
         <defs>${grads}<filter id="lmBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
-        <g id="lmEdges">${edgesSvg}</g><g id="lmNodes">${nodesSvg}</g>
+        <g id="lmEdges">${edgesSvg}</g><g id="lmNodes">${nodesSvg}</g><g id="lmFx"></g>
       </svg>
       <div id="lmTip"></div>
-    </div>`;
+    </div>
+    <div id="lmTicker"><span id="lmTickerTx"></span></div>
+    <div class="lm-grip" title="Resize"><svg viewBox="0 0 16 16"><path d="M13 7 7 13M13 11l-2 2"/></svg></div>`;
   document.body.appendChild(panel);
   const pill = document.createElement('button'); pill.id = 'lmPill'; pill.style.display = 'none'; pill.title = 'Live system map';
   pill.innerHTML = `<svg viewBox="0 0 24 24"><use href="#i-brain"/></svg><span class="lm-pdot"></span>`;
@@ -203,37 +272,69 @@
   const $e = {}; EDGES.forEach((e) => { $e[e.id] = panel.querySelector(`[data-e="${e.id}"]`); });
   const $n = {}; Object.keys(NODES).forEach((id) => { $n[id] = panel.querySelector(`[data-n="${id}"]`); });
   const statusEl = panel.querySelector('#lmStatus'), tipEl = panel.querySelector('#lmTip'), modelLbl = panel.querySelector('#lmModelLbl');
+  const tickerEl = panel.querySelector('#lmTicker'), tickerTx = panel.querySelector('#lmTickerTx');
+  const fxLayer = panel.querySelector('#lmFx'), gripEl = panel.querySelector('.lm-grip');
 
-  // ---- position: persist + clamp on-screen -----------------------------------
+  // ---- size + position: persist + clamp on-screen ---------------------------
+  function applySize(w) { curW = Math.min(W_MAX, Math.max(W_MIN, Math.round(w))); panel.style.width = curW + 'px'; }
+  applySize(curW);
   function loadPos() { try { return JSON.parse(localStorage.getItem(LS_POS)) || null; } catch { return null; } }
   function clampPos(p, w, h) {
     return { x: Math.min(Math.max(8, p.x), Math.max(8, innerWidth - w - 8)), y: Math.min(Math.max(8, p.y), Math.max(8, innerHeight - h - 8)) };
   }
   function place() {
-    const w = S.mode === 'pill' ? PILL_W : PANEL_W, h = S.mode === 'pill' ? PILL_H : PANEL_H;
-    const p = clampPos(loadPos() || { x: innerWidth - PANEL_W - 24, y: innerHeight - PANEL_H - 84 }, w, h);
+    const w = S.mode === 'pill' ? PILL_W : curW, h = S.mode === 'pill' ? PILL_H : curH();
+    const p = clampPos(loadPos() || { x: innerWidth - curW - 24, y: innerHeight - curH() - 84 }, w, h);
     const el = S.mode === 'pill' ? pill : panel;
     el.style.left = p.x + 'px'; el.style.top = p.y + 'px';
   }
   addEventListener('resize', () => { if (S.mode !== 'closed') place(); });
 
-  // drag by header (buttons excluded)
+  // ---- hover / focus chrome: fade in 200ms, fade out ~1s after leave --------
+  let chromeT = null;
+  function chromeOn() { clearTimeout(chromeT); chromeT = null; panel.classList.add('chrome'); }
+  function chromeOff() { clearTimeout(chromeT); chromeT = setTimeout(() => panel.classList.remove('chrome'), 1000); }
+  panel.addEventListener('mouseenter', chromeOn);
+  panel.addEventListener('mouseleave', chromeOff);
+  panel.addEventListener('focusin', chromeOn);
+  panel.addEventListener('focusout', () => { if (!panel.matches(':hover')) chromeOff(); });
+
+  // drag anywhere on the panel body (nodes / children / buttons / grip excluded)
   (function () {
-    const head = panel.querySelector('#lmHead'); let drag = null;
-    head.addEventListener('pointerdown', (ev) => {
-      if (ev.target.closest('button')) return;
+    let drag = null;
+    panel.addEventListener('pointerdown', (ev) => {
+      if (ev.target.closest('button,.lm-node,.lm-kid,.lm-grip')) return;
       drag = { dx: ev.clientX - panel.offsetLeft, dy: ev.clientY - panel.offsetTop };
-      head.classList.add('drag'); head.setPointerCapture(ev.pointerId); ev.preventDefault();
+      panel.classList.add('dragging'); panel.setPointerCapture(ev.pointerId); ev.preventDefault();
     });
-    head.addEventListener('pointermove', (ev) => {
+    panel.addEventListener('pointermove', (ev) => {
       if (!drag) return;
-      const p = clampPos({ x: ev.clientX - drag.dx, y: ev.clientY - drag.dy }, PANEL_W, PANEL_H);
+      const p = clampPos({ x: ev.clientX - drag.dx, y: ev.clientY - drag.dy }, curW, curH());
       panel.style.left = p.x + 'px'; panel.style.top = p.y + 'px';
     });
-    head.addEventListener('pointerup', (ev) => {
-      if (!drag) return; drag = null; head.classList.remove('drag');
-      try { head.releasePointerCapture(ev.pointerId); } catch {}
+    panel.addEventListener('pointerup', (ev) => {
+      if (!drag) return; drag = null; panel.classList.remove('dragging');
+      try { panel.releasePointerCapture(ev.pointerId); } catch {}
       localStorage.setItem(LS_POS, JSON.stringify({ x: panel.offsetLeft, y: panel.offsetTop }));
+    });
+  })();
+
+  // resize via the grip — width 300-640, aspect locked (viewBox scales), persisted
+  (function () {
+    let rs = null;
+    gripEl.addEventListener('pointerdown', (ev) => {
+      rs = { x0: ev.clientX, w0: curW };
+      gripEl.setPointerCapture(ev.pointerId); ev.preventDefault(); ev.stopPropagation(); chromeOn();
+    });
+    gripEl.addEventListener('pointermove', (ev) => {
+      if (!rs) return;
+      applySize(rs.w0 + (ev.clientX - rs.x0));
+    });
+    gripEl.addEventListener('pointerup', (ev) => {
+      if (!rs) return; rs = null;
+      try { gripEl.releasePointerCapture(ev.pointerId); } catch {}
+      localStorage.setItem(LS_SIZE, JSON.stringify({ w: curW }));
+      place();
     });
   })();
 
@@ -262,22 +363,158 @@
     const g = $e['playbook-brain'];
     g.classList.add('flick'); setTimeout(() => g.classList.remove('flick'), 1000);
   }
+
+  // ---- child molecules: ephemeral satellites from REAL activity ---------------
+  // max 6 concurrent (LRU), deduped by parent+label (re-ping refreshes TTL),
+  // tiny elliptical orbit via offset-path, ~20s life fading to nothing.
+  const KIDS = new Map();   // key → {el, dieT, fadeT}
+  let KID_TTL = 20000, kidSeq = 0;
+  function killKid(key) {
+    const k = KIDS.get(key); if (!k) return;
+    clearTimeout(k.dieT); clearTimeout(k.fadeT); k.el.remove(); KIDS.delete(key);
+  }
+  function armKid(key, k, ttl) {
+    clearTimeout(k.dieT); clearTimeout(k.fadeT); k.el.classList.remove('dying');
+    k.fadeT = setTimeout(() => k.el.classList.add('dying'), Math.max(200, ttl - 2400));
+    k.dieT = setTimeout(() => killKid(key), ttl);
+  }
+  function spawnKid(parent, label, opts) {
+    opts = opts || {};
+    if (S.mode !== 'open' || !$n[parent]) return;
+    label = clean(label).slice(0, 12);
+    const key = parent + '|' + (opts.key || label || '•');
+    const ttl = opts.ttl || KID_TTL;
+    const ex = KIDS.get(key);
+    if (ex) {                                  // dedupe: refresh TTL + LRU order, no twin
+      KIDS.delete(key); KIDS.set(key, ex); armKid(key, ex, ttl);
+      return;
+    }
+    if (KIDS.size >= 6) killKid(KIDS.keys().next().value);   // LRU evict
+    const i = kidSeq++;
+    const rx = 14 + (i % 3) * 4, ry = 5 + (i % 3) * 1.5;     // varied orbit per slot
+    const g = document.createElementNS(NS, 'g');
+    g.setAttribute('class', 'lm-kid' + (opts.mote ? ' mote' : ''));
+    g.style.cssText = `offset-path:path('M ${rx} 0 A ${rx} ${ry} 0 1 1 ${-rx} 0 A ${rx} ${ry} 0 1 1 ${rx} 0');--kd:${(11 + (i % 5) * 1.7).toFixed(1)}s;animation-delay:-${((i * 2.3) % 11).toFixed(1)}s`;
+    const r = opts.mote ? 1.8 : 3;
+    g.innerHTML = `<g class="lm-kid-in"><circle r="${r}"/>${label ? `<text y="${r + 5.5}">${label.replace(/[<>&]/g, '')}</text>` : ''}</g>`;
+    $n[parent].appendChild(g);
+    const k = { el: g, dieT: null, fadeT: null };
+    KIDS.set(key, k); armKid(key, k, ttl);
+    ripple(parent);                            // pop-in = scale keyframe + parent ripple
+  }
+  // learning-saved: a new mote is BORN — travels Distiller→Playbook, latches briefly
+  function lessonBirth(ev) {
+    const label = evTag(ev).toLowerCase();
+    const latch = () => spawnKid('playbook', label, { mote: true, ttl: Math.min(8000, KID_TTL), key: 'lesson:' + (label || 'new') });
+    if (S.mode !== 'open') return;
+    if (RM.matches) { latch(); return; }
+    const A = NODES.distiller, B = NODES.playbook;
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('class', 'lm-mote-travel');
+    c.style.cssText = `offset-path:path('M ${A.x - 9} ${A.y + 2} Q ${(A.x + B.x) / 2} ${Math.min(A.y, B.y) - 20} ${B.x + 11} ${B.y - 4}')`;
+    const done = () => { c.remove(); latch(); };
+    c.addEventListener('animationend', done, { once: true });
+    setTimeout(() => { if (c.isConnected) done(); }, 1700);   // fallback: no leak
+    fxLayer.appendChild(c);
+  }
+
+  // ---- typewriter ticker ------------------------------------------------------
+  // queue with coalescing (drop dupes, keep newest 5); types ~18ms/char, holds
+  // ~2.8s, fades 300ms; CRITICAL (recurrence) skips the queue and interrupts.
+  const TK = { q: [], cur: null, typeIv: null, holdT: null, fadeT: null, lastAct: now(), lastAmb: 0 };
+  function tkStop() {
+    clearInterval(TK.typeIv); clearTimeout(TK.holdT); clearTimeout(TK.fadeT);
+    TK.typeIv = TK.holdT = TK.fadeT = null; TK.cur = null;
+  }
+  function tkClear() { tkStop(); TK.q = []; tickerTx.textContent = ''; tickerEl.className = ''; }
+  function tkNext() {
+    const m = TK.q.shift();
+    tickerEl.classList.remove('fade');
+    if (!m) { tickerTx.textContent = ''; tickerEl.className = ''; return; }
+    TK.cur = m; tickerEl.className = m.cls || '';
+    if (RM.matches) {                          // reduced motion: instant swap, no fade
+      tickerTx.textContent = m.text;
+      TK.holdT = setTimeout(tkDone, 2800);
+      return;
+    }
+    let i = 0; tickerTx.textContent = '';
+    TK.typeIv = setInterval(() => {
+      i++;
+      tickerTx.textContent = m.text.slice(0, i) + (i < m.text.length ? '▍' : '');
+      if (i >= m.text.length) { clearInterval(TK.typeIv); TK.typeIv = null; TK.holdT = setTimeout(tkDone, 2800); }
+    }, 18);
+  }
+  function tkDone() {
+    if (RM.matches) { TK.cur = null; tickerTx.textContent = ''; tkNext(); return; }
+    tickerEl.classList.add('fade');
+    TK.fadeT = setTimeout(() => { TK.cur = null; tickerTx.textContent = ''; tkNext(); }, 320);
+  }
+  function tkPush(text, cls, critical) {
+    TK.lastAct = now();
+    if (S.mode !== 'open' || !text) return;
+    if (TK.cur && TK.cur.text === text) return;                       // dupe of the line on screen
+    TK.q = TK.q.filter((m) => m.text !== text);                       // coalesce queued dupes
+    const m = { text, cls: cls || '' };
+    if (critical) { tkStop(); tickerEl.classList.remove('fade'); TK.q.unshift(m); tkNext(); return; }
+    TK.q.push(m); while (TK.q.length > 5) TK.q.shift();               // keep newest 5
+    if (!TK.cur) tkNext();
+  }
+  // idle >20s → occasional ambient line from real state (same data as tooltips)
+  function tkAmbient() {
+    const t = now();
+    if (S.mode !== 'open' || S.turnLive || TK.cur || TK.q.length) return;
+    if (t - TK.lastAct < 20000 || t - TK.lastAmb < 45000 || S.lessons == null) return;
+    TK.lastAmb = t;
+    tkPush(S.lessons + ' lesson' + (S.lessons === 1 ? '' : 's') + (S.lastApplied ? ' · last applied ' + clock(S.lastApplied) : ''));
+  }
+
+  // ---- ping: the one entry point for real activity ----------------------------
   function ping(kind, arg) {
     const t = now();
     if (kind === 'turn-start') {
-      S.turnLive = true; S.nodePing.you = t; S.nodePing.brain = t; S.nodePing.model = t;
+      S.turnLive = true; S.turnT0 = t; S.nodePing.you = t; S.nodePing.brain = t; S.nodePing.model = t;
       // first activity auto-reveals the map — but an explicit user choice (any stored mode,
       // incl. 'closed' after the user closed it) always wins
       if (S.mode !== 'open' && !localStorage.getItem(LS_MODE)) setMode('open');
       ripple('brain');
+      tkPush('▸ turn — ' + (nice(S.model) || 'auto'));
     }
-    else if (kind === 'turn-end') { S.turnLive = false; S.remoteTurn = false; TURN_EDGES.forEach((id) => { S.until[id] = t; }); }
-    else if (kind === 'tool') { bump('model-tools', 3000); S.nodePing.tools = t; ripple('tools'); }
-    else if (kind === 'bp-step') { bump('model-tools', 3000); bump('tools-bp', 3400); bump('bp-bubble', 3400); S.nodePing.bp = t; S.nodePing.bubble = t; ripple('bp'); ripple('bubble'); }
+    else if (kind === 'turn-end') {
+      S.turnLive = false; S.remoteTurn = false; TURN_EDGES.forEach((id) => { S.until[id] = t; });
+      const secs = arg && arg.secs != null ? arg.secs : (S.turnT0 ? Math.round((t - S.turnT0) / 1000) : null);
+      tkPush('✓ done' + (secs != null ? ' · ' + secs + 's' : ''));
+    }
+    else if (kind === 'tool') {
+      bump('model-tools', 3000); S.nodePing.tools = t; ripple('tools');
+      if (arg && arg.tool) spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9));
+    }
+    else if (kind === 'tool-detail') {
+      const cmd = clean(arg && arg.cmd);
+      if (cmd) {
+        tkPush('$ ' + cmd.slice(0, 46));
+        const bp = cmd.match(/(?:^|[\s/\\])buildprint(?:\.\w+)?\s+(sync|check|apply)\b/i);
+        if (bp) spawnKid('bp', bp[1].toUpperCase());
+      }
+    }
+    else if (kind === 'bp-step') {
+      bump('model-tools', 3000); bump('tools-bp', 3400); bump('bp-bubble', 3400); S.nodePing.bp = t; S.nodePing.bubble = t; ripple('bp'); ripple('bubble');
+      if (arg && arg.tool) spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9));
+    }
     else if (kind === 'model') { if (arg) { S.model = arg; localStorage.setItem(LS_MODEL, arg); } }
-    else if (kind === 'playbook-applied') { bump('playbook-brain', 3400); S.nodePing.playbook = t; S.lastApplied = t; ripple('playbook'); }
-    else if (kind === 'learning-saved') { bump('brain-distiller', 3400); bump('distiller-ledger', 3400); S.nodePing.distiller = t; S.nodePing.ledger = t; ripple('ledger'); }
-    else if (kind === 'recurrence') { S.warnT = t; S.nodePing.playbook = t; shockwave(); }
+    else if (kind === 'playbook-applied') {
+      bump('playbook-brain', 3400); S.nodePing.playbook = t; S.lastApplied = t; ripple('playbook');
+      spawnKid('playbook', evTag(arg).toLowerCase(), { mote: true, key: 'applied:' + evTag(arg) });
+      tkPush('⚡ applying: ' + (evSnip(arg) || 'lesson'), 'f-acc');
+    }
+    else if (kind === 'learning-saved') {
+      bump('brain-distiller', 3400); bump('distiller-ledger', 3400); S.nodePing.distiller = t; S.nodePing.ledger = t; ripple('ledger');
+      lessonBirth(arg);
+      tkPush('🧠 learned: ' + (evSnip(arg) || 'new lesson'));
+    }
+    else if (kind === 'recurrence') {
+      S.warnT = t; S.nodePing.playbook = t; shockwave();
+      tkPush('⚠ known mistake repeated', 'f-warn', true);
+    }
     if (S.mode === 'open') render();
   }
 
@@ -355,10 +592,10 @@
     if (S.pollIv) return;
     poll();
     S.pollIv = setInterval(poll, 3000);
-    S.tickIv = setInterval(render, 1000);
+    S.tickIv = setInterval(() => { render(); tkAmbient(); }, 1000);
     if (S.lessons === null) fetch('/api/playbook').then((r) => r.json()).then((j) => { S.lessons = (j.lessons || []).filter((l) => l.status === 'active').length; }).catch(() => {});
   }
-  function stopLoops() { clearInterval(S.pollIv); clearInterval(S.tickIv); S.pollIv = S.tickIv = null; }
+  function stopLoops() { clearInterval(S.pollIv); clearInterval(S.tickIv); S.pollIv = S.tickIv = null; tkClear(); }
 
   // ---- tooltips ----------------------------------------------------------------
   const clock = (ts) => ts ? new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }) : '';
@@ -382,7 +619,7 @@
       const id = g.dataset.n, n = NODES[id];
       tipEl.innerHTML = `<b>${n.tip}</b><div class="t2">${nodeStatus(id)}</div>`;
       const sc = panel.querySelector('.lm-scene').getBoundingClientRect();
-      const px = n.x / 380 * sc.width, py = n.y / 236 * sc.height;
+      const px = n.x / SCENE_W * sc.width, py = n.y / SCENE_H * sc.height;
       tipEl.style.display = 'block';
       tipEl.style.left = Math.min(px + 12, sc.width - 190) + 'px';
       tipEl.style.top = Math.max(4, py - 40) + 'px';
@@ -412,6 +649,7 @@
     open: () => setMode('open'),
     close: () => setMode('closed'),
     toggle: (force) => setMode(force === true || S.mode === 'closed' ? 'open' : S.mode === 'open' ? 'closed' : 'open'),
+    _test: { kidTTL: (ms) => { KID_TTL = ms; }, kids: () => KIDS.size },   // rig-only hooks
   };
   if (S.mode !== 'closed') setMode(S.mode);   // restore across reloads
 })();
