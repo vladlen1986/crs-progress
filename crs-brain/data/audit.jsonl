@@ -28,3 +28,5 @@
 {"ts":"2026-07-19T00:02:37.034Z","action":"ask-answered","target":"e297feb5","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Park it","standing":false}}
 {"ts":"2026-07-19T00:02:38.664Z","action":"ask-answered","target":"6c069b3d","via":"desktop","meta":{"question":"Shim test: proceed or park?","answer":"Proceed","standing":false}}
 {"ts":"2026-07-19T00:03:49.952Z","action":"ask-answered","target":"4f504442","via":"desktop","meta":{"question":"UI test: which route?","answer":"Route B","standing":false}}
+{"ts":"2026-07-19T00:04:06.075Z","action":"ask-answered","target":"46cd86bb","via":"desktop","meta":{"question":"Dashboard test: proceed or park this?","answer":"Proceed","standing":false}}
+{"ts":"2026-07-19T00:04:13.542Z","action":"ask-answered","target":"4333c259","via":"desktop","meta":{"question":"Pick a letter","answer":"Beta","standing":false}}

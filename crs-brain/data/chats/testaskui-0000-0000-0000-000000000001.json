@@ -3,7 +3,7 @@
   "title": "ASK UI TEST",
   "bp": false,
   "created": "2026-07-19T00:03:44.428Z",
-  "updated": "2026-07-19T00:04:03.074Z",
+  "updated": "2026-07-19T00:04:03.535Z",
   "messages": [
     {
       "role": "user",
@@ -86,6 +86,28 @@
           "actor": "brain"
         }
       ]
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "46cd86bb",
+      "question": "Dashboard test: proceed or park this?",
+      "context": "",
+      "options": [
+        {
+          "label": "Proceed",
+          "hint": ""
+        },
+        {
+          "label": "Park",
+          "hint": ""
+        }
+      ],
+      "sig": "7e53e2d2fb90",
+      "askedCount": 1,
+      "ts": "2026-07-19T00:04:03.534Z",
+      "answer": "Proceed",
+      "answeredAt": "2026-07-19T00:04:06.074Z"
     }
   ],
   "sessionId": "3edac57c-60f5-4c57-89d9-5475811215dd"

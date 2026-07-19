@@ -3,3 +3,5 @@
 {"ts":"2026-07-19T00:02:37.025Z","sig":"fac25ccfc092","chatId":"testask0-0000-0000-0000-000000000001","question":"Which widget style should the tiles use?"}
 {"ts":"2026-07-19T00:02:37.505Z","sig":"33012c0acdba","chatId":"testask0-0000-0000-0000-000000000001","question":"Shim test: proceed or park?"}
 {"ts":"2026-07-19T00:03:44.451Z","sig":"b836b79686b6","chatId":"testaskui-0000-0000-0000-000000000001","question":"UI test: which route?"}
+{"ts":"2026-07-19T00:04:03.531Z","sig":"7e53e2d2fb90","chatId":"testaskui-0000-0000-0000-000000000001","question":"Dashboard test: proceed or park this?"}
+{"ts":"2026-07-19T00:04:13.196Z","sig":"1eaa8bab6332","chatId":"34091d66-edb0-4e45-86df-1509bb750bda","question":"Pick a letter"}
