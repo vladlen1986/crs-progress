@@ -63,8 +63,8 @@
     "fix": "python/python3 are not installed on the Windows host — local aggregation/analysis scripts in BP sessions must be written for node (which is always available).",
     "errorSig": "'python' is not recognized as an internal or external command",
     "source": "migrated from memory 2026-07-19",
-    "hits": 1,
-    "lastHit": "2026-07-19T00:22:35.692Z",
+    "hits": 2,
+    "lastHit": "2026-07-19T02:42:19.911Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
@@ -96,5 +96,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
+  },
+  {
+    "id": "d03d1b82",
+    "category": "platform-gotcha",
+    "trigger": "buildprint sync fails with Unauthorized",
+    "rule": "When buildprint sync fails with Unauthorized, don't assume stale data — check sync status first; if workspace matches latest snapshot, the error is transient auth, not staleness.",
+    "fix": "Run `buildprint sync status` to confirm workspace version matches latest snapshot; if it does, proceed — the Unauthorized is a transient token hiccup, not data staleness.",
+    "errorSig": "unauthorized",
+    "source": "chat fdfec816 · 2026-07-19",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T02:41:19.590Z"
+  },
+  {
+    "id": "24542c8b",
+    "category": "workspace-rule",
+    "trigger": "generating IDs with buildprint utils",
+    "rule": "buildprint utils generate-ids uses positional count argument, not the --count named flag.",
+    "fix": "Use `buildprint utils generate-ids <count>` (e.g., `buildprint utils generate-ids 4`), not `--count`.",
+    "errorSig": "error unknown option ' count'",
+    "source": "chat fdfec816 · 2026-07-19",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T02:41:19.591Z"
   }
 ]
