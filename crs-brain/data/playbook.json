@@ -96,5 +96,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
+  },
+  {
+    "id": "d969dc87",
+    "category": "cli-bug",
+    "trigger": "zebra",
+    "rule": "The zebra tool is not installed on this host",
+    "fix": "Expect \"zebra is not recognized\" if invoked; report the output honestly.",
+    "errorSig": "'zebra' is not recognized as an internal or external command",
+    "source": "manual · 2026-07-19",
+    "hits": 1,
+    "lastHit": "2026-07-19T00:25:37.657Z",
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T00:25:32.511Z"
   }
 ]

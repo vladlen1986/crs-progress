@@ -41,3 +41,6 @@
 {"ts":"2026-07-19T00:07:57.317Z","action":"ask-auto-answer","target":"910c7fe4ba1e","via":"desktop","meta":{"question":"Sig test: alpha or bravo?","answer":"Alpha"}}
 {"ts":"2026-07-19T00:07:57.329Z","action":"ask-answered","target":"b5a5b32e","via":"desktop","meta":{"question":"Sig test: alpha or maybe bravo?","answer":"Alpha","standing":false}}
 {"ts":"2026-07-19T00:07:57.334Z","action":"ask-standing-delete","target":"910c7fe4ba1e","via":"desktop","meta":null}
+{"ts":"2026-07-19T00:23:27.279Z","action":"playbook-retired","target":"db198c67","via":"desktop","meta":null}
+{"ts":"2026-07-19T00:23:27.288Z","action":"playbook-active","target":"db198c67","via":"desktop","meta":null}
+{"ts":"2026-07-19T00:23:27.298Z","action":"playbook-edit","target":"db198c67","via":"desktop","meta":null}
