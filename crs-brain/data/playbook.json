@@ -96,20 +96,5 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
-  },
-  {
-    "id": "de58cf7e",
-    "category": "cli-bug",
-    "trigger": "zebra",
-    "rule": "The zebra diagnostic flag is not supported by node on this host",
-    "fix": "Expect \"node: bad option: --zebra-hello\" if invoked; report the output honestly.",
-    "errorSig": "node bad option zebra hello",
-    "source": "manual · 2026-07-19",
-    "hits": 1,
-    "lastHit": "2026-07-19T01:08:42.827Z",
-    "recurred": 1,
-    "status": "active",
-    "created": "2026-07-19T01:08:38.812Z",
-    "recurredAt": "2026-07-19T01:08:47.162Z"
   }
 ]
