@@ -1,0 +1,92 @@
+{
+  "id": "testaskui-0000-0000-0000-000000000001",
+  "title": "ASK UI TEST",
+  "bp": false,
+  "created": "2026-07-19T00:03:44.428Z",
+  "updated": "2026-07-19T00:04:03.074Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "pick something",
+      "ts": "2026-07-19T00:03:44.430Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "4f504442",
+      "question": "UI test: which route?",
+      "context": "line one of context\nline two with detail",
+      "options": [
+        {
+          "label": "Route A",
+          "hint": ""
+        },
+        {
+          "label": "Route B",
+          "hint": "faster"
+        },
+        {
+          "label": "Route C",
+          "hint": ""
+        }
+      ],
+      "sig": "b836b79686b6",
+      "askedCount": 1,
+      "ts": "2026-07-19T00:03:44.452Z",
+      "answer": "Route B",
+      "answeredAt": "2026-07-19T00:03:49.951Z"
+    },
+    {
+      "role": "user",
+      "content": "My answer to your question \"UI test: which route?\": Route B — continue from there.",
+      "ts": "2026-07-19T00:03:49.974Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "That \"UI test: which route?\" question is a leftover test fixture from a different chat session (`testaskui-...`, title \"ASK UI TEST\") that was built while testing the T1-T4 `ask_vlad` mechanism — it's not a real question I asked in this conversation, and it's already marked `\"answered\": \"Route B\"` in that test data. There's nothing live for me to continue here.\n\nIf you meant a real question from *this* session, I don't have one pending — let me know what you'd like me to work on next.",
+      "ts": "2026-07-19T00:04:03.074Z",
+      "startedAt": "2026-07-19T00:03:49.975Z",
+      "completedAt": "2026-07-19T00:04:03.074Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cat \"crs-brain/data/ask-log.jsonl\" 2>/dev/null | tail -20",
+          "body": "command: cat \"crs-brain/data/ask-log.jsonl\" 2>/dev/null | tail -20\n⇒ {\"ts\":\"2026-07-19T00:02:36.141Z\",\"sig\":\"fac25ccfc092\",\"chatId\":\"testask0-0000-0000-0000-000000000001\",\"question\":\"Which widget style should the tiles use?\"} {\"t",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cat \"crs-brain/data/chats/testaskui-0000-0000-0000-000000000001.json…",
+          "body": "command: cat \"crs-brain/data/chats/testaskui-0000-0000-0000-000000000001.json\" 2>/dev/null\n⇒ { \"id\": \"testaskui-0000-0000-0000-000000000001\", \"title\": \"ASK UI TEST\", \"bp\": false, \"created\": \"2026-07-19T00:03:44.428Z\", \"updated\": \"2026-07-19T00:03:44.453",
+          "actor": "brain"
+        }
+      ]
+    }
+  ],
+  "sessionId": "3edac57c-60f5-4c57-89d9-5475811215dd"
+}

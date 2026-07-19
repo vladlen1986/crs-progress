@@ -22,3 +22,9 @@
 {"ts":"2026-07-18T14:58:39.289Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
 {"ts":"2026-07-18T16:10:59.686Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-18T16:11:00.299Z","action":"backup-snapshot","target":"state-2026-07-18.zip","via":"scheduler","meta":null}
+{"ts":"2026-07-19T00:02:36.982Z","action":"ask-answered","target":"7a3802c4","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Card tiles","standing":true}}
+{"ts":"2026-07-19T00:02:37.014Z","action":"ask-auto-answer","target":"fac25ccfc092","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Card tiles"}}
+{"ts":"2026-07-19T00:02:37.023Z","action":"ask-standing-retire","target":"fac25ccfc092","via":"desktop","meta":null}
+{"ts":"2026-07-19T00:02:37.034Z","action":"ask-answered","target":"e297feb5","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Park it","standing":false}}
+{"ts":"2026-07-19T00:02:38.664Z","action":"ask-answered","target":"6c069b3d","via":"desktop","meta":{"question":"Shim test: proceed or park?","answer":"Proceed","standing":false}}
+{"ts":"2026-07-19T00:03:49.952Z","action":"ask-answered","target":"4f504442","via":"desktop","meta":{"question":"UI test: which route?","answer":"Route B","standing":false}}

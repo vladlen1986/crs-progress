@@ -1,0 +1,15 @@
+[
+  {
+    "sig": "fac25ccfc092",
+    "question": "Which widget style should the tiles use?",
+    "options": [
+      "Flat tiles",
+      "Card tiles",
+      "Park it"
+    ],
+    "answer": "Card tiles",
+    "active": false,
+    "hits": 1,
+    "created": "2026-07-19T00:02:36.981Z"
+  }
+]

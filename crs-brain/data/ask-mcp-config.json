@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "crsask": {
+      "command": "C:\\Program Files\\nodejs\\node.exe",
+      "args": [
+        "C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\ask-mcp.js"
+      ]
+    }
+  }
+}
