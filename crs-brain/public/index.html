@@ -522,6 +522,30 @@
   .matt-th{width:76px;height:76px;padding:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel2);cursor:zoom-in;flex:0 0 auto;transition:border-color .15s ease,filter .15s ease}
   .matt-th img{width:100%;height:100%;object-fit:cover;display:block}
   .matt-th:hover{border-color:var(--accent);filter:brightness(1.06)}
+  /* ── Ask Protocol: inline question cards ── */
+  .askcard{margin:10px 0;border:1px solid var(--line2);border-radius:12px;background:var(--panel2);padding:14px 16px;max-width:640px}
+  .askcard.pending{border-color:var(--accent)}
+  .ask-q{font-size:13.5px;font-weight:600;color:var(--primary);line-height:1.45}
+  .ask-ctx{font-size:12px;color:var(--muted);margin-top:4px;cursor:pointer}
+  .ask-ctx .full{display:none;white-space:pre-wrap}
+  .ask-ctx.open .full{display:block}.ask-ctx.open .tease{display:none}
+  .ask-opts{display:flex;flex-direction:column;gap:6px;margin-top:12px}
+  .ask-opt{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;background:var(--panel);color:var(--primary);font:inherit;font-size:12.5px;cursor:pointer;transition:border-color .15s ease,background .15s ease}
+  .ask-opt:hover{border-color:var(--accent);background:var(--accent-glow)}
+  .ask-opt:disabled{opacity:.5;cursor:default}
+  .ask-opt .n{flex:0 0 auto;width:18px;height:18px;border-radius:5px;background:var(--veil);color:var(--muted);font:600 10px/18px var(--mono);text-align:center}
+  .ask-opt .hint{color:var(--muted);font-size:11px;margin-left:auto}
+  .ask-div{height:1px;background:var(--line2);opacity:.6;margin:10px 0 0}
+  .ask-standing-opts{margin-top:8px}
+  .ask-standing-opts .ask-opt{color:var(--muted);border-style:dashed}
+  .ask-other{display:none;margin-top:8px;gap:6px}
+  .ask-other.show{display:flex}
+  .ask-other input{flex:1;background:var(--panel);border:1px solid var(--line2);border-radius:8px;color:var(--primary);padding:7px 10px;font:inherit;font-size:12.5px;outline:none}
+  .ask-other input:focus{border-color:var(--accent)}
+  .ask-stand{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:11.5px;color:var(--muted);cursor:pointer;user-select:none}
+  .ask-hint3{display:inline-block;margin-left:8px;font-size:10.5px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 7px;vertical-align:middle;font-weight:500}
+  .ask-receipt{margin:8px 0;font-size:12px;color:var(--muted)}
+  .ask-receipt b{color:var(--primary);font-weight:600}
   /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
   .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
@@ -1836,6 +1860,66 @@ document.addEventListener('click',(e)=>{
   const imgs=[...(box||document).querySelectorAll('.matt-th')].map(b=>b.dataset.path);
   openDocWindow(th.dataset.path,{ivImgs:imgs,ivIdx:Math.max(0,imgs.indexOf(th.dataset.path))});
 });
+// ---- Ask Protocol: inline question cards (shared by live SSE + persisted render) ----
+let ASK_LIVE_CARD=null;   // latest pending card → keyboard 1-9+Enter target
+function askReceiptEl(m){
+  const d=document.createElement('div'); d.className='ask-receipt';
+  d.innerHTML=(m.status==='auto'?'Playbook answered: ':'→ You chose: ')+'<b>'+esc(m.answer||'')+'</b>'
+    +(m.status==='auto'?' <span style="opacity:.7">(standing)</span>':'')
+    +(m.answeredAt?' · '+fmtClock(m.answeredAt):'');
+  return d;
+}
+function askCardEl(m){   // {id,chatId,question,context,options,status,answer,askedCount}
+  if(m.status!=='pending') return askReceiptEl(m);
+  const card=document.createElement('div'); card.className='askcard pending'; card.dataset.askId=m.id;
+  const opts=m.options||[];
+  card.innerHTML=
+    '<div class="ask-q">'+esc(m.question)+((m.askedCount||0)>=3?'<span class="ask-hint3">asked '+m.askedCount+'× — set a standing answer?</span>':'')+'</div>'
+    +(m.context?'<div class="ask-ctx"><span class="tease">'+esc(m.context.split('\n')[0].slice(0,80))+'… (more)</span><span class="full">'+esc(m.context)+'</span></div>':'')
+    +'<div class="ask-opts">'+opts.map((o,i)=>'<button type="button" class="ask-opt" data-a="'+esc(o.label)+'"><span class="n">'+(i+1)+'</span><span>'+esc(o.label)+'</span>'+(o.hint?'<span class="hint">'+esc(o.hint)+'</span>':'')+'</button>').join('')+'</div>'
+    +'<div class="ask-div"></div>'
+    +'<div class="ask-opts ask-standing-opts">'
+      +'<button type="button" class="ask-opt" data-a="recommend"><span class="n">?</span><span>I don&#39;t know — recommend one</span></button>'
+      +'<button type="button" class="ask-opt ask-other-btn"><span class="n">…</span><span>Other…</span></button>'
+    +'</div>'
+    +'<div class="ask-other"><input placeholder="Type your answer…"><button type="button" class="ask-opt" style="width:auto">Send</button></div>'
+    +'<label class="ask-stand"><input type="checkbox"> make this my standing answer (Playbook)</label>';
+  const ctx=card.querySelector('.ask-ctx'); if(ctx) ctx.onclick=()=>ctx.classList.toggle('open');
+  const standing=()=>card.querySelector('.ask-stand input').checked;
+  card.querySelectorAll('.ask-opt[data-a]').forEach(b=>b.onclick=()=>askAnswer(m, b.dataset.a, standing(), card));
+  const other=card.querySelector('.ask-other');
+  card.querySelector('.ask-other-btn').onclick=()=>{ other.classList.add('show'); other.querySelector('input').focus(); };
+  const sendOther=()=>{ const v=other.querySelector('input').value.trim(); if(v) askAnswer(m, v, standing(), card); };
+  other.querySelector('button').onclick=sendOther;
+  other.querySelector('input').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendOther(); } e.stopPropagation(); });
+  ASK_LIVE_CARD={m,card};
+  return card;
+}
+async function askAnswer(m, answer, standing, card){
+  card.querySelectorAll('button,input').forEach(el=>el.disabled=true);
+  try{
+    const r=await api('/api/ask/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:m.id,answer,standing:standing===true})});
+    card.replaceWith(askReceiptEl({status:'answered',answer,answeredAt:new Date().toISOString()}));
+    if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m===m) ASK_LIVE_CARD=null;
+    if(standing) toast('Standing answer saved to the Playbook');
+    // dead session (no live waiter) and this chat is open → resume it with the answer as a turn
+    if(r && r.ok && !r.resumed && state.chatId===m.chatId && !(state.live && !state.live.done)){
+      const i=$('input'); i.value='My answer to your question "'+m.question.slice(0,120)+'": '+answer+' — continue from there.';
+      sendMsg();
+    }
+  }catch(e){ toast('⚠ '+e.message); card.querySelectorAll('button,input').forEach(el=>el.disabled=false); }
+}
+// keyboard: 1-9 highlights an option on the latest pending card, Enter confirms
+document.addEventListener('keydown',(e)=>{
+  if(!ASK_LIVE_CARD) return;
+  if(/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||'')) return;
+  const {card}=ASK_LIVE_CARD;
+  if(!document.body.contains(card)){ ASK_LIVE_CARD=null; return; }
+  const btns=[...card.querySelectorAll('.ask-opts:not(.ask-standing-opts) .ask-opt[data-a]')];
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=btns.length){ e.preventDefault(); card.dataset.sel=n; btns.forEach((b,i)=>b.style.borderColor=i===n-1?'var(--accent)':''); }
+  else if(e.key==='Enter'&&card.dataset.sel){ e.preventDefault(); btns[+card.dataset.sel-1].click(); }
+});
 // human model names — used by the live meter, turn stamps and the ⚡ fallback note
 function modelNice(m){ return ({'auto':'Auto','claude-opus-4-8':'Opus 4.8','claude-opus-4-7':'Opus 4.7','claude-sonnet-5':'Sonnet 5','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-fable-5':'Fable 5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'})[m]||m||''; }
 // ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
@@ -1920,6 +2004,11 @@ function renderChat(messages){
   const log=$('chatLog'); log.innerHTML='';
   let curTurn=null, lastBot=null, lastBotMsg=null;
   for(const m of messages){
+    if(m.role==='ask'){   // question card (pending → answerable; answered/auto → receipt)
+      if(!curTurn) curTurn=newTurn(log);
+      curTurn.appendChild(askCardEl({...m, chatId: state.chatId}));
+      continue;
+    }
     if(m.role==='user'){
       curTurn=newTurn(log); curTurn.appendChild(userMsgEl(m.content, m.attachments));
       setTurnStart(curTurn, m.ts);
@@ -2140,6 +2229,10 @@ async function renderDashboard(){
     </div></section>
 
     <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">
+      ${(dash.pendingAsks||[]).length?`<div class="dcard"><h3>${svg('i-help','sm')} Pending questions <span class="cnt">${dash.pendingAsks.length}</span></h3>
+        ${dash.pendingAsks.map(a=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileAskView('${esc(a.id)}')">${esc(a.question.slice(0,90))}</span>
+          <button class="tchip" onclick="mobileAskView('${esc(a.id)}')">answer</button></div>`).join('')}
+      </div>`:''}
       <div class="dcard"><h3>${svg('i-flag','sm')} Decisions needed <span class="cnt">${dash.decisionsOpen.length}</span></h3>
         ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileDecisionView('${esc(d).replace(/'/g,"\\'")}')">${esc(d)}</span>
           <button class="tchip" onclick="openDocWindow('decisions.md')">open decisions.md</button></div>`).join('')
@@ -2242,6 +2335,27 @@ async function mobileChunkVerdict(name,cid,st){
   try{ await api('/api/protos/chunk-status',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name,chunkId:cid,status:st})}); toast(cid+' → '+st); $('mpo').classList.remove('show'); }
   catch(e){ toast('⚠ '+e.message) }
   renderDashboard();
+}
+// Pending ask → full-screen answerable card (phone command post + desktop dashboard).
+// Answers POST through the same endpoint; remote requests get via:'remote' server-side.
+async function mobileAskView(id){
+  let a=null;
+  try{ const r=await api('/api/ask/pending'); a=(r.asks||[]).find(x=>x.id===id); }catch{}
+  if(!a){ toast('Question already answered'); renderDashboard(); return; }
+  const optBtn=(label)=>`<button onclick="mobileAskAnswer('${esc(a.id)}','${esc(label).replace(/'/g,"\\'")}')">${esc(label)}</button>`;
+  mpoShow('Session question', a.question+(a.context?'\n\n'+a.context:''),
+    a.options.map(o=>optBtn(o.label)).join('')
+    +optBtn('recommend').replace('>recommend<','>I don\'t know — recommend one<')
+    +`<button onclick="mobileAskOther('${esc(a.id)}')">Other…</button>`);
+}
+async function mobileAskAnswer(id, answer){
+  try{ await api('/api/ask/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id,answer})});
+    toast('Answered — session resuming'); const mp=$('mpo'); if(mp) mp.classList.remove('show'); renderDashboard();
+  }catch(e){ toast('⚠ '+e.message); }
+}
+async function mobileAskOther(id){
+  const v=prompt('Your answer:'); if(!v) return;
+  mobileAskAnswer(id, v.trim());
 }
 async function mobileDecisionView(title){
   let body='(could not load decisions.md)';
@@ -2660,6 +2774,18 @@ async function streamChat(text, opts={}){
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
         else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
+        else if(ev.type==='question'){
+          // session is BLOCKED on this — render the card right in the turn
+          endStep();
+          if(ev.status==='auto'){ body.insertBefore(askReceiptEl({status:'auto',answer:ev.answer,answeredAt:new Date().toISOString()}), answerEl); }
+          else body.insertBefore(askCardEl({id:ev.id,chatId:live.chatId,question:ev.question,context:ev.context,options:ev.options,status:'pending',askedCount:ev.askedCount}), answerEl);
+          if(nearBottom()) log.scrollTop=log.scrollHeight;
+        }
+        else if(ev.type==='question-answered'){
+          // answered from another surface (phone/dashboard) — collapse the card here too
+          const el=document.querySelector('.askcard[data-ask-id="'+ev.id+'"]');
+          if(el){ el.replaceWith(askReceiptEl({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString()})); if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m.id===ev.id) ASK_LIVE_CARD=null; }
+        }
         else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); }
         else if(ev.type==='model-switch'){
           genModel=ev.to||genModel; paintMeter();
@@ -4901,6 +5027,7 @@ function setNotifPref(k,v){ SETTINGS.notify=Object.assign({},SETTINGS.notify,{[k
 // ---- v2 notification prefs (notifyPrefs): DND, banner duration, per-type ----
 function setDnd(v){ SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{dnd:v}); renderBellDnd(); saveSettingsPatch({notifyPrefs:{dnd:v}}); }
 function setBannerSec(v,save){ const l=$('bannerSecLbl'); if(l)l.textContent=v+'s'; if(save){ SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{bannerSec:Number(v)}); saveSettingsPatch({notifyPrefs:{bannerSec:Number(v)}}); } }
+function setAskRenotify(v){ const n=Math.max(1,Math.min(120,Number(v)||10)); SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{askRenotifyMin:n}); saveSettingsPatch({notifyPrefs:{askRenotifyMin:n}}); toast('Question re-notify: '+n+' min'); }
 function _patchType(id,patch){ const np=SETTINGS.notifyPrefs||{dnd:false,bannerSec:4,types:{}}; const types=Object.assign({},np.types); types[id]=Object.assign({},types[id],patch); SETTINGS.notifyPrefs=Object.assign({},np,{types}); saveSettingsPatch({notifyPrefs:{types:{[id]:patch}}}); }
 function setTypeChannel(id,ch,v){ _patchType(id,{[ch]:v}); }
 function setTypeSound(id,sid){ _patchType(id,{soundId:sid}); if(sid!=='none')SOUNDS.playSound(sid); }
@@ -4972,6 +5099,8 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Do Not Disturb</b><span>Silences banners and sounds everywhere. The bell keeps collecting, so nothing is lost.</span></div><div class="mctl">${sw(!!np.dnd,"setDnd(this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Banner duration</b><span>How long toast banners stay on screen.</span></div>
         <div class="mctl"><input type="range" min="2" max="10" step="1" value="${np.bannerSec||4}" style="width:160px" oninput="setBannerSec(this.value,false)" onchange="setBannerSec(this.value,true)"><span class="dim" id="bannerSecLbl" style="min-width:28px;text-align:right">${np.bannerSec||4}s</span></div></div>
+      <div class="mrow"><div class="mlbl"><b>Question re-notify</b><span>An unanswered session question knocks again once after this many minutes.</span></div>
+        <div class="mctl"><input class="tinput" type="number" min="1" max="120" style="width:70px" value="${(np.askRenotifyMin||10)}" onchange="setAskRenotify(this.value)"><span class="dim">min</span></div></div>
       <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 24-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
       <div class="mrow"><div class="mlbl"><b>Test</b><span>Fire a real notification through your current preferences.</span></div><div class="mctl"><button class="mbtn2" onclick="sendTestNotif()">Send test notification</button></div></div>
       ${NOTIFY_CATEGORIES.map(c=>`<div class="msec-title" style="margin-top:16px">${esc(c.name)}</div>${typeRows(c.id)}`).join('')}

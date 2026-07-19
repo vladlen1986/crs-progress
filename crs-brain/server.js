@@ -4008,6 +4008,7 @@ const server = http.createServer(async (req, res) => {
       return send(res, 200, {
         tasks,
         decisionsOpen: openDecisionTitles(),
+        pendingAsks: pendingAsks(),
         modules: { focus: focusIdx >= 0 ? { id: mods[focusIdx].id, name: mods[focusIdx].name, section: mods[focusIdx].section, status: mods[focusIdx].status } : null, counts: modCounts, total: mods.length },
         protos, failedChunks,
         qa: { counts: qa, failRows, envRows, lastRun },

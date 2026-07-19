@@ -78,6 +78,11 @@
   </div>
 
   <div id="list"></div>
+
+  <div class="cat" id="playbook" style="margin-top:22px">
+    <div class="cathead">Playbook — standing answers <span class="cnt" id="pbCount">0</span><span class="cbar"></span></div>
+    <div id="pbList"></div>
+  </div>
 </div>
 <div class="toast" id="toast"></div>
 
@@ -129,7 +134,23 @@ async function del(id){
   try{ await fetch('/api/memory?id='+encodeURIComponent(id),{method:'DELETE'}); toast('Forgotten'); await load(); }
   catch(e){ toast('Delete failed'); }
 }
-load();
+// ---- Playbook: standing answers to session questions (auto-answers repeats) ----
+async function loadPlaybook(){
+  let rules=[]; try{ rules=(await (await fetch('/api/ask/standing')).json()).rules||[]; }catch{}
+  $('pbCount').textContent=rules.length;
+  $('pbList').innerHTML=rules.length?rules.map(r=>`<div class="mem">
+    <div class="mbody">
+      <div class="mtitle">${esc(r.question)}${r.active===false?' <span style="opacity:.55">(retired)</span>':''}</div>
+      <div class="mfact">→ ${esc(r.answer)} · used ${r.hits||0}×</div>
+      ${r.created?`<div class="mdate">since ${esc(r.created.slice(0,10))}</div>`:''}
+    </div>
+    <button class="del" title="${r.active===false?'Reactivate':'Retire (stop auto-answering)'}" style="opacity:.85" onclick="pbToggle('${esc(r.sig)}',${r.active===false?'true':'false'})">${r.active===false?'▶':'⏸'}</button>
+    <button class="del" title="Delete rule" onclick="pbDelete('${esc(r.sig)}')"><svg viewBox="0 0 24 24"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+  </div>`).join(''):'<div class="empty" style="padding:14px"><b>No standing answers yet</b>Check “make this my standing answer” on any question card.</div>';
+}
+async function pbToggle(sig,active){ try{ await fetch('/api/ask/standing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sig,active})}); toast(active?'Rule reactivated':'Rule retired — the card will return'); loadPlaybook(); }catch(e){ toast('Failed'); } }
+async function pbDelete(sig){ try{ await fetch('/api/ask/standing',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sig,delete:true})}); toast('Rule deleted'); loadPlaybook(); }catch(e){ toast('Failed'); } }
+load(); loadPlaybook();
 </script>
 </body>
 </html>
