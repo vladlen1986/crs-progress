@@ -468,9 +468,21 @@
   .attach-btn{background:none;border:none;color:var(--muted);width:38px;height:38px;border-radius:11px;font-size:16px;flex:0 0 auto;transition:var(--transition)}
   .attach-btn:hover{background:var(--elev);color:var(--primary)}
   /* voice dictation: mic button pulses while listening; ghost strip shows interim speech */
+  .mic-btn{position:relative}
   .mic-btn.rec{color:var(--accent);background:var(--accent-tint);animation:micPulse 1.5s ease-in-out infinite}
   @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 0 6px var(--accent-glow)}}
   @media (prefers-reduced-motion:reduce){.mic-btn.rec{animation:none}}
+  .mic-btn .devdot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:1px solid var(--panel);pointer-events:none}
+  /* mic/device popover — expl-menu base, anchored above the composer */
+  .mic-menu{min-width:238px;max-width:320px}
+  .mic-menu .mm-t{font:600 9.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:7px 10px 5px}
+  .mic-menu .mm-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mic-menu .mm-radio{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line3);flex:0 0 auto}
+  .mic-menu button.on .mm-radio{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 2.5px var(--panel)}
+  .mic-menu .mm-langs{display:flex;gap:5px;padding:2px 10px 6px}
+  .mic-menu .mm-langs button{width:auto;flex:1;justify-content:center;font-family:var(--mono);font-size:11px;padding:5px 0}
+  .mic-menu .mm-langs button.on{background:var(--accent-tint);color:var(--accent)}
+  .mic-menu .mm-note{padding:5px 10px 7px;font-size:11px;line-height:1.5;color:var(--muted)}
   .dict-ghost{display:none;max-width:830px;margin:0 auto;padding:0 22px 8px;width:100%;font-family:var(--mono);font-size:11px;color:var(--text-muted,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dict-ghost.show{display:block}
   .send{background:var(--grad);border:none;color:#fff;font-weight:700;border-radius:8px;width:38px;height:38px;font-size:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
@@ -1453,7 +1465,7 @@
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
           <div class="composer-row">
             <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
-            <button class="attach-btn mic-btn" id="micBtn" title="Dictate" style="display:none" onclick="toggleDictation()" oncontextmenu="cycleDictLang(event)"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg></button>
+            <button class="attach-btn mic-btn" id="micBtn" title="Dictate" style="display:none" onclick="toggleDictation()" oncontextmenu="return micContext(event)"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg></button>
             <select class="sel mini" id="modelSel" title="Model — Auto routes by task: quick/mechanical → Sonnet low, deep audits → Opus max" onchange="applyModelSettings()">
               <option value="auto">Auto (by task)</option>
               <option value="claude-opus-4-8">Opus 4.8</option>
@@ -2565,15 +2577,42 @@ function dequeue(){
   }
 }
 
-// ---------- voice dictation (Chrome Web Speech API) ----------
-// Mic button toggles continuous recognition into #input: final results append
-// (single-space join + input event), interim results show as ghost text above
-// the composer. Right-click cycles language en-US → ru-RU → ka-GE (persisted).
-// No SpeechRecognition (non-Chrome) → the button stays hidden.
+// ---------- voice dictation (Chrome Web Speech API + device picker) ----------
+// Mic button: first click opens the mic/language popover, afterwards it toggles
+// dictation with the remembered device (right-click reopens the popover).
+// System-default device → continuous SpeechRecognition into #input (final
+// results append with input event, interim results show as ghost text above the
+// composer). NON-default device → Chrome can't point SpeechRecognition at it,
+// so we capture that exact device with MediaRecorder and transcribe the blob
+// via POST /api/transcribe (Gemini, key in Settings → General); no key → honest
+// fallback to the system-default Web Speech path. No SpeechRecognition at all
+// (non-Chrome) → the button stays hidden.
 const DICT_LANGS=['en-US','ru-RU','ka-GE'];
-const DICT={on:false,rec:null,restarts:0,err:null,lang:(()=>{ try{ const l=localStorage.getItem('crs-dict-lang'); return DICT_LANGS.includes(l)?l:'en-US'; }catch{ return 'en-US'; } })()};
+const DICT={on:false,engine:null,rec:null,media:null,recorder:null,chunks:[],devices:null,stopTimer:null,restarts:0,err:null,
+  lang:(()=>{ try{ const l=localStorage.getItem('crs-dict-lang'); return DICT_LANGS.includes(l)?l:'en-US'; }catch{ return 'en-US'; } })(),
+  device:(()=>{ try{ const d=JSON.parse(localStorage.getItem('crs-dict-device')||'null'); return (d&&d.deviceId)?d:null; }catch{ return null; } })()};
 function dictSR(){ return window.SpeechRecognition||window.webkitSpeechRecognition||null; }
 function dictTag(){ return DICT.lang.slice(0,2).toUpperCase(); }
+// Engine routing (honest): SpeechRecognition always records the system-default
+// input, so only the default device may use it; anything else goes recorder→API.
+function dictIsDefaultDevice(dev,devs){
+  if(!dev||!dev.deviceId||dev.deviceId==='default') return true;
+  const sys=(devs||[]).find(d=>d.deviceId==='default');
+  return !!(sys&&sys.label&&dev.label&&sys.label.toLowerCase().includes(dev.label.toLowerCase()));
+}
+function dictEngine(dev,devs){ return dictIsDefaultDevice(dev,devs)?'webspeech':'recorder'; }
+// Preferred default: the built-in mic when we can spot it, else the system default.
+function dictPickDefault(devs){ return devs.find(d=>/macbook.*micro|built-in/i.test(d.label||''))||devs.find(d=>d.deviceId==='default')||devs[0]||null; }
+async function dictListDevices(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices) return [];
+  const ins=async()=> (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput');
+  let list=await ins();
+  if(list.length&&list.every(d=>!d.label)){   // labels hidden until mic permission — ask once, release right away
+    try{ const st=await navigator.mediaDevices.getUserMedia({audio:true}); st.getTracks().forEach(t=>t.stop()); list=await ins(); }catch{}
+  }
+  return list.map(d=>({deviceId:d.deviceId,label:d.label||('Microphone '+String(d.deviceId||'').slice(0,6))}));
+}
+function dictSaveDevice(dev){ DICT.device=dev; try{ localStorage.setItem('crs-dict-device',JSON.stringify(dev?{deviceId:dev.deviceId,label:dev.label}:null)); }catch{} }
 function dictGhost(t){ const g=$('dictGhost'); if(!g) return; clearTimeout(g._t); g.textContent=t||''; g.classList.toggle('show',!!t); }
 function dictGhostFlash(t){ const g=$('dictGhost'); if(!g) return; dictGhost(t); g._t=setTimeout(()=>dictGhost(''),1600); }
 function dictAppendFinal(t){
@@ -2596,9 +2635,47 @@ function dictProbeInstall(lang){
 function dictUpdateBtn(){
   const b=$('micBtn'); if(!b) return;
   b.classList.toggle('rec',DICT.on);
-  b.title=(DICT.on?'Stop dictation':'Dictate')+' — '+dictTag()+' (right-click: switch language)';
+  const nonDefault=!!DICT.device&&dictEngine(DICT.device,DICT.devices||[])==='recorder';
+  b.innerHTML='<svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg>'+(nonDefault?'<span class="devdot"></span>':'');
+  b.title=(DICT.on?'Stop dictation':'Dictate')+' — '+dictTag()
+    +(DICT.device&&DICT.device.label?' · '+DICT.device.label:'')
+    +' (right-click: mic & language)';
 }
-function startDictation(){
+// ---- mic/language popover (same visual language as the explorer menus) ----
+async function micMenuAt(){
+  let m=$('micMenu');
+  if(!m){ m=document.createElement('div'); m.id='micMenu'; m.className='expl-menu mic-menu'; document.body.appendChild(m);
+    document.addEventListener('pointerdown',(ev)=>{ if(!ev.target.closest('#micMenu')&&!ev.target.closest('#micBtn')) m.style.display='none'; },true); }
+  const place=()=>{ const r=$('micBtn').getBoundingClientRect(); m.style.left=Math.min(r.left,innerWidth-250)+'px'; m.style.top='auto'; m.style.bottom=(innerHeight-r.top+6)+'px'; };
+  m.innerHTML='<div class="mm-t">Microphone</div><div class="mm-note">Looking for microphones…</div>';
+  m.style.display='block'; place();
+  const devs=await dictListDevices(); DICT.devices=devs;
+  if(!DICT.device&&devs.length) dictSaveDevice(dictPickDefault(devs));
+  const cur=DICT.device||{};
+  const needKey=dictEngine(DICT.device,devs)==='recorder'&&!(SETTINGS&&SETTINGS.googleAiKeySet);
+  m.innerHTML='<div class="mm-t">Microphone</div>'
+    +(devs.length?devs.map((d,i)=>`<button data-dev="${i}" class="${d.deviceId===cur.deviceId?'on':''}"><span class="mm-radio"></span><span class="mm-lbl">${esc(d.label)}</span></button>`).join(''):'<div class="mm-note">No microphones found.</div>')
+    +'<div class="mdiv"></div><div class="mm-t">Language</div>'
+    +'<div class="mm-langs">'+DICT_LANGS.map(l=>`<button data-lang="${l}" class="${l===DICT.lang?'on':''}">${l.slice(0,2).toUpperCase()}</button>`).join('')+'</div>'
+    +(needKey?'<div class="mm-note">This mic transcribes via Google AI — add the free key in Settings → General, or it falls back to the system-default mic.</div>':'')
+    +'<div class="mdiv"></div><button data-act="start">'+(DICT.on?'Stop dictation':'Start dictation')+'</button>';
+  place();
+  m.onclick=(ev)=>{
+    const b=ev.target.closest('button'); if(!b) return;
+    if(b.dataset.dev!=null){ dictSaveDevice(devs[+b.dataset.dev]); dictUpdateBtn(); micMenuAt(); }
+    else if(b.dataset.lang){ setDictLang(b.dataset.lang); micMenuAt(); }
+    else if(b.dataset.act==='start'){ m.style.display='none'; toggleDictation(true); }
+  };
+}
+function micContext(e){ if(e) e.preventDefault(); micMenuAt(); return false; }
+function setDictLang(l){
+  if(!DICT_LANGS.includes(l)) return;
+  DICT.lang=l; try{ localStorage.setItem('crs-dict-lang',l); }catch{}
+  const wasOn=DICT.on&&DICT.engine==='webspeech';
+  if(wasOn){ stopDictation(); startDictation(); }   // pick up the new lang mid-session
+  dictUpdateBtn(); dictProbeInstall(l);
+}
+function startWebSpeech(){
   const SR=dictSR(); if(!SR||DICT.on) return;
   let r;
   try{ r=new SR(); }catch{ return; }
@@ -2622,26 +2699,68 @@ function startDictation(){
     }
     DICT.on=false; DICT.rec=null; DICT.err=null; dictUpdateBtn();
   };
-  DICT.rec=r; DICT.on=true; DICT.restarts=0; DICT.err=null;
+  DICT.rec=r; DICT.on=true; DICT.engine='webspeech'; DICT.restarts=0; DICT.err=null;
   try{ r.start(); }catch{ DICT.on=false; DICT.rec=null; }
   dictUpdateBtn();
 }
+// ---- non-default device path: capture that exact mic, transcribe on stop ----
+async function startRecorder(){
+  if(DICT.on) return;
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:DICT.device.deviceId}}}); }
+  catch(e){ toast('Mic "'+(DICT.device&&DICT.device.label||'?')+'" unavailable — using the system-default mic'); startWebSpeech(); return; }
+  const mime=(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))?'audio/webm;codecs=opus':'audio/webm';
+  let mr;
+  try{ mr=new MediaRecorder(stream,{mimeType:mime}); }
+  catch(e){ stream.getTracks().forEach(t=>t.stop()); toast('Recording unsupported — using the system-default mic'); startWebSpeech(); return; }
+  DICT.media=stream; DICT.recorder=mr; DICT.chunks=[]; DICT.on=true; DICT.engine='recorder';
+  mr.ondataavailable=(ev)=>{ if(ev.data&&ev.data.size) DICT.chunks.push(ev.data); };
+  mr.onstop=()=>dictTranscribe();
+  mr.start();
+  DICT.stopTimer=setTimeout(()=>{ if(DICT.on&&DICT.engine==='recorder') stopDictation(); },5*60*1000);   // safety cap
+  dictUpdateBtn(); dictGhost('Listening — '+(DICT.device.label||'selected mic')+' · click the mic to stop & transcribe');
+}
+async function dictTranscribe(){
+  const blob=new Blob(DICT.chunks,{type:(DICT.chunks[0]&&DICT.chunks[0].type)||'audio/webm'});
+  DICT.chunks=[];
+  if(!blob.size){ dictGhost(''); return; }
+  dictGhost('Transcribing…');
+  try{
+    const b64=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=rej; fr.readAsDataURL(blob); });
+    const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mime:blob.type,lang:DICT.lang.slice(0,2)})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+    dictAppendFinal(j.text);
+    dictGhost('');
+  }catch(e){ dictGhostFlash('Transcription failed — '+e.message); }
+}
 function stopDictation(){
-  DICT.on=false;
+  DICT.on=false; clearTimeout(DICT.stopTimer);
   const r=DICT.rec; DICT.rec=null;
   if(r){ try{ r.stop(); }catch{} }
-  dictGhost(''); dictUpdateBtn();
+  const mr=DICT.recorder; DICT.recorder=null;
+  if(mr){ try{ if(mr.state!=='inactive') mr.stop(); }catch{} }   // → onstop → dictTranscribe
+  if(DICT.media){ try{ DICT.media.getTracks().forEach(t=>t.stop()); }catch{} DICT.media=null; }
+  if(DICT.engine!=='recorder') dictGhost('');   // recorder path keeps its Transcribing… ghost
+  dictUpdateBtn();
 }
-function toggleDictation(){ DICT.on?stopDictation():startDictation(); }
-function cycleDictLang(e){
-  if(e){ e.preventDefault(); }
-  DICT.lang=DICT_LANGS[(DICT_LANGS.indexOf(DICT.lang)+1)%DICT_LANGS.length];
-  try{ localStorage.setItem('crs-dict-lang',DICT.lang); }catch{}
-  const wasOn=DICT.on;
-  if(wasOn){ stopDictation(); startDictation(); }   // pick up the new lang mid-session
-  dictUpdateBtn(); dictGhostFlash('Dictation language: '+dictTag()+' ('+DICT.lang+')');
-  dictProbeInstall(DICT.lang);
-  return false;
+// Short-click: picker on first ever use, then start/stop with the remembered
+// device. forceStart=true comes from the popover's Start action.
+async function toggleDictation(forceStart){
+  if(DICT.on){ stopDictation(); return; }
+  if(!DICT.device&&forceStart!==true){ micMenuAt(); return; }
+  await startDictation();
+}
+async function startDictation(){
+  if(DICT.on) return;
+  const devs=DICT.devices||(DICT.devices=await dictListDevices());
+  if(!DICT.device) dictSaveDevice(dictPickDefault(devs));
+  let engine=dictEngine(DICT.device,devs);
+  if(engine==='recorder'&&!(SETTINGS&&SETTINGS.googleAiKeySet)){
+    toast('This mic needs the free Google AI key (Settings → General) — using system-default mic instead');
+    engine='webspeech';
+  }
+  engine==='webspeech'?startWebSpeech():await startRecorder();
 }
 (function initDictation(){
   const b=$('micBtn'); if(!b) return;
@@ -5167,6 +5286,7 @@ async function resetTypePrefs(id){ const np=SETTINGS.notifyPrefs||{}; const type
 async function resetAllTypePrefs(){ if(!await crsConfirm({title:'Reset all notification preferences?',body:'Every notification type returns to its default channels and sound.',confirmLabel:'Reset all',danger:false})) return; SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{types:{}}); await saveSettingsPatch({notifyPrefs:{resetAll:true}}); renderSettings(); }
 function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
 async function setLearnSounds(v){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{learnSounds:!!v}); await saveSettingsPatch({sounds:{learnSounds:!!v}}); if(v) SOUNDS.playSound('s26'); }
+async function saveGoogleKeyUI(){ const inp=$('setGoogleKey'); const v=(inp&&inp.value||'').trim(); await saveSettingsPatch({googleAiKey:v}); if(inp)inp.value=''; renderSettings(); toast(v?'Google AI key saved':'Google AI key cleared'); }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
 // ---- Bubble sync truth UI (D4): spinner while running, TRUE outcome through
@@ -5205,7 +5325,10 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Bubble awareness — check now</b><span>Always-on daily watchers (no AI cost): new CRS-relevant forum topics → brain/bubble/forum-digest.md; new release entries → brain/bubble/release-notes.md with locked-decision cross-check.</span><span class="sync-stamp" id="syncStamp-forum">…</span><span class="sync-stamp" id="syncStamp-relnotes">…</span></div>
         <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum',this)">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes',this)">Check releases</button></div></div>
       <div class="mrow"><div class="mlbl"><b>Bubble issue check (read-only)</b><span>Runs buildprint sync + check on the test branch and writes a dated report with PROPOSED fixes to brain/bubble/issue-reports/ — never applies anything. Also runs daily.</span><span class="sync-stamp" id="syncStamp-issues">…</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check',this)">Check issues</button></div></div>`;
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check',this)">Check issues</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Voice</div>
+      <div class="mrow"><div class="mlbl"><b>Google AI key (free, aistudio.google.com)</b><span>Only used to transcribe dictation from a non-default microphone (Gemini). Kept in a gitignored local file and always shown masked${s.googleAiKeySet?' — currently '+esc(s.googleAiKey||''):''}.</span></div>
+        <div class="mctl"><input class="tinput" id="setGoogleKey" type="password" autocomplete="off" placeholder="${s.googleAiKeySet?'saved — paste to replace, save blank to clear':'AIza…'}"><button class="mbtn2 primary" onclick="saveGoogleKeyUI()">Save</button></div></div>`;
   } else if(settingsTab==='appearance'){
     pane=`<div class="msec-title">Theme</div>
       <div class="mrow"><div class="mlbl"><b>Appearance</b><span>Switch between dark and light. Applies instantly across the app.</span></div>

@@ -10,5 +10,6 @@ data/bubble-release-notes.snapshot
 .env
 secrets.json
 data/smtp.json
+data/google-ai.json
 .remote-token
 .bp-test-user

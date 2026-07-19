@@ -742,6 +742,21 @@ const EVENT_TO_TYPE = {
 // Old 5-sound system → nearest new default (one-time migration of notify.soundName).
 const OLD_SOUND_MAP = { ping: 's01', chime: 's03', pop: 's16', alert: 's19', blip: 's13', none: 'none' };
 const SMTP_FILE = path.join(DATA_DIR, 'smtp.json');   // gitignored secrets store (see .gitignore)
+// Google AI (Gemini) key for mic-device transcription. Secret → lives in its own
+// gitignored file like smtp.json (settings.json is swept into brain: commits);
+// the client still reads/writes it through /api/settings, always masked on read.
+const GOOGLE_AI_FILE = path.join(DATA_DIR, 'google-ai.json');
+function loadGoogleKey() { try { return String(JSON.parse(fs.readFileSync(GOOGLE_AI_FILE, 'utf8')).key || ''); } catch { return ''; } }
+function saveGoogleKey(key) {
+  key = String(key || '').trim().slice(0, 200);
+  if (!key) { try { fs.unlinkSync(GOOGLE_AI_FILE); } catch {} return; }
+  fs.writeFileSync(GOOGLE_AI_FILE, JSON.stringify({ key }, null, 2));
+}
+// What the client sees: never the key itself — a ••••-masked tail + a set flag.
+function maskedSettings(s) {
+  const key = loadGoogleKey();
+  return { ...s, googleAiKey: key ? '••••••••' + key.slice(-4) : '', googleAiKeySet: !!key };
+}
 function loadSettings() {
   let s;
   try { s = { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
@@ -3554,11 +3569,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/settings' && req.method === 'GET') {
-      return send(res, 200, loadSettings());
+      return send(res, 200, maskedSettings(loadSettings()));
     }
     if (p === '/api/settings' && req.method === 'PUT') {
       const body = await readJsonBody(req);
       const cur = loadSettings();
+      // Google AI key rides the settings PUT but is stored in the gitignored
+      // secrets file, never in settings.json. Masked values echoed back by the
+      // client are ignored; '' clears the key.
+      if (typeof body.googleAiKey === 'string' && !body.googleAiKey.includes('••')) saveGoogleKey(body.googleAiKey);
       // Merge — never drop keys other callers may have stored in settings.json.
       const next = {
         ...cur,
@@ -3613,7 +3632,7 @@ const server = http.createServer(async (req, res) => {
           : (cur.notifyPrefs || { dnd: false, bannerSec: 4, types: {} }),
       };
       saveSettings(next);
-      return send(res, 200, next);
+      return send(res, 200, maskedSettings(next));
     }
 
     // ---- sounds: local WAV store (data/sounds/) ----
@@ -3664,6 +3683,34 @@ const server = http.createServer(async (req, res) => {
         return send(res, 200, buf, { 'Content-Type': 'audio/mpeg', 'X-TTS-Cache': 'miss' });
       } catch (e) {
         return send(res, 502, { error: 'tts failed: ' + e.message });   // client falls back to speechSynthesis
+      }
+    }
+
+    // ---- dictation from a NON-default mic: audio blob → Gemini transcription ----
+    // (Chrome's SpeechRecognition is locked to the system-default input; chosen
+    // devices are captured via MediaRecorder client-side and transcribed here.)
+    if (p === '/api/transcribe' && req.method === 'POST') {
+      const body = await readJsonBody(req, 12 * 1024 * 1024);
+      const key = loadGoogleKey();
+      if (!key) return send(res, 501, { error: 'no Google AI key configured — add it in Settings → General (free at aistudio.google.com)' });
+      let audio;
+      try { audio = Buffer.from(String((body && body.audio) || ''), 'base64'); } catch { return send(res, 400, { error: 'bad audio' }); }
+      if (!audio.length) return send(res, 400, { error: 'no audio' });
+      const mime = /^[a-z0-9/;=+-]{3,80}$/i.test(String((body && body.mime) || '')) ? body.mime : 'audio/webm';
+      const langName = { en: 'English', ru: 'Russian', ka: 'Georgian' }[body && body.lang] || null;
+      try {
+        const { GoogleGenAI } = require('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: key });
+        const r = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-lite',
+          contents: [{ role: 'user', parts: [
+            { inlineData: { mimeType: mime, data: audio.toString('base64') } },
+            { text: 'Transcribe verbatim. Output only the transcript.' + (langName ? ' The speech is in ' + langName + '.' : '') },
+          ] }],
+        });
+        return send(res, 200, { text: String(r.text || '').trim() });
+      } catch (e) {
+        return send(res, 502, { error: 'transcription failed: ' + String(e.message || e).slice(0, 300) });
       }
     }
 
