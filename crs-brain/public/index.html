@@ -1167,6 +1167,9 @@
   .htmlfull iframe{flex:1;border:0;background:#fff}
   /* prototype-studio chrome on the fullscreen bar (parent chrome — the sandboxed iframe can't host it) */
   .htmlfull .hf-bar button.hf-pbtn{width:auto;padding:0 11px;font:inherit;font-size:12px;font-weight:600;height:30px}
+  /* sidebar3: overlay-scoped control — quieter ghost so it can't read as an app-header toggle */
+  .htmlfull .hf-bar button.hf-pbtn.hf-scoped{font-size:11px;font-weight:500;height:26px;padding:0 9px;color:var(--muted)}
+  .htmlfull .hf-bar button.hf-pbtn.hf-scoped:hover{color:var(--primary)}
   .hf-proto{display:flex;align-items:center;gap:7px}
   .hf-chip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
   .hf-chip.st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
@@ -3879,7 +3882,7 @@ function openHtmlOverlay(p, protoName){
   hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
   const protoBtns=protoName?`
     <span class="hf-proto" id="hfProtoMeta">…</span>
-    <button class="hf-pbtn" title="Toggle prototype theme" onclick="protoOverlayTheme()">◐ Theme</button>
+    <button class="hf-pbtn hf-scoped" title="Theme of the previewed prototype only — does not change the app theme" onclick="protoOverlayTheme()">◐ Prototype theme</button>
     <button class="hf-pbtn" title="Snapshot the current html into versions/" onclick="protoOverlaySnapshot('${jsq(protoName)}')">⬇ Snapshot</button>
     <button class="hf-pbtn" title="Freeze this exact html as the settled hash" onclick="protoOverlaySettle('${jsq(protoName)}')">✓ Mark settled</button>`:'';
   h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>${protoBtns}
