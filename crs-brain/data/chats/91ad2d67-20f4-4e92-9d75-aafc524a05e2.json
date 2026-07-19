@@ -1,0 +1,96 @@
+{
+  "id": "91ad2d67-20f4-4e92-9d75-aafc524a05e2",
+  "title": "what is playbook distiller ledger",
+  "sessionId": "dfe2dcb5-3ad7-4f63-b7c7-933beb08c5f9",
+  "bp": false,
+  "created": "2026-07-19T11:00:15.072Z",
+  "updated": "2026-07-19T11:00:39.314Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "what is playbook distiller ledger",
+      "ts": "2026-07-19T11:00:15.072Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "\"Playbook Distiller → Ledger\" is a lane/edge in the CRS Brain app's Live System Map (`crs-brain/public/js/livemap.js`), part of the self-learning loop visualization:\n\n- **BRAIN → DISTILLER**: after a chat turn runs, the distiller scans the turn (including tool-result \"✗ outcome\" tails now captured per `LEARN.2` in `brain/qa/master-checklist.md:218`) to see what actually failed/succeeded, not just what ran.\n- **DISTILLER → LEDGER**: when it extracts a lesson, it writes it into `data/playbook.json` (the \"ledger\" of learned lessons — platform gotchas, CLI bugs, workspace rules, design patterns, verification tricks, decision pointers), and pings the live map (`learning-saved` event → glows the brain-distiller and distiller-ledger edges, ripples the LEDGER node).\n\nSo there's no single file literally named \"distiller ledger\" — it's the pipeline name for: **turn happens → Distiller extracts a lesson from it → lesson gets committed to the Playbook ledger (`data/playbook.json`)**, shown live as a glowing edge on the Live Map. This is mid-build per `brain/qa/program-progress.md:203-204` (T0 landed, T1 schema migration in progress) and validated in `PLAYBOOK.6` / `LIVEMAP.1` checkpoints (both PASS, 2026-07-19).",
+      "ts": "2026-07-19T11:00:39.314Z",
+      "startedAt": "2026-07-19T11:00:15.074Z",
+      "completedAt": "2026-07-19T11:00:39.314Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -rli \"distiller\" /Users/vlad/projects/crs-progress 2>/dev/null",
+          "body": "command: grep -rli \"distiller\" /Users/vlad/projects/crs-progress 2>/dev/null\n⇒ /Users/vlad/projects/crs-progress/crs-brain/server.js /Users/vlad/projects/crs-progress/crs-brain/public/js/livemap.js /Users/vlad/projects/crs-progress/crs-bra",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller ledger\" -A5 -B5 /Users/vlad/projects/crs-progres…",
+          "body": "command: grep -ni \"distiller ledger\" -A5 -B5 /Users/vlad/projects/crs-progress/brain/qa/checkpoints/playbook.md\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\" /Users/vlad/projects/crs-progress/crs-brain/ser…",
+          "body": "command: grep -ni \"distiller\" /Users/vlad/projects/crs-progress/crs-brain/server.js | head -50\n⇒ 2361: // self-learning distiller can see WHAT HAPPENED, not just what ran.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/prog…",
+          "body": "command: grep -ni \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/program-progress.md /Users/vlad/projects/crs-progress/brain/qa/master-checklist.md\n⇒ ✗ /Users/vlad/projects/crs-progress/brain/qa/program-progress.md:203:- T0 landed prior session (distiller+result-capture+both tests); remaining proof: real-turn ✗ tails → in verification. /Users/vlad/projects/crs-progress/brain/qa/program-progress.md:204:- T1: data/playbook.json {id,category(platform-",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\\|ledger\" /Users/vlad/projects/crs-progress/crs-b…",
+          "body": "command: grep -ni \"distiller\\|ledger\" /Users/vlad/projects/crs-progress/crs-brain/public/js/livemap.js | head -50\n⇒ 4: * (Playbook / Distiller → Ledger). Real signals only — wired to state.live, 26: distiller: { x: 185, y: 28, r: 9, c: 'purple', ic: 'i-ingest', lbl: 'DISTILLE",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
