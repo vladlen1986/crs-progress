@@ -2437,19 +2437,33 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
   const chain = [primary, ...fallbacks].filter((m, i, a) => a.indexOf(m) === i);   // primary first, de-duped
   const models = autoFallback ? chain : [primary];
 
+  // Transient CLI/API deaths ("claude: error_during_execution") are NOT model
+  // outages, so the model chain never caught them — a hiccup killed the whole
+  // turn (seen live 2026-07-19: two back-to-back resume turns died pre-output
+  // while the same session resumed fine moments later). Recovery ladder, only
+  // ever when NOTHING was streamed yet: same model+session once more → then a
+  // fresh session (drops CLI-side memory of the chat — say so via onRetry).
+  const isTransientExec = (e) => e && e.stage === 'pre' && !e.retryable && /error_during_execution/i.test(e.message || '');
+
   let lastErr;
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
-    try {
-      const r = await runClaudeStream(message, sessionId, hooks, { ...opts, model: model || undefined });
-      return { ...r, model: model || r.model || null };
-    } catch (e) {
-      lastErr = e;
-      const next = models[i + 1];
-      // Only switch when nothing was produced yet AND the cause is a model outage.
-      if (next === undefined || !e || e.stage !== 'pre' || !e.retryable) throw e;
-      try { (hooks.onModelSwitch || (() => {}))({ from: model || 'default', to: next, reason: e.message }); } catch {}
+    const attempts = [{ sid: sessionId }, { sid: sessionId, note: 'retrying the turn' }, ...(sessionId ? [{ sid: null, note: 'session was unrecoverable — starting a fresh session' }] : [])];
+    for (let a = 0; a < attempts.length; a++) {
+      const at = attempts[a];
+      if (a > 0) try { (hooks.onRetry || (() => {}))({ attempt: a, fresh: at.sid === null, note: at.note, reason: String(lastErr && lastErr.message || '').slice(0, 200) }); } catch {}
+      try {
+        const r = await runClaudeStream(message, at.sid, hooks, { ...opts, model: model || undefined });
+        return { ...r, model: model || r.model || null, freshSession: at.sid === null && sessionId != null };
+      } catch (e) {
+        lastErr = e;
+        if (!isTransientExec(e) || a === attempts.length - 1) break;   // only the transient class walks the ladder
+      }
     }
+    const e = lastErr, next = models[i + 1];
+    // Only switch models when nothing was produced yet AND the cause is a model outage.
+    if (next === undefined || !e || e.stage !== 'pre' || !e.retryable) throw e;
+    try { (hooks.onModelSwitch || (() => {}))({ from: model || 'default', to: next, reason: e.message }); } catch {}
   }
   throw lastErr;
 }
@@ -3412,6 +3426,13 @@ const server = http.createServer(async (req, res) => {
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
           onModelSwitch: (m) => { liveModel = m.to || liveModel; const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
+          onRetry: (r) => {
+            // Transient CLI death recovered pre-output — show it instead of dying silently.
+            const label = 'Turn hiccup — ' + (r.note || 'retrying') + (r.fresh ? '' : ` (attempt ${r.attempt + 1})`);
+            steps.push({ kind: 'note', tool: null, label, body: capBody(r.reason || ''), actor: 'brain' });
+            sse({ type: 'block', kind: 'note', tool: null, actor: 'brain' });
+            sse({ type: 'label', text: label });
+          },
         }, runOpts);
         // Prefer the clean final segment (everything after the last tool call); fall
         // back to the CLI's full result only if the model ended without final text.
