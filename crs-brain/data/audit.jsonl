@@ -44,3 +44,4 @@
 {"ts":"2026-07-19T00:23:27.279Z","action":"playbook-retired","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.288Z","action":"playbook-active","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.298Z","action":"playbook-edit","target":"db198c67","via":"desktop","meta":null}
+{"ts":"2026-07-19T16:21:08.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}

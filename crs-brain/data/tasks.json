@@ -610,7 +610,8 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c2"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:21:08.002Z"
     },
     {
       "id": "edf88a67",
@@ -626,7 +627,8 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c3"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:21:08.003Z"
     },
     {
       "id": "a5ab82e3",
@@ -642,7 +644,8 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c4"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:21:08.005Z"
     },
     {
       "id": "8b3fa08a",
@@ -927,7 +930,8 @@
       },
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:21:08.006Z"
     },
     {
       "id": "b1fea3ad",
@@ -975,7 +979,8 @@
       },
       "auto": {
         "key": "chunk-report:casino-settings/c1"
-      }
+      },
+      "notifiedDue": "2026-07-19T16:21:08.007Z"
     },
     {
       "id": "e207b7c4",
