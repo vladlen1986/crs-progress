@@ -1877,6 +1877,15 @@ const LEARN_KINDS={
   'playbook-applied':{ic:'⚡',cls:'applied',label:'Applying knowledge'},
   'recurrence':{ic:'⚠',cls:'recurrence',label:'Known mistake repeated'},
 };
+// magical chimes on knowledge events — s25 sparkle for ⚡ apply, s26 bloom for 🧠 learned.
+// Off switch lives in Settings→Sounds (sounds.learnSounds, default ON); DND mutes them like every other sound.
+const LEARN_SOUNDS={'playbook-applied':'s25','learning-saved':'s26'};
+function playLearnSound(kind){
+  const sid=LEARN_SOUNDS[kind]; if(!sid) return;
+  if((((SETTINGS||{}).sounds||{}).learnSounds)===false) return;
+  if(!!((SETTINGS||{}).notifyPrefs||{}).dnd) return;
+  try{ SOUNDS.playSound(sid); }catch{}   // autoplay policy may block before the first gesture — stay silent
+}
 async function pollLearnEvents(){
   try{
     const r=await api('/api/learn-events?since='+encodeURIComponent(LEARN_SINCE));
@@ -1888,6 +1897,8 @@ async function pollLearnEvents(){
 }
 function showLearnToast(ev){
   const k=LEARN_KINDS[ev.kind];
+  if(!k) return;   // undefined kinds no-op (kept in sync with the pollLearnEvents filter)
+  playLearnSound(ev.kind);
   let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
   while(host.children.length>=3) host.firstChild.remove();
   const el=document.createElement('div'); el.className='ltoast '+k.cls;
@@ -4989,6 +5000,7 @@ function sendTestNotif(){ notifyT('success',{title:'Test notification',message:'
 async function resetTypePrefs(id){ const np=SETTINGS.notifyPrefs||{}; const types=Object.assign({},np.types); delete types[id]; SETTINGS.notifyPrefs=Object.assign({},np,{types}); await saveSettingsPatch({notifyPrefs:{types:{[id]:{reset:true}}}}); renderSettings(); }
 async function resetAllTypePrefs(){ if(!await crsConfirm({title:'Reset all notification preferences?',body:'Every notification type returns to its default channels and sound.',confirmLabel:'Reset all',danger:false})) return; SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{types:{}}); await saveSettingsPatch({notifyPrefs:{resetAll:true}}); renderSettings(); }
 function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
+async function setLearnSounds(v){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{learnSounds:!!v}); await saveSettingsPatch({sounds:{learnSounds:!!v}}); if(v) SOUNDS.playSound('s26'); }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
 // ---- Bubble sync truth UI (D4): spinner while running, TRUE outcome through
@@ -5054,7 +5066,7 @@ async function renderSettings(){
         <div class="mctl"><input type="range" min="2" max="10" step="1" value="${np.bannerSec||4}" style="width:160px" oninput="setBannerSec(this.value,false)" onchange="setBannerSec(this.value,true)"><span class="dim" id="bannerSecLbl" style="min-width:28px;text-align:right">${np.bannerSec||4}s</span></div></div>
       <div class="mrow"><div class="mlbl"><b>Question re-notify</b><span>An unanswered session question knocks again once after this many minutes.</span></div>
         <div class="mctl"><input class="tinput" type="number" min="1" max="120" style="width:70px" value="${(np.askRenotifyMin||10)}" onchange="setAskRenotify(this.value)"><span class="dim">min</span></div></div>
-      <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 24-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 26-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
       <div class="mrow"><div class="mlbl"><b>Test</b><span>Fire a real notification through your current preferences.</span></div><div class="mctl"><button class="mbtn2" onclick="sendTestNotif()">Send test notification</button></div></div>
       ${NOTIFY_CATEGORIES.map(c=>`<div class="msec-title" style="margin-top:16px">${esc(c.name)}</div>${typeRows(c.id)}`).join('')}
       <div class="mrow"><div class="mlbl"><b>Reset all</b><span>Return every notification type to its default channels and sound.</span></div><div class="mctl"><button class="mbtn2" onclick="resetAllTypePrefs()">Reset all</button></div></div>
@@ -5067,11 +5079,13 @@ async function renderSettings(){
     pane=`<div class="msec-title">Volume</div>
       <div class="mrow"><div class="mlbl"><b>Master volume</b><span>Applies to every sound. Release the slider to save + preview.</span></div>
         <div class="mctl"><input type="range" min="0" max="100" value="${snd.volume!=null?snd.volume:80}" style="width:160px" oninput="setSoundVolume(this.value,false)" onchange="setSoundVolume(this.value,true)"><span class="dim" style="min-width:32px;text-align:right">${snd.volume!=null?snd.volume:80}</span></div></div>
+      <div class="mrow"><div class="mlbl"><b>Learning sounds (apply/learn chimes)</b><span>Magical chimes when the brain applies knowledge (⚡ Spark shimmer) or saves a lesson (🧠 Mind bloom). DND mutes them too.</span></div>
+        <div class="mctl">${sw(snd.learnSounds!==false,"setLearnSounds(this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Per-type sounds</b><span>Sound assignment moved — each notification type picks its sound in the Notifications tab.</span></div>
         <div class="mctl"><button class="mbtn2" onclick="setSettingsTab('notifications')">${svg('i-bell','sm')} Open Notifications</button></div></div>
       <div class="msec-title" style="margin-top:16px">Sound files</div>
-      <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 24 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
-      <div class="msec-title" style="margin-top:16px">Library — all 24</div>
+      <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 26 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Library — all 26</div>
       ${cats.map(c=>`<div class="msec-title" style="margin-top:10px;font-size:11px;opacity:.7">${SOUNDS_SYNTH.catLabel[c]}</div>`+SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<div class="mrow"><div class="mlbl"><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></div><div class="mctl"><button class="mbtn2" onclick="SOUNDS.playSound('${x.id}')">${svg('i-volume','sm')} Play</button></div></div>`).join('')).join('')}`;
   } else if(settingsTab==='connections'){
     pane=`<div class="msec-title">Claude (subscription)</div>

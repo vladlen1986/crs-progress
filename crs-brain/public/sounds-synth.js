@@ -1,4 +1,4 @@
-/* CRS Brain — approved sound set (24 sounds), pure Web Audio synthesis.
+/* CRS Brain — approved sound set (24 sounds + s25/s26 learn chimes), pure Web Audio synthesis.
  * Single source of truth for BOTH the one-time WAV render (OfflineAudioContext)
  * and the live-synthesis fallback when a WAV file is missing.
  * No network, no libraries. Implemented verbatim from the approved spec. */
@@ -144,7 +144,22 @@
       build: function (c, d, t) { tone(c, d, 622, t, 0.22, { g: 0.5 }); tone(c, d, 440, t + 0.02, 0.34, { g: 0.4 }); tone(c, d, 311, t + 0.26, 0.4, { g: 0.45 }); } },
     { id: 's24', slug: 'fail-thud', name: 'Fail thud', cat: 'err',
       desc: 'Dull thud with a low tail.', dur: 0.9,
-      build: function (c, d, t) { noise(c, d, t, 0.12, 0.5, 300); tone(c, d, 120, t, 0.6, { g: 0.5 }); } }
+      build: function (c, d, t) { noise(c, d, t, 0.12, 0.5, 300); tone(c, d, 120, t, 0.6, { g: 0.5 }); } },
+    { id: 's25', slug: 'spark-shimmer', name: 'Spark shimmer', cat: 'notif',
+      desc: 'Quick magical sparkle — a pentatonic run glides up into a soft high shimmer.', dur: 0.75,
+      build: function (c, d, t) {
+        pluck(c, d, 1046, t, 0.34); pluck(c, d, 1174, t + 0.07, 0.34);
+        bell(c, d, 1318, t + 0.14, 0.4, 0.26); bell(c, d, 1568, t + 0.21, 0.45, 0.3);
+        bell(c, d, 1760, t + 0.28, 0.55, 0.34);
+        tone(c, d, 3520, t + 0.3, 0.35, { g: 0.06 });
+      } },
+    { id: 's26', slug: 'mind-bloom', name: 'Mind bloom', cat: 'done',
+      desc: 'Warm two-stage bloom — a low bell opens, a major arpeggio rises and settles high.', dur: 1.05,
+      build: function (c, d, t) {
+        bell(c, d, 262, t, 0.9, 0.4); tone(c, d, 131, t, 0.7, { g: 0.12 });
+        mar(c, d, 523, t + 0.16, 0.5, 0.4); mar(c, d, 659, t + 0.28, 0.5, 0.4);
+        mar(c, d, 784, t + 0.4, 0.55, 0.42); bell(c, d, 1046, t + 0.52, 0.55, 0.4);
+      } }
   ];
 
   var CAT_LABEL = { notif: 'Notification', done: 'Success', warn: 'Warning', err: 'Error', info: 'Info' };

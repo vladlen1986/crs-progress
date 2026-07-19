@@ -3526,6 +3526,8 @@ const server = http.createServer(async (req, res) => {
         sounds: body.sounds && typeof body.sounds === 'object'
           ? {
               volume: body.sounds.volume != null ? Math.max(0, Math.min(100, Number(body.sounds.volume) || 0)) : cur.sounds.volume,
+              // learn chimes (s25/s26 on apply/learn events) — absent = ON; only an explicit boolean flips it
+              learnSounds: typeof body.sounds.learnSounds === 'boolean' ? body.sounds.learnSounds : cur.sounds.learnSounds,
               events: body.sounds.events && typeof body.sounds.events === 'object'
                 ? Object.fromEntries(SOUND_EVENTS.map((ev) => {
                     const v = body.sounds.events[ev] != null ? body.sounds.events[ev] : cur.sounds.events[ev];
