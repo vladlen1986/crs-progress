@@ -1,0 +1,82 @@
+{
+  "id": "2064c30d-4eb7-4969-8f5c-af21239e7d97",
+  "title": "ok what is the current state of brain learning",
+  "sessionId": "27aa3011-791c-47f6-a564-12535737ef32",
+  "bp": false,
+  "created": "2026-07-19T06:53:52.062Z",
+  "updated": "2026-07-19T06:54:21.248Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "ok what is the current state of brain learning",
+      "ts": "2026-07-19T06:53:52.062Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The \"zebra\" test lessons appear in `learn-events.jsonl` but never made it into `playbook.json` — that whole thread was a diagnostic/test loop (deliberately invoking a fake `zebra` command to test the learning pipeline itself), not real lessons, so it correctly stayed out of the persisted playbook.\n\n**Current state of Brain Learning** (`crs-brain/data/playbook.json` + `learn-events.jsonl`):\n\n**9 active lessons in the Playbook**, all `status: active`, none archived/superseded:\n\n| Category | Count | Examples |\n|---|---|---|\n| workspace-rule | 4 | index page.json un-editable, no scratch files in worktree, git checkout/reset blocked, `generate-ids` takes positional arg not `--count` |\n| design-pattern | 2 | light/dark theme via per-element `bptheme` states, anonymous users have no theme |\n| decision-pointer | 1 | anonymous sign-in page is dark by design (Vlad's 2026-07-19 ruling) |\n| cli-bug | 1 | use `node` not `python` — python isn't installed on the Windows host |\n| platform-gotcha | 1 | `buildprint sync` \"Unauthorized\" ≠ stale data — check sync status first |\n\n**Provenance:** 7 lessons were migrated in from the old memory system on 2026-07-19T00:21; 2 are freshly learned from a real BP session (`chat fdfec816`) at 02:41.\n\n**Reuse signal:** only 3 of 9 have ever fired again (`hits` 1, 1, 2) — the python→node rule fired twice, the strongest repeat offender so far.\n\n**Test-loop noise:** the `learn-events.jsonl` log also contains ~7 events from a synthetic \"zebra\" diagnostic used to validate the learning pipeline (learn → save → apply → detect recurrence). Working as intended — a recurrence was correctly flagged once — but that's pipeline self-test, not product knowledge.\n\nNo stale/wrong lessons flagged, no `recurred` counts above 0 outside the deliberate zebra test.",
+      "ts": "2026-07-19T06:54:21.248Z",
+      "startedAt": "2026-07-19T06:53:52.065Z",
+      "completedAt": "2026-07-19T06:54:21.248Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ echo \"=== brain/INDEX.md ===\" && cat brain/INDEX.md 2>/dev/null | he…",
+          "body": "command: echo \"=== brain/INDEX.md ===\" && cat brain/INDEX.md 2>/dev/null | head -100",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ find crs-brain/data -iname \"*playbook*\" -o -iname \"*lesson*\" -o -ina…",
+          "body": "⇒ === brain/INDEX.md === # CRS Brain — Master Index **Read this file first, always.** It maps every knowledge domain to its file. One fact = one home. Files below\ncommand: find crs-brain/data -iname \"*playbook*\" -o -iname \"*lesson*\" -o -iname \"*learn*\" 2>/dev/null\n⇒ crs-brain/data/learn-events.jsonl crs-brain/data/playbook.json",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ echo \"=== playbook.json ===\" && cat crs-brain/data/playbook.json | p…",
+          "body": "command: echo \"=== playbook.json ===\" && cat crs-brain/data/playbook.json | python3 -m json.tool 2>/dev/null | head -150\necho \"=== learn-events.jsonl tail ===\" && tail -30 crs-brain/data/learn-events.jsonl\necho \"=== count ===\" && wc -l crs-brain/data/learn-events.jsonl\n⇒ === playbook.json === [ { \"id\": \"c2faed8c\", \"category\": \"workspace-rule\", \"trigger\": \"page.json, index page, page-level, rename page, html_header, page css\", \"r",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ python3 -c \" import json d = json.load(open('crs-brain/data/playbook…",
+          "body": "command: python3 -c \"\nimport json\nd = json.load(open('crs-brain/data/playbook.json'))\nprint('total lessons:', len(d))\nfor l in d:\n    print(l['id'], l['category'], l['status'], 'hits='+str(l['hits']), l['source'])\n\"\n⇒ total lessons: 9 c2faed8c workspace-rule active hits=1 migrated from memory 2026-07-19 441d54c7 design-pattern active hits=1 migrated from memory 2026-07-19 db1",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
