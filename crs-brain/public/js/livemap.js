@@ -108,12 +108,12 @@
   const css = document.createElement('style');
   css.textContent = `
   /* chromeless panel: translucent smoke base by default, solid chrome on hover */
-  #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:1;user-select:none;cursor:grab;transition:background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
+  #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:1;user-select:none;cursor:grab;transition:background-color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out}
   #lmPanel.chrome{background:var(--panel);border-color:var(--line2);box-shadow:var(--shadow-dropdown)}
   #lmPanel.dragging{cursor:grabbing}
   [data-theme="light"] #lmPanel{--lm-deco:.6}
   /* hover chrome: floating header line + buttons, hidden until .chrome */
-  #lmPanel .lm-head{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;opacity:0;pointer-events:none;transition:opacity .2s ease}
+  #lmPanel .lm-head{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;opacity:0;pointer-events:none;transition:opacity .2s ease-in-out}
   #lmPanel.chrome .lm-head{opacity:1;pointer-events:auto}
   #lmPanel .lm-live-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex:0 0 7px}
   #lmPanel.live .lm-live-dot{background:var(--accent);box-shadow:0 0 8px var(--accent-glow),0 0 4px var(--accent)}
@@ -123,13 +123,13 @@
   #lmPanel .lm-hbtn{background:none;border:none;color:var(--text-muted);width:26px;height:26px;border-radius:var(--radius-btn);cursor:pointer;font-size:12px;line-height:1;font-family:inherit;flex:0 0 auto}
   #lmPanel .lm-hbtn:hover{color:var(--text-primary);background:var(--panel2)}
   /* resize grip — bottom-right, chrome-only */
-  #lmPanel .lm-grip{position:absolute;right:1px;bottom:1px;width:16px;height:16px;z-index:4;cursor:nwse-resize;opacity:0;pointer-events:none;transition:opacity .2s ease;color:var(--text-muted)}
+  #lmPanel .lm-grip{position:absolute;right:1px;bottom:1px;width:16px;height:16px;z-index:4;cursor:nwse-resize;opacity:0;pointer-events:none;transition:opacity .2s ease-in-out;color:var(--text-muted)}
   #lmPanel.chrome .lm-grip{opacity:.9;pointer-events:auto}
   #lmPanel .lm-grip svg{display:block;width:100%;height:100%;stroke:currentColor;stroke-width:1.2;fill:none;stroke-linecap:round}
   /* nebula idle skin — token hues only, low alpha, slow drift; hover sharpens away */
   #lmPanel .lm-scene{position:relative}
   #lmPanel .lm-scene svg{display:block;width:100%;position:relative;z-index:1}
-  #lmPanel .lm-neb{position:absolute;inset:0;pointer-events:none;opacity:var(--lm-deco);transition:opacity .25s ease;-webkit-mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%);mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%)}
+  #lmPanel .lm-neb{position:absolute;inset:0;pointer-events:none;opacity:var(--lm-deco);transition:opacity .2s ease-in-out;-webkit-mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%);mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%)}
   #lmPanel .lm-neb1{background:
     radial-gradient(90% 80% at 25% 30%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 65%),
     radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 62%);
@@ -372,7 +372,7 @@
   // ---- hover / focus chrome: fade in 200ms, fade out ~1s after leave --------
   let chromeT = null;
   function chromeOn() { clearTimeout(chromeT); chromeT = null; panel.classList.add('chrome'); }
-  function chromeOff() { clearTimeout(chromeT); chromeT = setTimeout(() => panel.classList.remove('chrome'), 1000); }
+  function chromeOff() { clearTimeout(chromeT); panel.classList.remove('chrome'); }
   panel.addEventListener('mouseenter', chromeOn);
   panel.addEventListener('mouseleave', chromeOff);
   panel.addEventListener('focusin', chromeOn);
