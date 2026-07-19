@@ -200,7 +200,12 @@
   function bump(id, ms) { S.until[id] = Math.max(S.until[id] || 0, now() + ms); if (S.mode === 'open') render(); }
   function ping(kind, arg) {
     const t = now();
-    if (kind === 'turn-start') { S.turnLive = true; S.nodePing.you = t; S.nodePing.brain = t; S.nodePing.model = t; }
+    if (kind === 'turn-start') {
+      S.turnLive = true; S.nodePing.you = t; S.nodePing.brain = t; S.nodePing.model = t;
+      // first activity auto-reveals the map — but an explicit user choice (any stored mode,
+      // incl. 'closed' after the user closed it) always wins
+      if (S.mode !== 'open' && !localStorage.getItem(LS_MODE)) setMode('open');
+    }
     else if (kind === 'turn-end') { S.turnLive = false; S.remoteTurn = false; TURN_EDGES.forEach((id) => { S.until[id] = t; }); }
     else if (kind === 'tool') { bump('model-tools', 3000); S.nodePing.tools = t; }
     else if (kind === 'bp-step') { bump('model-tools', 3000); bump('tools-bp', 3400); bump('bp-bubble', 3400); S.nodePing.bp = t; S.nodePing.bubble = t; }
