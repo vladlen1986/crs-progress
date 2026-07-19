@@ -1,0 +1,68 @@
+{
+  "id": "4a27a3c4-86c3-4e93-ace7-11f30211eec3",
+  "title": "Diagnostic: run the Bash command `node --zebra-hello` once a",
+  "sessionId": "3fba95ea-3140-4745-95bc-4c43861afb3c",
+  "bp": true,
+  "created": "2026-07-19T01:08:42.825Z",
+  "updated": "2026-07-19T01:08:51.040Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Diagnostic: run the Bash command `node --zebra-hello` once and report its exact output, then reply done. Nothing else.",
+      "ts": "2026-07-19T01:08:42.825Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The command produced: `node: bad option: --zebra-hello` (exit code 9).\n\nDone.",
+      "ts": "2026-07-19T01:08:51.040Z",
+      "startedAt": "2026-07-19T01:08:42.826Z",
+      "completedAt": "2026-07-19T01:08:51.040Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI problem — CLI not linked — run: buildprint link <token>",
+          "body": "The session will fall back to manual paths where possible. Fix, then retry: CLI not linked — run: buildprint link <token>",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — 1 lesson loaded",
+          "body": "• [cli-bug] The zebra diagnostic flag is not supported by node on this host",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Run diagnostic node command",
+          "body": "description: Run diagnostic node command\ncommand: node --zebra-hello\n⇒ ✗ Exit code 9 node: bad option: --zebra-hello",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}

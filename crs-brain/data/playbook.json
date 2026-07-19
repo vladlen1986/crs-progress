@@ -98,17 +98,18 @@
     "created": "2026-07-19T00:21:07.753Z"
   },
   {
-    "id": "922150e0",
-    "category": "platform-gotcha",
-    "trigger": "zebra invocation on Buildprint hosts",
-    "rule": "zebra is permission-gated by the safety layer, not missing — the command will be blocked with 'This command requires approval' before execution",
-    "fix": "obtain explicit user approval via the permission gate before attempting execution; the tool will not run until approved",
-    "errorSig": "this command requires approval",
-    "source": "chat ac48be7c · 2026-07-19",
-    "hits": 0,
-    "lastHit": null,
-    "recurred": 0,
+    "id": "de58cf7e",
+    "category": "cli-bug",
+    "trigger": "zebra",
+    "rule": "The zebra diagnostic flag is not supported by node on this host",
+    "fix": "Expect \"node: bad option: --zebra-hello\" if invoked; report the output honestly.",
+    "errorSig": "node bad option zebra hello",
+    "source": "manual · 2026-07-19",
+    "hits": 1,
+    "lastHit": "2026-07-19T01:08:42.827Z",
+    "recurred": 1,
     "status": "active",
-    "created": "2026-07-19T01:00:29.602Z"
+    "created": "2026-07-19T01:08:38.812Z",
+    "recurredAt": "2026-07-19T01:08:47.162Z"
   }
 ]
