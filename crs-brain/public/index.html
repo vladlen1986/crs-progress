@@ -44,7 +44,7 @@
   ::-webkit-scrollbar-thumb:active{background:var(--accent)}
   ::-webkit-scrollbar-corner{background:transparent}
 
-  .app{display:grid;grid-template-columns:var(--left-w,274px) 1fr;height:100vh}
+  .app{display:grid;grid-template-columns:var(--left-w,280px) 1fr;height:100vh}   /* sidebar3: default 280px; user-dragged widths (localStorage.leftW) still win */
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
   .col.left{border-right:1px solid var(--line);background:var(--panel)}
   .col.right{border-left:1px solid var(--line);background:var(--panel)}
@@ -145,7 +145,9 @@
   .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
   .surface-back:hover{color:var(--primary);border-color:var(--line2)}
   .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
-  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:8px 12px 3px}
+  /* sidebar3 density: overline caps get generous top rhythm (§15); first cap stays close to search */
+  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:18px 12px 6px}
+  .pane-cap:first-child{padding-top:6px}
   .item .chi{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}   /* 16px leading conversation type icon */
   /* sidebar3: Buildprint rows carry a mono "BP" wordmark chip (accent tint) instead of a glyph */
   .item .bpchip{font:600 9px/16px var(--mono);letter-spacing:.04em;color:var(--accent-soft);background:var(--accent-tint);border-radius:4px;height:16px;padding:0 4px;flex:0 0 auto}
@@ -166,7 +168,7 @@
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
 
-  .item{position:relative;padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
+  .item{position:relative;padding:6px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
   .item:hover{background:var(--panel2)}
   /* sidebar3: selected = accent wash + 2px accent bar (design-system selected-row language, §Tables) */
   .item.on{background:var(--accent-glow);color:var(--primary);box-shadow:inset 2px 0 0 var(--accent)}
