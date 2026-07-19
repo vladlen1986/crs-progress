@@ -198,3 +198,13 @@ Files to touch: server.js (proto endpoints, +sync-status extension NO — that's
 | 2026-07-18 | p0: persist program prompt | 59e1083 |
 | 2026-07-18 | p0: init progress file + launch fan-out | ae1ac69 |
 | 2026-07-18 | p0: app-map refresh + reconciliation + phase-1 plan | (this) |
+
+## PLAYBOOK PROGRAM (2026-07-19) — plan before first edit
+- T0 landed prior session (distiller+result-capture+both tests); remaining proof: real-turn ✗ tails → in verification.
+- T1: data/playbook.json {id,category(platform-gotcha|cli-bug|workspace-rule|design-pattern|verification|decision-pointer),trigger,rule,fix,errorSig?,source,hits,lastHit,recurred,status}; migrate the 7 operational memory seeds → playbook (memory keeps prefs/decisions); distiller outputs the new schema.
+- T2: matchLessons(text) keyword+errorSig; inject "PLAYBOOK — known traps" matched-subset into bp systemPrompt + gen intents; visible lifeStep "Playbook check — N loaded/clean" (expandable); hits++/lastHit; injected list kept per-turn.
+- T3: errorSig = normalized first line of ✗ tails; onToolResult error matching an INJECTED active lesson → recurrence: warning notification + What's-wrong todo + lesson.recurred++.
+- T4: BP_PROMPT visual-DoD strengthened (authenticated via .bp-test-user, logged-out variant, both images embedded, violation = not done).
+- T5: root cause CONFIRMED (bptheme keys on Current User; anonymous empty → dark); design fork ALREADY RULED (decisions.md 2026-07-19: anon dark by design) → no fix needed; evidence captures logged-out both-settings; logged-in light capture parked on .bp-test-user creds (honest boundary); lesson + decision-pointer in Playbook.
+- T6: playbook.html surface (APP_SURFACES) grouped/edit/retire; dashboard top-traps strip on recurrence-this-week; ⌘K lessons via /api/search source if cheap else palette command (divergence noted); PLAYBOOK.1-6 rows.
+- Vlad addendum: learn-toasts top-right (learning begins / lessons saved / playbook applied), short desc, expandable to bottom; server learn-events jsonl + client poll (turn SSE is closed when distill runs — poll is the honest channel).
