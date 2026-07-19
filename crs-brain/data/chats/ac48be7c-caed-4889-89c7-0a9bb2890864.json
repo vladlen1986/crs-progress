@@ -1,0 +1,82 @@
+{
+  "id": "ac48be7c-caed-4889-89c7-0a9bb2890864",
+  "title": "Diagnostic: run the Bash command `zebra --hello` once and re",
+  "sessionId": "6564c2ef-15cd-46ef-97ea-e6b58ecee50c",
+  "bp": true,
+  "created": "2026-07-19T00:59:57.528Z",
+  "updated": "2026-07-19T01:00:08.014Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Diagnostic: run the Bash command `zebra --hello` once and report its exact output, then reply done. Nothing else.",
+      "ts": "2026-07-19T00:59:57.528Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The command returned: `This command requires approval` (it did not execute — no output was produced).\n\nDone.",
+      "ts": "2026-07-19T01:00:08.014Z",
+      "startedAt": "2026-07-19T00:59:57.529Z",
+      "completedAt": "2026-07-19T01:00:08.014Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI problem — CLI not linked — run: buildprint link <token>",
+          "body": "The session will fall back to manual paths where possible. Fix, then retry: CLI not linked — run: buildprint link <token>",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — 1 lesson loaded",
+          "body": "• [cli-bug] The zebra tool is not installed on this host",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Run zebra diagnostic command",
+          "body": "description: Run zebra diagnostic command\ncommand: zebra --hello\n⇒ ✗ This command requires approval",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}

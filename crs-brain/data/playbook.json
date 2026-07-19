@@ -96,5 +96,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
+  },
+  {
+    "id": "c74d4f7a",
+    "category": "cli-bug",
+    "trigger": "zebra",
+    "rule": "The zebra tool is not installed on this host",
+    "fix": "Expect \"command not found: zebra\" if invoked; report the output honestly.",
+    "errorSig": "command not found zebra",
+    "source": "manual · 2026-07-19",
+    "hits": 1,
+    "lastHit": "2026-07-19T00:59:58.814Z",
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T00:59:53.532Z"
   }
 ]
