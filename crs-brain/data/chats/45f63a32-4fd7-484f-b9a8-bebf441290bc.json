@@ -1,0 +1,47 @@
+{
+  "id": "45f63a32-4fd7-484f-b9a8-bebf441290bc",
+  "title": "what is the current status of brain",
+  "sessionId": "4123eb36-3184-4017-85f3-a32e8182b990",
+  "bp": false,
+  "created": "2026-07-19T10:19:23.960Z",
+  "updated": "2026-07-19T10:19:37.903Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "what is the current status of brain",
+      "ts": "2026-07-19T10:19:23.960Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Current brain status (as of last update 2026-07-15):\n\n**Foundation refactor: 2 of 4 modules done**\n- ✅ Roles & Permissions — complete, NEG-proven\n- ✅ Casino Settings — done, NEG-proven\n- 🟡 User Management — UI built + data-wired, **security pass pending** (privacy rules, WF guards, NEG proof)\n- 🔴 Fiscal Week Management — not started\n\n**Critical app-wide gap (§0.5, live Bubble sweep 2026-07-15):** 0 of 46 live DTs meet Pattern A (company+property tenant isolation) outside R&P/Casino Settings. Notable holes:\n- `06 Employee` — public-everyone with PII (passport, national ID, DOB)\n- `11 Report` (13K records) — cross-tenant readable\n- `29_1 Subtask` — public + API create/modify/delete exposed\n- A candidate no-auth endpoint (`add_user_to_read_by_all_reports_copy`)\n- 5 public file uploaders, no 2FA, no password policy app-wide\n\n**Next queued (in order):** UM Pass-2 security → Pattern-A rollout packet (highest-risk DTs first) → Fiscal Week refactor → permission-model migration tail → app-wide audit logging.\n\n**Open decisions blocking remediation:** Pattern-A rollout batching order; Company/Property table exceptions not yet formalized in decisions.md.\n\nFull detail: `brain/STATUS.md` (product), `brain/database.md` + `brain/security.md` (as-built schema/security). Want me to check `brain/changelog.md` for anything newer than 07-15, or pull up a specific module's dimension table?",
+      "ts": "2026-07-19T10:19:37.903Z",
+      "startedAt": "2026-07-19T10:19:23.961Z",
+      "completedAt": "2026-07-19T10:19:37.903Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: quick mechanical task → Sonnet 5, low effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null | …",
+          "body": "command: cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null | head -150\n⇒ # CRS — Build Status *(product)* > **Source of truth for \"what's done / in-progress / next\" in the CRS Bubble product.** > Design specs live in `design/design.m",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
