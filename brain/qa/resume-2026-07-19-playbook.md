@@ -1,5 +1,8 @@
 # Resume — 2026-07-19 · Playbook program mid-flight (Windows → Mac handoff)
 
+> **✅ COMPLETED on the Mac, 2026-07-19.** Zebra probe 10/10 twice (agent + independent verifier), PLAYBOOK.1–6 appended (216 rows: 204 PASS / 12 ENV-LIMITED / 0 FAIL), checkpoint at brain/qa/checkpoints/playbook.md, T5 logged-out evidence in brain/qa/evidence/2026-07-19-t5/. Probe-design fix (allowlist-safe `node --zebra-hello`) baked into the committed rig script. Program CLOSED — this file is historical.
+> Still on Vlad: `buildprint link <token>` on the Mac (CLI installed at 4.2.7, Unauthorized) · .bp-test-user creds · GitHub push auth on the Mac (no gh login / SSH key — commits are local until then).
+
 > Paste the Playbook program prompt again on the Mac and point the session here FIRST.
 > Everything below is committed & pushed. App: `cd crs-brain && npm install && node server.js` → :4317.
 > Buildprint CLI: linked on the Windows PC; Mac may still be Unauthorized (`buildprint link <token>`).

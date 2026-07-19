@@ -2,11 +2,25 @@
 //  - temp synthetic lesson (neutral rule, won't make the model refuse the command)
 //  - toasts sampled DURING the turn (they auto-dismiss after 11s)
 //  - recurrence via a command the model WILL run → ✗ error matches lesson errorSig
+// 2026-07-19 Mac pass — two fixes baked in after the first live run:
+//  1. `zebra --hello` was NOT in the bp-spawn allowlist (server.js --allowedTools:
+//     Bash(buildprint|agent-browser|node|python*)), so the session got a permission
+//     denial and the shell error never happened → recurrence could never fire, on
+//     EITHER platform. The failure now routes through the allowlisted `node` prefix:
+//     `node --zebra-hello` really executes and fails "node: bad option: --zebra-hello"
+//     (exit 9). normalizeErrSig → "node bad option zebra hello" (<30 chars → whole-string
+//     probe), matching the runtime sig regardless of any "Exit code #" prefix. The zebra
+//     trigger keyword and the neutral, non-forbidding rule are preserved.
+//  2. Machine paths are platform-aware; the script assumes it runs from qa-scratch/rig/
+//     inside the repo (PB resolved relative to the repo root).
 const puppeteer = require('puppeteer-core');
 const fs = require('fs');
-const CHROME = 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
+const path = require('path');
+const CHROME = process.platform === 'darwin'
+  ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
+  : 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
 const APP = 'http://127.0.0.1:4317/';
-const PB = 'C:/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/playbook.json';
+const PB = path.resolve(__dirname, '..', '..', 'crs-brain', 'data', 'playbook.json');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 (async () => {
@@ -23,7 +37,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const check = (name, ok, detail) => { console.log((ok ? 'PASS' : 'FAIL'), name, detail || ''); if (!ok) fails++; };
 
   // temp lesson: neutral phrasing — informs, doesn't forbid
-  const added = await (await fetch(APP + 'api/playbook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ add: true, category: 'cli-bug', trigger: 'zebra', rule: 'The zebra tool is not installed on this host', fix: 'Expect "zebra is not recognized" if invoked; report the output honestly.', errorSig: "'zebra' is not recognized as an internal or external command" }) })).json();
+  const added = await (await fetch(APP + 'api/playbook', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ add: true, category: 'cli-bug', trigger: 'zebra', rule: 'The zebra diagnostic flag is not supported by node on this host', fix: 'Expect "node: bad option: --zebra-hello" if invoked; report the output honestly.', errorSig: 'node: bad option: --zebra-hello' }) })).json();
   const lessonId = added.added[0].id;
 
   await page.goto(APP, { waitUntil: 'networkidle2', timeout: 30000 });
@@ -33,7 +47,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   await sleep(400);
   await page.evaluate(() => {
     const i = document.getElementById('input');
-    i.value = 'Diagnostic: run the Bash command `zebra --hello` once and report its exact output, then reply done. Nothing else.';
+    i.value = 'Diagnostic: run the Bash command `node --zebra-hello` once and report its exact output, then reply done. Nothing else.';
     i.dispatchEvent(new Event('input'));
     sendMsg();
   });
