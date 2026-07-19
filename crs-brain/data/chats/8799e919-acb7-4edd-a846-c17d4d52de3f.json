@@ -4,7 +4,7 @@
   "sessionId": "f4b9d0cc-2cc0-4e60-852b-13a005fa4761",
   "bp": false,
   "created": "2026-07-18T12:32:57.778Z",
-  "updated": "2026-07-19T03:12:17.741Z",
+  "updated": "2026-07-19T17:59:42.686Z",
   "messages": [
     {
       "role": "user",
@@ -47,6 +47,64 @@
           "tool": null,
           "label": "Auto-routing: standard task → Sonnet 5, medium effort",
           "body": "",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "what is distiller",
+      "ts": "2026-07-19T17:59:21.404Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "**Playbook Distiller** is the auto-learning component of CRS Brain's \"Playbook\" system: after each turn/session, it analyzes what happened (successes, failures, error signatures) and distills a lesson into `crs-brain/data/playbook.json` — a structured store of operational rules (categories: platform-gotcha, cli-bug, workspace-rule, design-pattern, verification, decision-pointer), each with a trigger, rule, fix, error signature, hit count, and recurrence tracking.\n\nThe point: instead of you re-explaining the same gotcha every session, the distiller writes it down once, the system injects relevant lessons into future turns automatically, and if a mistake recurs despite the lesson being loaded, it flags that (recurrence alarm) rather than silently repeating.\n\nPer `brain/qa/checkpoints/playbook.md`, this was verified end-to-end 2026-07-19 (store/migration, injection, recurrence alarm, toasts+ledger, playbook.html surface) — program is marked **CLOSED**, 216 checklist rows (204 PASS / 12 ENV-LIMITED / 0 FAIL).",
+      "ts": "2026-07-19T17:59:42.686Z",
+      "startedAt": "2026-07-19T17:59:21.408Z",
+      "completedAt": "2026-07-19T17:59:42.686Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ril \"distiller\" /Users/vlad/projects/crs-progress --include=\"*…",
+          "body": "command: grep -ril \"distiller\" /Users/vlad/projects/crs-progress --include=\"*.md\" | head -20\n⇒ /Users/vlad/projects/crs-progress/brain/qa/resume-2026-07-19-playbook.md /Users/vlad/projects/crs-progress/brain/qa/program-progress.md /Users/vlad/projects/crs",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read playbook.md",
+          "body": "file_path: /Users/vlad/projects/crs-progress/brain/qa/checkpoints/playbook.md\n⇒ 1 # Checkpoint — PLAYBOOK (self-learning made law) — COMPLETE 2026-07-19 2 3 T0–T4 + T6 + learn-toast layer built on Windows (commits `playbook: …` through 5b29",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n -i \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/pr…",
+          "body": "command: grep -n -i \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/program-progress.md | head -30\n⇒ ✗ 203:- T0 landed prior session (distiller+result-capture+both tests); remaining proof: real-turn ✗ tails → in verification. 204:- T1: data/playbook.json {id,category(platform-gotcha|cli-bug|workspace-rule|design-pattern|verification|decision-pointer),trigger,rule,fix,errorSig?,source,hits,lastHit,rec",
           "actor": "brain"
         }
       ]

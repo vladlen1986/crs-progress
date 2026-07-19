@@ -54,3 +54,5 @@
 {"ts":"2026-07-19T02:40:16.238Z","action":"ask-answered","target":"58ebbd03","via":"desktop","meta":{"question":"Proceed with Step 1: add 4 entries (Task/Report/Thread/InfoboardItem) to the empty os___notification_entity_type option ","answer":"stop i wanna test when you are learning something and when applying learning there must be visual floating group for tha","standing":false}}
 {"ts":"2026-07-19T02:40:31.685Z","action":"ask-answered","target":"40ba44be","via":"desktop","meta":{"question":"The floating \"learning\" indicator is a Claude Code UI feature, not something I can build from this CRS/Buildprint sessio","answer":"Hold off","standing":false}}
 {"ts":"2026-07-19T13:48:49.116Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-19T16:42:24.252Z","action":"playbook-delete","target":"8c36b231","via":"desktop","meta":null}
+{"ts":"2026-07-19T16:42:24.264Z","action":"playbook-delete","target":"adc0ad95","via":"desktop","meta":null}
