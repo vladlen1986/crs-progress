@@ -20,6 +20,7 @@
   },
   "sounds": {
     "volume": 100,
+    "learnSounds": true,
     "events": {
       "new-notification": "s03",
       "task-complete": "s02",

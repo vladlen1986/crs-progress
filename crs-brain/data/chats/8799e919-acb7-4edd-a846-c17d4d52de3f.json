@@ -4,7 +4,7 @@
   "sessionId": "f4b9d0cc-2cc0-4e60-852b-13a005fa4761",
   "bp": false,
   "created": "2026-07-18T12:32:57.778Z",
-  "updated": "2026-07-18T12:33:07.331Z",
+  "updated": "2026-07-19T03:12:17.741Z",
   "messages": [
     {
       "role": "user",
@@ -27,6 +27,29 @@
         }
       ],
       "partial": true
+    },
+    {
+      "role": "user",
+      "content": "testing voice",
+      "ts": "2026-07-19T03:12:12.807Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Voice input is working — this message came through fine. Anything you want me to do with it?",
+      "ts": "2026-07-19T03:12:17.741Z",
+      "startedAt": "2026-07-19T03:12:12.810Z",
+      "completedAt": "2026-07-19T03:12:17.741Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        }
+      ]
     }
   ],
   "pinned": true
