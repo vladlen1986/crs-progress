@@ -3323,6 +3323,7 @@ const server = http.createServer(async (req, res) => {
         // turn, updated if the fallback chain switches mid-run.
         let liveModel = runOpts.model || '';
         sse({ type: 'model', model: liveModel });
+        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
         if (chat.bp) {
@@ -3410,7 +3411,7 @@ const server = http.createServer(async (req, res) => {
           },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
-          onModelSwitch: (m) => { liveModel = m.to || liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
+          onModelSwitch: (m) => { liveModel = m.to || liveModel; const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
         }, runOpts);
         // Prefer the clean final segment (everything after the last tool call); fall
         // back to the CLI's full result only if the model ended without final text.
@@ -3897,6 +3898,13 @@ const server = http.createServer(async (req, res) => {
       savePlaybook(arr);
       logAudit({ action: 'playbook-' + (b.delete ? 'delete' : b.status || 'edit'), target: b.id });
       return send(res, 200, { ok: true, lessons: arr });
+    }
+    // ---- live system map: who's active right now (floating panel, 3s poll) ----
+    if (p === '/api/livemap' && req.method === 'GET') {
+      const liveTurns = [...LIVE_TURNS.entries()].map(([chatId, t]) => ({ chatId, bp: !!(t.chat && t.chat.bp), model: t.model || '' }));
+      let lastLearnEvent = null;
+      try { const lines = fs.readFileSync(LEARN_EVENTS_FILE, 'utf8').trim().split('\n'); if (lines.length) lastLearnEvent = JSON.parse(lines[lines.length - 1]); } catch {}
+      return send(res, 200, { liveTurns, lastLearnEvent, now: nowIso() });
     }
     if (p === '/api/learn-events' && req.method === 'GET') {   // toast feed (since=ISO)
       const since = u.searchParams.get('since') || '';

@@ -17,6 +17,7 @@ const PAL_COMMANDS=[
   {label:'Generate for the focus module…',kind:'cmd',run:()=>{closePal();const t=prompt('Intent:');if(t)runSlashCommand('gen',t);}},
   {label:'Pending questions',kind:'cmd',run:async()=>{closePal();try{const r=await api('/api/ask/pending');const n=(r.asks||[]).length;if(!n){toast('No pending questions');return;}if(n===1){mobileAskView(r.asks[0].id);}else{showDashboard();toast(n+' pending questions — see Needs me');}}catch(e){toast('⚠ '+e.message);}}},
   {label:'Playbook — what the brain knows',kind:'cmd',run:()=>{closePal();openTarget('/playbook.html',{title:'Playbook'});}},
+  {label:'Live map — what\'s working now',kind:'cmd',run:()=>{closePal();window.LIVEMAP&&LIVEMAP.toggle(true);}},
   {label:'Open decisions.md',kind:'cmd',run:()=>{closePal();openDocWindow('decisions.md');}},
   {label:'New prototype',kind:'cmd',run:()=>{closePal();openTarget('/protos.html#new',{title:'Prototypes'});}},
   {label:'Run smoke QA',kind:'cmd',run:async()=>{closePal();toast('Running smoke QA…');try{const r=await api('/api/smoke/run',{method:'POST'});toast('Smoke QA: '+r.pass+'/'+r.total);}catch(e){toast('⚠ '+e.message);}}},
