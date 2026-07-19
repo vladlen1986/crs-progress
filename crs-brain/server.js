@@ -1817,6 +1817,7 @@ const BP_PROMPT = (ws) => [
 // Sync the workspace from Bubble, diff the snapshot, and have the brain update
 // its ledger files to reflect whatever changed in Buildprint (site/agent/editor).
 const BP_TRACK_FILE = path.join(DATA_DIR, 'buildprint', 'last-tracked.txt');
+const BP_LINK_CACHE = { t: 0, account: null };   // buildprint link-status probe cache (60s)
 const BP_TRACK_PROMPT = [
   'BUILDPRINT → BRAIN SYNC. The user just made changes to the CRS Bubble app in Buildprint. The changed',
   'files are listed in the message (git name-status). They live under your cwd (the cloned Test branch).',
@@ -3502,7 +3503,29 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/bp/status' && req.method === 'GET') {
       const ws = findBpWorkspace();
       let tracked = null; try { tracked = fs.existsSync(BP_TRACK_FILE); } catch {}
-      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null, baseline: !!tracked });
+      // linked = the CLI's own auth store exists (buildprint link writes ~/.buildprint/auth.json);
+      // account label comes from `buildprint link` (bare = status print), cached 60s.
+      const authFile = path.join(os.homedir(), '.buildprint', 'auth.json');
+      let linked = false; try { linked = fs.existsSync(authFile); } catch {}
+      if (linked && (!BP_LINK_CACHE.t || Date.now() - BP_LINK_CACHE.t > 60000)) {
+        BP_LINK_CACHE.t = Date.now();
+        const r = await sh(['buildprint', 'link']);
+        const m = (r.out + '\n' + r.err).match(/Linked Buildprint CLI as (.+?)\.?\n/);
+        BP_LINK_CACHE.account = m ? m[1] : null;
+      }
+      if (!linked) BP_LINK_CACHE.account = null;
+      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null, baseline: !!tracked, linked, account: linked ? BP_LINK_CACHE.account : null });
+    }
+
+    // Unlink the Buildprint CLI on THIS machine (removes the CLI's local auth store;
+    // the token itself stays valid in Buildprint's cloud and can be re-linked).
+    if (p === '/api/connections/buildprint-revoke' && req.method === 'POST') {
+      const authFile = path.join(os.homedir(), '.buildprint', 'auth.json');
+      try {
+        if (fs.existsSync(authFile)) fs.unlinkSync(authFile);
+        BP_LINK_CACHE.t = 0; BP_LINK_CACHE.account = null;
+        return send(res, 200, { ok: true });
+      } catch (e) { return send(res, 500, { ok: false, error: String(e.message || e) }); }
     }
 
     // Sync from Buildprint and update the brain ledger to match (streaming).

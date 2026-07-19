@@ -5517,7 +5517,8 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Claude Code</b><span id="connClaudeSub">Checking…</span></div><div class="mctl"><span class="mstat" id="connClaude">…</span><button class="mbtn2" id="connClaudeBtn" onclick="connClaudeAction()">…</button></div></div>
       <div class="msec-title" style="margin-top:16px">Buildprint CLI</div>
       <div class="mrow"><div class="mlbl"><b>Buildprint link</b><span id="connBpSub">Paste your Buildprint token to link this machine. Runs <code>buildprint link</code> — the token is stored by Buildprint, not in the brain.</span></div><div class="mctl"><span class="mstat" id="connBp">…</span></div></div>
-      <div class="mrow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>
+      <div class="mrow" id="bpTokenRow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>
+      <div class="mrow" id="bpLinkedRow" style="display:none"><div class="mlbl"><b>This machine</b><span id="bpLinkedSub">Linked.</span></div><div class="mctl"><button class="mbtn2" onclick="revokeBuildprint()">Unlink</button></div></div>
       <div class="msec-title" style="margin-top:16px">Email (SMTP)</div>
       <div class="mrow"><div class="mlbl"><b>SMTP server</b><span id="connSmtpSub">For email notifications. Stored in a gitignored local file — never committed.</span></div><div class="mctl"><span class="mstat" id="connSmtp">…</span></div></div>
       <div class="mrow"><div class="mlbl"><b>Host & port</b></div><div class="mctl"><input class="tinput" id="smtpHost" placeholder="smtp.example.com" autocomplete="off" style="min-width:150px"><input class="tinput" id="smtpPort" placeholder="587" autocomplete="off" style="min-width:70px"></div></div>
@@ -5538,7 +5539,12 @@ async function renderSettings(){
 }
 async function refreshConnStatus(){
   try{ const a=await api('/api/auth/status'); const el=$('connClaude'),sub=$('connClaudeSub'),btn=$('connClaudeBtn'); if(el){ if(a.loggedIn){ el.textContent='Connected'; el.className='mstat ok'; if(sub)sub.textContent=`${a.email||'signed in'} · ${a.subscriptionType||a.authMethod||''}`; if(btn)btn.textContent='Sign out'; } else { el.textContent='Not connected'; el.className='mstat off'; if(sub)sub.textContent='Sign in to Claude to use the brain.'; if(btn)btn.textContent='Sign in'; } } }catch{}
-  try{ const b=await api('/api/bp/status'); const el=$('connBp'); if(el){ const linked=b&&(b.linked||b.ok||b.workspace); el.textContent=linked?'Linked':'Not linked'; el.className='mstat '+(linked?'ok':'off'); } }catch{ const el=$('connBp'); if(el){ el.textContent='Unknown'; el.className='mstat warn'; } }
+  try{ const b=await api('/api/bp/status'); const el=$('connBp'); if(el){ const linked=b&&b.linked===true; el.textContent=linked?'Linked':'Not linked'; el.className='mstat '+(linked?'ok':'off');
+    const tokRow=$('bpTokenRow'),lnkRow=$('bpLinkedRow'),sub=$('bpLinkedSub');
+    if(tokRow)tokRow.style.display=linked?'none':'';
+    if(lnkRow)lnkRow.style.display=linked?'':'none';
+    if(sub&&linked)sub.textContent='Linked'+(b.account?' as '+b.account:'')+(b.app?' · workspace '+b.app+(b.branch?' ('+b.branch+')':''):'')+'. Unlink removes the CLI auth on this machine only.';
+  } }catch{ const el=$('connBp'); if(el){ el.textContent='Unknown'; el.className='mstat warn'; } }
   try{ const sm=await api('/api/connections/smtp'); const el=$('connSmtp'); if(el){ el.textContent=sm.configured?'Configured':'Not set'; el.className='mstat '+(sm.configured?'ok':'off'); }
     if($('smtpHost')){ $('smtpHost').value=sm.host||''; $('smtpPort').value=sm.port||''; $('smtpUser').value=sm.user||''; $('smtpFrom').value=sm.from||''; if(sm.configured&&$('smtpPass')) $('smtpPass').placeholder='•••••••• (saved — leave blank to keep)'; } }catch{}
 }
@@ -5546,6 +5552,9 @@ function connClaudeAction(){ const btn=$('connClaudeBtn'); if(btn&&/out/i.test(b
 async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.value||'').trim(); if(!tok)return toast('Paste your Buildprint token first'); toast('Linking Buildprint…');
   try{ const r=await api('/api/connections/buildprint-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})}); if(r&&r.ok){ notifyT('success',{title:'Buildprint linked',banner:true,bell:false}); if(inp)inp.value=''; refreshConnStatus(); } else notifyT('error',{title:'Buildprint link failed',message:(r&&r.error)||''}); }
   catch(e){ notifyT('error',{title:'Buildprint link failed',message:e.message}); } }
+async function revokeBuildprint(){ const ok=await crsConfirm({title:'Unlink Buildprint?',body:'Removes the CLI auth on this machine. Your token stays valid in Buildprint — you can re-link any time.'}); if(!ok)return;
+  try{ const r=await api('/api/connections/buildprint-revoke',{method:'POST'}); if(r&&r.ok){ notifyT('warning',{title:'Buildprint unlinked on this machine'}); refreshConnStatus(); } else notifyT('error',{title:'Unlink failed',message:(r&&r.error)||''}); }
+  catch(e){ notifyT('error',{title:'Unlink failed',message:e.message}); } }
 async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),port:($('smtpPort').value||'').trim(),user:($('smtpUser').value||'').trim(),pass:($('smtpPass').value||''),from:($('smtpFrom').value||'').trim()};
   try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notifyT('success',{title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
