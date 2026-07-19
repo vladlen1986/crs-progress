@@ -4,7 +4,7 @@
   "sessionId": "f4b9d0cc-2cc0-4e60-852b-13a005fa4761",
   "bp": false,
   "created": "2026-07-18T12:32:57.778Z",
-  "updated": "2026-07-19T18:01:06.977Z",
+  "updated": "2026-07-19T18:02:01.725Z",
   "messages": [
     {
       "role": "user",
@@ -135,6 +135,43 @@
           "tool": null,
           "label": null,
           "body": "",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "what is ledger",
+      "ts": "2026-07-19T18:01:48.733Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "\"Ledger\" isn't one single file — it's a pattern: several **append-only `.jsonl` logs** under `crs-brain/data/` that record events as they happen and are never edited/overwritten, only appended to. The ones referenced in this project:\n\n- `learn-events.jsonl` — distiller output (lessons learned/applied/recurred), served by `/api/learn-events`\n- `audit.jsonl` — mutation trail (who/what/when, incl. remote/desktop/scheduler origin), served by `/api/audit`\n- `notifications`, `action-log`, `usage-log` — same append-only pattern for their respective domains\n\nThey exist so nothing gets silently overwritten — history stays inspectable even after autoCommit or probe cleanup sweeps the working files. On the Live System Map (`LIVEMAP.1`), \"LEDGER\" is literally a node in the diagram — PLAYBOOK/DISTILLER feeds into it, i.e. the distiller's output lands in the ledger.",
+      "ts": "2026-07-19T18:02:01.725Z",
+      "startedAt": "2026-07-19T18:01:48.734Z",
+      "completedAt": "2026-07-19T18:02:01.725Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -rn -i \"ledger\" /Users/vlad/projects/crs-progress/brain/qa/*.md…",
+          "body": "command: grep -rn -i \"ledger\" /Users/vlad/projects/crs-progress/brain/qa/*.md /Users/vlad/projects/crs-progress/brain/qa/checkpoints/*.md 2>/dev/null | head -30\n⇒ ✗ /Users/vlad/projects/crs-progress/brain/qa/master-checklist.md:192:| HARDEN.2 | p3-harden | Server error safety net + audit ledger: uncaughtException/unhandledRejection logged; mutations append to data/audit.jsonl with who/what/when incl via:remote | crash-safe + audit trail | n/a | PASS | 2026-07-1",
           "actor": "brain"
         }
       ]
