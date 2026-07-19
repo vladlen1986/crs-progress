@@ -141,7 +141,6 @@
 
   /* bottom-pinned settings entry (visually separated from primary nav) */
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
-  .side-legend{font-size:10.5px;color:var(--muted);padding:0 12px 6px;font-family:var(--mono)}
   .surface-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
   .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
   .surface-back:hover{color:var(--primary);border-color:var(--line2)}
@@ -159,8 +158,6 @@
   .side-set.on{background:var(--accent-glow);color:var(--primary)}
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
-  .newbtn{margin:0 12px 6px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:11px;font-size:12.5px;font-weight:500;width:calc(100% - 24px);text-align:left;display:flex;align-items:center;gap:8px;transition:var(--transition)}
-  .newbtn:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
 
   .item{padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
   .item:hover{background:var(--panel2)}
@@ -1193,8 +1190,13 @@
   .proppop .pp-row .cp{border:1px solid var(--line2);background:none;color:var(--muted);border-radius:5px;font-size:10.5px;padding:1px 7px;cursor:pointer;flex:0 0 auto}
   .proppop .pp-row .cp:hover{color:var(--primary);border-color:var(--line3)}
   /* chat search */
-  .chat-search{display:block;width:calc(100% - 24px);margin:0 12px 8px;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
+  /* sidebar3: one row = search (flex) + 32px icon-ghost "+" (new conversation) */
+  #chatActions{display:flex;align-items:center;gap:6px;margin:0 12px 8px}
+  .chat-search{display:block;flex:1 1 auto;min-width:0;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
   .chat-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .chat-new{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:8px;color:var(--muted);cursor:pointer;padding:0;transition:var(--transition)}
+  .chat-new:hover{background:var(--veil);color:var(--primary)}
+  .chat-new .ic{width:16px;height:16px}
   .item .snip{display:block;color:var(--muted);font-size:10.5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   mark.hl{background:rgba(249,115,22,.35);color:var(--primary);border-radius:2px;padding:0 1px}
 
@@ -1250,7 +1252,6 @@
   .account .connect{display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .matt{display:inline-flex;align-items:center;gap:5px}
   .item .x{display:inline-flex;align-items:center}
-  .newbtn .ic{opacity:.8}
   .avatar .ic{width:16px;height:16px}
   .hero-mark .ic{width:26px;height:26px}
 
@@ -1439,10 +1440,9 @@
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div id="chatActions">
       <input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)">
-      <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
+      <button class="chat-new" onclick="newChat()" title="New conversation" aria-label="New conversation"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
     </div>
     <div class="pane" id="paneChats"></div>
-    <div class="side-legend">›_ marks Buildprint conversations</div>
     <div class="side-foot">
       <button class="side-set" onclick="openSettings('general')"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg> Settings &amp; Preferences</button>
     </div>
@@ -1796,10 +1796,13 @@ async function loadChats(){
   const box=$('paneChats');
   box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
   const pinned=chats.filter(c=>c.pinned), rest=chats.filter(c=>!c.pinned);
+  // API order is newest-first (server listChats sorts by `updated` desc) — kept as is.
   if(pinned.length){
     const h=document.createElement('div'); h.className='pane-cap'; h.textContent='Pinned'; box.appendChild(h);
     for(const c of pinned) box.appendChild(chatItemEl(c));
-    const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Conversations'; box.appendChild(h2);
+  }
+  if(rest.length){
+    const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Recents'; box.appendChild(h2);
   }
   for(const c of rest) box.appendChild(chatItemEl(c));
 }
