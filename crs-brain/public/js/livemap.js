@@ -1,21 +1,28 @@
-/* CRS Brain — LIVE SYSTEM MAP v3 (chromeless nebula molecule panel).
+/* CRS Brain — LIVE SYSTEM MAP v4 (galaxy-cluster scene, map.html's species).
  * A live, draggable, resizable mini-map of what the system is doing RIGHT NOW:
  * You → Brain → Model → Tools → Buildprint → Bubble, plus the learning loop
  * (Playbook / Distiller → Ledger). Real signals only — wired to state.live,
  * the SSE step stream and the learn-events feed via window.LIVEMAP.ping().
- * v3 adds: (A) ephemeral CHILD MOLECULES — real activity (tool names, bp
- * subcommands, lesson motes) spawns tiny labeled satellites that orbit their
- * parent node on offset-path ellipses and TTL-decay (max 6, LRU, deduped);
- * (B) a TYPEWRITER TICKER strip at the bottom that types real events
- * char-by-char and fades; (C) a CHROMELESS window — no header/border/buttons
- * until hover/focus reveals them (200ms), drag anywhere on the body, resize
- * grip 300-640px with fixed scene aspect, size persisted; (D) a NEBULA idle
- * skin — token-hue radial-gradient layers drifting on 75/90s keyframes so the
- * un-hovered panel reads as slowly-breathing space smoke; hover sharpens to
- * solid panel chrome. CSS/SVG animations only (no rAF); everything scoped in
- * #lmPanel so closed/pill = zero animations; prefers-reduced-motion kills all
- * motion (static gradient, instant ticker). Tokens only; light theme dims
- * decorative glow (--lm-deco). Classic script sharing the app's global scope. */
+ * v4 rebuilds the SCENE as mini-galaxies borrowing map.html's exact visual
+ * recipes, translated canvas→SVG (no rAF — everything stays CSS/SVG):
+ * (1) each core grows a SATELLITE SWARM from real data (chats → BRAIN,
+ * lessons → PLAYBOOK one-dot-per-lesson w/ trigger tooltips, learn events →
+ * LEDGER, session tools → TOOLS, categories → DISTILLER, bp chats → BP),
+ * spiral-scattered dots with size/alpha variance + faint spoke lines, drawn
+ * count capped per cluster while (2) COUNT BADGE PILLS (map.html recipe:
+ * --na fill / --border-active stroke, screen-constant 8px number) show the
+ * REAL numbers and pop on live increments; (3) ambience = hex lattice
+ * (<pattern>, map's s·0.87 rows), a static seeded starfield and 2 drifting
+ * Saturn-ringed planets (ellipse r·1.9×r·0.62, map's ring); (4) each swarm
+ * GROUP rotates imperceptibly (60-180s, varied directions, one animation per
+ * cluster). All v3 behavior preserved: child molecules (bright live
+ * satellites vs the dim historical swarm), typewriter ticker, chromeless
+ * hover window, drag/resize 300-640, nebula idle skin, ripples, comets,
+ * electrons, spinner, shockwave. Swarm redraws REPLACE innerHTML (no leaks),
+ * density thins below 360px so 300px never reads as mush. Everything scoped
+ * in #lmPanel so closed/pill = zero animations; prefers-reduced-motion kills
+ * all motion (static but complete scene: satellites, badges, spokes render).
+ * Tokens only; light theme dims deco (--lm-deco). Classic script. */
 
 (function () {
   'use strict';
@@ -49,6 +56,24 @@
     { id: 'distiller-ledger',a: 'distiller', b: 'ledger',  c: 'purple', s: +1, dots: 2 },
   ];
   const RECENT_MS = 30000;
+
+  // ---- v4 galaxy layer: per-cluster swarm config -----------------------------
+  // cap = max DRAWN satellites (badge always shows the REAL count); rmax = swarm
+  // ring radius sized to the molecule layout so neighbor galaxies don't collide;
+  // dur/dir = the cluster's imperceptible group rotation (one animation each).
+  const GAL = {
+    brain:     { cap: 40, rmax: 37, dur: 150, dir: 'normal'  },
+    playbook:  { cap: 24, rmax: 21, dur: 90,  dir: 'reverse' },
+    ledger:    { cap: 30, rmax: 19, dur: 120, dir: 'normal'  },
+    tools:     { cap: 20, rmax: 18, dur: 75,  dir: 'reverse' },
+    distiller: { cap: 8,  rmax: 13, dur: 60,  dir: 'normal'  },
+    bp:        { cap: 10, rmax: 16, dur: 100, dir: 'reverse' },
+    bubble:    { cap: 8,  rmax: 14, dur: 170, dir: 'normal'  },
+  };
+  // real numbers behind the galaxies (fetched on open, refreshed by the 3s poll)
+  const G = { chats: null, bp: null, lessons: null, ledger: null, cats: null, tools: new Set(), drawn: {}, inv: 1 };
+  const prng = (seed) => () => (seed = (seed * 1103515245 + 12345) & 0x7fffffff) / 0x7fffffff;
+  const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
   // ---- live state (updated by pings + the 3s poll) --------------------------
   const S = {
@@ -119,6 +144,25 @@
   #lmTicker.f-acc{color:var(--accent-text)}
   #lmTicker.f-warn{color:var(--warning)}
   #lmTicker.fade{opacity:0}
+  /* v4 galaxy scenery — hex lattice + static starfield + Saturn planets (map.html recipes) */
+  #lmDeco{pointer-events:none}
+  #lmHexRect{opacity:calc(.5*var(--lm-deco))}
+  #lmStars{opacity:var(--lm-deco)}
+  #lmPlanets{opacity:calc(.85*var(--lm-deco))}
+  .lm-planet{transform-box:fill-box;transform-origin:center}
+  /* satellite swarms — dim historical dots + faint spokes; the group rotates slowly */
+  .lm-rot{transform-box:fill-box;transform-origin:center}
+  .lm-swarm-op{opacity:calc(.95*var(--lm-deco))}
+  .lm-sat{fill:var(--ec);pointer-events:none}
+  /* lesson satellites: transparent stroke = a hoverable hit area around a 1-2px dot */
+  .lm-sat.pb{pointer-events:auto;cursor:pointer;stroke:transparent;stroke-width:6}
+  .lm-spoke{stroke:var(--ec);stroke-width:.5;pointer-events:none}
+  /* count badge pill — map.html recipe: --na fill, --border-active stroke, 600-weight number */
+  .lm-badge{transform-box:fill-box;transform-origin:center}
+  .lm-badge rect{fill:var(--na);stroke:var(--line3);stroke-width:.7}
+  .lm-badge text{fill:var(--text-primary);font-weight:600;font-family:Inter,-apple-system,sans-serif;text-anchor:middle;letter-spacing:0}
+  /* YOU stays a single bright star (the prompter) — no swarm, brighter halo */
+  .lm-node[data-n="you"] .lm-halo{opacity:calc(.3*var(--lm-deco))}
   /* nodes — glow halo (radial gradient on token color) + flat token core */
   .lm-node{cursor:pointer}
   .lm-node .lm-halo{opacity:calc(.14*var(--lm-deco));transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
@@ -182,6 +226,9 @@
     .lm-mote-travel{opacity:1;animation:lmTravelOnce 1.35s cubic-bezier(.4,0,.2,1) forwards}
     #lmPanel .lm-neb1{animation:lmNebA 75s ease-in-out infinite alternate}
     #lmPanel .lm-neb2{animation:lmNebB 90s ease-in-out infinite alternate}
+    .lm-rot.lm-go{animation:lmSwarmRot linear infinite}
+    .lm-planet{animation:lmPlanetDrift ease-in-out infinite alternate}
+    .lm-badge.pop{animation:lmBadgePop .4s cubic-bezier(.34,1.56,.64,1)}
   }
   @media (prefers-reduced-motion: reduce){
     .lm-dot,.lm-eflow,.lm-elec,.lm-spin,.lm-ripple,.lm-halo2,.lm-orbit,.lm-mote-travel{display:none}
@@ -201,6 +248,9 @@
   @keyframes lmFlick{0%,100%{opacity:calc(.6*var(--lm-deco))}12%,44%,76%{opacity:.04}28%,60%,92%{opacity:calc(.95*var(--lm-deco))}}
   @keyframes lmNebA{from{background-position:0% 0%,100% 100%}to{background-position:100% 60%,0% 20%}}
   @keyframes lmNebB{from{background-position:100% 0%,0% 100%}to{background-position:20% 100%,80% 0%}}
+  @keyframes lmSwarmRot{to{transform:rotate(360deg)}}
+  @keyframes lmPlanetDrift{from{transform:translate(0,0)}to{transform:translate(5px,-4px)}}
+  @keyframes lmBadgePop{0%{transform:scale(1)}45%{transform:scale(1.4)}100%{transform:scale(1)}}
   /* tooltip */
   #lmTip{position:absolute;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:6px 10px;font-size:11px;color:var(--text-primary);display:none;max-width:220px;z-index:2}
   #lmTip .t2{color:var(--text-muted);font-size:10px;margin-top:1px}
@@ -226,6 +276,30 @@
   }
   const grads = Object.entries(TOK).map(([k, v]) =>
     `<radialGradient id="lmg-${k}"><stop offset="0" stop-color="var(${v})" stop-opacity=".85"/><stop offset=".35" stop-color="var(${v})" stop-opacity=".33"/><stop offset="1" stop-color="var(${v})" stop-opacity="0"/></radialGradient>`).join('');
+  // v4 scenery — map.html's backdrop translated canvas→SVG (paint-once, no loop):
+  // hex lattice = drawBackdrop's pointy-top hexes (rows at s·0.87, odd offset s/2)
+  // as a userSpace <pattern>; starfield = seeded static dots (map's z-depth →
+  // brightness split on --text-secondary/--text-muted); planets = map's ringed
+  // accents (ellipse r·1.9 × r·0.62). All under --lm-deco so light theme dims.
+  const HEX_S = 22, HEX_R = HEX_S * 0.56;
+  const hexPts = (cx, cy) => { const p = []; for (let i = 0; i < 6; i++) { const a = Math.PI / 6 + i * Math.PI / 3; p.push((cx + Math.cos(a) * HEX_R).toFixed(1) + ',' + (cy + Math.sin(a) * HEX_R).toFixed(1)); } return p.join(' '); };
+  const hexPat = `<pattern id="lmHexPat" width="${HEX_S}" height="${(HEX_S * 1.74).toFixed(2)}" patternUnits="userSpaceOnUse">` +
+    [[0, 0], [HEX_S, 0], [HEX_S / 2, HEX_S * 0.87], [0, HEX_S * 1.74], [HEX_S, HEX_S * 1.74]]
+      .map(([x, y]) => `<polygon points="${hexPts(x, y)}" fill="none" stroke="var(--text-muted)" stroke-opacity=".12" stroke-width=".6"/>`).join('') + '</pattern>';
+  const starsSvg = (() => {
+    const r = prng(42); let s = '';
+    for (let i = 0; i < 64; i++) {
+      const x = (r() * SCENE_W).toFixed(1), y = (r() * SCENE_H).toFixed(1), z = r();
+      s += `<circle cx="${x}" cy="${y}" r="${(0.35 + z * 0.75).toFixed(2)}" fill="var(${z > 0.55 ? '--text-secondary' : '--text-muted'})" opacity="${(0.12 + z * 0.38).toFixed(2)}"/>`;
+    }
+    return s;
+  })();
+  const planet = (x, y, pr, tok, dur, rot) =>
+    `<g class="lm-planet" style="animation-duration:${dur}s"><g transform="translate(${x},${y}) rotate(${rot})">` +
+    `<circle r="${pr}" fill="var(${tok})" opacity=".38"/><circle r="${(pr * 0.45).toFixed(1)}" fill="var(${tok})" opacity=".6"/>` +
+    `<ellipse rx="${(pr * 1.9).toFixed(1)}" ry="${(pr * 0.62).toFixed(1)}" fill="none" stroke="var(${tok})" stroke-opacity=".55" stroke-width=".9"/></g></g>`;
+  const decoSvg = `<g id="lmDeco"><rect id="lmHexRect" width="${SCENE_W}" height="${SCENE_H}" fill="url(#lmHexPat)"/>` +
+    `<g id="lmStars">${starsSvg}</g><g id="lmPlanets">${planet(20, 16, 3.4, '--purple', 120, -18)}${planet(172, 221, 2.6, '--cyan', 85, 14)}</g></g>`;
   const edgesSvg = EDGES.map((e) => {
     e.d = edgeD(e);
     return `<g class="lm-edge" data-e="${e.id}" style="--ec:var(${TOK[e.c]})"><path class="lm-eglow" d="${e.d}"/><path class="lm-ebase" d="${e.d}"/><path class="lm-eflow" d="${e.d}"/></g>`;
@@ -240,12 +314,15 @@
       ? `<circle class="lm-elec" style="offset-path:path('M 25 0 A 25 8.5 0 1 1 -25 0 A 25 8.5 0 1 1 25 0')"/>
         <g transform="rotate(64)"><circle class="lm-elec" style="offset-path:path('M 21 0 A 21 7 0 1 1 -21 0 A 21 7 0 1 1 21 0');animation-duration:2.7s;animation-delay:-1.2s"/></g>`
       : id === 'model' ? `<circle class="lm-spin" r="${n.r + 6}"/>` : '';
+    // v4: swarm group (rotating galaxy satellites, under the core) + count badge pill
+    const swarm = GAL[id] ? `<g class="lm-rot" data-rot="${id}"></g>` : '';
+    const badge = GAL[id] && id !== 'bubble' ? `<g class="lm-badge" data-b="${id}" style="display:none"><rect/><text></text></g>` : '';
     return `<g class="lm-node" data-n="${id}" transform="translate(${n.x},${n.y})" style="--ec:var(${TOK[n.c]})">
-      <circle class="lm-halo" r="${(n.r * 2.7).toFixed(1)}" fill="url(#lmg-${n.c})"/>${under}
+      <circle class="lm-halo" r="${(n.r * 2.7).toFixed(1)}" fill="url(#lmg-${n.c})"/>${swarm}${under}
       <circle class="lm-warnring" r="${n.r + 4}"/>
       <circle class="lm-core" r="${n.r}" fill="var(${TOK[n.c]})"/>
       <use class="lm-ic" href="#${n.ic}" x="${-ir / 2}" y="${-ir / 2}" width="${ir}" height="${ir}" fill="none" stroke="currentColor" stroke-width="2"/>${over}
-      <text y="${n.r + 12}">${n.lbl}</text>${id === 'model' ? `<text class="lm-mlbl" y="${n.r + 21}" id="lmModelLbl"></text>` : ''}
+      <text y="${n.r + 12}">${n.lbl}</text>${id === 'model' ? `<text class="lm-mlbl" y="${n.r + 21}" id="lmModelLbl"></text>` : ''}${badge}
     </g>`;
   }).join('');
   panel.innerHTML = `
@@ -258,8 +335,8 @@
     <div class="lm-scene">
       <div class="lm-neb lm-neb1"></div><div class="lm-neb lm-neb2"></div>
       <svg viewBox="0 0 ${SCENE_W} ${SCENE_H}" preserveAspectRatio="xMidYMid meet" aria-label="Live system map">
-        <defs>${grads}<filter id="lmBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
-        <g id="lmEdges">${edgesSvg}</g><g id="lmNodes">${nodesSvg}</g><g id="lmFx"></g>
+        <defs>${grads}${hexPat}<filter id="lmBlur" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.2"/></filter></defs>
+        ${decoSvg}<g id="lmEdges">${edgesSvg}</g><g id="lmNodes">${nodesSvg}</g><g id="lmFx"></g>
       </svg>
       <div id="lmTip"></div>
     </div>
@@ -271,6 +348,8 @@
   document.body.appendChild(pill);
   const $e = {}; EDGES.forEach((e) => { $e[e.id] = panel.querySelector(`[data-e="${e.id}"]`); });
   const $n = {}; Object.keys(NODES).forEach((id) => { $n[id] = panel.querySelector(`[data-n="${id}"]`); });
+  const $rot = {}, $b = {};
+  Object.keys(GAL).forEach((id) => { $rot[id] = panel.querySelector(`[data-rot="${id}"]`); $b[id] = panel.querySelector(`[data-b="${id}"]`); });
   const statusEl = panel.querySelector('#lmStatus'), tipEl = panel.querySelector('#lmTip'), modelLbl = panel.querySelector('#lmModelLbl');
   const tickerEl = panel.querySelector('#lmTicker'), tickerTx = panel.querySelector('#lmTickerTx');
   const fxLayer = panel.querySelector('#lmFx'), gripEl = panel.querySelector('.lm-grip');
@@ -335,8 +414,111 @@
       try { gripEl.releasePointerCapture(ev.pointerId); } catch {}
       localStorage.setItem(LS_SIZE, JSON.stringify({ w: curW }));
       place();
+      redrawGalaxy();   // v4: density + badge inverse-scale follow the new width
     });
   })();
+
+  // ---- v4 galaxy swarms: real data → satellite clusters + count badges --------
+  // density thins with panel width so 300px never reads as mush (full at ≥380)
+  function densityFac() { return curW <= 330 ? 0.5 : curW <= 360 ? 0.75 : 1; }
+  // deterministic spiral scatter (golden angle + seeded jitter), spokes core→sat.
+  // Redraw REPLACES innerHTML (keyed on drawn count + tips + inv → no churn/leak).
+  function drawSwarm(id, count, tips) {
+    const cfg = GAL[id], rot = $rot[id], n = NODES[id];
+    if (!cfg || !rot) return;
+    const real = Math.max(0, count | 0);
+    const dc = real === 0 ? 0 : Math.max(Math.min(3, real), Math.round(Math.min(cfg.cap, real) * densityFac()));
+    const key = dc + '|' + (tips ? tips.join('¦') : '') + '|' + G.inv.toFixed(2);
+    if (G.drawn[id] === key) return;
+    G.drawn[id] = key;
+    if (!dc) { rot.innerHTML = ''; rot.classList.remove('lm-go'); return; }
+    const rnd = prng(1 + id.length * 37 + id.charCodeAt(0));
+    const r0 = n.r * 1.5 + 3, r1 = cfg.rmax;
+    let spokes = '', dots = '';
+    for (let i = 0; i < dc; i++) {
+      const a = rnd() * 0.9 + i * 2.399963;                       // golden-angle spiral + jitter
+      const rad = r0 + (r1 - r0) * Math.sqrt((i + 0.5) / dc) * (0.72 + rnd() * 0.28);
+      const x = (Math.cos(a) * rad).toFixed(1), y = (Math.sin(a) * rad).toFixed(1);
+      const op = (0.3 + rnd() * 0.5).toFixed(2);
+      spokes += `<line class="lm-spoke" x1="${(Math.cos(a) * (n.r + 1.5)).toFixed(1)}" y1="${(Math.sin(a) * (n.r + 1.5)).toFixed(1)}" x2="${x}" y2="${y}" stroke-opacity="${(op * 0.38).toFixed(2)}"/>`;
+      dots += `<circle class="lm-sat${tips ? ' pb' : ''}" cx="${x}" cy="${y}" r="${(0.7 + rnd()).toFixed(2)}" fill-opacity="${op}"${tips && tips[i] ? ` data-tip="${esc(tips[i])}"` : ''}/>`;
+    }
+    // leading anchor circle keeps the group's fill-box symmetric → rotation
+    // stays centered on the core (same trick as .lm-orbit's transform-box)
+    rot.innerHTML = `<g class="lm-swarm-op"><circle class="lm-sat" r="${r1}" fill="none" stroke="none" fill-opacity="0"/>${spokes}${dots}</g>`;
+    rot.style.animationDuration = cfg.dur + 's';
+    rot.style.animationDirection = cfg.dir;
+    rot.classList.add('lm-go');
+  }
+  // count badge pill — map.html recipe; inv counter-scales vs the viewBox so the
+  // number stays ~8px on screen at every panel width (badges always legible)
+  function drawBadge(id, count, pop) {
+    const b = $b[id]; if (!b) return;
+    if (count == null || count === 0) { b.style.display = 'none'; return; }
+    const n = NODES[id], inv = G.inv, txt = String(count);
+    const w = (txt.length * 4.9 + 7) * inv, h = 11 * inv;
+    b.setAttribute('transform', `translate(${(n.r * 0.75 + 7 * inv + w / 2).toFixed(1)},${(-(n.r + 8 * inv)).toFixed(1)})`);
+    const rect = b.querySelector('rect'), t = b.querySelector('text');
+    rect.setAttribute('x', (-w / 2).toFixed(1)); rect.setAttribute('y', (-h / 2).toFixed(1));
+    rect.setAttribute('width', w.toFixed(1)); rect.setAttribute('height', h.toFixed(1)); rect.setAttribute('rx', (h / 2).toFixed(1));
+    t.setAttribute('y', (2.9 * inv).toFixed(1));
+    t.style.fontSize = (8 * inv).toFixed(2) + 'px';   // inline: .lm-node text's font shorthand must not win
+    if (t.textContent !== txt) t.textContent = txt;
+    b.style.display = '';
+    if (pop && !RM.matches) {
+      b.classList.remove('pop'); void b.getBBox();               // restart the pop keyframe
+      b.classList.add('pop');
+      clearTimeout(b._popT); b._popT = setTimeout(() => b.classList.remove('pop'), 500);
+    }
+  }
+  function redrawGalaxy() {
+    G.inv = SCENE_W / curW;
+    drawSwarm('brain', G.chats == null ? 0 : G.chats);           drawBadge('brain', G.chats);
+    drawSwarm('playbook', G.lessons ? G.lessons.length : 0, G.lessons || undefined);
+    drawBadge('playbook', G.lessons && G.lessons.length);
+    drawSwarm('ledger', G.ledger == null ? 0 : G.ledger);        drawBadge('ledger', G.ledger);
+    drawSwarm('tools', G.tools.size);                            drawBadge('tools', G.tools.size || null);
+    drawSwarm('distiller', G.cats == null ? 0 : G.cats);         drawBadge('distiller', G.cats);
+    drawSwarm('bp', G.bp == null ? 0 : G.bp);                    drawBadge('bp', G.bp);
+    drawSwarm('bubble', G.bp == null ? 0 : Math.min(6, G.bp));
+  }
+  // fetch the real numbers (on open + with the 3s poll, only while open)
+  let galBusy = false;
+  async function fetchGalaxy() {
+    if (galBusy || S.mode !== 'open') return;
+    galBusy = true;
+    try {
+      const [ch, pb, le] = await Promise.all([
+        fetch('/api/chats').then((r) => r.json()).catch(() => null),
+        fetch('/api/playbook').then((r) => r.json()).catch(() => null),
+        fetch('/api/learn-events').then((r) => r.json()).catch(() => null),
+      ]);
+      if (ch && ch.chats) { G.chats = ch.chats.length; G.bp = ch.chats.filter((c) => c.bp).length; }
+      if (pb && pb.lessons) {
+        const act = pb.lessons.filter((l) => l.status === 'active');
+        G.lessons = act.map((l) => clean(l.trigger || '').split(',')[0].slice(0, 30) || 'lesson');
+        G.cats = (pb.categories || []).length;
+        S.lessons = act.length;                                  // v3 tooltip/ambient counter
+      }
+      // live pings may run ahead of the ledger file — never regress the badge
+      if (le && le.events) G.ledger = Math.max(G.ledger || 0, le.events.length);
+    } finally { galBusy = false; }
+    if (S.mode === 'open') redrawGalaxy();
+  }
+  // playbook satellite tooltips — hovering a lesson dot names its trigger
+  panel.querySelector('.lm-scene svg').addEventListener('mouseover', (ev) => {
+    const t = ev.target;
+    if (!t.classList || !t.classList.contains('pb') || !t.dataset.tip) return;
+    const sc = panel.querySelector('.lm-scene').getBoundingClientRect();
+    const tb = t.getBoundingClientRect();
+    tipEl.innerHTML = `<b>Lesson</b><div class="t2">${esc(t.dataset.tip)}</div>`;
+    tipEl.style.display = 'block';
+    tipEl.style.left = Math.min(tb.left - sc.left + 10, sc.width - 190) + 'px';
+    tipEl.style.top = Math.max(4, tb.top - sc.top - 34) + 'px';
+  });
+  panel.querySelector('.lm-scene svg').addEventListener('mouseout', (ev) => {
+    if (ev.target.classList && ev.target.classList.contains('pb')) tipEl.style.display = 'none';
+  });
 
   // ---- signals ---------------------------------------------------------------
   const TURN_EDGES = ['you-brain', 'brain-model'];
@@ -468,6 +650,14 @@
     tkPush(S.lessons + ' lesson' + (S.lessons === 1 ? '' : 's') + (S.lastApplied ? ' · last applied ' + clock(S.lastApplied) : ''));
   }
 
+  // session-live TOOLS galaxy: each distinct tool used this session = a satellite
+  function toolSat(tool) {
+    const k = clean(tool).slice(0, 14);
+    if (!k || G.tools.has(k)) return;
+    G.tools.add(k);
+    if (S.mode === 'open') { drawSwarm('tools', G.tools.size); drawBadge('tools', G.tools.size, true); }
+  }
+
   // ---- ping: the one entry point for real activity ----------------------------
   function ping(kind, arg) {
     const t = now();
@@ -486,7 +676,7 @@
     }
     else if (kind === 'tool') {
       bump('model-tools', 3000); S.nodePing.tools = t; ripple('tools');
-      if (arg && arg.tool) spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9));
+      if (arg && arg.tool) { spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9)); toolSat(arg.tool); }
     }
     else if (kind === 'tool-detail') {
       const cmd = clean(arg && arg.cmd);
@@ -498,7 +688,7 @@
     }
     else if (kind === 'bp-step') {
       bump('model-tools', 3000); bump('tools-bp', 3400); bump('bp-bubble', 3400); S.nodePing.bp = t; S.nodePing.bubble = t; ripple('bp'); ripple('bubble');
-      if (arg && arg.tool) spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9));
+      if (arg && arg.tool) { spawnKid('tools', String(arg.tool).toUpperCase().slice(0, 9)); toolSat(arg.tool); }
     }
     else if (kind === 'model') { if (arg) { S.model = arg; localStorage.setItem(LS_MODEL, arg); } }
     else if (kind === 'playbook-applied') {
@@ -509,6 +699,9 @@
     else if (kind === 'learning-saved') {
       bump('brain-distiller', 3400); bump('distiller-ledger', 3400); S.nodePing.distiller = t; S.nodePing.ledger = t; ripple('ledger');
       lessonBirth(arg);
+      // galaxy: a new learn event → LEDGER swarm +1, badge pops with the real count
+      G.ledger = (G.ledger || 0) + 1;
+      if (S.mode === 'open') { drawSwarm('ledger', G.ledger); drawBadge('ledger', G.ledger, true); }
       tkPush('🧠 learned: ' + (evSnip(arg) || 'new lesson'));
     }
     else if (kind === 'recurrence') {
@@ -526,14 +719,16 @@
     if (t - u < RECENT_MS && u > 0) return 'recent';
     return '';
   }
-  // one comet per active edge: lead dot + 3 trailing circles of decreasing size/opacity,
-  // trailing via negative animation-delay on the same motion path (seamless from cycle 1)
+  // one comet per active edge: lead dot + 2 trailing circles of decreasing size/opacity,
+  // trailing via negative animation-delay on the same motion path (seamless from cycle 1).
+  // v4 CHANGED BASELINE: 3 dots per comet (was 4) + global cap 15 (≤5 comets at once)
+  // so the busiest turn stays under the <50 running-animation budget on the galaxy scene.
   function syncDots(e, on) {
     const g = $e[e.id];
     const have = g.querySelectorAll('.lm-dot').length;
     if (on && !have) {
       if (RM.matches) return;                                    // reduced motion: no comets at all
-      if (panel.querySelectorAll('.lm-dot').length >= 20) return; // global cap (≤5 comets at once)
+      if (panel.querySelectorAll('.lm-dot').length >= 15) return; // global cap (≤5 comets at once)
       const mk = (cls, r, op, delay) => {
         const c = document.createElementNS(NS, 'circle');
         c.setAttribute('class', cls);
@@ -541,7 +736,7 @@
         g.appendChild(c);
       };
       mk('lm-dot', 2.2, 1, 0);
-      for (let i = 1; i <= 3; i++) mk('lm-dot lm-comet', 2.2 - i * 0.45, 1 - i * 0.26, -(1.6 - i * 0.085));
+      for (let i = 1; i <= 2; i++) mk('lm-dot lm-comet', 2.2 - i * 0.5, 1 - i * 0.3, -(1.6 - i * 0.09));
     } else if (!on && have) g.querySelectorAll('.lm-dot').forEach((d) => d.remove());
   }
   function render() {
@@ -586,6 +781,7 @@
         if (r.lastLearnEvent.kind === 'playbook-applied' && !S.lastApplied) S.lastApplied = Date.parse(r.lastLearnEvent.ts) || null;
       }
     } catch {}
+    fetchGalaxy();   // v4: galaxy counts ride the same 3s poll (open-only, no overlap)
     render();
   }
   function startLoops() {
@@ -593,7 +789,6 @@
     poll();
     S.pollIv = setInterval(poll, 3000);
     S.tickIv = setInterval(() => { render(); tkAmbient(); }, 1000);
-    if (S.lessons === null) fetch('/api/playbook').then((r) => r.json()).then((j) => { S.lessons = (j.lessons || []).filter((l) => l.status === 'active').length; }).catch(() => {});
   }
   function stopLoops() { clearInterval(S.pollIv); clearInterval(S.tickIv); S.pollIv = S.tickIv = null; tkClear(); }
 
@@ -616,6 +811,7 @@
   }
   panel.querySelectorAll('.lm-node').forEach((g) => {
     g.addEventListener('mouseenter', () => {
+      if (g.querySelector('.lm-sat.pb:hover')) return;   // a lesson satellite owns the tip
       const id = g.dataset.n, n = NODES[id];
       tipEl.innerHTML = `<b>${n.tip}</b><div class="t2">${nodeStatus(id)}</div>`;
       const sc = panel.querySelector('.lm-scene').getBoundingClientRect();
@@ -649,7 +845,11 @@
     open: () => setMode('open'),
     close: () => setMode('closed'),
     toggle: (force) => setMode(force === true || S.mode === 'closed' ? 'open' : S.mode === 'open' ? 'closed' : 'open'),
-    _test: { kidTTL: (ms) => { KID_TTL = ms; }, kids: () => KIDS.size },   // rig-only hooks
+    _test: {   // rig-only hooks
+      kidTTL: (ms) => { KID_TTL = ms; }, kids: () => KIDS.size,
+      gal: () => ({ chats: G.chats, bp: G.bp, lessons: G.lessons ? G.lessons.length : null, ledger: G.ledger, cats: G.cats, tools: G.tools.size, inv: G.inv, fac: densityFac() }),
+      resetTools: () => { G.tools.clear(); drawSwarm('tools', 0); drawBadge('tools', null); },
+    },
   };
   if (S.mode !== 'closed') setMode(S.mode);   // restore across reloads
 })();
