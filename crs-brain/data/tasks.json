@@ -1023,6 +1023,16 @@
       "status": "todo",
       "created": "2026-07-18T21:53:02.623Z",
       "notes": "Seen 2026-07-19 during the UM screenshot session; buildprint screenshot <email> also hung ~7min. Workaround shipped in BP_PROMPT (form sign-in via crs-brain/.bp-test-user)."
+    },
+    {
+      "id": "3117c151",
+      "title": "Playbook failed to prevent: The zebra diagnostic flag is not supported by node on this host — chat 97815bea",
+      "status": "todo",
+      "created": "2026-07-19T01:04:42.171Z",
+      "notes": "Either the lesson's rule/fix is wrong (edit it on the Playbook page) or the session ignored it (prompt-assembly bug). Review the chat.",
+      "auto": {
+        "key": "pb-recur:47aa6cc2"
+      }
     }
   ]
 }

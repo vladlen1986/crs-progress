@@ -1,23 +1,23 @@
 {
-  "id": "ac48be7c-caed-4889-89c7-0a9bb2890864",
-  "title": "Diagnostic: run the Bash command `zebra --hello` once and re",
-  "sessionId": "6564c2ef-15cd-46ef-97ea-e6b58ecee50c",
+  "id": "97815bea-2051-431d-ae22-278846cbdd25",
+  "title": "Diagnostic: run the Bash command `node --zebra-hello` once a",
+  "sessionId": "a104a3d8-c931-43f4-8cd5-b640d6b247b4",
   "bp": true,
-  "created": "2026-07-19T00:59:57.528Z",
-  "updated": "2026-07-19T01:00:08.014Z",
+  "created": "2026-07-19T01:04:37.123Z",
+  "updated": "2026-07-19T01:04:45.914Z",
   "messages": [
     {
       "role": "user",
-      "content": "Diagnostic: run the Bash command `zebra --hello` once and report its exact output, then reply done. Nothing else.",
-      "ts": "2026-07-19T00:59:57.528Z",
+      "content": "Diagnostic: run the Bash command `node --zebra-hello` once and report its exact output, then reply done. Nothing else.",
+      "ts": "2026-07-19T01:04:37.123Z",
       "attachments": []
     },
     {
       "role": "assistant",
-      "content": "The command returned: `This command requires approval` (it did not execute — no output was produced).\n\nDone.",
-      "ts": "2026-07-19T01:00:08.014Z",
-      "startedAt": "2026-07-19T00:59:57.529Z",
-      "completedAt": "2026-07-19T01:00:08.014Z",
+      "content": "Output: `node: bad option: --zebra-hello` (exit code 9).\n\nDone.",
+      "ts": "2026-07-19T01:04:45.914Z",
+      "startedAt": "2026-07-19T01:04:37.125Z",
+      "completedAt": "2026-07-19T01:04:45.914Z",
       "model": "claude-sonnet-5",
       "steps": [
         {
@@ -45,7 +45,7 @@
           "kind": "note",
           "tool": null,
           "label": "Playbook check — 1 lesson loaded",
-          "body": "• [cli-bug] The zebra tool is not installed on this host",
+          "body": "• [cli-bug] The zebra diagnostic flag is not supported by node on this host",
           "actor": "brain"
         },
         {
@@ -65,15 +65,8 @@
         {
           "kind": "tool",
           "tool": "Bash",
-          "label": "Run zebra diagnostic command",
-          "body": "description: Run zebra diagnostic command\ncommand: zebra --hello\n⇒ ✗ This command requires approval",
-          "actor": "brain"
-        },
-        {
-          "kind": "thinking",
-          "tool": null,
-          "label": null,
-          "body": "",
+          "label": "Run diagnostic node flag",
+          "body": "description: Run diagnostic node flag\ncommand: node --zebra-hello\n⇒ ✗ Exit code 9 node: bad option: --zebra-hello",
           "actor": "brain"
         }
       ]
