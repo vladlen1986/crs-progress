@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-07-17**.
+Last updated: **2026-07-19**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
@@ -227,6 +227,14 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 ---
 
 ## Decisions log (append-only)
+
+### 2026-07-19 — Sessions: Playbook close-out (Mac) + Sidebar v3 (catch-up entry; also covers 07-18 QA/polish/ASK work logged only in brain/qa/)
+- **Playbook program (T0–T6) COMPLETE** — self-learning made law: `data/playbook.json` lesson store (7 operational seeds migrated out of memory.json; schema with trigger/rule/fix/errorSig/hits/recurred), matched injection into bp system prompts with a visible "Playbook check — N lessons loaded" step, recurrence alarm (errorSig match on real ✗ tool results → warning + What's-wrong todo + recurred++), learn-events ledger + top-right 🧠/⚡/⚠ toasts, `playbook.html` surface + ⌘K + dash top-traps strip. Zebra probe green 10/10 twice (independent verifier); PLAYBOOK.1–6 in `brain/qa/master-checklist.md`; checkpoint `brain/qa/checkpoints/playbook.md`. Meta-proof: run-1's probe failed BECAUSE injection prevented the planted mistake.
+- **Sidebar v3** (Claude-Code-style minimalism): search + 32px "+" merged into one row (`.newbtn` gone), caps = Pinned/Recents, legend deleted, rows = mark + title only (count pill/pin icon removed), bp rows now a "BP" mono chip on accent-tint, live-turn opacity pulse `sb-live` on the mark via `state.live`/`syncLiveRow()` (reduced-motion → static accent dot), selected = accent-glow wash + NEW inset 2px accent bar, default width 280px, row 6px pad (~34px). SIDEBAR3.1–6 verified both themes.
+- **Shared invisible scrollbars app-wide**: new `public/scrollbars.css` + `public/js/scrollbars.js` on all 11 pages (transparent at rest; `--border-active` thumb on container hover or `.is-scrolling` with 700ms decay; Chrome renders via standard `scrollbar-color`, reveal is an instant swap — Chrome won't transition scrollbar pseudos). Old per-page blocks in index/map deleted.
+- **Theme-toggle "regression" resolved as mistaken identity**: POLISH.3's fix never regressed (pickaxe-proven); the perceived second header toggle was the prototype-overlay bar's iframe-only theme button — relabeled "◐ Prototype theme" + scoping title. Grep invariant added to SIDEBAR3.6.
+- **Mac bring-up**: agent-browser 0.32.2 + buildprint 4.2.7 under `~/.local` (buildprint still Unauthorized — needs `buildprint link <token>`); rig rebuilt in gitignored `qa-scratch/rig/`; committed `brain/qa/rig-scripts/verify-playbook2.js` made cross-platform (the original `zebra --hello` probe command was permission-blocked by the bp-spawn allowlist on every platform — now `node --zebra-hello`).
+- **Review sweep (4 agents)**: runtime fully clean (22 page loads, 37 APIs, mobile, interactions — zero errors); 3 hard-coded colors fixed to tokens (`--error`×2, `--warning`); confirmed-dead CSS/JS from superseded designs catalogued and removed (see the `review:` commits); design-system findings needing a RULING kept open: `--accent-glow` vs `--accent-tint` for selected backgrounds app-wide, and the §10 (bg+text) vs §20.6 (+2px bar) tension on `.item.on`.
 
 ### 2026-07-17 — Session: ptree — Progress Tree Executive ⇄ Raw redesign (Windows continuation)
 - Resumed from `brain/qa/resume-2026-07-17.md` on the Windows PC. Implemented the ptree redesign of `public/tree.html`: **two detail renderers** switched by a toolbar segmented control (greyscale active per override #36, persisted as `localStorage crs-tree-view`). **Executive** = the md sections (STATUS block / data model / option sets / permissions / workflows) parsed into real §20.6 tables + clean prose (`mdToHtml()`: tables, subheadings, blockquotes, lists, inline code/bold, ⚠ VERIFY chips; first heading dropped — the dsec title already names the section; unparseable → prose, **never a pre fence**). **Raw** = the honest source twin: per-section `<pre>` + per-block Copy.

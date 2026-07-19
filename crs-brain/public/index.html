@@ -435,7 +435,7 @@
   /* auto-fallback note: shown when the chosen model was inaccessible and the app switched */
   .switch-note{display:flex;align-items:center;gap:8px;margin:2px 0 10px;padding:7px 11px;border:1px solid var(--line);border-left:3px solid #F59E0B;background:var(--veil);border-radius:8px;color:var(--secondary);font-size:12.5px;line-height:1.4}
   .switch-note b{color:var(--primary);font-weight:600}
-  .sw-bolt{color:#F59E0B;font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
+  .sw-bolt{color:var(--warning);font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
 
   /* prompt queue strip */
   .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
@@ -1242,7 +1242,7 @@
   .card:hover{border-color:var(--line2);transform:translateY(-1px)}
   .card .t{color:var(--primary)}
   .card .n{color:var(--muted);font-size:12px;margin-top:2px}
-  .missing .card{--cardc:#EF4444}
+  .missing .card{--cardc:var(--error)}
   .empty{color:var(--muted);font-size:12px;padding:5px 4px;font-style:italic}
   .refresh{background:none;border:none;color:var(--muted);font-size:13px;margin-left:auto;cursor:pointer;transition:var(--transition);border-radius:6px;width:24px;height:24px}
   .refresh:hover{color:var(--primary);background:var(--panel2)}
@@ -4502,7 +4502,7 @@ async function loadProgress(){
   }
   const missing=(p.missing||[]);
   const m=document.createElement('div'); m.className='pcol missing';
-  m.innerHTML=`<div class="hdr"><span class="pill" style="background:#EF4444"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
+  m.innerHTML=`<div class="hdr"><span class="pill" style="background:var(--error)"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
   if(!missing.length) m.innerHTML+='<div class="empty">—</div>';
   for(const x of missing){ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="t">${esc(typeof x==='string'?x:(x.title||''))}</div>`; m.appendChild(c); }
   box.appendChild(m);
