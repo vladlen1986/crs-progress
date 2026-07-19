@@ -50,3 +50,9 @@
 {"ts":"2026-07-19T10:18:46.099Z","purpose":"chat","model":"claude-sonnet-5","in":54336,"out":164,"ms":7784,"costUsd":0.165468,"estimated":true,"aborted":true}
 {"ts":"2026-07-19T10:19:37.903Z","purpose":"chat","model":"claude-sonnet-5","in":51001,"out":581,"ms":13942,"costUsd":0.161718,"estimated":true}
 {"ts":"2026-07-19T10:20:37.162Z","purpose":"chat","model":"claude-sonnet-5","in":58422,"out":1230,"ms":38060,"costUsd":0.193716,"estimated":true}
+{"ts":"2026-07-19T10:20:44.646Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1261,"costUsd":0,"estimated":true}
+{"ts":"2026-07-19T10:20:51.623Z","purpose":"lesson","model":"claude-haiku-4-5-20251001","in":29487,"out":745,"ms":14458,"costUsd":0.033212,"estimated":true}
+{"ts":"2026-07-19T10:21:04.715Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1212,"costUsd":0,"estimated":true}
+{"ts":"2026-07-19T10:44:30.501Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1298,"costUsd":0,"estimated":true}
+{"ts":"2026-07-19T10:44:37.915Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":1288,"costUsd":0,"estimated":true}
+{"ts":"2026-07-19T10:46:37.805Z","purpose":"bp-chat","model":"claude-sonnet-5","in":41186,"out":4,"ms":6363,"costUsd":0.123618,"estimated":true}
