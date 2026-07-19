@@ -398,6 +398,90 @@ async function compileMemory(userText) {
   } catch { return []; }
 }
 
+// ---- THE PLAYBOOK: operational lessons — consult before acting, learn after -
+// Law: the same mistake twice is a SYSTEM failure. Lessons are operational
+// (trigger → rule → exact fix), matched per-task and injected visibly; captured
+// ✗ errors matching an injected lesson raise a recurrence alarm.
+const PLAYBOOK_FILE = path.join(DATA_DIR, 'playbook.json');
+const LEARN_EVENTS_FILE = path.join(DATA_DIR, 'learn-events.jsonl');
+const PB_CATEGORIES = ['platform-gotcha', 'cli-bug', 'workspace-rule', 'design-pattern', 'verification', 'decision-pointer'];
+function loadPlaybook() { try { return JSON.parse(fs.readFileSync(PLAYBOOK_FILE, 'utf8')); } catch { return []; } }
+function savePlaybook(arr) { fs.writeFileSync(PLAYBOOK_FILE, JSON.stringify(arr, null, 2)); }
+// learn-events feed the top-right "brain is learning / applying" toasts
+function learnEvent(kind, title, detail, chatId) {
+  try { fs.appendFileSync(LEARN_EVENTS_FILE, JSON.stringify({ ts: nowIso(), kind, title: String(title || '').slice(0, 160), detail: String(detail || '').slice(0, 4000), chatId: chatId || '' }) + '\n'); } catch {}
+}
+// error signature: normalized first line of a captured ✗ result (paths/numbers stripped)
+function normalizeErrSig(s) {
+  return String(s || '').split('\n')[0].toLowerCase()
+    .replace(/[a-z]:\\[^\s]+/g, ' ').replace(/\/[^\s]+/g, ' ').replace(/\d+/g, '#')
+    .replace(/[^a-z#' ]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 100);
+}
+function addPlaybookLessons(entries, source) {
+  const arr = loadPlaybook(); const added = [];
+  const norm = (s) => String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  for (const e of (entries || [])) {
+    const rule = String(e.rule || '').trim().slice(0, 400); if (!rule) continue;
+    if (looksLikeSecret(rule) || looksLikeSecret(String(e.fix || ''))) continue;
+    const dup = arr.find((x) => norm(x.rule) === norm(rule));
+    if (dup) { if (e.fix) dup.fix = String(e.fix).slice(0, 500); continue; }
+    arr.push({ id: crypto.randomUUID().slice(0, 8), category: PB_CATEGORIES.includes(e.category) ? e.category : 'platform-gotcha',
+      trigger: String(e.trigger || '').slice(0, 300), rule, fix: String(e.fix || '').slice(0, 500),
+      errorSig: e.errorSig ? normalizeErrSig(e.errorSig) : '', source: source || '', hits: 0, lastHit: null, recurred: 0, status: 'active', created: nowIso() });
+    added.push(arr[arr.length - 1]);
+  }
+  if (added.length) savePlaybook(arr);
+  return added;
+}
+function matchLessons(text) {
+  const hay = String(text || '').toLowerCase();
+  return loadPlaybook().filter((l) => {
+    if (l.status !== 'active') return false;
+    const kws = String(l.trigger || '').split(',').map((s) => s.trim().toLowerCase()).filter((s) => s.length > 2);
+    return kws.some((k) => hay.includes(k));
+  });
+}
+function stampLessonHits(ids) {
+  if (!ids.length) return;
+  const arr = loadPlaybook(); let ch = false;
+  for (const l of arr) if (ids.includes(l.id)) { l.hits = (l.hits || 0) + 1; l.lastHit = nowIso(); ch = true; }
+  if (ch) savePlaybook(arr);
+}
+function playbookBlock(lessons) {
+  return 'PLAYBOOK — known traps for this task. Consult BEFORE acting; repeating one of these mistakes is a system failure:\n'
+    + lessons.map((l) => `- [${l.category}] ${l.rule}${l.fix ? '  FIX: ' + l.fix : ''}`).join('\n');
+}
+function markRecurrence(lesson, chatId) {
+  const arr = loadPlaybook();
+  const l = arr.find((x) => x.id === lesson.id);
+  if (l) { l.recurred = (l.recurred || 0) + 1; l.recurredAt = nowIso(); savePlaybook(arr); }
+  addNotification({ type: 'warning', level: 'warning', title: 'Playbook failed to prevent a known mistake', body: lesson.rule.slice(0, 130), target: 'chat:' + chatId });
+  try { const tasks = loadTasks(); if (ensureAutoTask(tasks, 'pb-recur:' + lesson.id, { title: 'Playbook failed to prevent: ' + lesson.rule.slice(0, 90) + ' — chat ' + chatId.slice(0, 8), notes: 'Either the lesson\'s rule/fix is wrong (edit it on the Playbook page) or the session ignored it (prompt-assembly bug). Review the chat.' })) saveTasks(tasks); } catch {}
+  learnEvent('recurrence', 'Known mistake repeated', lesson.rule, chatId);
+}
+// One-time migration: operational memory seeds → Playbook (memory keeps human facts).
+if (!fs.existsSync(PLAYBOOK_FILE)) {
+  const MIG = [
+    { t: 'Index page.json is un-editable via Buildprint', category: 'workspace-rule', trigger: 'page.json, index page, page-level, rename page, html_header, page css', errorSig: "you can't name a page 'index' because it is a reserved name" },
+    { t: 'CRS light-mode pattern: bptheme element states', category: 'design-pattern', trigger: 'light mode, dark mode, theming, theme, bptheme, dark_theme' },
+    { t: 'No scratch files inside the Bubble worktree', category: 'workspace-rule', trigger: 'scratch, .context, workspace root, check flags, analysis files', errorSig: 'invalid workspace root entry' },
+    { t: 'Reverting uncommitted worktree edits', category: 'workspace-rule', trigger: 'git checkout, git reset, revert, restore file, discard changes', errorSig: 'blocked by the safety gate' },
+    { t: 'Use node, not python, for local scripts', category: 'cli-bug', trigger: 'python, python3, local script, aggregation script', errorSig: "'python' is not recognized as an internal or external command" },
+    { t: 'Anonymous users have no theme — auth pages', category: 'design-pattern', trigger: 'auth page, sign-in, sign in, logged out, logged-out, anonymous, index theme' },
+    { t: 'Anonymous sign-in page is dark BY DESIGN', category: 'decision-pointer', trigger: 'sign-in, sign in, index page, anonymous, logged out, light mode' },
+  ];
+  try {
+    const mem = loadMemory(); const keep = []; const lessons = [];
+    for (const m of mem) {
+      const map = MIG.find((x) => x.t === m.title);
+      if (map) lessons.push({ category: map.category, trigger: map.trigger, rule: m.title + ' — ' + m.fact.split('.')[0] + '.', fix: m.fact, errorSig: map.errorSig || '' , });
+      else keep.push(m);
+    }
+    if (lessons.length) { addPlaybookLessons(lessons, 'migrated from memory 2026-07-19'); saveMemoryArr(keep); }
+    else savePlaybook([]);
+  } catch { try { savePlaybook([]); } catch {} }
+}
+
 // ---- self-learning: distill operational lessons from Buildprint sessions ----
 // After a bp-chat turn with LEARNABLE SIGNAL (tool errors, blocked commands,
 // long exploratory runs), a cheap Haiku pass extracts at most 3 NEW operational
@@ -410,25 +494,29 @@ function turnLearnable(steps, ms) {
   if (s.some((x) => LESSON_SIGNAL_RE.test((x.label || '') + ' ' + (x.body || '')))) return true;
   return s.length >= 15 || (ms || 0) > 5 * 60 * 1000;   // long exploration = discoveries worth keeping
 }
-async function distillLessons(userMessage, steps, finalText) {
-  const existing = loadMemory().filter((m) => m.category === 'Technical' || m.category === 'Workflow');
-  const known = existing.map((m) => `- ${m.title}: ${m.fact}`).join('\n').slice(0, 4000);
+async function distillLessons(userMessage, steps, finalText, chatId) {
+  const known = loadPlaybook().filter((l) => l.status === 'active').map((l) => `- ${l.rule}${l.fix ? ' FIX: ' + l.fix : ''}`).join('\n').slice(0, 4000);
   const digest = (steps || []).map((s) => {
     const err = LESSON_SIGNAL_RE.test(s.body || '');
     return '· ' + (s.label || s.kind || '') + (err ? ' :: ' + (s.body || '').slice(0, 220).replace(/\s+/g, ' ') : '');
   }).join('\n').slice(0, 6000);
+  learnEvent('learning-start', 'Learning from this session…', 'Signal detected (errors/blocked commands/long exploration). Distilling operational lessons from:\n' + String(userMessage || '').slice(0, 200), chatId);
   const instruction =
-    'From this Buildprint work-session digest, extract AT MOST 3 genuinely NEW operational lessons worth remembering forever: platform gotchas, tool errors with their exact working fixes, workspace rules discovered the hard way. ' +
-    'NOT task-specific facts, NOT praise, NOT anything semantically covered by the KNOWN LESSONS below (even if worded differently). ' +
-    'Output ONLY a JSON array of {"category":"Technical"|"Workflow","title":"a <=8-word label","fact":"1-2 self-contained sentences including the exact fix/rule"}. Output [] if nothing genuinely new.\n\n' +
+    'From this Buildprint work-session digest, extract AT MOST 3 genuinely NEW operational lessons worth remembering forever. A lesson is OPERATIONAL: a trigger (when it applies), a one-sentence rule (the law), and the exact working fix. Vague advice is NOT a lesson. ' +
+    'NOT task-specific facts, NOT anything semantically covered by KNOWN LESSONS below (even reworded). ' +
+    'Output ONLY a JSON array of {"category":"platform-gotcha"|"cli-bug"|"workspace-rule"|"design-pattern"|"verification","trigger":"comma-separated keywords/task-types this applies to","rule":"one sentence — the law","fix":"the exact working approach/command","errorSig":"the literal first line of the error it prevents, if any, else empty"}. Output [] if nothing genuinely new.\n\n' +
     'KNOWN LESSONS:\n' + (known || '(none)') + '\n\nTASK GIVEN:\n' + String(userMessage || '').slice(0, 400) +
     '\n\nSESSION DIGEST (· step — :: = error detail):\n' + digest + '\n\nFINAL REPORT (tail):\n' + String(finalText || '').slice(-1500);
   const res = await runClaudeStream(instruction, null, {}, { model: 'claude-haiku-4-5-20251001', effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'lesson' });
   const m = (res.text || '').match(/\[[\s\S]*\]/);
-  if (!m) return [];
-  let arr; try { arr = JSON.parse(m[0]); } catch { return []; }
-  const saved = addMemories((Array.isArray(arr) ? arr : []).slice(0, 3).map((x) => ({ category: x.category === 'Workflow' ? 'Workflow' : 'Technical', title: x.title, fact: x.fact })));
-  if (saved.length) addNotification({ type: 'info', level: 'info', title: 'Brain learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), body: saved.map((s) => s.title).join(' · ') });
+  let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch {} }
+  const saved = addPlaybookLessons((Array.isArray(arr) ? arr : []).slice(0, 3), 'chat ' + (chatId || '').slice(0, 8) + ' · ' + nowIso().slice(0, 10));
+  if (saved.length) {
+    addNotification({ type: 'info', level: 'info', title: 'Playbook learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), body: saved.map((s) => s.rule.slice(0, 60)).join(' · ') });
+    learnEvent('learning-saved', 'Learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), saved.map((s) => '• [' + s.category + '] ' + s.rule + (s.fix ? '\n  FIX: ' + s.fix : '')).join('\n'), chatId);
+  } else {
+    learnEvent('learning-clean', 'Nothing new to learn', 'Session reviewed — all its traps were already in the Playbook.', chatId);
+  }
   return saved;
 }
 
@@ -1616,7 +1704,7 @@ const BP_PROMPT = (ws) => [
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
   'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, which page, naming, scope trims — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "say the word" question — that is a contract violation. "recommend" answer → present YOUR recommendation + one-line tradeoffs as a NEW ask_vlad call (recommended option first). Tool rejected (touches an [OPEN] decision) → stop and emit DECISION-NEEDED per the guard flow. Operational choices only.',
-  'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task.',
+  'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task. Pages that require login are captured through the authenticated path (.bp-test-user form sign-in); pages reachable logged-out ALSO get the logged-out capture (that state is part of the truth). A visual task reported done without BOTH theme images embedded is a CONTRACT VIOLATION the verifier flags.',
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
   `- As a real user (their theme + permissions): \`buildprint screenshot <testuser-email> "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\` (run \`buildprint login <email>\` first if it needs the Agent Browser session).`,
@@ -3149,6 +3237,8 @@ const server = http.createServer(async (req, res) => {
         sse({ type: 'block', kind: 'note', tool: null, actor: 'brain', label, body: body || '' });
       };
       let connectedMark = true;   // flipped ON for bp chats below; first stream event stamps "Connected"
+      let injectedLessons = [];   // Playbook lessons injected into THIS turn (recurrence detection)
+      const recurredIds = new Set();
       const markConnected = () => { if (connectedMark) return; connectedMark = true; lifeStep('Connected — model session live'); };
       try {
         const cfg = loadSettings();
@@ -3185,6 +3275,14 @@ const server = http.createServer(async (req, res) => {
           const pf = await bpPreflight();
           if (pf.ok && pf.linked) lifeStep(`Buildprint CLI ready — v${pf.version}, linked`);
           else lifeStep('Buildprint CLI problem — ' + (pf.err || 'unknown'), 'The session will fall back to manual paths where possible. Fix, then retry: ' + (pf.err || 'check `buildprint --version` in a terminal.'));
+          // Playbook check — consult-before-acting, VISIBLE, matched subset only.
+          injectedLessons = matchLessons(message + ' ' + (chat.focusModule || '') + ' ' + chat.title);
+          if (injectedLessons.length) {
+            runOpts.systemPrompt += '\n\n' + playbookBlock(injectedLessons);
+            stampLessonHits(injectedLessons.map((l) => l.id));
+            lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
+            learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
+          } else lifeStep('Playbook check — clean');
           connectedMark = false;   // next stream event stamps "Connected — model session live"
         } else {
           const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
@@ -3238,6 +3336,13 @@ const server = http.createServer(async (req, res) => {
           onToolResult: (r) => {
             const line = '⇒ ' + (r.isError ? '✗ ' : '') + r.text;
             if (curStep && curStep.kind === 'tool') curStep.body = capBody((curStep.body ? curStep.body + '\n' : '') + line);
+            // T3 recurrence: an error matching an INJECTED active lesson = the
+            // same-mistake-twice alarm — the system grades its own learning.
+            if (r.isError && injectedLessons.length) {
+              const sig = normalizeErrSig(r.text);
+              const hit = injectedLessons.find((l) => l.errorSig && sig && (sig.includes(l.errorSig.slice(0, 30)) || l.errorSig.includes(sig.slice(0, 30))));
+              if (hit && !recurredIds.has(hit.id)) { recurredIds.add(hit.id); markRecurrence(hit, chat.id); }
+            }
             sse({ type: 'detail', text: line });
           },
           onStatus: (s) => sse({ type: 'status', text: s }),
@@ -3259,7 +3364,7 @@ const server = http.createServer(async (req, res) => {
         // Self-learning: distill lessons from this BP session in the background
         // (only when the turn carries learnable signal — zero spend otherwise).
         if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
-          distillLessons(message, steps, finalText).catch(() => {});
+          distillLessons(message, steps, finalText, chat.id).catch(() => {});
         }
         await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
@@ -3651,8 +3756,35 @@ const server = http.createServer(async (req, res) => {
       const lastA = [...c.messages].reverse().find((m) => m.role === 'assistant' && m.steps && m.steps.length);
       if (!lastA) return send(res, 400, { error: 'no steps to learn from' });
       const lastU = [...c.messages].reverse().find((m) => m.role === 'user');
-      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content);
+      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content, c.id);
       return send(res, 200, { ok: true, learned: saved });
+    }
+    // ---- Playbook endpoints ----
+    if (p === '/api/playbook' && req.method === 'GET') return send(res, 200, { categories: PB_CATEGORIES, lessons: loadPlaybook() });
+    if (p === '/api/playbook' && req.method === 'POST') {   // edit / retire / reactivate / delete / add
+      const b = await readJsonBody(req) || {};
+      let arr = loadPlaybook();
+      if (b.add && b.rule) { const added = addPlaybookLessons([b], 'manual · ' + nowIso().slice(0, 10)); return send(res, 200, { ok: true, added }); }
+      if (!b.id) return send(res, 400, { error: 'id required' });
+      if (b.delete === true) arr = arr.filter((l) => l.id !== b.id);
+      else arr = arr.map((l) => {
+        if (l.id !== b.id) return l;
+        const n = { ...l };
+        if (b.status && ['active', 'retired'].includes(b.status)) n.status = b.status;
+        for (const k of ['rule', 'fix', 'trigger']) if (typeof b[k] === 'string') n[k] = b[k].slice(0, k === 'rule' ? 400 : 500);
+        if (typeof b.errorSig === 'string') n.errorSig = normalizeErrSig(b.errorSig);
+        return n;
+      });
+      savePlaybook(arr);
+      logAudit({ action: 'playbook-' + (b.delete ? 'delete' : b.status || 'edit'), target: b.id });
+      return send(res, 200, { ok: true, lessons: arr });
+    }
+    if (p === '/api/learn-events' && req.method === 'GET') {   // toast feed (since=ISO)
+      const since = u.searchParams.get('since') || '';
+      let lines = [];
+      try { lines = fs.readFileSync(LEARN_EVENTS_FILE, 'utf8').trim().split('\n').slice(-60).map((l) => JSON.parse(l)).filter(Boolean); } catch {}
+      if (since) lines = lines.filter((e) => e.ts > since);
+      return send(res, 200, { events: lines });
     }
     if (p === '/api/memory' && req.method === 'DELETE') {
       const id = u.searchParams.get('id');
@@ -3757,12 +3889,17 @@ const server = http.createServer(async (req, res) => {
         return send(res, 409, { decisionNeeded: true, error: 'DECISION-NEEDED: ' + guardHits.map((h) => h.title).join(' · ') + ' → decisions.md (open decision — make the call there, then regenerate)' });
       }
       const cfg = loadSettings();
+      // Playbook check for engine generation — matched traps ride the intent so
+      // the generated BP prompt inherits them; hits stamped, event logged.
+      const pbGen = matchLessons(text + ' ' + mod.id + ' ' + mod.name);
+      const genIntent = pbGen.length ? text + '\n\n' + playbookBlock(pbGen) : text;
+      if (pbGen.length) { stampLessonHits(pbGen.map((l) => l.id)); learnEvent('playbook-applied', 'Playbook applied to generation — ' + pbGen.length + ' lesson' + (pbGen.length > 1 ? 's' : ''), pbGen.map((l) => '• ' + l.rule).join('\n')); }
       try {
-        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, text), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
+        const result = await runClaudeStream(engine.buildGenMessage(bundle.text, genIntent), null, {}, { model: cfg.model, effort: 'low', systemPrompt: engine.GEN_SYSTEM_PROMPT, cwd: os.tmpdir(), purpose: 'gen' });
         const out = (result.text || '').trim().replace(/^```(?:markdown|md)?\s*/i, '').replace(/```\s*$/, '').trim();
         if (!out) return send(res, 502, { error: 'the brain returned nothing — try again' });
         const archived = engine.archive({ intent: text, module: mod.id, bundleSha: bundle.sha256, model: cfg.model, output: out });
-        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256 });
+        return send(res, 200, { prompt: out, archived, bundleSha: bundle.sha256, playbook: pbGen.length });
       } catch (e) { return send(res, 502, { error: e.message }); }
     }
 
@@ -4010,6 +4147,7 @@ const server = http.createServer(async (req, res) => {
         tasks,
         decisionsOpen: openDecisionTitles(),
         pendingAsks: pendingAsks(),
+        playbook: { recurredThisWeek: loadPlaybook().filter((l) => l.recurredAt && Date.now() - Date.parse(l.recurredAt) < 7 * 86400e3).map((l) => ({ id: l.id, rule: (l.rule || '').slice(0, 90), recurred: l.recurred || 0 })) },
         modules: { focus: focusIdx >= 0 ? { id: mods[focusIdx].id, name: mods[focusIdx].name, section: mods[focusIdx].section, status: mods[focusIdx].status } : null, counts: modCounts, total: mods.length },
         protos, failedChunks,
         qa: { counts: qa, failRows, envRows, lastRun },
