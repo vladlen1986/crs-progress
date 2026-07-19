@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain — Map</title>
 <link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/scrollbars.css">
+<script src="/js/scrollbars.js" defer></script>
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
   /* Canonical tokens + legacy aliases from tokens.css (§2.10). Surfaces now use
@@ -18,14 +20,7 @@
     --board-w:420px;  /* right board drawer width (user instruction 2026-07-18: right drawer, supersedes the 07-17 bottom-sheet override) */
   }
   *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
-  /* scrollbars — §2.2: track --bg-secondary, thumb --border-hover → --border-active, --accent while dragging */
-  *{scrollbar-width:thin;scrollbar-color:var(--border-hover) var(--bg-secondary)}
-  ::-webkit-scrollbar{width:10px;height:10px}
-  ::-webkit-scrollbar-track{background:var(--bg-secondary);border-radius:10px}
-  ::-webkit-scrollbar-thumb{background:var(--border-hover);border-radius:10px;border:2px solid var(--bg-secondary)}
-  ::-webkit-scrollbar-thumb:hover{background:var(--border-active)}
-  ::-webkit-scrollbar-thumb:active{background:var(--accent)}
-  ::-webkit-scrollbar-corner{background:transparent}
+  /* scrollbars → shared /scrollbars.css (sidebar3: invisible until hover/scroll) */
   body{background:var(--bg-primary);font-family:var(--sans);color:var(--text-secondary);font-size:13px;-webkit-font-smoothing:antialiased}
   canvas{display:block;cursor:grab;touch-action:none} canvas.dragging{cursor:grabbing} canvas.pointing{cursor:pointer}
 

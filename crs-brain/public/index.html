@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain</title>
 <link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="scrollbars.css">
+<script src="js/scrollbars.js" defer></script>
 <style>
   /* Canonical tokens + legacy aliases live in tokens.css (design system §2.10).
    * This block holds app-specific extras only. */
@@ -35,14 +37,7 @@
     color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit;cursor:pointer}
-  /* scrollbars — CRS tokens: track surface-1, thumb border→border-active, accent when dragging */
-  *{scrollbar-width:thin;scrollbar-color:var(--line3) var(--panel)}
-  ::-webkit-scrollbar{width:10px;height:10px}
-  ::-webkit-scrollbar-track{background:var(--panel);border-radius:10px}
-  ::-webkit-scrollbar-thumb{background:var(--line3);border-radius:10px;border:2px solid var(--panel)}
-  ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-  ::-webkit-scrollbar-thumb:active{background:var(--accent)}
-  ::-webkit-scrollbar-corner{background:transparent}
+  /* scrollbars → shared /scrollbars.css (sidebar3: invisible until hover/scroll) */
 
   .app{display:grid;grid-template-columns:var(--left-w,280px) 1fr;height:100vh}   /* sidebar3: default 280px; user-dragged widths (localStorage.leftW) still win */
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
