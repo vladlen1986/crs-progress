@@ -33,6 +33,7 @@
   "notifyPrefs": {
     "dnd": false,
     "bannerSec": 4,
+    "askRenotifyMin": 10,
     "migratedEvents": true,
     "types": {
       "info": {

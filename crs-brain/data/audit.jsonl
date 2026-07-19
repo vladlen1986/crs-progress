@@ -30,3 +30,14 @@
 {"ts":"2026-07-19T00:03:49.952Z","action":"ask-answered","target":"4f504442","via":"desktop","meta":{"question":"UI test: which route?","answer":"Route B","standing":false}}
 {"ts":"2026-07-19T00:04:06.075Z","action":"ask-answered","target":"46cd86bb","via":"desktop","meta":{"question":"Dashboard test: proceed or park this?","answer":"Proceed","standing":false}}
 {"ts":"2026-07-19T00:04:13.542Z","action":"ask-answered","target":"4333c259","via":"desktop","meta":{"question":"Pick a letter","answer":"Beta","standing":false}}
+{"ts":"2026-07-19T00:05:10.642Z","action":"ask-answered","target":"eaf00729","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Card tiles","standing":true}}
+{"ts":"2026-07-19T00:05:10.654Z","action":"ask-auto-answer","target":"fac25ccfc092","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Card tiles"}}
+{"ts":"2026-07-19T00:05:10.658Z","action":"ask-standing-retire","target":"fac25ccfc092","via":"desktop","meta":null}
+{"ts":"2026-07-19T00:05:10.667Z","action":"ask-answered","target":"d09b7a9b","via":"desktop","meta":{"question":"Which widget style should the tiles use?","answer":"Park it","standing":false}}
+{"ts":"2026-07-19T00:05:12.289Z","action":"ask-answered","target":"ea76d25c","via":"desktop","meta":{"question":"Shim test: proceed or park?","answer":"Proceed","standing":false}}
+{"ts":"2026-07-19T00:07:12.424Z","action":"ask-answered","target":"c92beaed","via":"remote","meta":{"question":"Remote via test: left or right?","answer":"Left","standing":false}}
+{"ts":"2026-07-19T00:07:12.442Z","action":"ask-answered","target":"bddefb27","via":"remote","meta":{"question":"Remote via test 2: up or down?","answer":"Up","standing":false}}
+{"ts":"2026-07-19T00:07:57.313Z","action":"ask-answered","target":"c1da2c11","via":"desktop","meta":{"question":"Sig test: alpha or bravo?","answer":"Alpha","standing":true}}
+{"ts":"2026-07-19T00:07:57.317Z","action":"ask-auto-answer","target":"910c7fe4ba1e","via":"desktop","meta":{"question":"Sig test: alpha or bravo?","answer":"Alpha"}}
+{"ts":"2026-07-19T00:07:57.329Z","action":"ask-answered","target":"b5a5b32e","via":"desktop","meta":{"question":"Sig test: alpha or maybe bravo?","answer":"Alpha","standing":false}}
+{"ts":"2026-07-19T00:07:57.334Z","action":"ask-standing-delete","target":"910c7fe4ba1e","via":"desktop","meta":null}

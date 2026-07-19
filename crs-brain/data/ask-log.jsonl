@@ -5,3 +5,12 @@
 {"ts":"2026-07-19T00:03:44.451Z","sig":"b836b79686b6","chatId":"testaskui-0000-0000-0000-000000000001","question":"UI test: which route?"}
 {"ts":"2026-07-19T00:04:03.531Z","sig":"7e53e2d2fb90","chatId":"testaskui-0000-0000-0000-000000000001","question":"Dashboard test: proceed or park this?"}
 {"ts":"2026-07-19T00:04:13.196Z","sig":"1eaa8bab6332","chatId":"34091d66-edb0-4e45-86df-1509bb750bda","question":"Pick a letter"}
+{"ts":"2026-07-19T00:05:09.817Z","sig":"fac25ccfc092","chatId":"testask0-0000-0000-0000-000000000001","question":"Which widget style should the tiles use?"}
+{"ts":"2026-07-19T00:05:10.651Z","sig":"fac25ccfc092","chatId":"testask0-0000-0000-0000-000000000001","question":"Which widget style should the tiles use?"}
+{"ts":"2026-07-19T00:05:10.660Z","sig":"fac25ccfc092","chatId":"testask0-0000-0000-0000-000000000001","question":"Which widget style should the tiles use?"}
+{"ts":"2026-07-19T00:05:11.119Z","sig":"33012c0acdba","chatId":"testask0-0000-0000-0000-000000000001","question":"Shim test: proceed or park?"}
+{"ts":"2026-07-19T00:06:52.886Z","sig":"81a14d7f6d26","chatId":"testaskrmt-0000-0000-0000-000000000002","question":"Remote via test: left or right?"}
+{"ts":"2026-07-19T00:07:12.434Z","sig":"020f4ae7204d","chatId":"testaskrmt-0000-0000-0000-000000000002","question":"Remote via test 2: up or down?"}
+{"ts":"2026-07-19T00:07:57.299Z","sig":"910c7fe4ba1e","chatId":"testasksig-0000-0000-0000-000000000003","question":"Sig test: alpha or bravo?"}
+{"ts":"2026-07-19T00:07:57.315Z","sig":"910c7fe4ba1e","chatId":"testasksig-0000-0000-0000-000000000003","question":"Sig test: alpha or bravo?"}
+{"ts":"2026-07-19T00:07:57.320Z","sig":"caf9063bb333","chatId":"testasksig-0000-0000-0000-000000000003","question":"Sig test: alpha or maybe bravo?"}
