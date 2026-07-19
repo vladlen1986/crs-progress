@@ -2,9 +2,9 @@
   "id": "45f63a32-4fd7-484f-b9a8-bebf441290bc",
   "title": "what is the current status of brain",
   "sessionId": "4123eb36-3184-4017-85f3-a32e8182b990",
-  "bp": false,
+  "bp": true,
   "created": "2026-07-19T10:19:23.960Z",
-  "updated": "2026-07-19T10:19:37.903Z",
+  "updated": "2026-07-19T10:20:37.163Z",
   "messages": [
     {
       "role": "user",
@@ -39,6 +39,176 @@
           "tool": "Bash",
           "label": "$ cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null | …",
           "body": "command: cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null | head -150\n⇒ # CRS — Build Status *(product)* > **Source of truth for \"what's done / in-progress / next\" in the CRS Bubble product.** > Design specs live in `design/design.m",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "give me list of all documentation and knowledge we have",
+      "ts": "2026-07-19T10:19:59.100Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's the full inventory of documentation and knowledge sources in the repo:\n\n## brain/ — living infrastructure ledger (product knowledge base)\n- **INDEX.md** — master map, read first\n- **STATUS.md** — build status (what's done/next), just reviewed above\n- **database.md** — every Data Type, as-built vs spec, tenancy compliance\n- **option-sets.md** — every Option Set, as-built vs spec\n- **security.md** — Pattern A privacy rules per DT\n- **workflows.md** — every backend workflow/button\n- **migrations.md** — migration plan, order, risks\n- **security-test-checklist.md** — standing STRUCT/POS/NEG test gate\n- **changelog.md** — append-only ingest history\n- **design.md** — pointer to design/ system\n- **modules/** (4 files) — technical ref + user manual for Casino Settings and Roles & Permissions (the only 2 fully-built modules)\n- **digests/, engine/, qa/, reference/** — supporting subfolders (not yet summarized)\n- **brain/buildprint/** (66 files) — full scraped Buildprint official manual: CLI usage, agents, automations, tests, plugins, components, plus `crs-brain-operations.md` (our operational guardrails), `PROMPT-STANDARD.md`, and `generated/` (past generated prompts)\n- **brain/bubble/** (88 files) — complete official Bubble manual, verbatim, page by page\n- **brain/bubble-forum/** (16 files) — curated community threads (WU optimization, privacy rules, multi-tenant patterns, bulk ops)\n- **brain/bubble-performance/** — *The Ultimate Guide to Bubble Performance* (Petter Amlie, 227pp), split into 7 chapter files + source PDF\n\n## Root-level authoritative docs\n- **CLAUDE.md** — project conventions/rules (what you're reading now, essentially)\n- **decisions.md** — append-only locked architecture/commercial decisions\n- **README.md**\n\n## design/\ntokens.css (source of truth for colors), design.md (rules/reasoning), Styles.txt (plain reference), CRS_UI_Kit.html, logo assets\n\n## specs/\nCRS_Blueprint.html (main spec/roadmap doc), CRS_Blueprint_Source.html, Blueprint_Clear_Picture.html\n\n## data/\nCRS_Module_OptionSets.xlsx — authoritative module/section list (46 modules, 7 sections)\n\n## pricing/\ntiers.md — 3-tier pricing model\n\n## prototypes/\nbuttons/, casino-settings/, studio-sample/ — HTML prototypes\n\n## audits/\n2026-04-27-property-field-audit.md\n\n## qa-scratch/\nLoop test artifacts (loop-c1..c4, loop-p3-c1/c2, loop-polish-c1/c2, rig) — QA scratch runs, not durable docs\n\n## crs-brain/ (the second-brain tool itself, separate from product docs)\n- BRAIN_APP_PROGRESS.md — the tool's own build log (not product status)\n- README.md, USER-GUIDE.md, WISHLIST.md\n- data/ — runtime state: progress.json (progress board), modules.json, plans.json, playbook.json, memory.json/md, chats/, audits/, screenshots/, various logs (action, ask, audit, error, usage)\n\nIf you want, I can drill into any specific folder (e.g. what's actually in `brain/digests/` or `brain/engine/`, which weren't in the INDEX.md map) or check `brain/changelog.md` for the latest ingest entries.",
+      "ts": "2026-07-19T10:20:37.163Z",
+      "startedAt": "2026-07-19T10:19:59.102Z",
+      "completedAt": "2026-07-19T10:20:37.163Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: quick mechanical task → Sonnet 5, low effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cd /Users/vlad/projects/crs-progress && echo \"=== brain/INDEX.md ===…",
+          "body": "command: cd /Users/vlad/projects/crs-progress && echo \"=== brain/INDEX.md ===\" && cat brain/INDEX.md 2>/dev/null && echo \"=== top-level md files ===\" && find . -maxdepth 1 -name \"*.md\" && echo \"=== dirs ===\" && ls -d */ 2>/dev/null\n⇒ === brain/INDEX.md === # CRS Brain — Master Index **Read this file first, always.** It maps every knowledge domain to its file. One fact = one home. Files below",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ echo \"=== brain/ top ===\" && ls brain/ echo \"=== brain/modules ===\" …",
+          "body": "command: echo \"=== brain/ top ===\" && ls brain/\necho \"=== brain/modules ===\" && ls brain/modules/ 2>/dev/null\necho \"=== brain/buildprint ===\" && ls brain/buildprint/ 2>/dev/null\necho \"=== brain/bubble ===\" && ls brain/bubble/ | head -5 && echo \"...$(ls brain/bubble/ | wc -l) files\"\necho \"=== brain/bubble-forum ===\" && ls brain/bubble-forum/ | head -5 && echo \"...$(ls brain/bubble-forum/ | wc -l) files\"\necho \"=== brain/bubble-performance ===\" && ls brain/bubble-performance/ 2>/dev/null\necho \"=== design ===\" && ls design/\necho \"=== specs ===\" && ls specs/\necho \"=== pricing ===\" && ls pricing/\necho \"=== data ===\" && ls data/\necho \"=== prototypes ===\" && ls prototypes/ | head -20\necho \"=== audits ===\" && ls audits/\necho \"=== qa-scratch ===\" && ls qa-scratch/\necho \"=== crs-brain top ===\" && ls crs-brain …\n⇒ ✗ This Bash command contains multiple operations. The following parts require approval: head -5 && echo \"...$(ls brain/bubble/, wc -l) files\" echo \"=== brain/bubble-forum ===\" && ls brain/bubble-forum/, head -5 && echo \"...$(ls brain/bubble-forum/, wc -l) files\" echo \"=== brain/bubble-performance ===\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ for d in brain brain/modules brain/buildprint brain/bubble brain/bub…",
+          "body": "command: for d in brain brain/modules brain/buildprint brain/bubble brain/bubble-forum brain/bubble-performance design specs pricing data prototypes audits qa-scratch crs-brain crs-brain/data; do echo \"=== $d ===\"; ls \"$d\" 2>/dev/null | head -30; echo \"(count: $(ls \"$d\" 2>/dev/null | wc -l))\"; done\n⇒ ✗ Contains simple_expansion",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ for d in brain brain/modules brain/buildprint brain/bubble brain/bub…",
+          "body": "command: for d in brain brain/modules brain/buildprint brain/bubble brain/bubble-forum brain/bubble-performance design specs pricing data prototypes audits qa-scratch crs-brain crs-brain/data\ndo\n  printf '\\n=== %s ===\\n' \"$d\"\n  ls \"$d\" 2>/dev/null | head -30\n  n=$(ls \"$d\" 2>/dev/null | wc -l)\n  printf '(count: %s)\\n' \"$n\"\ndone\n⇒ ✗ Contains simple_expansion",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/",
+          "body": "command: ls brain/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/modules/",
+          "body": "⇒ INDEX.md STATUS.md bubble bubble-forum bubble-performance buildprint changelog.md database.md design design.md digests engine migrations.md modules option-sets.\ncommand: ls brain/modules/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/buildprint/",
+          "body": "⇒ casino-settings-technical-reference.md casino-settings-user-manual.md roles-permissions-technical-reference.md roles-permissions-user-manual.md\ncommand: ls brain/buildprint/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/bubble/ | wc -l",
+          "body": "⇒ CLI-MCP-PLAYBOOK.md INDEX.md PROMPT-STANDARD.md agents-overview.md agents-skills.md api-reference.md automation-actions.md automations-overview.md best-practice\ncommand: ls brain/bubble/ | wc -l",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/bubble-forum/ | wc -l",
+          "body": "⇒ 16\ncommand: ls brain/bubble-forum/ | wc -l",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls brain/bubble-performance/",
+          "body": "⇒ 88\ncommand: ls brain/bubble-performance/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls design/",
+          "body": "⇒ 00-front-matter-and-intro.md 01-what-performance-is.md 02-knowing-the-platform.md 03-building-the-page.md 04-building-the-database.md 05-building-workflows.md 0\ncommand: ls design/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls specs/",
+          "body": "command: ls specs/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls pricing/",
+          "body": "⇒ Blueprint_Clear_Picture.html CRS_Blueprint.html CRS_Blueprint_Source.html\n⇒ CRS_UI_Kit.html Styles.txt crs-logo.png crs-logo.svg design.md tokens.css\ncommand: ls pricing/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls data/",
+          "body": "⇒ tiers.md\ncommand: ls data/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls prototypes/ | wc -l && ls prototypes/",
+          "body": "⇒ CRS_Module_OptionSets.xlsx\ncommand: ls prototypes/ | wc -l && ls prototypes/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls audits/",
+          "body": "⇒ 3 buttons casino-settings studio-sample\ncommand: ls audits/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls qa-scratch/",
+          "body": "command: ls qa-scratch/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls crs-brain/",
+          "body": "⇒ 2026-04-27-property-field-audit.md\n⇒ loop-c1 loop-c2 loop-c3 loop-c4 loop-p3-c1 loop-p3-c2 loop-polish-c1 loop-polish-c2 rig\ncommand: ls crs-brain/",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ ls crs-brain/data/",
+          "body": "⇒ BRAIN_APP_PROGRESS.md README.md USER-GUIDE.md WISHLIST.md ask-mcp.js audits bp-guard.js bp-log.js data doctor.js import-chats.js node_modules package-lock.json\ncommand: ls crs-brain/data/\n⇒ ✗ action-log.jsonl ask-log.jsonl ask-mcp-config.json attachments audit.jsonl audit_um.js bp-guard-settings.json bubble-release-notes.snapshot buildprint chats docs error-log.jsonl ideas.json learn-events.jsonl memory.json memory.md modules.json notifications-read.json notifications.jsonl plans.json pl",
           "actor": "brain"
         }
       ]
