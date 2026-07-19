@@ -1,5 +1,6 @@
 node_modules/
 data/usage.json
+data/tts-cache/
 data/notifications.jsonl
 data/notifications-read.json
 data/state.json

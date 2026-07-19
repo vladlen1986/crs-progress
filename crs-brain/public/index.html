@@ -562,6 +562,10 @@
   .turn-acts button{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:var(--transition)}
   .turn-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
   .turn-acts button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  /* read aloud: stop control stays visible while fetching/playing (cluster is hover-revealed otherwise) */
+  .act-tts[aria-pressed=true]{color:var(--accent);border-color:var(--accent-border-active)}
+  .act-tts.busy .ic{animation:wpulse 1s ease-in-out infinite}
+  .turn-acts:has(.act-tts[aria-pressed=true]),.turn-acts:has(.act-tts.busy){opacity:1;pointer-events:auto}
 
   /* hero / empty */
   .hero{max-width:800px;margin:7vh auto 0;text-align:center;animation:msgIn .5s ease both;padding:0 16px}
@@ -2031,15 +2035,84 @@ function renderChat(messages){
 }
 
 // Per-reply actions live to the RIGHT of the Completed stamp, hover-revealed:
-// save the reply as a .md doc, or copy it. Idempotent per turn.
+// save the reply as a .md doc, copy it, or read it aloud. Idempotent per turn.
 function addReplyActions(msgEl, text){
   const turnEl=msgEl.closest('.turn'); const acts=turnActs(turnEl); if(!acts) return;
-  acts.querySelectorAll('.act-doc,.act-copy').forEach(el=>el.remove());
+  acts.querySelectorAll('.act-doc,.act-copy,.act-tts').forEach(el=>el.remove());
   const b1=document.createElement('button'); b1.className='act-doc'; b1.innerHTML=svg('i-file','sm')+' Open as doc';
   b1.onclick=()=>openReplyDoc(text, $('centerTitle').textContent);
   const b2=document.createElement('button'); b2.className='act-copy'; b2.innerHTML=svg('i-copy','sm')+' Copy';
   b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
-  acts.appendChild(b1); acts.appendChild(b2);
+  const b3=document.createElement('button'); b3.className='act-tts'; b3.setAttribute('aria-pressed','false'); ttsBtnState(b3,'idle');
+  b3.onclick=()=>toggleReadAloud(b3, text);
+  acts.appendChild(b1); acts.appendChild(b2); acts.appendChild(b3);
+}
+// ---- read aloud: server TTS (Edge neural voices, mp3) + speechSynthesis fallback ----
+// One shared Audio element — starting a new read stops the previous one; the
+// button flips to a stop control while fetching/playing.
+const TTS={audio:null,btn:null,url:null};
+function speechText(md){
+  let t=String(md||'');
+  t=t.replace(/```[\s\S]*?```/g,' ');            // code fences dropped entirely
+  t=t.replace(/^\s*\|.*\|\s*$/gm,' ');           // tables skipped
+  t=t.replace(/!\[[^\]]*\]\([^)]*\)/g,' ');      // images dropped
+  t=t.replace(/\[([^\]]*)\]\([^)]*\)/g,'$1');    // links → link text
+  t=t.replace(/`([^`]*)`/g,'$1');                // inline code → plain
+  t=t.replace(/^#{1,6}\s+/gm,'');                // heading markers
+  t=t.replace(/^\s*>\s?/gm,'');                  // blockquote markers
+  t=t.replace(/^\s*([-*_]\s*){3,}$/gm,' ');      // hr lines
+  t=t.replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm,'');  // list markers
+  t=t.replace(/(\*\*|__|~~)/g,'').replace(/(^|\s)[*_]([^*_]+)[*_](?=\s|[.,;:!?)]|$)/g,'$1$2');  // emphasis
+  return t.replace(/\s+/g,' ').trim();
+}
+function speechLang(t){ return /[Ⴀ-ჿ]/.test(t)?'ka':(/[Ѐ-ӿ]/.test(t)?'ru':'en'); }
+function ttsBtnState(btn,st){
+  if(!btn) return;
+  btn.classList.toggle('busy',st==='loading');
+  btn.setAttribute('aria-pressed',st==='playing'?'true':'false');
+  if(st==='playing') btn.innerHTML='<svg class="ic sm" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg> Stop';
+  else btn.innerHTML=svg('i-volume','sm')+(st==='loading'?' Fetching…':' Read aloud');
+  btn.title=st==='playing'?'Stop reading':'Read this reply aloud';
+}
+function stopReadAloud(){
+  if(TTS.audio){ try{ TTS.audio.pause(); }catch{} TTS.audio.onended=TTS.audio.onerror=null; }
+  if(TTS.url){ try{ URL.revokeObjectURL(TTS.url); }catch{} TTS.url=null; }
+  try{ speechSynthesis.cancel(); }catch{}
+  if(TTS.btn) ttsBtnState(TTS.btn,'idle');
+  TTS.btn=null;
+}
+function ttsFallbackSpeak(btn,t,lang){
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang={en:'en-US',ru:'ru-RU',ka:'ka-GE'}[lang]||'en-US';
+  const v=(speechSynthesis.getVoices()||[]).find(x=>(x.lang||'').toLowerCase().startsWith(lang));
+  if(v) u.voice=v;
+  u.onend=u.onerror=()=>{ if(TTS.btn===btn) stopReadAloud(); };
+  speechSynthesis.speak(u);
+  ttsBtnState(btn,'playing');
+}
+async function toggleReadAloud(btn,md){
+  if(TTS.btn===btn){ stopReadAloud(); return; }   // acting stop control
+  stopReadAloud();                                 // a new read supersedes the old one
+  const t=speechText(md);
+  if(!t){ toast('Nothing readable in this reply'); return; }
+  const lang=speechLang(t);
+  TTS.btn=btn; ttsBtnState(btn,'loading');
+  try{
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,lang})});
+    if(!r.ok) throw new Error('tts '+r.status);
+    const blob=await r.blob();
+    if(TTS.btn!==btn) return;                      // superseded while fetching
+    if(!TTS.audio) TTS.audio=new Audio();
+    TTS.url=URL.createObjectURL(blob);
+    TTS.audio.src=TTS.url;
+    TTS.audio.onended=TTS.audio.onerror=()=>{ if(TTS.btn===btn) stopReadAloud(); };
+    await TTS.audio.play();
+    if(TTS.btn===btn) ttsBtnState(btn,'playing');
+  }catch(e){
+    if(TTS.btn!==btn) return;
+    try{ ttsFallbackSpeak(btn,t,lang); }           // degrade to the browser voice
+    catch(e2){ stopReadAloud(); toast('Read aloud failed: '+e.message); }
+  }
 }
 // Regenerate (and, after a Stop, Continue) — only the newest reply keeps these;
 // they sit first in the same hover cluster. Tagged .act-nav so a new turn can strip them.

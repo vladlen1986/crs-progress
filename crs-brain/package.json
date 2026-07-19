@@ -1,1 +1,1 @@
-{"name":"crs-brain","version":"1.0.0","private":true,"dependencies":{"node-pty":"^1.1.0"}}
+{"name":"crs-brain","version":"1.0.0","private":true,"dependencies":{"msedge-tts":"^2.0.7","node-pty":"^1.1.0"}}

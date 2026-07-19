@@ -778,6 +778,54 @@ function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, nul
 // watchers, errors) and client UI events both post here; the header bell reads
 // it. `notify.email` + `emailTo` triggers a best-effort email per notification.
 const SOUNDS_DIR = path.join(DATA_DIR, 'sounds');   // rendered 16-bit PCM WAVs (committed — deterministic, cross-platform)
+// ---- read-aloud TTS (msedge-tts → Edge neural voices) ----------------------
+// POST /api/tts {text, lang} → audio/mpeg. sha1(voice+text)-keyed mp3 cache in
+// data/tts-cache/ (gitignored — generated audio, not brain memory).
+const TTS_CACHE_DIR = path.join(DATA_DIR, 'tts-cache');
+const TTS_VOICES = { en: 'en-US-AvaMultilingualNeural', ru: 'ru-RU-SvetlanaNeural', ka: 'ka-GE-EkaNeural' };
+const TTS_MAX_CHARS = 4000;
+function ttsClamp(text) {
+  let t = String(text || '').trim();
+  if (t.length <= TTS_MAX_CHARS) return t;
+  t = t.slice(0, TTS_MAX_CHARS);
+  // truncate at a sentence boundary when one exists reasonably deep in
+  const cut = Math.max(t.lastIndexOf('. '), t.lastIndexOf('! '), t.lastIndexOf('? '), t.lastIndexOf('\n'));
+  return cut > TTS_MAX_CHARS / 2 ? t.slice(0, cut + 1).trim() : t;
+}
+function ttsSynthChunk(text, voice) {
+  const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+  // msedge-tts drops the text into the SSML <voice> element verbatim — raw
+  // & / < / > make the XML invalid and the service closes the stream mid-turn.
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('edge tts timeout')), 45000);
+    (async () => {
+      const tts = new MsEdgeTTS();
+      await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const r = tts.toStream(text);
+      const stream = r.audioStream || r;
+      const chunks = [];
+      stream.on('data', (c) => chunks.push(c));
+      stream.on('end', () => { clearTimeout(timer); const buf = Buffer.concat(chunks); buf.length ? resolve(buf) : reject(new Error('empty audio')); });
+      stream.on('error', (e) => { clearTimeout(timer); reject(e); });
+    })().catch((e) => { clearTimeout(timer); reject(e); });
+  });
+}
+// The Edge service streams long input near-realtime (~57s for 4k chars), so one
+// request per reply is unusable. Split at sentence boundaries into ≤1200-char
+// chunks, synthesize them in parallel, and concatenate the MP3 frames (same
+// format throughout — browsers play the joined stream fine).
+async function ttsSynth(text, voice) {
+  const parts = [];
+  let buf = '';
+  for (const s of (text.match(/[^.!?\n]+[.!?\n]*\s*/g) || [text])) {
+    if (buf && buf.length + s.length > 1200) { parts.push(buf); buf = ''; }
+    buf += s;
+  }
+  if (buf.trim()) parts.push(buf);
+  const bufs = await Promise.all(parts.map((p) => ttsSynthChunk(p.trim(), voice)));
+  return Buffer.concat(bufs);
+}
 const NOTIF_FILE = path.join(DATA_DIR, 'notifications.jsonl');
 const NOTIF_READ_FILE = path.join(DATA_DIR, 'notifications-read.json');
 const NOTIF_LEVELS = ['info', 'success', 'warning', 'error'];
@@ -3595,6 +3643,28 @@ const server = http.createServer(async (req, res) => {
       fs.mkdirSync(SOUNDS_DIR, { recursive: true });
       fs.writeFileSync(abs, buf);
       return send(res, 200, { ok: true, file, bytes: buf.length });
+    }
+
+    // ---- read aloud: human-like TTS via Edge neural voices (mp3, disk-cached) ----
+    if (p === '/api/tts' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const text = ttsClamp(body && body.text);
+      if (!text) return send(res, 400, { error: 'no text' });
+      const lang = TTS_VOICES[body && body.lang] ? body.lang : 'en';
+      const voice = TTS_VOICES[lang];
+      const hash = crypto.createHash('sha1').update(voice + '\n' + text).digest('hex');
+      const file = path.join(TTS_CACHE_DIR, hash + '.mp3');
+      try {
+        const buf = fs.readFileSync(file);
+        return send(res, 200, buf, { 'Content-Type': 'audio/mpeg', 'X-TTS-Cache': 'hit' });
+      } catch {}
+      try {
+        const buf = await ttsSynth(text, voice);
+        try { fs.mkdirSync(TTS_CACHE_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch {}
+        return send(res, 200, buf, { 'Content-Type': 'audio/mpeg', 'X-TTS-Cache': 'miss' });
+      } catch (e) {
+        return send(res, 502, { error: 'tts failed: ' + e.message });   // client falls back to speechSynthesis
+      }
     }
 
     // ---- notifications (bell + inbox) ----
