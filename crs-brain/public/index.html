@@ -64,7 +64,6 @@
   .side-rail button:hover{color:var(--primary);background:var(--panel2);border-color:var(--line)}
   .side-rail button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .side-rail .rsep{width:22px;height:1px;background:var(--line);margin:5px 0;flex:0 0 auto}
-  .side-rail .rspring{flex:1;min-height:6px}
   /* collapse toggle: absolutely pinned right so it doesn't shift the logo's centering;
      invisible until the sidebar is hovered OR the button is keyboard-focused (a11y) */
   .col-collapse{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0;opacity:0;transition:opacity .16s ease-in-out,color var(--transition),border-color var(--transition),background var(--transition)}
@@ -117,15 +116,6 @@
 
   /* account */
   .account{display:flex;align-items:center;gap:9px;margin:2px 12px 6px;padding:9px 11px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;font-size:12px}
-  .account .adot{width:8px;height:8px;border-radius:50%;background:var(--danger);flex:0 0 8px}
-  .account .adot.on{background:var(--good);}
-  .account .ainfo{min-width:0}
-  .account .aemail{color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
-  .account .aplan{color:var(--muted);font-size:11px}
-  .account .alink{margin-left:auto;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;transition:var(--transition)}
-  .account .alink:hover{color:var(--primary)}
-  .account .connect{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:6px;padding:9px;font-size:12.5px;cursor:pointer;transition:var(--transition)}
-  .account .connect:hover{background:var(--accent-hover)}
 
   /* tabs (segmented) */
   .tabs{display:flex;gap:3px;margin:6px 12px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:3px}
@@ -167,9 +157,6 @@
   .item:hover{background:var(--panel2)}
   /* sidebar3: selected = accent wash + 2px accent bar (design-system selected-row language, §Tables) */
   .item.on{background:var(--accent-glow);color:var(--primary);box-shadow:inset 2px 0 0 var(--accent)}
-  .item .x{opacity:0;color:var(--muted);font-size:13px;transition:var(--transition)}
-  .item:hover .x{opacity:.7}
-  .item .x:hover{color:var(--danger)}
 
   .tree .node{padding:4px 7px;border-radius:7px;font-size:13px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;transition:.1s}
   .tree .node:hover{background:var(--panel2)}
@@ -205,14 +192,10 @@
   .uchip:hover{border-color:var(--line3);color:var(--primary)}
   .uchip .ic{width:14px;height:14px;color:var(--muted);flex:0 0 auto}
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
-  .uchip .usep{width:1px;height:12px;background:var(--line3);display:inline-block;margin:0 4px}
   /* polish: chip stays neutral in every state — severity lives in the dot + popover
      (was: .uchip.warn/.crit amber/red border tints at 75%/90% usage) */
   .upop{position:absolute;top:50px;right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
   .upop.show{display:block;animation:msgIn .16s ease both}
-  .upop-head{display:flex;align-items:center;gap:8px;padding:12px 14px 11px;border-bottom:1px solid var(--line);color:var(--primary);font-size:12.5px;font-weight:600}
-  .upop-head .hx{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;border-radius:6px;transition:var(--transition)}
-  .upop-head .hx:hover{color:var(--primary);background:var(--panel2)}
   .upop .usage{padding:14px 15px}
   /* account chip (header): connection dot + usage % only; detail lives in the popover */
   .uchip.acct{gap:7px}
@@ -225,7 +208,6 @@
   .apop-acct .apop-plan{color:var(--muted);font-size:11.5px;margin-top:2px}
   .apop-acct .apop-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;color:var(--secondary)}
   .apop-acct .apop-row .apop-v{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
-  .apop-acct .apop-reset{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:6px}
   .apop-acct .apop-out{display:flex;align-items:center;gap:8px;width:100%;margin-top:11px;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px;cursor:pointer;transition:var(--transition)}
   .apop-acct .apop-out:hover{background:rgba(239,68,68,.1);border-color:var(--danger);color:var(--danger)}
   .apop-acct .apop-out svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9}
@@ -303,7 +285,6 @@
   .modal-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 16px}
   .modal-nav button.on svg{color:var(--accent2)}
   .modal-pane{flex:1;overflow:auto;padding:18px 24px 24px}
-  .mpane{display:none}.mpane.on{display:block}
   .msec-title{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:2px 0 2px}
   .mrow{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
   .mrow:last-child{border-bottom:none}
@@ -323,9 +304,6 @@
   .seg button{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:var(--transition)}
   .seg button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
   .seg button.on{background:var(--elev);color:var(--primary)}
-  /* header theme toggle — §6 theme-toggle pattern at §20.1 28px size */
-  .hseg{padding:2px;border-radius:8px}
-  .hseg button{padding:4px 8px;border-radius:6px}
   [data-theme="light"] .seg button.on{box-shadow:0 1px 3px rgba(0,0,0,.08)} /* §3.3: elevation = shadow in light */
   .tinput{background:var(--panel2);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:8px 11px;font:inherit;font-size:12.5px;outline:none;min-width:210px}
   .tinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
@@ -354,7 +332,6 @@
   .streaming{white-space:pre-wrap;word-break:break-word}
   .tok{opacity:0;animation:tokIn .42s cubic-bezier(.22,.61,.36,1) forwards}
   .caret{display:inline-block;width:7px;height:1.02em;background:var(--accent);border-radius:2px;vertical-align:text-bottom;margin-left:1px;animation:blink 1.05s steps(1) infinite}
-  .statusnote{color:var(--muted);font-style:italic;margin-left:7px;font-size:13px}
   .body.err{color:var(--error-soft)}
 
   /* work blocks — Buildprint-style grouped activity: one "Worked for Xs" header
@@ -626,7 +603,6 @@
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
 
   /* Claude-style chat prose — brighter, airier than the file viewer; scoped to chat */
-  .hbackleft{margin-right:8px}
   .msg.assistant .body p,.msg.assistant .body li{color:var(--prose)}
   .msg.assistant .body p{margin:0 0 1em}
   .msg.assistant .body>*:last-child{margin-bottom:0}
@@ -744,7 +720,7 @@
   .envlist{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 2px;line-height:1.7}
   /* P10 — phone-width command post: reading + ruling only */
   @media (max-width:480px){
-    .col.left, #input, .composer, .chatbar, .dash-head .subline{display:none !important}
+    .col.left, #input, .composer, .dash-head .subline{display:none !important}
     .actions, .tools, .lbl{display:none !important}
     .dash-inner{padding:12px}
     .dash-cols{grid-template-columns:1fr}
@@ -763,12 +739,6 @@
   .mpo .mpo-acts button{flex:1;min-height:48px;border-radius:var(--radius-btn);font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--secondary)}
   .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
   .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:var(--transition);text-align:left;font-family:inherit;cursor:pointer}
-  .kpi:hover{border-color:var(--line2);background:var(--elev)}
-  .kpi::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:var(--kc,var(--accent))}
-  .kpi .v{color:var(--primary);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;font-family:var(--mono)}
-  .kpi .k{color:var(--muted);font-size:11.5px;margin-top:7px;font-weight:500}
   /* Quick actions — DISTINCT per-action color so the eye catches the icon, not the label */
   .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .action{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 17px;text-align:left;cursor:pointer;transition:var(--transition);display:flex;align-items:flex-start;gap:13px;font-family:inherit}
@@ -791,8 +761,6 @@
   .dcard h3{color:var(--primary);font-size:12.5px;font-weight:600;margin:0 0 6px;display:flex;align-items:center;gap:8px}
   .dcard h3 .ic{color:var(--muted)}
   .dcard h3 .cnt{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500;font-family:var(--mono)}
-  .dcard .seeall{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer}
-  .dcard .seeall:hover{color:var(--accent2)}
   .drow{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--secondary);cursor:pointer}
   .drow.static{cursor:default}
   .drow:hover:not(.static){background:var(--panel2)}
@@ -801,45 +769,13 @@
   .drow .rmeta{margin-left:auto;color:var(--muted);font-size:11px;flex:0 0 auto;font-family:var(--mono)}
   .np-mod{color:var(--accent2);font-size:11px;font-weight:600;margin:2px 0 3px}
   .np-title{color:var(--primary);font-size:13px;font-weight:600;line-height:1.4}
-  .np-verify{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.45}
   .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:var(--accent-tint);border:1px solid var(--accent-border-active);color:var(--accent2);border-radius:var(--radius-btn);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);height:32px}
   .np-draft:hover{background:var(--accent-glow);color:var(--accent2)}
   .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
-  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr 1fr}}
+  @media (max-width:900px){.actions{grid-template-columns:1fr 1fr}}
   @media (max-width:760px){.dash{padding:22px 16px}.dash-cols,.actions{grid-template-columns:1fr}}
 
-  /* ───── Buildprint copilot (right panel) ───── */
-  .rtabs{display:flex;gap:3px;padding:10px 12px 8px;align-items:center;border-bottom:1px solid var(--line)}
-  .rtabs button{background:none;border:none;color:var(--muted);padding:5px 10px;font-size:11.5px;font-weight:700;letter-spacing:.4px;border-radius:6px;cursor:pointer;font-family:inherit}
-  .rtabs button.on{color:var(--primary);background:var(--panel2)}
-  .rtabs .col-collapse{margin-left:auto}
-  .bp-panel{flex:1;display:flex;flex-direction:column;min-height:0}
-  .bp-head{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
-  .bp-head .bp-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 7px}
-  .bp-head .bp-dot.on{background:var(--good);}
-  .bp-head #bpWs{color:var(--secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bp-head .refresh{margin-left:auto}
-  .bp-log{flex:1;overflow:auto;padding:12px 12px 6px;min-height:0}
-  .bp-msg{margin-bottom:14px;font-size:12.5px;line-height:1.55}
-  .bp-msg.user{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:8px 11px;color:var(--primary)}
-  .bp-msg.bot .who{font-size:9.5px;letter-spacing:1px;color:var(--accent2);font-weight:700;margin-bottom:4px;text-transform:uppercase}
-  .bp-msg.bot .body{color:var(--secondary)}
-  .bp-msg.bot .body.err{color:var(--error-soft)}
-  .bp-status{color:var(--muted);font-style:italic;font-size:11.5px;padding:2px 0}
-  .bp-hero{color:var(--muted);font-size:12px;line-height:1.6;padding:14px 6px;text-align:center}
-  .bp-hero b{color:var(--secondary)}
-  .bp-hero .chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;margin:4px 3px 0;color:var(--secondary);cursor:pointer;font-size:11px;text-align:left}
-  .bp-hero .chip:hover{border-color:var(--line2);color:var(--primary)}
-  .bp-composer{display:flex;gap:6px;align-items:flex-end;padding:9px 11px 12px;border-top:1px solid var(--line)}
-  .bp-composer textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--primary);padding:9px 11px;font-family:inherit;font-size:13px;max-height:120px;min-height:20px;line-height:1.5;outline:none}
-  .bp-composer textarea:focus{border-color:var(--accent)}
-  .bp-conn{font-size:10.5px;color:var(--muted);padding:2px 14px 8px;display:flex;align-items:center;gap:6px}
-  .bp-conn .bp-ok,.bp-conn .bp-off{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
-  .bp-conn .bp-ok{background:var(--good);}
-  .bp-conn .bp-off{background:var(--muted)}
-  /* right panel scroll + recent files */
-  .col.right .rscroll{flex:1;overflow:auto;min-height:0}
-  .col.right .rscroll .cols{flex:none;overflow:visible;min-height:0}
+  /* recent files (right panel) */
   .recent{padding:0 12px 4px}
   .recent .rf{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;color:var(--secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
   .recent .rf:hover{background:var(--panel2);color:var(--primary)}
@@ -872,10 +808,10 @@
   .expl-rs-se{bottom:-4px;right:-4px;width:13px;height:13px;cursor:nwse-resize}
   .expl-rs-sw{bottom:-4px;left:-4px;width:13px;height:13px;cursor:nesw-resize}
   .expl-nav{display:flex;gap:1px}
-  .expl-nav button,.expl-tb .tbtn{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
-  .expl-nav button:hover:not(:disabled),.expl-tb .tbtn:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .expl-nav button{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+  .expl-nav button:hover:not(:disabled){background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .expl-nav button:disabled{opacity:.3;cursor:default}
-  .expl-nav svg,.expl-tb .tbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .expl-nav svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .expl-crumb{display:flex;align-items:center;gap:1px;font-size:12.5px;color:var(--secondary);overflow:hidden;flex:1;white-space:nowrap;min-width:40px}
   .expl-crumb b{color:var(--primary);padding:2px 5px;overflow:hidden;text-overflow:ellipsis}
   .expl-crumb a{color:var(--secondary);cursor:pointer;padding:2px 5px;border-radius:5px;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
@@ -894,8 +830,6 @@
   .expl-viewtog button{width:32px;height:30px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .expl-viewtog button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .expl-viewtog svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
-  .expl-x{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);font-size:15px;cursor:pointer;flex:0 0 auto}
-  .expl-x:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .expl-side{grid-area:side;border-right:1px solid var(--line);overflow:auto;padding:8px 6px;font-size:12.5px}
   .expl-side .shead{display:flex;align-items:center;gap:4px;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 6px 4px;cursor:pointer;user-select:none;border-radius:6px}
   .expl-side .shead:hover{color:var(--secondary)}
@@ -938,8 +872,6 @@
   .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px 9px;border-radius:9px;cursor:default;text-align:center}
   .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .expl-item.peeking,.expl-row.peeking{background:var(--panel2)}   /* hover-preview marks the item with bg only — no ring */
-  .expl-group{grid-column:1/-1;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
-  .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
   .fic{display:inline-flex;flex:0 0 auto;line-height:0}
   .tico{width:16px;height:16px;display:inline-flex;flex:0 0 auto}
   .tico svg{width:16px;height:16px;display:block}
@@ -1065,8 +997,6 @@
   .docwin .dp-tblwrap table{border-collapse:collapse;font-size:12.5px;min-width:60%}
   .docwin .dp-tblwrap th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.6px;text-align:left;padding:7px 11px;border:1px solid var(--line2)}
   .docwin .dp-tblwrap td{padding:6px 11px;border:1px solid var(--line);color:var(--secondary)}
-  .docwin .dp-imgwrap{height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
-  .docwin .dp-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
   .docwin .dp-embed{width:100%;height:100%;border:0}
   .docwin .dp-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--secondary)}
   .docwin .dp-card .tico{width:64px;height:64px}.docwin .dp-card .tico svg{width:64px;height:64px}
@@ -1247,17 +1177,12 @@
   .refresh{background:none;border:none;color:var(--muted);font-size:13px;margin-left:auto;cursor:pointer;transition:var(--transition);border-radius:6px;width:24px;height:24px}
   .refresh:hover{color:var(--primary);background:var(--panel2)}
 
-  .conndot{width:8px;height:8px;border-radius:50%;align-self:center;flex:none;background:var(--good)}
-  .conndot.warn{background:var(--warn)}
-  .conndot.err{background:var(--danger)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:400;box-shadow:var(--shadow-dropdown)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 
   /* icon + text alignment */
-  .account .connect{display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .matt{display:inline-flex;align-items:center;gap:5px}
-  .item .x{display:inline-flex;align-items:center}
   .avatar .ic{width:16px;height:16px}
   .hero-mark .ic{width:26px;height:26px}
 
@@ -1304,7 +1229,6 @@
   /* dashboard build-plan card bits */
   .np-mod{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:8px 0 3px}
   .np-title{font-size:13px;color:var(--primary);font-weight:600;line-height:1.45;margin-bottom:4px}
-  .np-verify{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:2px}
   .np-gen{display:flex;gap:6px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
   .np-gen input{flex:1;margin:0;background:var(--panel2);border:1px solid var(--line);color:var(--primary);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;min-width:0}
   .np-gen input:focus{border-color:var(--accent)}
@@ -1351,10 +1275,6 @@
     .bub-q{max-width:none}
   }
 
-  /* sidebar nav (Map / Kanban) */
-  .sidenav{display:flex;gap:6px;margin:2px 12px 8px}
-  .sidenav button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition)}
-  .sidenav button:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
   /* sidebar resizer (desktop only — on mobile .col.left is a fixed off-canvas drawer,
      so scoping position:relative here keeps it from overriding that and stealing a grid row) */
   @media (min-width:901px){ .col.left{position:relative} }
@@ -1363,9 +1283,6 @@
   /* equal-height controls inside the composer row */
   .composer-row button,.composer-row .sel{height:34px}
   .composer-row .attach-btn,.composer-row .send{width:34px}
-  /* clickable dashboard cards */
-  .stat.clk,.dcard.clk{cursor:pointer;transition:var(--transition)}
-  .stat.clk:hover,.dcard.clk:hover{border-color:var(--line2);background:var(--elev)}
 
   @keyframes sp{to{transform:rotate(360deg)}}
   @keyframes tokIn{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:blur(0)}}
@@ -1408,12 +1325,10 @@
   <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></symbol>
-  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
   <symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13c-.4-1.3-.6-3-.6-5a6 6 0 0 0-9.3-5M6.3 6.3C6.1 6.8 6 7.4 6 8c0 7-3 9-3 9h14"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M6 10l1.5-6h9L18 10c0 2-2 4-6 4s-6-2-6-4z" fill="currentColor" stroke="currentColor" stroke-width="1"/></symbol>
   <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="4 9 8 9 13 5 13 19 8 15 4 15"/><path d="M17 8a5 5 0 0 1 0 8"/></symbol>
   <symbol id="i-arrow-right-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
@@ -1851,10 +1766,9 @@ function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="b
 // reflect state.bp into the composer mode switch + placeholder
 function reflectMode(){ document.querySelectorAll('#chatMode .seg2 button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='bp')===(state.bp===true))); const inp=$('input'); if(inp) inp.placeholder=state.bp?bpPh:normPh; }
 function setChatMode(bp){ state.bp=!!bp; reflectMode();
-  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; }
-  if(bp) bpStatus(); }
+  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; } }
 function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); loadChats(); $('input').focus(); }
 const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
@@ -2898,21 +2812,6 @@ async function streamChat(text, opts={}){
   }
 }
 
-// Weekly digest — pull recent git commits + progress board, ask the Brain to synthesize.
-async function runDigest(){
-  if(state.sending) return;
-  newChat();
-  toast('Gathering recent changes…');
-  try{
-    const ctx=await api('/api/digest-context?days=7');
-    const prog=JSON.stringify(ctx.progress,null,2);
-    const msg=`Weekly digest. Use ONLY the context provided below — do not read repo files (keep this fast). Tell me:\n`+
-      `1) What changed in the last ${ctx.days} days\n2) What's in progress now\n3) What's next\n4) Anything missing, stalled, or at risk.\n`+
-      `Be concise and specific.\n\n`+
-      `## Git commits (last ${ctx.days} days)\n${ctx.log||'(none)'}\n\n## Progress board\n\`\`\`json\n${prog}\n\`\`\``;
-    streamChat(msg,{title:'Weekly digest — '+new Date().toISOString().slice(0,10)});
-  }catch(e){ toast('Digest failed: '+e.message); }
-}
 
 // ---------- files ----------
 async function loadFiles(){
@@ -2965,7 +2864,6 @@ function extOf(name){ return (name.split('.').pop()||'').toLowerCase(); }
 function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftile'+(big?' lg':'');
   if(isImg(name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(pth)}"></span>`;
   return `<span class="fic">${fileIcon(name,20)}</span>`; }
-function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
 
 // ---------- Finder/Explorer-style file browser ----------
 // Source-agnostic filesystem ops. Branch A = real repo writes via /api/fs/* (all
@@ -4822,12 +4720,6 @@ async function loadUsage(){
     `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
     `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
 }
-// Header ↻ — instant re-read of the cached reading.
-async function refreshUsage(btn){
-  const ic=btn&&btn.querySelector('.ic'); if(ic) ic.classList.add('spinning');
-  await loadUsage();
-  if(ic) setTimeout(()=>ic.classList.remove('spinning'),400);
-}
 // Drive a brief interactive Claude session to get a brand-new reading.
 async function fetchFreshUsage(){
   if(state.populating) return;
@@ -4846,15 +4738,6 @@ async function enableUsage(){
 }
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
 
-// ---------- Buildprint connection status (sidebar) ----------
-async function bpStatus(){
-  const el=$('bpConn'); if(!el) return;
-  try{ const s=await api('/api/bp/status');
-    el.innerHTML = s.ready
-      ? `<span class="bp-ok"></span> ${esc(s.app)} · ${esc(s.branch)} branch`
-      : '<span class="bp-off"></span> not connected — link the CLI first';
-  }catch{ el.textContent='offline'; }
-}
 // ---------- Sync from Buildprint → update the brain ledger ----------
 async function bpTrack(){
   if(state.sending) return;
@@ -4863,7 +4746,7 @@ async function bpTrack(){
   // order matters: setTab()→newChat() (chatView hidden, chatId null) resets state.bp,
   // so BP mode must be forced AFTER the view swap or follow-ups post bp:false
   state.chatId=null; setTab('buildprint'); showChat();
-  state.bp=true; reflectMode(); bpStatus();
+  state.bp=true; reflectMode();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
   const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
@@ -5229,7 +5112,7 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
 <script src="js/palette.js"></script>
