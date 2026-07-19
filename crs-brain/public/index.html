@@ -555,6 +555,35 @@
   .ltoast.learning{border-left-color:var(--purple)}
   .ltoast.applied{border-left-color:var(--good)}
   .ltoast.recurrence{border-left-color:var(--danger)}
+  /* staged learning toast — ONE toast per distill run, morphing in place:
+     Stage A "Signal detected" (the actual failed thing) → Stage B "Analyzing…"
+     (pulsing dots) → Stage C "Solution found" (PROBLEM → SOLUTION cards) or
+     C-alt "Already known" (muted). Tokens only; cards are border-only per design rules. */
+  .ltoast.staged .lt-body{margin-top:6px}
+  .ltoast .lt-sig{font:500 11px/1.5 var(--mono);color:var(--warning);background:var(--warning-tint);border-radius:7px;padding:6px 8px;word-break:break-word;max-height:52px;overflow:hidden}
+  .ltoast.expanded .lt-sig{max-height:none}
+  .ltoast .lt-src{color:var(--muted);font-size:10.5px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ltoast .lt-think{display:inline-flex;gap:3px;margin-left:7px;vertical-align:middle}
+  .ltoast .lt-think i{width:4px;height:4px;border-radius:50%;background:var(--purple);opacity:.6}
+  .ltoast .lt-sol1{color:var(--secondary);max-height:40px;overflow:hidden;word-break:break-word}
+  .ltoast .lt-cards{display:none}
+  .ltoast.expanded .lt-cards{display:block}
+  .ltoast.expanded .lt-sol1{display:none}
+  .ltoast .lt-lesson{border:1px solid var(--line2);border-radius:9px;padding:9px 10px;margin-top:8px}
+  .ltoast .lt-k{display:block;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+  .ltoast .lt-prob{color:var(--warning);background:var(--warning-tint);border-radius:6px;padding:5px 7px;word-break:break-word}
+  .ltoast .lt-sol{color:var(--good);background:var(--success-tint);border-radius:6px;padding:5px 7px;margin-top:6px;word-break:break-word}
+  .ltoast .lt-cat{color:var(--muted);font-size:10.5px;margin-top:6px}
+  .ltoast.done{border-left-color:var(--good)}
+  .ltoast.done .lt-ic{background:var(--success-tint);color:var(--good)}
+  .ltoast.mutedc{border-left-color:var(--line3);opacity:.85}
+  .ltoast.fading{opacity:0;transition:opacity .6s ease}
+  @media (prefers-reduced-motion: no-preference){
+    .ltoast .lt-think i{animation:ltPulse 1.05s ease-in-out infinite}
+    .ltoast .lt-think i:nth-child(2){animation-delay:.16s}
+    .ltoast .lt-think i:nth-child(3){animation-delay:.32s}
+  }
+  @keyframes ltPulse{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
   /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
   .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
@@ -1910,21 +1939,122 @@ function playLearnSound(kind){
   if(!!((SETTINGS||{}).notifyPrefs||{}).dnd) return;
   try{ SOUNDS.playSound(sid); }catch{}   // autoplay policy may block before the first gesture — stay silent
 }
+// STAGED distill toast — Vlad sees the thinking: signal → analysis → solution.
+// One toast per distill run (keyed by the server's runId, chatId fallback),
+// morphing IN PLACE: A "Signal detected" → B "Analyzing — searching for a
+// solution…" → C "Solution found" (s26 chime HERE) or C-alt "Already known".
+// Old-format ledger events (no runId/signal/lessons) fall through to the
+// legacy per-event toasts; learning-clean with no live staged toast = silent.
+const LEARN_RUNS=new Map();   // key → {el, stage, minUntil, chimed, _w}
+const LEARN_STAGE_KINDS={'learning-start':1,'learning-thinking':1,'learning-saved':1,'learning-clean':1};
 async function pollLearnEvents(){
   try{
     const r=await api('/api/learn-events?since='+encodeURIComponent(LEARN_SINCE));
     for(const ev of (r.events||[])){
       if(ev.ts>LEARN_SINCE) LEARN_SINCE=ev.ts;
-      if(LEARN_KINDS[ev.kind]) showLearnToast(ev);   // learning-clean stays silent by design
+      if(LEARN_STAGE_KINDS[ev.kind]&&stagedLearnToast(ev)) continue;   // new-format staged run handled
+      if(LEARN_KINDS[ev.kind]) showLearnToast(ev);   // legacy path; learning-clean stays silent by design
     }
   }catch{}
+}
+function learnHost(){
+  let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
+  return host;
+}
+function stagedLearnToast(ev){   // → true when handled (legacy events return false → old toasts)
+  const key=ev.runId||('c:'+(ev.chatId||''));
+  let run=LEARN_RUNS.get(key);
+  if(run&&!run.el.isConnected){ clearTimeout(run._w); LEARN_RUNS.delete(key); run=null; }   // evicted by host cap → dead run
+  if(ev.kind==='learning-clean'){
+    window.LIVEMAP&&LIVEMAP.ping('learning-clean', ev);   // always release the distiller glow
+    if(!run) return true;                                 // no live staged toast → fully silent (as today)
+    ltStage(run,()=>ltStageClean(run,ev,key),key);
+    return true;
+  }
+  if(!ev.runId&&ev.signal==null&&!ev.lessons&&ev.kind!=='learning-thinking') return false;   // old-format start/saved
+  if(ev.kind==='learning-start'){
+    if(!run) run=ltCreate(key);
+    ltStage(run,()=>ltStageA(run,ev),key);
+  }else if(ev.kind==='learning-thinking'){
+    if(!run){ run=ltCreate(key); ltStageA(run,ev); }      // page opened mid-run: seed Stage A instantly
+    ltStage(run,()=>ltStageB(run,ev),key);
+  }else if(ev.kind==='learning-saved'){
+    if(!run) run=ltCreate(key);                           // saved can land alone (page opened late)
+    ltStage(run,()=>ltStageC(run,ev,key),key);
+  }
+  window.LIVEMAP&&LIVEMAP.ping(ev.kind, ev);
+  return true;
+}
+// each stage stays on screen ≥1.4s even when the 6s poll delivers several events at once
+function ltStage(run,fn,key){
+  const wait=Math.max(0,run.minUntil-Date.now());
+  run.minUntil=Date.now()+wait+1400;
+  if(!wait){ fn(); return; }
+  setTimeout(()=>{ if(run.el.isConnected) fn(); else { clearTimeout(run._w); LEARN_RUNS.delete(key); } },wait);
+}
+function ltCreate(key){
+  const host=learnHost();
+  while(host.children.length>=3) host.firstChild.remove();
+  const el=document.createElement('div'); el.className='ltoast learning staged';
+  el.innerHTML='<div class="lt-head"><span class="lt-ic">🧠</span><span class="lt-t"></span><button class="lt-x" title="Dismiss">✕</button></div><div class="lt-body"></div>';
+  el.querySelector('.lt-x').onclick=(e)=>{ e.stopPropagation(); ltKill(key); };
+  el.querySelector('.lt-head').onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };   // pinned open while expanded
+  el.querySelector('.lt-body').onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };
+  host.appendChild(el);
+  const run={el,stage:'',minUntil:Date.now(),chimed:false,_w:setTimeout(()=>ltFade(key),120000)};   // dead distill → quiet fade
+  LEARN_RUNS.set(key,run);
+  return run;
+}
+function ltKill(key){ const r=LEARN_RUNS.get(key); if(!r) return; clearTimeout(r._w); clearTimeout(r.el._t); r.el.remove(); LEARN_RUNS.delete(key); }
+function ltFade(key){ const r=LEARN_RUNS.get(key); if(!r) return; r.el.classList.add('fading'); setTimeout(()=>ltKill(key),700); }
+function ltStageA(run,ev){
+  run.stage='A';
+  run.el.querySelector('.lt-t').textContent='Signal detected';
+  run.el.querySelector('.lt-body').innerHTML=
+    '<div class="lt-sig">'+esc(ev.signal||ev.detail||'learnable signal in this turn')+'</div>'
+    +(ev.source?'<div class="lt-src">from: '+esc(ev.source)+'</div>':'');
+}
+function ltStageB(run,ev){
+  if(!run.el.querySelector('.lt-sig')&&(ev.signal||ev.source)) ltStageA(run,ev);   // keep the signal visible underneath
+  run.stage='B';
+  run.el.querySelector('.lt-t').innerHTML='Analyzing the failure — searching for a solution&hellip;'
+    +'<span class="lt-think" aria-hidden="true"><i></i><i></i><i></i></span>';   // reduced-motion: dots go static via CSS
+}
+function ltStageC(run,ev,key){
+  run.stage='C';
+  run.el.classList.add('done');
+  run.el.querySelector('.lt-ic').textContent='✓';
+  const lessons=(ev.lessons||[]).slice(0,3);
+  run.el.querySelector('.lt-t').textContent='Solution found'+(lessons.length>1?' — '+lessons.length+' lessons':'');
+  run.el.querySelector('.lt-body').innerHTML=lessons.length
+    ? '<div class="lt-sol1">'+esc((lessons[0].solution||lessons[0].problem||'').slice(0,150))+'</div>'
+      +'<div class="lt-cards">'+lessons.map(l=>
+        '<div class="lt-lesson">'
+        +'<div class="lt-prob"><span class="lt-k">Problem</span>'+esc(l.problem||'')+'</div>'
+        +'<div class="lt-sol"><span class="lt-k">Solution</span>'+esc(l.solution||'—')+'</div>'
+        +'<div class="lt-cat">filed under '+esc(l.category||'lesson')+(l.trigger?' · '+esc(String(l.trigger).slice(0,70)):'')+'</div>'
+        +'</div>').join('')+'</div>'
+      +'<div class="lt-more">click to expand</div>'
+    : '<div class="lt-sol1">'+esc(ev.detail||'Lesson saved to the Playbook')+'</div>';
+  if(!run.chimed){ run.chimed=true; playLearnSound('learning-saved'); }   // s26 fires at the REVEAL, once per run
+  clearTimeout(run._w);
+  run.el._t=setTimeout(()=>{ if(!run.el.classList.contains('expanded')) ltKill(key); },16000);   // longer — there's content to read
+}
+function ltStageClean(run,ev,key){
+  run.stage='CLEAN';
+  run.el.classList.add('mutedc');
+  run.el.querySelector('.lt-ic').textContent='✓';
+  run.el.querySelector('.lt-t').textContent='Already known — nothing new to learn ✓';
+  run.el.querySelector('.lt-body').innerHTML='<div class="lt-sol1">'+esc(ev.detail||'All of this run’s traps were already in the Playbook.')+'</div>';
+  clearTimeout(run._w);                                    // NO sound on the clean path
+  run.el._t=setTimeout(()=>ltKill(key),5000);
 }
 function showLearnToast(ev){
   const k=LEARN_KINDS[ev.kind];
   if(!k) return;   // undefined kinds no-op (kept in sync with the pollLearnEvents filter)
   playLearnSound(ev.kind);
   window.LIVEMAP&&LIVEMAP.ping(ev.kind, ev);   // live map learning pulses — full event → lesson motes + ticker (learning-clean stays invisible)
-  let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
+  const host=learnHost();
   while(host.children.length>=3) host.firstChild.remove();
   const el=document.createElement('div'); el.className='ltoast '+k.cls;
   el.innerHTML=`<div class="lt-head"><span class="lt-ic">${k.ic}</span><span class="lt-t">${esc(k.label)} — ${esc(ev.title)}</span><button class="lt-x" title="Dismiss">✕</button></div>`

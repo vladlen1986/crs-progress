@@ -84,6 +84,7 @@
     nodePing: {},                                         // nodeId → ts of last direct activity
     lessons: null, lastApplied: null, lastLearn: null,
     pollIv: null, tickIv: null, warnT: 0,
+    thinkUntil: 0,   // distiller "searching for a solution" glow (learning-thinking → saved/clean, 120s cap)
   };
   const now = () => Date.now();
   const nice = (m) => (typeof modelNice === 'function' ? modelNice(m) : m) || '';
@@ -696,13 +697,27 @@
       spawnKid('playbook', evTag(arg).toLowerCase(), { mote: true, key: 'applied:' + evTag(arg) });
       tkPush('⚡ applying: ' + (evSnip(arg) || 'lesson'), 'f-acc');
     }
+    // staged distill run — the three ticker stage lines + distiller life:
+    // signal → …searching → ✓ learned (the existing mote-birth stays the payoff)
+    else if (kind === 'learning-start') {
+      S.nodePing.distiller = t; bump('brain-distiller', 2600); ripple('distiller');
+      const sig = clean(arg && arg.signal || '') || evSnip(arg);
+      tkPush('🧠 signal: ' + (sig || 'learnable turn').slice(0, 46));
+    }
+    else if (kind === 'learning-thinking') {
+      S.thinkUntil = t + 120000; S.nodePing.distiller = t;   // active glow while the distiller thinks
+      tkPush('…searching for a solution', 'f-acc');
+    }
+    else if (kind === 'learning-clean') { S.thinkUntil = 0; }   // release the glow — no ticker line (silent by design)
     else if (kind === 'learning-saved') {
+      S.thinkUntil = 0;
       bump('brain-distiller', 3400); bump('distiller-ledger', 3400); S.nodePing.distiller = t; S.nodePing.ledger = t; ripple('ledger');
       lessonBirth(arg);
       // galaxy: a new learn event → LEDGER swarm +1, badge pops with the real count
       G.ledger = (G.ledger || 0) + 1;
       if (S.mode === 'open') { drawSwarm('ledger', G.ledger); drawBadge('ledger', G.ledger, true); }
-      tkPush('🧠 learned: ' + (evSnip(arg) || 'new lesson'));
+      const sol = arg && arg.lessons && arg.lessons[0] && arg.lessons[0].solution;
+      tkPush('✓ learned: ' + clean(sol || evSnip(arg) || 'new lesson').slice(0, 46));
     }
     else if (kind === 'recurrence') {
       S.warnT = t; S.nodePing.playbook = t; shockwave();
@@ -752,7 +767,8 @@
     }
     for (const id of Object.keys(NODES)) {
       const p = S.nodePing[id] || 0;
-      const on = !!nodeOn[id] || (S.turnLive && (id === 'you' || id === 'brain' || id === 'model'));
+      const on = !!nodeOn[id] || (S.turnLive && (id === 'you' || id === 'brain' || id === 'model'))
+        || (id === 'distiller' && S.thinkUntil > t);   // active glow while searching for a solution
       const rec = !on && (!!nodeRecent[id] || (p && t - p < RECENT_MS));
       $n[id].classList.toggle('on', on);
       $n[id].classList.toggle('recent', rec);

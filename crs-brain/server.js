@@ -407,9 +407,11 @@ const LEARN_EVENTS_FILE = path.join(DATA_DIR, 'learn-events.jsonl');
 const PB_CATEGORIES = ['platform-gotcha', 'cli-bug', 'workspace-rule', 'design-pattern', 'verification', 'decision-pointer'];
 function loadPlaybook() { try { return JSON.parse(fs.readFileSync(PLAYBOOK_FILE, 'utf8')); } catch { return []; } }
 function savePlaybook(arr) { fs.writeFileSync(PLAYBOOK_FILE, JSON.stringify(arr, null, 2)); }
-// learn-events feed the top-right "brain is learning / applying" toasts
-function learnEvent(kind, title, detail, chatId) {
-  try { fs.appendFileSync(LEARN_EVENTS_FILE, JSON.stringify({ ts: nowIso(), kind, title: String(title || '').slice(0, 160), detail: String(detail || '').slice(0, 4000), chatId: chatId || '' }) + '\n'); } catch {}
+// learn-events feed the top-right "brain is learning / applying" toasts.
+// extra = optional structured fields (runId/signal/source/lessons) powering the
+// staged Signal → Analyzing → Solution toast; old readers ignore them (append-only compat).
+function learnEvent(kind, title, detail, chatId, extra) {
+  try { fs.appendFileSync(LEARN_EVENTS_FILE, JSON.stringify({ ts: nowIso(), kind, title: String(title || '').slice(0, 160), detail: String(detail || '').slice(0, 4000), chatId: chatId || '', ...(extra || {}) }) + '\n'); } catch {}
 }
 // error signature: normalized first line of a captured ✗ result (paths/numbers stripped)
 function normalizeErrSig(s) {
@@ -494,28 +496,50 @@ function turnLearnable(steps, ms) {
   if (s.some((x) => LESSON_SIGNAL_RE.test((x.label || '') + ' ' + (x.body || '')))) return true;
   return s.length >= 15 || (ms || 0) > 5 * 60 * 1000;   // long exploration = discoveries worth keeping
 }
-async function distillLessons(userMessage, steps, finalText, chatId) {
+// the ACTUAL trigger that fired turnLearnable(): which signal + the offending snippet
+// (failed command + its ✗ tail) — so the UI can show WHAT went wrong, not just the turn title.
+function learnSignalText(steps) {
+  const s = steps || [];
+  const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+  for (const x of s) {
+    const hay = (x.label || '') + ' ' + (x.body || '');
+    if (!LESSON_SIGNAL_RE.test(hay)) continue;
+    const which = /blocked|refused|denied|safety gate/i.test(hay) ? 'blocked command' : 'error';
+    const line = clean(String(x.body || '').split('\n').find((l) => LESSON_SIGNAL_RE.test(l)) || '');
+    const sep = line ? (line.startsWith('✗') ? ' ' : ' ✗ ') : '';
+    return (which + ' — ' + clean(x.label ? x.label + sep + line : line)).slice(0, 160);
+  }
+  return ('long exploration — ' + s.length + ' steps, distilling the discoveries').slice(0, 160);
+}
+async function distillLessons(userMessage, steps, finalText, chatId, chatTitle) {
   const known = loadPlaybook().filter((l) => l.status === 'active').map((l) => `- ${l.rule}${l.fix ? ' FIX: ' + l.fix : ''}`).join('\n').slice(0, 4000);
   const digest = (steps || []).map((s) => {
     const err = LESSON_SIGNAL_RE.test(s.body || '');
     return '· ' + (s.label || s.kind || '') + (err ? ' :: ' + (s.body || '').slice(0, 220).replace(/\s+/g, ' ') : '');
   }).join('\n').slice(0, 6000);
-  learnEvent('learning-start', 'Learning from this session…', 'Signal detected (errors/blocked commands/long exploration). Distilling operational lessons from:\n' + String(userMessage || '').slice(0, 200), chatId);
+  // staged run: runId keys the UI's single morphing toast (start → thinking → saved/clean)
+  const runId = crypto.randomUUID().slice(0, 8);
+  const source = String(chatTitle || userMessage || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const signal = learnSignalText(steps);
+  learnEvent('learning-start', 'Signal detected', 'Signal: ' + signal + '\nDistilling operational lessons from: ' + source, chatId, { runId, signal, source });
   const instruction =
     'From this Buildprint work-session digest, extract AT MOST 3 genuinely NEW operational lessons worth remembering forever. A lesson is OPERATIONAL: a trigger (when it applies), a one-sentence rule (the law), and the exact working fix. Vague advice is NOT a lesson. ' +
     'NOT task-specific facts, NOT anything semantically covered by KNOWN LESSONS below (even reworded). ' +
     'Output ONLY a JSON array of {"category":"platform-gotcha"|"cli-bug"|"workspace-rule"|"design-pattern"|"verification","trigger":"comma-separated keywords/task-types this applies to","rule":"one sentence — the law","fix":"the exact working approach/command","errorSig":"the literal first line of the error it prevents, if any, else empty"}. Output [] if nothing genuinely new.\n\n' +
     'KNOWN LESSONS:\n' + (known || '(none)') + '\n\nTASK GIVEN:\n' + String(userMessage || '').slice(0, 400) +
     '\n\nSESSION DIGEST (· step — :: = error detail):\n' + digest + '\n\nFINAL REPORT (tail):\n' + String(finalText || '').slice(-1500);
+  // the "searching for a solution" stage — emitted right before the Haiku call
+  learnEvent('learning-thinking', 'Analyzing the failure — searching for a solution…', 'Signal: ' + signal, chatId, { runId, signal, source });
   const res = await runClaudeStream(instruction, null, {}, { model: 'claude-haiku-4-5-20251001', effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'lesson' });
   const m = (res.text || '').match(/\[[\s\S]*\]/);
   let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch {} }
   const saved = addPlaybookLessons((Array.isArray(arr) ? arr : []).slice(0, 3), 'chat ' + (chatId || '').slice(0, 8) + ' · ' + nowIso().slice(0, 10));
   if (saved.length) {
     addNotification({ type: 'info', level: 'info', title: 'Playbook learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), body: saved.map((s) => s.rule.slice(0, 60)).join(' · ') });
-    learnEvent('learning-saved', 'Learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), saved.map((s) => '• [' + s.category + '] ' + s.rule + (s.fix ? '\n  FIX: ' + s.fix : '')).join('\n'), chatId);
+    learnEvent('learning-saved', 'Learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), saved.map((s) => '• [' + s.category + '] ' + s.rule + (s.fix ? '\n  FIX: ' + s.fix : '')).join('\n'), chatId,
+      { runId, signal, source, lessons: saved.slice(0, 3).map((s) => ({ category: s.category, trigger: s.trigger, problem: s.rule, solution: s.fix })) });
   } else {
-    learnEvent('learning-clean', 'Nothing new to learn', 'Session reviewed — all its traps were already in the Playbook.', chatId);
+    learnEvent('learning-clean', 'Nothing new to learn', 'Session reviewed — all its traps were already in the Playbook.', chatId, { runId, signal, source });
   }
   return saved;
 }
@@ -3449,7 +3473,7 @@ const server = http.createServer(async (req, res) => {
         // Self-learning: distill lessons from this BP session in the background
         // (only when the turn carries learnable signal — zero spend otherwise).
         if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
-          distillLessons(message, steps, finalText, chat.id).catch(() => {});
+          distillLessons(message, steps, finalText, chat.id, chat.title).catch(() => {});
         }
         await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
@@ -3897,7 +3921,7 @@ const server = http.createServer(async (req, res) => {
       const lastA = [...c.messages].reverse().find((m) => m.role === 'assistant' && m.steps && m.steps.length);
       if (!lastA) return send(res, 400, { error: 'no steps to learn from' });
       const lastU = [...c.messages].reverse().find((m) => m.role === 'user');
-      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content, c.id);
+      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content, c.id, c.title);
       return send(res, 200, { ok: true, learned: saved });
     }
     // ---- Playbook endpoints ----
