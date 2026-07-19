@@ -3439,6 +3439,7 @@ const server = http.createServer(async (req, res) => {
               const next0 = {
                 dnd: typeof bp.dnd === 'boolean' ? bp.dnd : !!cur0.dnd,
                 bannerSec: bp.bannerSec != null ? Math.max(2, Math.min(10, Number(bp.bannerSec) || 4)) : (cur0.bannerSec || 4),
+                askRenotifyMin: bp.askRenotifyMin != null ? Math.max(1, Math.min(120, Number(bp.askRenotifyMin) || 10)) : (cur0.askRenotifyMin || 10),
                 migratedEvents: cur0.migratedEvents === true,
                 types: bp.resetAll === true ? {} : { ...(cur0.types || {}) },
               };
