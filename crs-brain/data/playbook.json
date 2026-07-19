@@ -7,8 +7,8 @@
     "fix": "Any edit to the index page's page.json — even one character — trips a pre-existing blocking check error (canvas-root-name-validity: 'index' is a reserved name). Never rename index (required to run the app) and never plan page-level edits on it; page-scoped changes need another mechanism (e.g. per-element states or a reusable).",
     "errorSig": "you can't name a page 'index' because it is a reserved name",
     "source": "migrated from memory 2026-07-19",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-07-19T01:27:12.742Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.752Z"
@@ -21,8 +21,8 @@
     "fix": "Theming is per-element conditional states keyed on Current User's dark_theme is_false, overriding colors with the paired '· Light' tokens from tokens.json (e.g. BG Secondary ↔ BG Secondary · Light). Copy the pattern from existing elements (e.g. Toast); never edit shared style files for one page — that leaks to every page using the style.",
     "errorSig": "",
     "source": "migrated from memory 2026-07-19",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-07-19T01:27:12.742Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
@@ -91,8 +91,8 @@
     "fix": "Vlad ruled 2026-07-19: the index/sign-in page renders dark for logged-out visitors — intended behavior, never a bug to fix. Light mode there activates only for logged-in users with dark_theme = no. Verify index light mode logged-in; never propose anonymous-theme workarounds unless Vlad reopens the decision (see decisions.md 2026-07-19).",
     "errorSig": "",
     "source": "migrated from memory 2026-07-19",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-07-19T01:27:12.742Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
