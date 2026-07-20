@@ -138,5 +138,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T16:22:24.603Z"
+  },
+  {
+    "id": "11045be9",
+    "category": "cli-bug",
+    "trigger": "testing buildprint connection, checking buildprint status, troubleshooting buildprint",
+    "rule": "buildprint has no 'status' command; use 'buildprint project list' or 'buildprint link' to test connection.",
+    "fix": "Run `buildprint project list` to diagnose connectivity; it will either succeed or fail with the actual error (e.g., token revoked).",
+    "errorSig": "error unknown command 'status'",
+    "source": "chat 8799e919 · 2026-07-19",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T18:03:37.393Z"
+  },
+  {
+    "id": "ce2ed45e",
+    "category": "platform-gotcha",
+    "trigger": "buildprint CLI token revoked, token invalid, buildprint project list fails, buildprint link fails",
+    "rule": "When buildprint CLI returns 'token is invalid or has been revoked', the token cannot be refreshed via CLI — it must be regenerated in the Buildprint UI.",
+    "fix": "Generate a new token at Buildprint Agent → Integrations → CLI, then run `buildprint link <new-token>` to reconnect.",
+    "errorSig": "could not link buildprint cli token is invalid or has been revoked",
+    "source": "chat 8799e919 · 2026-07-19",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-19T18:03:37.393Z"
   }
 ]
