@@ -56,3 +56,4 @@
 {"ts":"2026-07-19T13:48:49.116Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-19T16:42:24.252Z","action":"playbook-delete","target":"8c36b231","via":"desktop","meta":null}
 {"ts":"2026-07-19T16:42:24.264Z","action":"playbook-delete","target":"adc0ad95","via":"desktop","meta":null}
+{"ts":"2026-07-20T13:41:06.401Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
