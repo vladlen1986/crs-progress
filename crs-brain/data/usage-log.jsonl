@@ -85,3 +85,4 @@
 {"ts":"2026-07-20T13:41:20.626Z","purpose":"gen","model":"auto","in":0,"out":0,"ms":1085,"costUsd":0,"estimated":true}
 {"ts":"2026-07-20T13:42:36.477Z","purpose":"chat","model":"claude-opus-4-8","in":0,"out":0,"ms":1019,"costUsd":0,"estimated":true}
 {"ts":"2026-07-20T13:44:17.800Z","purpose":"chat","model":"claude-opus-4-8","in":41016,"out":1001,"ms":48502,"costUsd":0.690315,"estimated":true}
+{"ts":"2026-07-20T13:48:30.893Z","purpose":"chat","model":"claude-sonnet-5","in":95232,"out":463,"ms":196087,"costUsd":0.292641,"estimated":true}
