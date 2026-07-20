@@ -4,7 +4,7 @@
   "sessionId": "7ee1deac-d4b1-44eb-b385-a80d1a8b5842",
   "bp": false,
   "created": "2026-07-20T13:42:35.451Z",
-  "updated": "2026-07-20T13:48:30.894Z",
+  "updated": "2026-07-20T14:13:09.833Z",
   "messages": [
     {
       "role": "user",
@@ -517,6 +517,190 @@
           "tool": "Bash",
           "label": "Confirm public dir static serving includes new html file automatically",
           "body": "description: Confirm public dir static serving includes new html file automatically\ncommand: grep -n \"express.static\\|serveStatic\\|PUBLIC_DIR\\|'/public'\\|readFileSync(path.join(PUBLIC\" crs-brain/server.js | head -20\n⇒ 72:const PUBLIC_DIR = path.join(BRAIN_DIR, 'public'); 1315: const src = fs.readFileSync(path.join(PUBLIC_DIR, 'notify-registry.js'), 'utf8'); 2880: if (shellByt",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "add button to header to access it",
+      "ts": "2026-07-20T14:12:04.126Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Added a header button — the grid icon between the live-system-map and theme toggle icons in the top bar, always visible regardless of which view you're in. Clicking it opens App Preview via `openTarget`, same pattern as the other header/dashboard tools.",
+      "ts": "2026-07-20T14:13:09.833Z",
+      "startedAt": "2026-07-20T14:12:04.129Z",
+      "completedAt": "2026-07-20T14:13:09.833Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Find header/topbar markup in app shell",
+          "body": "description: Find header/topbar markup in app shell\ncommand: grep -n \"class=\\\"topbar\\|id=\\\"topbar\\|<header\\|hdr-btn\\|headerBtn\\|topbar-actions\\|top-actions\" crs-brain/public/index.html | head -30\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Find how existing header icons/buttons like galaxy map are wired",
+          "body": "description: Find how existing header icons/buttons like galaxy map are wired\ncommand: grep -n \"showMap()\\|class=\\\"tb\\|Galaxy map\\|i-map\" crs-brain/public/index.html | head -30\n⇒ 1372: <symbol id=\"i-map\" viewBox=\"0 0 24 24\"><polygon points=\"2 6 9 3 15 6 22 3 22 18 15 21 9 18 2 21\"/><line x1=\"9\" y1=\"3\" x2=\"9\" y2=\"18\"/><line x1=\"15\" y1=\"6\"",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index.html",
+          "body": "file_path: /Users/vlad/projects/crs-progress/crs-brain/public/index.html\noffset: 1385\nlimit: 30\n⇒ 1385 <symbol id=\"i-shield\" viewBox=\"0 0 24 24\"><path d=\"M12 3l7 3v5.5c0 4.4-3 7.5-7 8.5-4-1-7-4.1-7-8.5V6z\"/></symbol> 1386 <symbol id=\"i-file-plus\" viewBox=\"0",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Find center header/toolbar structure",
+          "body": "description: Find center header/toolbar structure\ncommand: grep -n \"class=\\\"col center\\|class=\\\"chdr\\|centerTitle\\|class=\\\"toolbar\\|view-toggle\\|vlbl\\|class=\\\"col right\\|rightRail\\|theme-toggle\\|themeToggle\" crs-brain/public/index.html | head -40\n⇒ 1201: .viewseg .vlbl{display:none} 1424: <div class=\"col center\" id=\"centerCol\"> 1428: <span class=\"title\" id=\"centerTitle\">New conversation</span> 1433: <butto",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Found the header. Let's see the full toolbar around line 1424-1442.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index.html",
+          "body": "file_path: /Users/vlad/projects/crs-progress/crs-brain/public/index.html\noffset: 1424\nlimit: 20\n⇒ 1424 <div class=\"col center\" id=\"centerCol\"> 1425 <button class=\"expand-handle left\" title=\"Show chats & files\" onclick=\"toggleCol('left')\"><svg viewBox=\"0 0 24",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check existing icon symbol defs",
+          "body": "description: Check existing icon symbol defs\ncommand: grep -n \"id=\\\"i-doc\\\"\\|id=\\\"i-layout\\|id=\\\"i-window\" crs-brain/public/index.html\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"function T(\\|function A(\" crs-brain/public/index.html",
+          "body": "command: grep -n \"function T(\\|function A(\" crs-brain/public/index.html\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"const T=\\|const A=\\|T=(\" crs-brain/public/index.html",
+          "body": "command: grep -n \"const T=\\|const A=\\|T=(\" crs-brain/public/index.html\n⇒ 2382: const A=(icon,title,desc,onclick,color)=>`<button class=\"action\" onclick=\"${onclick}\" style=\"--qc:${color};--qc-bg:${tint(color)}\"><span class=\"ai\">${svg(",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"function svg(\" -A 15 crs-brain/public/index.html",
+          "body": "command: grep -n \"function svg(\" -A 15 crs-brain/public/index.html\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"svg=(\\|const svg\" crs-brain/public/index.html",
+          "body": "command: grep -n \"svg=(\\|const svg\" crs-brain/public/index.html\n⇒ 1576:const svg = (name,cls) => `<svg class=\"ic ${cls||''}\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><use href=\"#${name}\"/></svg>`;",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"i-doc\" crs-brain/public/index.html",
+          "body": "command: grep -n \"i-doc\" crs-brain/public/index.html\n⇒ 1363: <symbol id=\"i-doc-sm\" viewBox=\"0 0 24 24\"><path d=\"M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z\"/><polyline points=\"14 3 14 8 19 8\"/></symbo",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n \"<symbol id=\" crs-brain/public/index.html",
+          "body": "command: grep -n \"<symbol id=\" crs-brain/public/index.html\n⇒ 1344: <symbol id=\"i-logo\" viewBox=\"0 0 24 24\"><circle cx=\"12\" cy=\"5.5\" r=\"2.2\"/><circle cx=\"5.5\" cy=\"17\" r=\"2.2\"/><circle cx=\"18.5\" cy=\"17\" r=\"2.2\"/><path d=\"M1",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit index.html",
+          "body": "file_path: /Users/vlad/projects/crs-progress/crs-brain/public/index.html\nold_string:       <button class=\"hicon\" id=\"livemapBtn\" onclick=\"window.LIVEMAP&&LIVEMAP.toggle()\" title=\"Live system map — what's working now\"><svg viewBox=\"0 0 24 24\" stroke-width=\"1.6\"><circle cx=\"12\" cy=\"12\" r=\"2.8\"/><circle cx=\"5\" cy=\"6\" r=\"1.7\"/><circle cx=\"19\" cy=\"6\" r=\"1.7\"/><circle cx=\"6\" cy=\"18.5\" r=\"1.7\"/><circle cx=\"18.5\" cy=\"18.5\" r=\"1.7\"/><path d=\"M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1\"/></svg></button>\n      <button class=\"hicon\" id=\"themeToggle\"\nnew_string:       <button class=\"hicon\" id=\"livemapBtn\" onclick=\"window.LIVEMAP&&LIVEMAP.toggle()\" title=\"Live system map — what's working now\"><svg viewBox=\"0 0 24 24\" stroke-width=\"1.6\"><circle cx=\"12\" cy=\"12\" r=\"2.8\"/><circle cx=\"5\" cy=\"6\" r=\"1.7\"/><circle cx=\"19\" cy=\"6\" r=\"1.7\"/><circle cx=\"6\" cy=\"18.5\" r=\"1.7\"/><circle cx=\"18.5\" cy=\"18.5\" r=\"1.7\"/><path d=\"M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1\"/></svg></button>\n      <button class=\"hicon\" id=\"appPreviewBtn\" onclick=\"openTarget('/app-preview.html',{title:'App Preview'})\" title=\"App Preview — all modules, sidebar, prototypes\"><svg viewBox=\"0 0 24 24\"><use href=\"#i-grid\"/></svg></button>\n      <button class=\"hicon\" id=\"themeToggle\"\n⇒ The file /Users/vlad/projects/crs-progress/crs-brain/public/index.html has been updated successfully. (file state is current in your context — no need to Read i",
           "actor": "brain"
         }
       ]
