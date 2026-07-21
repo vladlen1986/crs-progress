@@ -1,5 +1,5 @@
 # Workflow and language
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/workflow-and-language-updates · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/workflow-and-language-updates · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 ## In-app purchases data and workflows
 

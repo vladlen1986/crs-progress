@@ -1,5 +1,5 @@
 # iOS App Store
-> Source: https://manual.bubble.io/help-guides/publishing-your-app/native-mobile-app/ios-app-store · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/publishing-your-app/native-mobile-app/ios-app-store · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 ## Apple Developer Program
 
@@ -27,7 +27,7 @@ Throughout this guide we will be setting up and utilizing both to connect our Mo
 {% hint style="info" %}
 **Terminology guide:** Throughout this guide we use terminology specifically related to publishing apps in the iOS app store. Please see the article below for a comprehensive terminology table.
 
-Article: [Native mobile app terminology](/help-guides/getting-started/building-for/native-ios-and-android/native-mobile-app-terminology)
+Article: [Native mobile app terminology](/help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-app-terminology)
 {% endhint %}
 
 ## Preparing

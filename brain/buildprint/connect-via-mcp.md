@@ -1,5 +1,5 @@
 # Connect via MCP
-> Source: https://docs.buildprint.ai/connect-via-mcp-rw0bm · Captured: 2026-07-14 (verbatim .md)
+> Source: https://docs.buildprint.ai/connect-via-mcp-rw0bm · Captured: 2026-07-21 (verbatim .md)
 
 Buildprint MCP lets supported AI clients call Buildprint tools for your Bubble apps.
 
@@ -14,7 +14,7 @@ MCP clients can search data, inspect logs, list projects and branches, run autom
 
 ## Create an MCP server
 
-1. In Buildprint, go to **Integrations > MCP**.
+1. In Buildprint, go to** Integrations > MCP**.
 2. Click Create MCP server.
 3. Choose all projects or selected projects.
 4. Click Create MCP server.
