@@ -1058,6 +1058,16 @@
       "auto": {
         "key": "sync:release-notes"
       }
+    },
+    {
+      "id": "b49da290",
+      "title": "Smoke QA FAIL: engine-determinism — ENOENT: no such file or directory, open '/Users/vlad/projects/crs-progress/brain/bubble/conditional-style-swapping.md'",
+      "status": "todo",
+      "created": "2026-07-21T13:08:56.365Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:engine-determinism"
+      }
     }
   ]
 }
