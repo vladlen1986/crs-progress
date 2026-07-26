@@ -1068,6 +1068,26 @@
       "auto": {
         "key": "smoke:engine-determinism"
       }
+    },
+    {
+      "id": "a1d9da63",
+      "title": "Sync failing: forum",
+      "status": "todo",
+      "created": "2026-07-26T10:34:31.269Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "c7be3895",
+      "title": "Sync failing: release-notes",
+      "status": "todo",
+      "created": "2026-07-26T10:34:31.269Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:release-notes"
+      }
     }
   ]
 }
