@@ -1,0 +1,34 @@
+{
+  "id": "582bb44c-58ad-4d01-b3ec-ffb0b51c4524",
+  "title": "what was the last think i changed in my brain app",
+  "sessionId": "b36b8e28-1e02-4a12-af8d-a7b5e23222b6",
+  "bp": false,
+  "created": "2026-07-26T10:35:59.544Z",
+  "updated": "2026-07-26T10:37:03.323Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "what was the last think i changed in my brain app",
+      "ts": "2026-07-26T10:35:59.544Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "ts": "2026-07-26T10:37:03.323Z",
+      "startedAt": "2026-07-26T10:35:59.547Z",
+      "completedAt": "2026-07-26T10:37:03.323Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        }
+      ],
+      "partial": true
+    }
+  ]
+}
