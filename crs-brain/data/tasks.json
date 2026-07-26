@@ -1072,9 +1072,9 @@
     {
       "id": "a1d9da63",
       "title": "Sync failing: forum",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-26T10:34:31.269Z",
-      "notes": "fetch failed",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-26T15:12:26.173Z)",
       "auto": {
         "key": "sync:forum"
       }
@@ -1082,9 +1082,9 @@
     {
       "id": "c7be3895",
       "title": "Sync failing: release-notes",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-26T10:34:31.269Z",
-      "notes": "fetch failed",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-26T15:12:26.173Z)",
       "auto": {
         "key": "sync:release-notes"
       }
