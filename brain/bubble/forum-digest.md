@@ -1,0 +1,9 @@
+# Bubble forum digest
+
+> Auto-appended by the CRS Brain watcher — dated sections, newest at bottom, never overwritten.
+
+## 2026-07-28 — forum check
+- **2026-07-28** [[NEW PLUGIN] ⏳ Chronos Timer (Free & Pro): Custom Fonts, Animations & Audio!](https://forum.bubble.io/t/new-plugin-chronos-timer-free-pro-custom-fonts-animations-audio/398780) — Hey fellow Bubblers! :waving_hand: We all need countdown timers for our apps—whether it’s for an OTP verification code, a Pomodoro timer, or a flash sale checkout. But styling them to look native, handling the 02:05 zer…
+- **2026-07-27** [[Feature update] Global expressions are out of beta](https://forum.bubble.io/t/feature-update-global-expressions-are-out-of-beta/398755) — Hi everyone, I’m Lindsay, a product manager here at Bubble. When we released global expressions in beta, the response from this community made one thing clear: You’d been waiting for a way to stop copy-pasting the same…
+- **2026-07-27** [[New Plugin] Generate Invoice](https://forum.bubble.io/t/new-plugin-generate-invoice/398752) — Hey Bubblers! :waving_hand: If you’re building an e-commerce app, marketplace, or any platform that needs to generate invoices, you’ve probably noticed how time-consuming it can be to create a flexible invoice system fr…
+
