@@ -1,13 +1,12 @@
 # Native iOS and Android
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android · Captured: 2026-07-28 (verbatim from manual.bubble.io llms-full.txt)
 
 {% hint style="warning" %}
 The native mobile app editor is currently in **beta**, meaning that you may experience issues or limitations while building or testing your app. Features may change, and not all functionality is final. We recommend thorough testing before publishing, and welcome feedback to help improve the experience.
 {% endhint %}
 
 {% hint style="warning" %}
-**Warning: Limited support on Android 8 and 10**\
-Bubble mobile apps may not function reliably on devices running Android versions 8 and 10. If you’re targeting users on these versions, we recommend additional testing.
+**Android compatibility:** Bubble supports Android version 12 and later. Apps may not run reliably on earlier versions.
 {% endhint %}
 
 ## Navigating

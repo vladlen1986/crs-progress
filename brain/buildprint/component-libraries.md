@@ -1,5 +1,5 @@
 # Component libraries
-> Source: https://docs.buildprint.ai/component-libraries-wwbiq · Captured: 2026-07-21 (verbatim .md)
+> Source: https://docs.buildprint.ai/component-libraries-wwbiq · Captured: 2026-07-28 (verbatim .md)
 
 A **library** is a named collection of related components. For example, a "Stripe Billing" library might hold a Customers API connector, an Invoices API connector, a webhook handler workflow, and a billing data structure. Libraries keep related components together and control who can see them.
 
@@ -8,8 +8,8 @@ A **library** is a named collection of related components. For example, a "Strip
 Every library is either private to your workspace or shared on the public marketplace.
 
 - **Workspace libraries** are private to your workspace. This is where you  
-standardize and reuse your own components - the building blocks your team  
-pulls into every project. Only members of your workspace can see them.
+  standardize and reuse your own components - the building blocks your team  
+  pulls into every project. Only members of your workspace can see them.
 - **Public libraries** are the shared Buildprint marketplace. Once a library is public, every Buildprint workspace can find and install its components.
 
 ## Visibility, end to end
@@ -35,7 +35,7 @@ Two things control whether someone can use a component: the **library's listing 
 
 **The rule that ties them together:** a component is reachable by people **outside** your workspace only when the component is **Public **_**and**_** its library**  
 **is Public**. Inside an internal library, every component is effectively internal  
-- no matter its own status - because the library itself isn't on the  
+\- no matter its own status - because the library itself isn't on the  
 marketplace. That's why a component's badge reads "Internal" until its library  
 goes public.
 

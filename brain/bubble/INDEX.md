@@ -1,6 +1,6 @@
 # Bubble.io Manual (complete — manual.bubble.io)
 
-> Synced 2026-07-21 verbatim via GitBook llms-full export. 583 pages, all sections.
+> Synced 2026-07-28 verbatim via GitBook llms-full export. 583 pages, all sections.
 > Question about HOW Bubble works (data, privacy rules, workflows, API, elements, workload, security…)
 > → open the page below. CRS project decisions in ../../decisions.md and ../CLAUDE.md override generic manual advice.
 > Buildprint tool manual lives in ../buildprint/INDEX.md.

@@ -1,5 +1,5 @@
 # List component
-> Source: https://manual.bubble.io/core-resources/elements/native-mobile-elements/list-component · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/elements/native-mobile-elements/list-component · Captured: 2026-07-28 (verbatim from manual.bubble.io llms-full.txt)
 
 ## **Vertical list**
 
@@ -12,6 +12,7 @@ A vertical list displays a list of repeating items in a vertical stack. It uses 
 * Separator width, color, inset
 * Gap between list items
 * Option to reverse scroll direction
+* [Snap mode](https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/vertical-list#snapping) (none, item, or page), with snap alignment and deceleration options
 
 ## **Section list**
 
@@ -34,6 +35,7 @@ A horizontal-scrolling list that shows items side by side. Cannot be used as a f
 **Properties**:
 
 * Gap between items (px)
+* [Snap mode](https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/container-properties-mobile/horizontal-list-element-mobile#snapping) (none, item, or page), with snap alignment and deceleration options
 
 ## **Short list**
 
