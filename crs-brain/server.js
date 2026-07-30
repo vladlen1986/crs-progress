@@ -2288,7 +2288,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
       '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
