@@ -4,7 +4,7 @@
   "sessionId": "b74173d1-d076-44fb-bf09-b2ec5755be3b",
   "bp": true,
   "created": "2026-07-30T06:29:44.757Z",
-  "updated": "2026-07-30T07:05:36.260Z",
+  "updated": "2026-07-30T07:06:21.486Z",
   "messages": [
     {
       "role": "user",
@@ -658,6 +658,51 @@
           "tool": "ToolSearch",
           "label": "Toolsearch · gmail get message",
           "body": "query: gmail get message\nmax_results: 5",
+          "actor": "brain"
+        }
+      ],
+      "partial": true
+    },
+    {
+      "role": "user",
+      "content": "continue",
+      "ts": "2026-07-30T07:05:39.056Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "",
+      "ts": "2026-07-30T07:06:21.486Z",
+      "startedAt": "2026-07-30T07:05:39.058Z",
+      "completedAt": "2026-07-30T07:06:21.486Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI ready — v4.2.7, linked",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
           "actor": "brain"
         }
       ],
