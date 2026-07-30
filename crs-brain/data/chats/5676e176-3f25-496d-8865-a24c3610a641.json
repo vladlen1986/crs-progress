@@ -4,7 +4,7 @@
   "sessionId": "b74173d1-d076-44fb-bf09-b2ec5755be3b",
   "bp": true,
   "created": "2026-07-30T06:29:44.757Z",
-  "updated": "2026-07-30T06:31:57.441Z",
+  "updated": "2026-07-30T06:43:14.155Z",
   "messages": [
     {
       "role": "user",
@@ -225,6 +225,64 @@
           "tool": "mcp__claude_ai_Gmail__search_threads",
           "label": "Claude Ai Gmail Search Threads · subject:Buildprint newer_than:14d",
           "body": "query: subject:Buildprint newer_than:14d\npageSize: 20\n⇒ ✗ Claude requested permissions to use mcp__claude_ai_Gmail__search_threads, but you haven't granted it yet.",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "how to give you access",
+      "ts": "2026-07-30T06:42:58.412Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "The Gmail connector just disconnected on its own (the MCP server dropped), so even a permission approval wouldn't reconnect it right now. Steps to get it working:\n\n1. **Reconnect the connector** — in Claude settings (claude.ai → Settings → Connectors, or wherever your Google/Gmail connector is managed), make sure the Gmail connector is enabled/connected for this workspace.\n2. **Approve the tool prompt** — once it's connected, when I call a Gmail tool again you'll get a permission prompt in this session; approve it (and you can choose \"always allow\" to stop future prompts).\n\nOnce that's sorted, ping me and I'll retry the search for the weekly Buildprint update emails.",
+      "ts": "2026-07-30T06:43:14.155Z",
+      "startedAt": "2026-07-30T06:42:58.413Z",
+      "completedAt": "2026-07-30T06:43:14.155Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI ready — v4.2.7, linked",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
           "actor": "brain"
         }
       ]
