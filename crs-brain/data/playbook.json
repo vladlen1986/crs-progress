@@ -208,5 +208,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-30T06:46:38.859Z"
+  },
+  {
+    "id": "913f52ec",
+    "category": "platform-gotcha",
+    "trigger": "MCP connectors, Gmail authorization, Toolsearch gmail queries",
+    "rule": "When Gmail MCP connector OAuth succeeds but API calls fail with 'insufficient authentication scopes', the Gmail permission checkbox was not approved during the Google OAuth consent screen.",
+    "fix": "Disconnect the Gmail connector (MCP settings), reconnect it, and on the Google OAuth screen explicitly approve the Gmail read permission checkbox alongside Calendar/Drive permissions.",
+    "errorSig": "request had insufficient authentication scopes",
+    "source": "chat 5676e176 · 2026-07-30",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-30T06:58:05.353Z"
   }
 ]
