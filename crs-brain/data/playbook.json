@@ -180,5 +180,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-30T06:44:13.511Z"
+  },
+  {
+    "id": "0a7318db",
+    "category": "platform-gotcha",
+    "trigger": "MCP service connection, tool invocation",
+    "rule": "Connecting an OAuth service (e.g., Gmail) and granting per-tool permissions in Claude Code are two separate configuration gates; one does not automatically enable the other.",
+    "fix": "After OAuth connection, explicitly grant tool permissions via Claude Code settings or by responding to tool-permission prompts when a tool-use attempt surfaces them. Retry the tool call after granting.",
+    "errorSig": "mcp service tool you haven't granted it yet",
+    "source": "chat 5676e176 · 2026-07-30",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-30T06:46:38.859Z"
+  },
+  {
+    "id": "8fb2e760",
+    "category": "platform-gotcha",
+    "trigger": "MCP tool permission prompts, Claude Code UI",
+    "rule": "Permission dialogs for MCP tools may surface as out-of-band UI elements (banners, notifications, pending-action buttons) rather than inline chat messages, depending on the client.",
+    "fix": "After a tool call fails with a permission error, check for permission dialogs outside the chat window (notification center, pending-actions area, settings panel) in addition to in-chat messages, then retry.",
+    "errorSig": "",
+    "source": "chat 5676e176 · 2026-07-30",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-30T06:46:38.859Z"
   }
 ]
