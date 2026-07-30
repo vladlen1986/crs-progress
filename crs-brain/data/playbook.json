@@ -166,5 +166,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T18:03:37.393Z"
+  },
+  {
+    "id": "9ac28f5c",
+    "category": "platform-gotcha",
+    "trigger": "MCP connectors, external service integrations, Gmail, Google Workspace, first use of permission-gated MCP tools",
+    "rule": "MCP connectors for external services (Gmail, Google Drive, etc.) require explicit permission grant from the user's Claude interface before the tool can execute — the assistant cannot proceed and must request user approval.",
+    "fix": "When a tool call returns permission denied, look for a permission dialog in your Claude interface and click Allow (or Always Allow). If no prompt appears, check whether your client has permissions auto-denied in settings. After approval, retry the operation.",
+    "errorSig": "requested permissions to use mcp claude ai but you haven't granted it yet",
+    "source": "chat 5676e176 · 2026-07-30",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-07-30T06:44:13.511Z"
   }
 ]
