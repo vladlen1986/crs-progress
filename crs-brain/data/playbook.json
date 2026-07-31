@@ -175,8 +175,8 @@
     "fix": "When a tool call returns permission denied, look for a permission dialog in your Claude interface and click Allow (or Always Allow). If no prompt appears, check whether your client has permissions auto-denied in settings. After approval, retry the operation.",
     "errorSig": "requested permissions to use mcp claude ai but you haven't granted it yet",
     "source": "chat 5676e176 · 2026-07-30",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-07-31T12:30:38.962Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-30T06:44:13.511Z"
