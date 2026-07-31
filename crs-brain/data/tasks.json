@@ -1088,6 +1088,26 @@
       "auto": {
         "key": "sync:release-notes"
       }
+    },
+    {
+      "id": "bed0ea5b",
+      "title": "Sync failing: forum",
+      "status": "todo",
+      "created": "2026-07-31T12:23:18.897Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "74dd9a78",
+      "title": "Sync failing: release-notes",
+      "status": "todo",
+      "created": "2026-07-31T12:23:18.897Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:release-notes"
+      }
     }
   ]
 }
