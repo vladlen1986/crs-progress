@@ -89,3 +89,4 @@
 {"ts":"2026-08-01T14:12:59.120Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-01T14:12:59.977Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
 {"ts":"2026-08-01T16:52:47.306Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
+{"ts":"2026-08-01T21:52:49.338Z","action":"backup-push","target":"pushed","via":"scheduler","meta":null}

@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-07-19**.
+Last updated: **2026-08-02**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
@@ -32,6 +32,17 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 - **Cross-platform**: zero-dep server, node_modules gitignored (per-OS builds), `.gitattributes` line-ending lock, `doctor.js` health check, `start.bat` / `start.command` launchers.
 
 ---
+
+## Session 2026-08-02 (Windows) — chat-first dashboard rebuild
+
+Vlad's ruling: he lives in chat; the 4-row × 14-card "chief-of-staff board" was unusable. `renderDashboard` rewritten:
+- **Composer now visible on the dashboard** (home = start screen; `showDashboard` removes `no-composer`; typing routes through the existing `ensureChatView()` → `newChat()`).
+- **Needs you** — single flat list (asks / decisions / overdue / awaiting-verify / failed chunks / QA fails / sync fails / flags), tagged rows, **capped at 8** with a "+N more" line, whole section hidden when empty.
+- **Status pills** (`.dstrip`/`.dpill`) replace the Now / What's-wrong / Synced card rows: modules done+focus → tree, plans in flight → protos, QA pass/fail/env → checklist, last-sync → activity.
+- **Two-column body**: Continue (8 recent chats + New conversation / Buildprint task) · Todos (add-input + top 8, existing `dashTask*` handlers untouched).
+- 9 big quick-action tiles deleted (`.action`/`.actions` CSS + unused `A()` helper removed); everything lives in one 15-pill Tools row.
+- Phone (≤480px) command post keeps attention + todos + pills; tools/labels hidden as before.
+- Verified headless (Browser pane renderer was stuck — desktop-app hang, not the page): `qa-scratch/rig/verify-dash-rebuild.js` (preserved in `brain/qa/rig-scripts/`), **13/13 pass**, zero console errors, screenshot evidence.
 
 ## Session 2026-07-17 — sounds, watchers, ref-graph, task queue, issue checker (A–E multi-phase)
 

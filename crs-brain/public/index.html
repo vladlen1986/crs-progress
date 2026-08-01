@@ -214,7 +214,7 @@
   .apop-acct .apop-connect{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:10px;background:var(--accent);border:none;color:var(--white);border-radius:8px;padding:9px 11px;font:inherit;font-weight:600;font-size:12.5px;cursor:pointer;transition:var(--transition)}
   .apop-acct .apop-connect:hover{background:var(--accent-hover)}
   .apop-acct .apop-connect svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9}
-  /* composer is chat-only now — hidden on dashboard / files / map / bubble */
+  /* composer lives on chat AND dashboard (home = start screen) — hidden on files / map / bubble */
   .col.center.no-composer .composer-wrap{display:none}
 
   /* header icon buttons (bell, settings) + notification badge */
@@ -770,7 +770,8 @@
   /* P10 — phone-width command post: reading + ruling only */
   @media (max-width:480px){
     .col.left, #input, .composer, .dash-head .subline{display:none !important}
-    .actions, .tools, .lbl{display:none !important}
+    .tools, .lbl{display:none !important}
+    .dash-two{grid-template-columns:1fr}
     .dash-inner{padding:12px}
     .dash-cols{grid-template-columns:1fr}
     .trow{min-height:44px}
@@ -788,15 +789,24 @@
   .mpo .mpo-acts button{flex:1;min-height:48px;border-radius:var(--radius-btn);font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--secondary)}
   .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
   .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
-  /* Quick actions — DISTINCT per-action color so the eye catches the icon, not the label */
-  .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .action{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 17px;text-align:left;cursor:pointer;transition:var(--transition);display:flex;align-items:flex-start;gap:13px;font-family:inherit}
-  .action:hover{border-color:var(--line2);background:var(--elev)}
-  .action .ai{width:38px;height:38px;border-radius:10px;background:var(--qc-bg,var(--accent-tint));display:flex;align-items:center;justify-content:center;color:var(--qc,var(--accent2));flex:0 0 38px;transition:var(--transition)}
-  .action .ai .ic{width:19px;height:19px;stroke-width:1.9}
-  .action .atxt{min-width:0;display:flex;flex-direction:column;gap:3px;padding-top:1px}
-  .action .at{color:var(--primary);font-size:13.5px;font-weight:600}
-  .action .ad{font-size:11.5px;color:var(--muted);line-height:1.45}
+  /* status pills — the old four card-rows compressed to one glanceable strip */
+  .dstrip{display:flex;flex-wrap:wrap;gap:9px}
+  .dpill{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-pill);padding:8px 14px;color:var(--secondary);font-size:12px;font-family:inherit;cursor:pointer;transition:var(--transition)}
+  .dpill:hover{border-color:var(--line2);background:var(--elev);color:var(--primary)}
+  .dpill .ic{width:14px;height:14px;color:var(--muted)}
+  .dpill .psep{color:var(--muted);margin:0 1px}
+  .dpill .pfocus{color:var(--accent2);font-weight:600}
+  .dpill .pbad{color:var(--danger);font-weight:600;font-family:var(--mono)}
+  /* two-column body: continue (chats) + todos */
+  .dash-two{display:grid;grid-template-columns:3fr 2fr;gap:16px}
+  .chatnew{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .chatnew .np-draft{margin-top:0}
+  /* attention tags — text+border only (no fill: not an active state) */
+  .atag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:var(--radius-badge);border:1px solid var(--line);color:var(--secondary);flex:0 0 auto}
+  .atag.ask,.atag.decide{color:var(--accent2);border-color:var(--accent-border-active)}
+  .atag.over{color:var(--warning);border-color:var(--warning)}
+  .atag.fail{color:var(--danger);border-color:var(--danger)}
+  .atag.verify{color:var(--purple);border-color:var(--purple)}
   /* Secondary tools — compact pills, distinct icon tint */
   .tools{display:flex;flex-wrap:wrap;gap:9px}
   .tool{display:inline-flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 14px 9px 11px;color:var(--secondary);font-size:12.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:var(--transition)}
@@ -821,8 +831,8 @@
   .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:var(--accent-tint);border:1px solid var(--accent-border-active);color:var(--accent2);border-radius:var(--radius-btn);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);height:32px}
   .np-draft:hover{background:var(--accent-glow);color:var(--accent2)}
   .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
-  @media (max-width:900px){.actions{grid-template-columns:1fr 1fr}}
-  @media (max-width:760px){.dash{padding:22px 16px}.dash-cols,.actions{grid-template-columns:1fr}}
+  @media (max-width:900px){.dash-two{grid-template-columns:1fr}}
+  @media (max-width:760px){.dash{padding:22px 16px}.dash-cols{grid-template-columns:1fr}}
 
   /* recent files (right panel) */
   .recent{padding:0 12px 4px}
@@ -2347,7 +2357,7 @@ function setMapBoardOpen(open){
 function showDashboard(){
   bumpView();
   state.chatId=null;
-  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('surfaceView').style.display='none'; surfaceReturn=null; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.add('no-composer');
+  $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('surfaceView').style.display='none'; surfaceReturn=null; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer');
   $('centerTitle').textContent='Dashboard'; markView('');
   if(innerWidth<=900) mob(null);
   renderDashboard();
@@ -2380,7 +2390,6 @@ async function renderDashboard(){
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
   const c={accent:'var(--accent)',purple:'var(--purple)',cyan:'var(--cyan)',green:'var(--good)',amber:'var(--warn)',soft:'var(--accent2)'};
   const tint=x=>`color-mix(in srgb, ${x} 12%, transparent)`;
-  const A=(icon,title,desc,onclick,color)=>`<button class="action" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ai">${svg(icon)}</span><span class="atxt"><span class="at">${title}</span><span class="ad">${desc}</span></span></button>`;
   const T=(icon,title,onclick,color)=>`<button class="tool" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ti">${svg(icon)}</span>${title}</button>`;
   const num=v=>`<span class="dnum">${v}</span>`;
 
@@ -2404,134 +2413,72 @@ async function renderDashboard(){
     return ao-bo || (b.created||'').localeCompare(a.created||'');
   });
 
-  // -- row pieces --
+  // -- attention: ONLY what actually needs Vlad, one flat list, hidden when empty --
   const plansInFlight=(dash.protos||[]).filter(p=>p.chunkCounts);
   const flagged=(dash.protos||[]).filter(p=>p.unresolvedFlags>0);
   const q=dash.qa.counts;
-  const wrongEmpty=!dash.failedChunks.length&&!dash.qa.failRows.length&&!open.some(t=>t.auto&&t.auto.key.startsWith('sync:'))&&!dash.qa.envRows.length;
-  const syncRow=(name,s,extra)=>`<div class="drow"><span class="rt">${name}</span><span class="rmeta"><span class="dnum">${dashRel(s.lastSync)}</span>${extra||''}</span></div>`;
+  const syncFails=open.filter(t=>t.auto&&t.auto.key.startsWith('sync:'));
+  const atag=(k,txt)=>`<span class="atag ${k}">${txt}</span>`;
+  const att=[];
+  (dash.pendingAsks||[]).forEach(a=>att.push(`<div class="drow" onclick="mobileAskView('${esc(a.id)}')">${atag('ask','question')}<span class="rt">${esc(a.question.slice(0,110))}</span><button class="tchip" onclick="event.stopPropagation();mobileAskView('${esc(a.id)}')">answer</button></div>`));
+  (dash.decisionsOpen||[]).forEach(d=>att.push(`<div class="drow" onclick="mobileDecisionView('${esc(d).replace(/'/g,"\\'")}')">${atag('decide','decision')}<span class="rt">${esc(d)}</span><button class="tchip" onclick="event.stopPropagation();openDocWindow('decisions.md')">decisions.md</button></div>`));
+  overdue.forEach(t=>att.push(`<div class="drow static">${atag('over','overdue')}<span class="rt">${esc(t.title)}</span>${dashChip(t.link)}<button class="tchip" onclick="dashTaskDone('${esc(t.id)}','${esc(t.status)}')">done ✓</button></div>`));
+  ((dash.throughput&&dash.throughput.awaitingVerify)||[]).forEach(cv=>att.push(`<div class="drow" onclick="mobileChunkReview('${esc(cv)}')">${atag('verify','verify')}<span class="rt">${esc(cv)}</span><button class="tchip">review ▸</button></div>`));
+  dash.failedChunks.forEach(fc=>att.push(`<div class="drow" onclick="openTarget('/protos.html',{title:'Prototypes'})">${atag('fail','failed chunk')}<span class="rt">${esc(fc)}</span></div>`));
+  dash.qa.failRows.forEach(r=>att.push(`<div class="drow" onclick="openDocWindow('brain/qa/master-checklist.md')">${atag('fail','qa fail')}<span class="rt">${esc(r)}</span></div>`));
+  syncFails.forEach(t=>att.push(`<div class="drow static">${atag('fail','sync')}<span class="rt">${esc(t.title)}</span></div>`));
+  flagged.forEach(p=>att.push(`<div class="drow" onclick="openTarget('/protos.html',{title:'Prototypes'})">${atag('over','flags')}<span class="rt">${esc(p.name)}</span><span class="rmeta">${num(p.unresolvedFlags)}</span></div>`));
+
+  // -- status pills: the old four card-rows compressed to one glanceable strip --
+  const focus=dash.modules.focus;
+  const pills=[
+    `<button class="dpill" onclick="openTarget('/tree.html',{title:'Progress Tree'})">${svg('i-gauge','sm')} ${num(dash.modules.counts['done']||0)}<span class="psep">/</span>${num(dash.modules.total)} modules${focus?` · <span class="pfocus">${esc(focus.name)}</span>`:''}</button>`,
+    plansInFlight.length?`<button class="dpill" onclick="openTarget('/protos.html',{title:'Prototypes'})">${svg('i-doc','sm')} ${plansInFlight.map(p=>`${esc(p.name)} <span class="dnum">${p.chunkCounts.verified}/${p.chunkCounts.total}</span>`).join(' · ')}</button>`:'',
+    `<button class="dpill" onclick="openDocWindow('brain/qa/master-checklist.md')">${svg('i-check','sm')} QA ${num(q.PASS)} pass${(q.FAIL+(q.QUARANTINE||0))?` · <span class="pbad">${q.FAIL+(q.QUARANTINE||0)} fail</span>`:''}${q['ENV-LIMITED']?` · ${num(q['ENV-LIMITED'])} env`:''}</button>`,
+    `<button class="dpill" onclick="openTarget('/activity.html',{title:'Activity log'})">${svg('i-refresh','sm')} synced <span class="dnum">${dashRel(Math.max(dash.sync.forum.lastSync||0,dash.sync.issues.lastSync||0,dash.sync.relnotes.lastSync||0))}</span></button>`,
+  ].filter(Boolean).join('');
 
   box.innerHTML=`<div class="dash-inner">
     <div class="dash-head">
       <h2>${greet}, Vlad</h2>
-      <div class="subline">Chief-of-staff board — what's in flight, what needs you, what's wrong, what synced.</div>
+      <div class="subline">${focus?`Building <b>${esc(focus.name)}</b> — type below to continue.`:'Type below to start — the brain has the context.'}</div>
     </div>
 
-    <section><div class="rowlbl">Now</div><div class="dash-cols">
-      <div class="dcard"><h3>${svg('i-gauge','sm')} Current focus</h3>
-        ${dash.modules.focus?`<div class="np-mod">${esc(dash.modules.focus.section)}</div>
-          <div class="np-title">${esc(dash.modules.focus.name)} <span class="cnt">${esc(dash.modules.focus.status)}</span></div>
-          <button class="np-draft" onclick="openTarget('/tree.html#module=${esc(dash.modules.focus.id)}',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open in tree</button>`
-          :'<div class="dempty">Nothing in flight — every module is done or roadmap.</div>'}
-      </div>
-      <div class="dcard"><h3>${svg('i-doc','sm')} Build plans in flight <span class="cnt">${plansInFlight.length}</span></h3>
-        ${plansInFlight.length?plansInFlight.map(p=>{const cc=p.chunkCounts;
-          return `<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
-            <span class="rt">${esc(p.name)}</span>
-            <span class="rmeta"><span class="pmini"><i style="width:${Math.round(cc.verified/cc.total*100)}%"></i></span><span class="dnum">${cc.verified}/${cc.total}</span></span></div>`;}).join('')
-          :'<div class="dempty">No chunk plans yet — settle a prototype and build its plan.</div>'}
-        <button class="np-draft" onclick="openTarget('/protos.html#new',{title:'Prototypes'})">${svg('i-doc','sm')} New prototype</button>
-      </div>
-      <div class="dcard"><h3>${svg('i-clock','sm')} Doing <span class="cnt">${doing.length}</span></h3>
-        ${doing.length?doing.map(taskRow).join(''):'<div class="dempty">Nothing marked doing.</div>'}
-      </div>
-      <div class="dcard"><h3>${svg('i-terminal','sm')} Factory throughput</h3>
-        ${(dash.throughput&&dash.throughput.awaitingVerify.length)?dash.throughput.awaitingVerify.map(cv=>`<div class="drow" style="cursor:pointer" onclick="mobileChunkReview('${esc(cv)}')"><span class="rt">${esc(cv)}</span><span class="rmeta"><span class="tchip">review ▸</span></span></div>`).join(''):''}
-        <div class="drow"><span class="rt">Intents processed</span><span class="rmeta">${num(dash.throughput?dash.throughput.processed:0)}</span></div>
-        <div class="drow"><span class="rt">Awaiting my verify</span><span class="rmeta">${num(dash.throughput?dash.throughput.awaitingVerify.length:0)}</span></div>
-        <div class="drow"><span class="rt">Avg intent → staged</span><span class="rmeta"><span class="dnum">${dash.throughput&&dash.throughput.avgIntentToStagedMs?Math.round(dash.throughput.avgIntentToStagedMs/1000)+'s':'—'}</span></span></div>
-        <div class="drow"><span class="rt">Limit blocks survived</span><span class="rmeta">${num(dash.throughput?dash.throughput.limitBlocksSurvived:0)}</span></div>
-      </div>
-    </div></section>
+    ${att.length?`<section><div class="rowlbl warn">Needs you <span class="cnt">${att.length}</span></div><div class="dcard att">${att.slice(0,8).join('')}${att.length>8?`<div class="dempty">+${att.length-8} more — decisions.md and the panels have the rest</div>`:''}</div></section>`:''}
 
-    <section><div class="rowlbl warn">Needs me</div><div class="dash-cols">
-      ${(dash.pendingAsks||[]).length?`<div class="dcard"><h3>${svg('i-help','sm')} Pending questions <span class="cnt">${dash.pendingAsks.length}</span></h3>
-        ${dash.pendingAsks.map(a=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileAskView('${esc(a.id)}')">${esc(a.question.slice(0,90))}</span>
-          <button class="tchip" onclick="mobileAskView('${esc(a.id)}')">answer</button></div>`).join('')}
-      </div>`:''}
-      <div class="dcard"><h3>${svg('i-flag','sm')} Decisions needed <span class="cnt">${dash.decisionsOpen.length}</span></h3>
-        ${dash.decisionsOpen.length?dash.decisionsOpen.map(d=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="mobileDecisionView('${esc(d).replace(/'/g,"\\'")}')">${esc(d)}</span>
-          <button class="tchip" onclick="openDocWindow('decisions.md')">open decisions.md</button></div>`).join('')
-          :'<div class="dempty">No open decisions — the guard has nothing to block on.</div>'}
+    <section><div class="dstrip">${pills}</div></section>
+
+    <section class="dash-two">
+      <div class="dcard"><h3>${svg('i-chat','sm')} Continue <span class="cnt">${chats.length}</span></h3>
+        <div class="chatnew">
+          <button class="np-draft" onclick="newChat()">${svg('i-chat','sm')} New conversation</button>
+          <button class="np-draft" onclick="newBpChat()">${svg('i-terminal','sm')} Buildprint task</button>
+        </div>
+        ${chats.slice(0,8).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet — type below.</div>'}
       </div>
-      <div class="dcard"><h3>${svg('i-list','sm')} Todos &amp; follow-ups <span class="cnt">${open.length}</span></h3>
+      <div class="dcard"><h3>${svg('i-list','sm')} Todos <span class="cnt">${open.length}</span></h3>
         <div class="tadd"><input id="dashTaskInput" placeholder="Add a todo…  (Enter)" onkeydown="if(event.key==='Enter')dashTaskAdd()"><button class="hbtn-sm" onclick="dashTaskAdd()">Add</button></div>
-        ${sortedTasks.length?sortedTasks.slice(0,10).map(taskRow).join(''):'<div class="dempty">Nothing open. Add one above, or say “add todo …” in chat.</div>'}
-        ${sortedTasks.length>10?`<div class="dempty">+${sortedTasks.length-10} more</div>`:''}
+        ${sortedTasks.length?sortedTasks.slice(0,8).map(taskRow).join(''):'<div class="dempty">Nothing open.</div>'}
+        ${sortedTasks.length>8?`<div class="dempty">+${sortedTasks.length-8} more</div>`:''}
       </div>
-      <div class="dcard"><h3>${svg('i-flag','sm')} Unresolved mapping flags <span class="cnt">${flagged.reduce((a,p)=>a+p.unresolvedFlags,0)}</span></h3>
-        ${flagged.length?flagged.map(p=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})">
-          <span class="rt">${esc(p.name)}</span><span class="rmeta">${num(p.unresolvedFlags)} flag${p.unresolvedFlags===1?'':'s'}</span></div>`).join('')
-          :'<div class="dempty">No unresolved flags — mappings are clean.</div>'}
-      </div>
-    </div></section>
-
-    <section><div class="rowlbl danger">What's wrong</div><div class="dash-cols">
-      <div class="dcard"><h3>${svg('i-doc','sm')} Failed chunks <span class="cnt">${dash.failedChunks.length}</span></h3>
-        ${dash.failedChunks.length?dash.failedChunks.map(fc=>`<div class="drow" style="cursor:pointer" onclick="openTarget('/protos.html',{title:'Prototypes'})"><span class="rt">${esc(fc)}</span></div>`).join(''):'<div class="dempty">None.</div>'}
-      </div>
-      <div class="dcard"><h3>${svg('i-list','sm')} QA failures <span class="cnt">${dash.qa.failRows.length}</span></h3>
-        ${dash.qa.failRows.length?dash.qa.failRows.map(r=>`<div class="drow"><span class="rt">${esc(r)}</span>
-          <button class="tchip" onclick="openDocWindow('brain/qa/master-checklist.md')">open checklist</button></div>`).join(''):'<div class="dempty">Zero FAIL / quarantine rows.</div>'}
-      </div>
-      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync failures &amp; needs-eyes <span class="cnt">${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).length+dash.qa.envRows.length}</span></h3>
-        ${open.filter(t=>t.auto&&t.auto.key.startsWith('sync:')).map(taskRow).join('')||''}
-        ${(dash.playbook&&dash.playbook.recurredThisWeek||[]).length?`<div class="drow"><span class="rt" style="color:var(--danger)">Playbook — top traps (recurred this week)</span><span class="rmeta">${num(dash.playbook.recurredThisWeek.length)}</span></div>
-          ${dash.playbook.recurredThisWeek.map(t=>`<div class="drow"><span class="rt" style="cursor:pointer" onclick="openTarget('/playbook.html',{title:'Playbook'})">${esc(t.rule)}</span><span class="rmeta">${num(t.recurred)}×</span></div>`).join('')}`:''}
-        ${dash.qa.envRows.length?`<div class="drow"><span class="rt">ENV-LIMITED (needs your eyes)</span><span class="rmeta">${num(dash.qa.envRows.length)}</span></div>
-          <div class="envlist">${dash.qa.envRows.map(esc).join(' · ')}</div>`:''}
-        ${wrongEmpty?'<div class="dempty">All quiet.</div>':''}
-      </div>
-    </div></section>
-
-    <section><div class="rowlbl">Synced &amp; background</div><div class="dash-cols">
-      <div class="dcard"><h3>${svg('i-refresh','sm')} Sync</h3>
-        ${syncRow('Forum digest',dash.sync.forum)}
-        ${syncRow('Release notes',dash.sync.relnotes)}
-        ${syncRow('Issue check',dash.sync.issues,dash.sync.issues.lastCount?` · ${num(dash.sync.issues.lastCount)} found`:'')}
-        ${syncRow('Manuals mirror',dash.sync.manuals)}
-        ${syncRow('Bubble digest',dash.sync.bubbleDigest)}
-      </div>
-      <div class="dcard"><h3>${svg('i-check','sm')} QA cycle</h3>
-        <div class="drow"><span class="rt">PASS</span><span class="rmeta">${num(q.PASS)}</span></div>
-        <div class="drow"><span class="rt">ENV-LIMITED</span><span class="rmeta">${num(q['ENV-LIMITED'])}</span></div>
-        <div class="drow"><span class="rt">FAIL / quarantine</span><span class="rmeta">${num(q.FAIL+(q.QUARANTINE||0))}</span></div>
-        <div class="drow"><span class="rt">Last run</span><span class="rmeta"><span class="dnum">${esc(dash.qa.lastRun||'—')}</span></span></div>
-        <div class="drow"><span class="rt">State audit</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.stateAuditAt)}</span>${dash.ops&&dash.ops.stateAuditFindings?` · ${num(dash.ops.stateAuditFindings)} drift`:''}</span></div>
-        <div class="drow"><span class="rt">Smoke QA</span><span class="rmeta"><span class="dnum">${dashRel(dash.ops&&dash.ops.smokeQaAt)}</span>${dash.ops&&dash.ops.smokeQaFails?` · ${num(dash.ops.smokeQaFails)} fail`:''}</span></div>
-      </div>
-      <div class="dcard"><h3>${svg('i-gauge','sm')} Progress Tree</h3>
-        <div class="drow"><span class="rt">Done</span><span class="rmeta">${num(dash.modules.counts['done']||0)} / ${num(dash.modules.total)}</span></div>
-        <div class="drow"><span class="rt">In progress</span><span class="rmeta">${num(dash.modules.counts['in-progress']||0)}</span></div>
-        <div class="drow"><span class="rt">Focus</span><span class="rmeta">${esc(dash.modules.focus?dash.modules.focus.name:'—')}</span></div>
-        <button class="np-draft" onclick="openTarget('/tree.html',{title:'Progress Tree'})">${svg('i-gauge','sm')} Open tree</button>
-      </div>
-      <div class="dcard"><h3>${svg('i-chat','sm')} Recent conversations <span class="cnt">${chats.length}</span></h3>
-        ${chats.slice(0,5).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet</div>'}
-      </div>
-    </div></section>
-
-    <section><div class="lbl">Quick actions</div><div class="actions">
-      ${A('i-chat','New conversation','Ask anything about CRS','newChat()',c.accent)}
-      ${A('i-terminal','Buildprint task','Operate your Bubble app','newBpChat()',c.purple)}
-      ${A('i-db','Bubble data','Data types, option sets, pages','showBubble()',c.cyan)}
-      ${A('i-ingest','Ingest a report','Route a Buildprint update into the brain','startIngest()',c.amber)}
-      ${A('i-folder','Browse files','Finder-style explorer','openExpl(\'\')',c.green)}
-      ${A('i-map','Galaxy map','Explore the brain visually','showMap()',c.soft)}
-      ${A('i-sparkle','Weekly digest','Open the latest weekly digest (generates if none)','openWeeklyDigest()',c.soft)}
-      ${A('i-refresh','Sync Buildprint → brain','Pull the latest Bubble changes into the ledger','bpTrack()',c.cyan)}
-      ${A('i-send','Handoff','Generate + push the machine-transfer file','runHandoff()',c.purple)}
-    </div></section>
+    </section>
 
     <section><div class="lbl">Tools</div><div class="tools">
       ${T('i-gauge','Progress Tree',"openTarget('/tree.html',{title:'Progress Tree'})",c.green)}
-      ${T('i-clock','Activity log',"openTarget('/activity.html',{title:'Activity log'})",c.amber)}
-      ${T('i-book','Memory',"openTarget('/memory.html',{title:'Memory'})",c.purple)}
-      ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
-      ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
       ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
-      ${T('i-folder','App Preview',"openTarget('/app-preview.html',{title:'App Preview'})",c.green)}
+      ${T('i-db','Bubble data','showBubble()',c.cyan)}
+      ${T('i-ingest','Ingest report','startIngest()',c.amber)}
+      ${T('i-folder','Files',"openExpl('')",c.green)}
+      ${T('i-map','Galaxy map','showMap()',c.soft)}
+      ${T('i-book','Memory',"openTarget('/memory.html',{title:'Memory'})",c.purple)}
+      ${T('i-clock','Activity',"openTarget('/activity.html',{title:'Activity log'})",c.amber)}
+      ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
+      ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
+      ${T('i-sparkle','Weekly digest','openWeeklyDigest()',c.soft)}
+      ${T('i-refresh','Sync BP → brain','bpTrack()',c.cyan)}
+      ${T('i-send','Handoff','runHandoff()',c.purple)}
       ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
+      ${T('i-folder','App Preview',"openTarget('/app-preview.html',{title:'App Preview'})",c.green)}
     </div></section>
   </div>`;
 }
