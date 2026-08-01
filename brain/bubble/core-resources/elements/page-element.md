@@ -1,5 +1,5 @@
 # Page Element
-> Source: https://manual.bubble.io/core-resources/elements/page-element · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/elements/page-element · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 {% tabs %}
 {% tab title="Experience level" %}
@@ -64,9 +64,43 @@ Bubble Academy: [Element videos](https://www.youtube.com/@BubbleIO/search?query=
 
 The Page Element is the fundamental element that contains all the other elements.
 
+## Appearance
+
+### Page title
+
+This property defines how the page will be displayed in the browser. It can be dynamic by using the 'Insert dynamic data' button. The page title represents the `<title>` in the page's HTML.
+
+### This page is a native app
+
+{% hint style="info" icon="mobile" %}
+This feature is deprecated. For mobile apps, see the [native mobile app editor.](/help-guides/getting-started/building-for.../native-ios-and-android)
+{% endhint %}
+
+Check this box to build a native app and if you want this page to be the app submitted to the app stores. Clicking this checkbox displays a popup listing tips for building a native app.
+
+### Native app name
+
+Enter the name of the app to be displayed on the homepage of a user's phone.
+
+### Mobile version
+
+To have a specific design for the page when loaded on a mobile device, select a page from this dropdown menu. Because the URL remains the same, this is transparent to the user.
+
 ### Type of content
 
-This property defines the type of thing the page should expect. Once set, you can refer to the Current page thing in the Bubble Editor. A typical use case of this feature is to create a profile page. Set the type of content to 'user,' and in each element of this page, you can refer to the Current page user's email, Current page user's picture, etc. If you set a type of content to a page, all links pointing to that page should define a thing to send.
+This property defines the type of thing the page should expect. Once set, you can refer to the `Current page thing`.
+
+### Backup field for readable URL
+
+{% hint style="info" %}
+This property is only visible if you have set a [Type of content](#type-of-content) for the page.
+{% endhint %}
+
+This page represents a thing of the type defined as Type of content.
+
+If the current page's thing does not have a value for its Slug field then the field chosen here will be displayed in the URL. URLs for things without a value for their Slug field usually look like example.com/page/1449154312665x293260311940684900.
+
+To make this URL readable, select a field to define what to display in the URL. Usually, it will be a short text field, like a name or title. For example, choosing the field 'location' with a value of 'work,' the URL becomes example.com/page/work-1449154312665x293260311940684900.
 
 ### Time zone selection
 
@@ -78,74 +112,13 @@ Reference: [Application settings: Advanced](/core-resources/application-settings
 
 Select a type from this dropdown menu to define the timezone type with which you are parsing data. By default, data will be parsed using the client's timezone (Current *User's current timezone*). If needed, you can override this setting by selecting a static timezone as an alternative.
 
-### Backup field for readable URL
+### Style
 
-This page represents a thing of the type defined as Type of content.
+Sets the style of the page.
 
-If the current page's thing does not have a value for its Slug field then the field chosen here will be displayed in the URL. URLs for things without a value for their Slug field usually look like example.com/page/1449154312665x293260311940684900.
+### Opacity
 
-To make this URL readable, select a field to define what to display in the URL. Usually, it will be a short text field, like a name or title. For example, choosing the field 'location' with a value of 'work,' the URL becomes example.com/page/work-1449154312665x293260311940684900.
-
-### Page title
-
-This property defines how the page will be displayed in the browser. It can be dynamic by using the 'Insert dynamic data' button. The page title represents the `<title>` in the page's HTML.
-
-### This page is a native app
-
-Check this box to build a native app and if you want this page to be the app submitted to the app stores. Clicking this checkbox displays a popup listing tips for building a native app.\
-Note: This feature is in beta.
-
-### Native app name
-
-Enter the name of the app to be displayed on the homepage of a user's phone.
-
-### Mobile version
-
-To have a specific design for the page when loaded on a mobile device, select a page from this dropdown menu. Because the URL remains the same, this is transparent to the user.
-
-### Container Layout
-
-Select the container layout type for the page (Fixed, Align to Parent, Row, or Column). Since the page itself is a container, all child elements on the page will inherit different layout controls depending on your selection. More on this can be found in the [Containers](/core-resources/elements/containers) section.
-
-### Preset page width
-
-Select a preset width for the page from this dropdown menu so that the page fits the target device, e.g., laptop, mobile, or tablet. Changing the page width or height dimensions in the Bubble Editor changes this setting to 'Custom.'
-
-### Width for UI Builder
-
-Set a specific pixel value for the width of the screen while you are building. When designing responsively, this value is used to determine the dimensions of child elements that might rely on having knowledge of the page width. This value can be updated by setting a custom value or selecting a Preset page width.
-
-### Title (for SEO / FB)
-
-This field defines the OpenGraph `<og:title>`, which is used by social media platforms like Facebook and X to set a header when you share a post. This field is also used by search engines like Google to understand your page's content, and will sometimes be used as a title in search result.
-
-We recommend a length of 50-60 characters for this field.
-
-### Description (for SEO / FB)
-
-This field defines the OpenGraph `<og:description>`, which is used by social media platforms like Facebook and X to set a description text when you share a post. This field is also used by search engines like Google to understand your page's content, and will sometimes be used as part of the search result entry.
-
-We recommend a maximum length of 160 characters (including spaces) for this field.
-
-If left blank, the description entered in the *SEO & Metatags* section in the *Settings* tab will be used.
-
-### Image (for FB)
-
-Choose a dynamic image for Facebook to display.
-
-### Page HTML Header
-
-Enter any [HTML, CSS, JavaScript or metadata](#user-content-fn-3)[^3] or to include in the header of the page.
-
-{% hint style="info" %}
-Adding custom header code to the page header will only add it to that specific page. If you want to place custom code to the header of all pages, you may consider adding this to the *Script/meta tags in header setting* in *Settings* - *SEO / metatags* instea&#x64;*.* This will add it to *all* pages in your app.
-
-Core reference: [SEO / metatags](/core-resources/application-settings/seo-metatags) | [Script/meta tags in header](/core-resources/application-settings/seo-metatags#script-meta-tags-in-header)
-{% endhint %}
-
-{% hint style="warning" %}
-Note that adding details to the header of the page can potentially break the page. We recommend using this feature with caution.
-{% endhint %}
+Sets the opacity of the page. Opacity is applied to child elements as well.
 
 ### Background style
 
@@ -244,9 +217,59 @@ On mobile devices, videos are not displayed due to data usage limit concerns. Up
 
 Check this box to show the video without sound.
 
-### Stripes (deprecated)
+### Title (for SEO / FB)
 
-Define screen-wide stripes for the page.
+This field defines the OpenGraph `<og:title>`, which is used by social media platforms like Facebook and X to set a header when you share a post. This field is also used by search engines like Google to understand your page's content, and will sometimes be used as a title in search result.
+
+We recommend a length of 50-60 characters for this field.
+
+### Description (for SEO / FB)
+
+This field defines the OpenGraph `<og:description>`, which is used by social media platforms like Facebook and X to set a description text when you share a post. This field is also used by search engines like Google to understand your page's content, and will sometimes be used as part of the search result entry.
+
+We recommend a maximum length of 160 characters (including spaces) for this field.
+
+If left blank, the description entered in the *SEO & Metatags* section in the *Settings* tab will be used.
+
+### Image (for FB)
+
+Choose a dynamic image for Facebook to display.
+
+### Page HTML Header
+
+Enter any [HTML, CSS, JavaScript or metadata](#user-content-fn-3)[^3] or to include in the header of the page.
+
+{% hint style="info" %}
+Adding custom header code to the page header will only add it to that specific page. If you want to place custom code to the header of all pages, you may consider adding this to the *Script/meta tags in header setting* in *Settings* - *SEO / metatags* instea&#x64;*.* This will add it to *all* pages in your app.
+
+Core reference: [SEO / metatags](/core-resources/application-settings/seo-metatags) | [Script/meta tags in header](/core-resources/application-settings/seo-metatags#script-meta-tags-in-header)
+{% endhint %}
+
+{% hint style="warning" %}
+Note that adding details to the header of the page can potentially break the page. We recommend using this feature with caution.
+{% endhint %}
+
+### ID attribute
+
+A unique identifier assigned to the element. This can be used to reference the element in custom code, such as JavaScript or CSS, using `document.getElementById()` or CSS selectors.
+
+{% hint style="info" %}
+For this property to be visible, you need to enable *Expose the option to add an ID attribute to HTML elements* in *Settings – Advanced options.*
+{% endhint %}
+
+## Layout
+
+### Container Layout
+
+Select the container layout type for the page (Fixed, Align to Parent, Row, or Column). Since the page itself is a container, all child elements on the page will inherit different layout controls depending on your selection. More on this can be found in the [Containers](/core-resources/elements/containers) section.
+
+### Preset page width
+
+Select a preset width for the page from this dropdown menu so that the page fits the target device, e.g., laptop, mobile, or tablet. Changing the page width or height dimensions in the Bubble Editor changes this setting to 'Custom.'
+
+### Width for UI Builder
+
+Set a specific pixel value for the width of the screen while you are building. When designing responsively, this value is used to determine the dimensions of child elements that might rely on having knowledge of the page width. This value can be updated by setting a custom value or selecting a Preset page width.
 
 ## Other ways to learn
 

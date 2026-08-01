@@ -1,5 +1,5 @@
 # CLI: Installation and authentication
-> Source: https://docs.buildprint.ai/cli/installation-and-authentication-iwixh · Captured: 2026-07-14 (verbatim .md)
+> Source: https://docs.buildprint.ai/cli/installation-and-authentication-iwixh · Captured: 2026-07-21 (verbatim .md)
 
 The Buildprint CLI turns a Bubble branch into a shredded filesystem tree you edit like code, then compiles those edits back into Bubble changes. This page covers installing the CLI, linking it to your Buildprint account, and the extra sign-ins you need for MCP clients and browser tests.
 
@@ -70,7 +70,7 @@ buildprint link <token>
 
 On success the CLI greets you by name and lists the projects in the token's scope, plus a count of any other projects you can access that are not in scope.
 
-Treat the CLI token like a password. Anyone with it can act on your Buildprint projects. If a token is lost or exposed, revoke it in the CLI integrations tab and generate a new one. If a token becomes invalid or is revoked, `buildprint link` tells you to generate a fresh one from **Integrations > CLI**.
+Treat the CLI token like a password. Anyone with it can act on your Buildprint projects. If a token is lost or exposed, revoke it in the CLI integrations tab and generate a new one. If a token becomes invalid or is revoked, `buildprint link` tells you to generate a fresh one from** Integrations > CLI**.
 
 ## Start here: quickstart
 

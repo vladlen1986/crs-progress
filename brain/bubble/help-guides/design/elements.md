@@ -1,240 +1,236 @@
 # Elements
-> Source: https://manual.bubble.io/help-guides/design/elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design/elements · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers elements – the building blocks that make up your application's user interface
 
 {% hint style="info" %}
 This is the long-form article on Bubble's different elements. If you want the short-form technical reference that details all the different element properties, you'll find that in the link below.
 
-Reference: [Elements](/core-resources/elements)
+**Core reference:** [Elements](/core-resources/bubble-elements)
 {% endhint %}
 
-Every part of your app's user interface consists of *elements* that are organized in a hierarchy. Each element comes with a set of *style* properties and *responsive* properties. Together, the hierarchy, style properties and responsive properties make up the instructions to the browser that helps it render the page correctly.
+## What is an element?
 
-Think about it: not only does the browser need to know what elements there are and how they should look, but also how they should behave on different screen sizes and as elements are displayed, hidden and animated on the page.
+An element is any individual piece of your app's user interface. Buttons, images, input fields, containers, icons, and maps are all examples of elements. Together, they make up everything a user sees and interacts with on the screen.
+
+<figure><img src="/files/fBbxL9kiI3cOD9Ri9tSd" alt=""><figcaption><p>Combining elements like input fields and buttons is how you design your app and give users different ways to interact with it.</p></figcaption></figure>
+
+Every part of your app's user interface is made up of elements organized in a hierarchy. Each element has a set of style and responsive properties that control how it looks and behaves. Together, the hierarchy and these properties give the browser everything it needs to render the page correctly.
+
+<figure><img src="/files/jFeXSu7VG9ZhHXzXW2RD" alt="The element tree and element palette"><figcaption><p>The <strong>element tree</strong> shows all the elements on the current page or view in a hierarchy, and the <strong>element palette</strong> lets you add new elements to the page or view.</p></figcaption></figure>
+
+Bubble lets you control every layer of this: which elements exist, how they look, how they behave across different screen sizes, and how they respond as elements are shown, hidden, or animated on the page.
 
 <details>
 
 <summary>What is the element hierarchy?</summary>
 
-All elements that you add to your page become part of a hierarchy that controls the structure and design of the page.
+Every element you add becomes part of a hierarchy that shapes both its structure and design. In web apps, the page is the parent of every other element on it. In mobile apps, the view serves the same role.
 
-The page itself is the parent of every other element on the page, and you can group your elements into containers to keep building more parent-child relationships. This forms the basis of how your browser renders the page correctly.
+Within that parent, you can group elements into containers to create additional parent-child relationships. This hierarchy is what the browser or mobile app uses to render the layout correctly.
 
-Article: [The element hierarchy](/help-guides/design/elements/the-element-hierarchy)
+Container elements can hold data, style, and layout properties that their child elements inherit or reference. This makes hierarchy an important tool for keeping your design consistent and your data flowing predictably.
+
+**Article:** [The element hierarchy](/help-guides/design/elements/the-element-hierarchy)
 
 </details>
 
-## Using elements to build a user interface
+### Web and mobile elements
 
-<figure><img src="/files/4ZzMPmpMOZMDihRFqOPs" alt=""><figcaption><p>Combining different elements like input fields and buttons is how you design your app and give your users different ways to interact with it.</p></figcaption></figure>
+Bubble supports both web apps and native mobile apps, and elements work slightly differently on each.
 
-Whether you want to create an elaborate presentation page with images and animations or a simple signup form, it's all done by combining different elements in a way that your users find useful and visually appealing.
+* **Web apps** run in a browser. They're built around pages, with elements arranged in a hierarchy on each page. Web elements are designed for the browser environment and include familiar building blocks like text, buttons, images, repeating groups, popups, and floating groups.
+* **Native mobile apps** run as installed apps on iOS and Android devices. Instead of pages, they're built around views, which serve the same role but exist within a single app shell rather than being loaded as separate URLs. Mobile elements are designed for how mobile operating systems handle layout and interaction, and include native components.
 
-Bubble offers a lot of different elements serving different purposes.
+Some elements are only available on one platform.
 
-<figure><img src="/files/8xGeiWxs4tJAwW9UIfHR" alt=""><figcaption><p>A page like this signup form is done by combining different elements like text, input fields, links and buttons to set up an interface that users understand and find useful.</p></figcaption></figure>
+### Using AI to build with elements
 
-In this section we'll cover the different categories of elements that you can place on the page
+Bubble's AI Agent can design pages from scratch with a simple prompt. Describe what you need in your preferred language, and the Agent gathers context from your app and presents a plan for what it will build, ready for you to approve.
 
-{% hint style="info" %}
-Plugins can also sometimes add new elements that you can place on the page, adding functionality ranging from very simple to very advanced.
+<figure><img src="/files/5RXJNMrpmZdF3ys0BGO5" alt="Bubble&#x27;s AI agent presenting a plan for building a signup and login page."><figcaption><p>Bubble's AI Agent will present you with a plan that you can approve before you start building.</p></figcaption></figure>
 
-Check out out [plugin store](https://bubble.io/plugins) for information and inspiration.
-{% endhint %}
+Shortly after you approve the plan, your new page is ready, with elements and workflows connected and set up to use. From there, you can refine the design directly in the editor or by prompting the Agent for adjustments.
 
-Elements cover a wide range of different things you can place on the page and they are split into three different categories:
+<figure><img src="/files/jrPROxySMp4GZqH2bcKR" alt="Login and signup page built by the Bubble AI Agent."><figcaption><p>Shortly after you approve the plan, the Agent has built the login and signup page.</p></figcaption></figure>
 
-## Visual elements
+The Agent can also add, modify, or reconfigure individual elements on an existing page, making it a useful partner throughout the design process, not just at the start.
 
-Visual elements are the elements that you place on the page primarily for aesthetic purposes or to display information. They do not accept [data input](#user-content-fn-1)[^1], but they do accept clicks and some of them – such as buttons – are usually connected with workflows[^2].
+***
 
-<figure><img src="/files/6cIvv6znSo3L5KBlevIl" alt=""><figcaption><p>Visual elements let you design your page to display information and accept clicks. All the elements in this example are visual elements: text, an image and a button respectively.</p></figcaption></figure>
+## Types of elements
 
-Examples include:
+Bubble offers many different elements, split into a few categories based on their purpose. Plugins can also add new elements, ranging from simple utilities to complex integrations.
 
-* buttons
-* images
-* text
-* icons
-* videos
-* maps
-* links
-* shapes
+### **Visual elements**
 
-Article: [Visual elements](/help-guides/design/elements/web-app/visual-elements)
+<figure><img src="/files/6cIvv6znSo3L5KBlevIl" alt="Visual elements combined to show a hero section on a website."><figcaption><p>Visual elements let you design your page to display information and accept clicks. Every element in this example is a visual element: a text element, an image, and a button.</p></figcaption></figure>
 
-## Containers
+Visual elements are placed on the page for aesthetic purposes or to display information. They don't accept data input, though they can accept clicks and are often connected to workflows.
 
-Groups are elements that contain other elements. A group serves two purposes:
+**Article:** [Visual elements](/help-guides/design/elements/web-app/visual-elements) | [Mobile-specific visual elements](/help-guides/design/elements/ios-and-android-app/visual-native-app-elements)
 
-* It gathers other elements (including other groups) inside one container. All the elements belong to the same level of the [page hierarchy](#user-content-fn-3)[^3] and follow along if the group is moved or deleted.
-* A group can also be used to hold data relevant to the elements inside of it. For example, one group may contain an *Edit user* form with different elements to edit the user's details such as name and phone number.In that case, the group's data type would be user, allowing all elements inside to reference that user.
+<table><thead><tr><th width="160.66796875">Platform</th><th width="176.30859375">Element</th><th>Purpose</th></tr></thead><tbody><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#text">Text</a></td><td>Displays static or dynamic text.</td></tr><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#button">Button</a></td><td>A clickable element that triggers a workflow when pressed.</td></tr><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#icon">Icon</a></td><td>Displays a small graphic symbol, often used for actions or visual cues.</td></tr><tr><td>Web</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#link">Link</a></td><td>A clickable element that navigates to another page or external URL.</td></tr><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#image">Image</a></td><td>Displays a static or dynamic image.</td></tr><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#shape">Shape</a></td><td>Displays a rectangle.</td></tr><tr><td>Web</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#alert">Alert</a></td><td>Displays a temporary message to the user, typically for feedback or notifications.</td></tr><tr><td>Web</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#video">Video</a></td><td>Embeds a video player, supporting YouTube and Vimeo.</td></tr><tr><td>Web</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#html">HTML</a></td><td>Renders custom HTML directly on the page.</td></tr><tr><td>Web/Mobile</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#map">Map</a></td><td>Displays an interactive map with optional markers.</td></tr><tr><td>Web</td><td><a href="/pages/c57rZiHFpEl3aHUPdhqr#built-on-bubble">Built on Bubble</a></td><td>A small badge that links to Bubble's homepage.</td></tr></tbody></table>
 
-<figure><img src="/files/giLHZKHIX1Q5PwaPNapE" alt=""><figcaption><p>Groups can be used both to organize elements like the form above, and to hold the data that you want to work with, such as a user. The group is highlighted with a dashed border in the example.</p></figcaption></figure>
+### **Containers**
 
-Bubble offers several different group types that serve different purposes:
+<figure><img src="/files/giLHZKHIX1Q5PwaPNapE" alt="Input form inside a container."><figcaption><p>Groups can be used both to organize elements like the form above, and to hold the data that you want to work with, such as a user. The group is highlighted with a dashed border in the example.</p></figcaption></figure>
 
-<table><thead><tr><th width="174">Container type</th><th>Purpose</th></tr></thead><tbody><tr><td><a href="/pages/0InSA6TX3K40sT0u4F83">Group</a></td><td>Hold elements and data anywhere on the page</td></tr><tr><td><a href="/pages/F2Z6HIq5lrrnkRUAKQbg">Repeating group</a></td><td>Show a list of things in a flexible design such as cards, lists, and a masonry grid</td></tr><tr><td><a href="/pages/xNR63E81QtKAbMSiK90O">Table element</a></td><td>Show a list of things in rows/columns with headers</td></tr><tr><td><a href="/pages/vSeYGneOPOJmfX4xfS1u">Popup</a></td><td>Display elements on top of everything else, such as a warning message</td></tr><tr><td><a href="/pages/1fNX5lhkwMiZUxo4mHsI">Floating group</a></td><td>Hover elements above other elements and stick them to one of the screen edges, like a top navigation bar that stays put</td></tr><tr><td><a href="/pages/uDrZfAW9NewNRUhmyEfB">Group focus</a></td><td>Display a group that disappears as soon as you click anywhere else, such as a dropdown menu</td></tr></tbody></table>
+Containers hold other elements. They serve two main purposes:
 
-Read more about these properties in the full article on containers:
+* They **group other elements** (including other containers) into a single unit. All elements inside belong to the same level of the page hierarchy and move or delete together with the container.
+* They can also **hold data** relevant to the elements inside. For example, a group with a *User* type of content can pass that user's data down to inputs and text elements inside it.
+* Containers can hold **a single thing** (like a specific user) or a **list of things** (like a list of users), specified in the *Holds data* column in the table below.
 
-Article series: [Containers](/help-guides/design/elements/web-app/containers)
+Bubble offers several container types, each suited to different layouts and behaviors.
 
-## Input forms
+**Article:** [Containers](/help-guides/design/elements/web-app/containers) | [Mobile-specific containers](/help-guides/design/elements/ios-and-android-app/containers)
 
-Input forms are elements that allow your users to provide data to your application, such as:
+<table><thead><tr><th width="119.41796875">Platform</th><th width="174">Container type</th><th width="150.15625">Holds data</th><th>Purpose</th></tr></thead><tbody><tr><td>Web/mobile</td><td><a href="/pages/0InSA6TX3K40sT0u4F83">Group</a></td><td>Single thing</td><td>Hold elements and data anywhere on the page</td></tr><tr><td>Web</td><td><a href="/pages/F2Z6HIq5lrrnkRUAKQbg">Repeating group</a></td><td>List</td><td>Show a list of things in a flexible design such as cards, lists, and a masonry grid</td></tr><tr><td>Web</td><td><a href="/pages/xNR63E81QtKAbMSiK90O">Table element</a></td><td>List</td><td>Show a list of things in rows/columns with headers</td></tr><tr><td>Web</td><td><a href="/pages/vSeYGneOPOJmfX4xfS1u">Popup</a></td><td>Single thing</td><td>Display elements on top of everything else, such as a warning message</td></tr><tr><td>Web/mobile</td><td><a href="/pages/1fNX5lhkwMiZUxo4mHsI">Floating group</a></td><td>Single thing</td><td>Hover elements above other elements and stick them to one of the screen edges, like a top navigation bar that stays put</td></tr><tr><td>Web</td><td><a href="/pages/uDrZfAW9NewNRUhmyEfB">Group focus</a></td><td>Single thing</td><td>Display a group that disappears as soon as you click anywhere else, such as a dropdown menu</td></tr><tr><td>Mobile</td><td><a href="/pages/X2g2WXxpMVRkgRZjrAJR#short-list">Short list</a></td><td>List</td><td>A container for displaying a fixed set of data items. Loads all items immediately, making it best for shorter lists.</td></tr><tr><td>Mobile</td><td><a href="/pages/X2g2WXxpMVRkgRZjrAJR#horizontal-list">Horizontal list</a></td><td>List</td><td>Displays a horizontally scrolling list of items.</td></tr><tr><td>Mobile</td><td><a href="/pages/X2g2WXxpMVRkgRZjrAJR#sheets">Sheet</a></td><td>Single thing</td><td>A native overlay that slides up from the bottom of the screen</td></tr></tbody></table>
 
-<table><thead><tr><th width="209">Element</th><th>Purpose</th></tr></thead><tbody><tr><td><a href="/pages/9usn2lynDsMjIzGqjm6r#text">Text input</a></td><td>Names, comments, other short info</td></tr><tr><td><a href="/pages/9usn2lynDsMjIzGqjm6r">Multiline text</a></td><td>Descriptions and other longer text. Allows line breaks.</td></tr><tr><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Checkbox</a></td><td>Check to hold a yes/no value, such as accepting terms and conditions</td></tr><tr><td><a href="/pages/9usn2lynDsMjIzGqjm6r">Rich text</a></td><td>Formatted text, like blog posts and product descriptions</td></tr><tr><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Dropdowns</a></td><td>Pick an option from a dropdown list, either static or from the database</td></tr><tr><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Search box</a></td><td>Search-as-you-type in the database</td></tr><tr><td><a href="/pages/uNmsNaHIMteorQ6PaDIa#radio-button">Radio buttons</a></td><td>Select one option out of multiple</td></tr><tr><td><a href="/pages/uNmsNaHIMteorQ6PaDIa#slider-input">Slider input</a></td><td>Pick a numerical value with a visual, draggable slider</td></tr><tr><td><a href="/pages/yU4rI57C4wpL8CQuejLA">Date/time picker</a></td><td>Dates like birthdays, deadlines, etc</td></tr><tr><td><a href="/pages/yF6fIrsbNIvkMzWEmd8K#image-uploader">Picture uploader</a></td><td>Upload and preview images like profile pics</td></tr><tr><td><a href="/pages/yF6fIrsbNIvkMzWEmd8K#file-uploader">File uploader</a></td><td>Upload other types of files</td></tr></tbody></table>
+### Input forms
 
-Read more about each element in the dedicated input forms article:
+<figure><img src="/files/giLHZKHIX1Q5PwaPNapE" alt="Input form inside a container."><figcaption><p>Input elements are used to collect information from users, such as text, dates, emails, and file uploads.</p></figcaption></figure>
 
-Article series: [Input forms](/help-guides/design/elements/web-app/input-forms)
+Input forms are elements that allow your users to provide data to your application.
 
-## Element behavior
+**Article:** [Input forms](/help-guides/design/elements/web-app/input-forms) | [Mobile-specific input forms](/help-guides/design/elements/ios-and-android-app/input-forms)
 
-Elements can be set to behave in different ways depending on specific circumstances or actions that your users take. There are two ways in which elements can become interactive:
+<table><thead><tr><th width="125.16796875">Platform</th><th width="209">Element</th><th>Purpose</th></tr></thead><tbody><tr><td>Web/mobile</td><td><a href="/pages/9usn2lynDsMjIzGqjm6r#text">Text input</a></td><td>Names, comments, other short info.</td></tr><tr><td>Web/mobile</td><td><a href="/pages/9usn2lynDsMjIzGqjm6r">Multiline text</a></td><td>Descriptions and other longer text. Allows line breaks. No text formatting.</td></tr><tr><td>Web/mobile</td><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Checkbox</a></td><td>Check to hold a yes/no value, such as accepting terms and conditions.</td></tr><tr><td>Web</td><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Dropdowns</a></td><td>Pick an option from a dropdown list, either static or from the database.</td></tr><tr><td>Web</td><td><a href="/pages/uNmsNaHIMteorQ6PaDIa">Search box</a></td><td>Search-as-you-type in the database.</td></tr><tr><td>Web</td><td><a href="/pages/uNmsNaHIMteorQ6PaDIa#radio-button">Radio buttons</a></td><td>Select one option out of multiple.</td></tr><tr><td>Web</td><td><a href="/pages/uNmsNaHIMteorQ6PaDIa#slider-input">Slider input</a></td><td>Pick a numerical value with a visual, draggable slider.</td></tr><tr><td>Web/mobile</td><td><a href="/pages/yU4rI57C4wpL8CQuejLA">Date/time picker</a></td><td>Select a date and optionally a time.</td></tr><tr><td>Web</td><td><a href="/pages/yF6fIrsbNIvkMzWEmd8K#image-uploader">Picture uploader</a></td><td>Upload and preview images like profile pictures.</td></tr><tr><td>Web</td><td><a href="/pages/yF6fIrsbNIvkMzWEmd8K#file-uploader">File uploader</a></td><td>Upload other types of files.</td></tr><tr><td>Mobile</td><td><a href="/pages/kc2HeG4yI6rEmy95HTvO#selectable-lists">Selectable list</a></td><td>Select one or more items from a set list.</td></tr></tbody></table>
+
+### **Reusable elements**
+
+Reusable elements let you build a component once and use it across your app. When you update the reusable element's definition, every instance updates too, which makes them useful for headers, footers, or any component that appears in multiple places.
+
+**Article:** [Resuable elements](/help-guides/design/elements/reusable-elements)
+
+***
+
+## How elements behave
+
+Elements can be set to behave in different ways depending on the situation or the user's actions. There are two main ways to make them interactive: conditions and workflows. Custom states can be used to temporarily store information.
 
 ### Conditions
 
-**Conditions** allow you to set rules for each element that changes how the element looks depending on whether the rule [returns a yes or a no](#user-content-fn-4)[^4]. All aspects of element styling can be manipulated with these rules, and this opens up powerful ways to communicate with your users, ranging from subtle nudges to hiding and showing entire sections of the page.
+Conditions let you set rules that change how an element looks or behaves based on whether a rule evaluates as yes or no. Nearly every visual property can be adjusted this way, which opens up a lot of possibilities, from subtle style changes to hiding and showing entire sections of the page.
 
-{% hint style="info" %}
-If you want to learn more about how to use conditions, check out our dedicated article on the subject:
+Some examples:
 
-Article: [Conditions](/help-guides/logic/conditions)
-{% endhint %}
+* A condition on a button that greys it out when a required form field is empty.
+* A condition on a group that hides it when the current user isn't logged in.
+* A condition on a group that shows it only when a specific URL parameter is present.
 
-To see how this can be used in different scenarios, let's go over some examples:
-
-* A condition could be set up on a button to check whether a form is properly filled or not, and style the button to be greyed out and unclickable if it isn't
-* A condition could be set up on a group to check whether the current user is logged in. If not, the group is invisible.
-* A condition on a group could be set up to check a parameter in the browser's URL. If the parameter is present, the group is visible.
+**Article:** [Conditions](/help-guides/logic/conditions)
 
 ### Workflows
 
-{% hint style="info" %}
-If you want to learn more about how to build workflows, check out our dedicated article on the subject:\
-\
-Article: [Building workflows](/help-guides/logic/workflows)
-{% endhint %}
+Workflows connect events (like a button click) to actions (like saving data, sending an email, or navigating to another page). Any element can be the trigger for a workflow, and workflows can chain multiple actions together to build complex behavior.
 
-The second way to make elements on your page interactive is to connect them to **workflows.** A workflow is the umbrella term for an **event** (such as a button click) that leads to one or more **actions** (such as writing something to the database).
+Some common uses include:
 
-<figure><img src="/files/hSA6ohISkg2sxudIaUFe" alt=""><figcaption><p>A workflow consists of an event and a chain of actions. The event is often triggered by an element on a age such as a button.</p></figcaption></figure>
-
-Using actions is how you get your app to perform specific tasks, such as:
-
-* Creating, editing or deleting something in the database
+* Creating, editing, or deleting records in the database
 * Logging users in and out
-* Showing, hiding and animating stuff on the screen
-* Navigating to a different page or external link
+* Showing, hiding, or animating elements
+* Navigating between pages or to external links
 
-This is not the full list by any means, but as you can see there are many different actions you can run as a user clicks and types their way around your app.
+**Article:** [Workflows](/help-guides/logic/workflows)
 
-A workflow can consist of multiple actions chained together. For example, after saving something in the database, you may want to display a confirmation message to your users.
+### Custom states
 
-<figure><img src="/files/FOOrsjsaDjUnb0MlLAjY" alt=""><figcaption><p>You can chain multiple actions together after a button click. In the example above we're saving some changes on the user and then showing a success message.</p></figcaption></figure>
+Custom states let you store temporary information on an element, such as the current tab in a set or whether a section is expanded. States can be read and updated by workflows and referenced in conditions, giving you flexible control over how the element behaves without touching the database.
 
-## Naming elements
+**Article:** [Custom states](/help-guides/data/temporary-data/custom-states)
 
-You can edit the name of your element in the top of its Property Editor. Select the existing name and start typing. Conventions for naming your elements is entirely up to you. For example, you could simplify each element name and write what it does next to it, such as “btn submit," or you could capitalize the first word all together or use underscores. Whichever convention you pick, make sure to use it throughout your app. The consistency will help you locate your elements and debug your design as your app grows.
+***
 
-<details>
+## Working with elements
 
-<summary>Video lesson</summary>
+Once you know how elements are structured and how they behave, you can work on placing, styling, and configuring them in the editor.
 
-* [Quick tip: Naming your elements](https://youtu.be/TTHxOghuBjU)
+### Adding elements
 
-</details>
+The element palette on the left side of the screen lets you add new elements to the current page, view, or reusable element. To add a new element, click its type in the palette and draw it directly on the page or view. You can also drag an element straight from the palette onto the canvas.
 
-{% hint style="info" %}
-Always use singular names for your data types, such as *Product* instead of *Products.* Bubble has a built-in functionality for word inflection. This means that a singular noun will automatically be recognized and displayed in the appropriate plural form of the word when referring to multiple instances of that noun.\
-\
-In other words, Product will shows as Products whenever it makes sense.
-{% endhint %}
+You can use the *Search assets*&#x20;
 
-By default, Bubble names new elements by its type. If we add a button, Bubble will name it "Button A" if there are no other buttons on the page, or "Button B" if there is a button already. If you change the contents of that element to include text, Bubble will take that text and change the name of the element for you. For example, if we change this button's text to "Submit," the name will update to "Button Submit." You might have several "Submit" buttons throughout your application, so it's a good practice to name your elements as you go along so that you can keep track of each.
+<figure><img src="/files/AIaM6nex0ZGeKld9NEre" alt="Element palette"><figcaption><p>To add new elements to the canvas, use the element palette on the left side of the editor.</p></figcaption></figure>
 
-## Finding elements
+### The element property editor
 
-If your page has many elements, you may find it difficult to find elements to edit them. Here are a few ways you can find them easily.
+Selecting any element opens the element property editor on the right side of the workspace. This is where you configure the element's name, data source, layout, style, conditions, and behavior. Every element has its own set of properties, based on its type.
 
-### The element picker
+If you select multiple elements, some properties can be edited in bulk.
 
-Use the Element picker in the toolbar. All the page elements are listed alphabetically; you can start typing a name and you'll see the different elements.\
-\
-When you hover an entry in the dropdown you will see a thumbnail to confirm this is the right element, and clicking on it will show it and select it. To make the best use of this, you should take the habit of naming your elements carefully.
+<figure><img src="/files/yXcw6kx4PEyiQ20oit3M" alt=""><figcaption><p>The element property inspector lets you configure each element's properties individually.</p></figcaption></figure>
 
-<figure><img src="/files/rbCDB7OxLFCRtMTw1YN0" alt=""><figcaption><p>The element picker is the fastest way to search for and select an element.</p></figcaption></figure>
+### Naming elements
 
-### Using mouse clicks
+You can edit an element's name at the top of the property editor. Naming conventions are up to you: some developers use prefixes like `btn_submit`, others use plain descriptions like `Submit button`. Whatever style you choose, keeping it consistent across your app makes elements easier to find and debug as your app grows.
 
-When two elements overlap, clicking on them by pressing CMD (MacOS) Ctrl (Windows) will select each element one-by-one, even if one is completely under another.
+<figure><img src="/files/L1RXzYVg5Arr6jVmDtuf" alt=""><figcaption><p>You can give each element a name by clicking its label in the top of the property editor.</p></figcaption></figure>
 
-Using this, you can select the element under all the others, without modifying your page layout.
+By default, Bubble generates a name based on the element's type and content. Renaming as you build helps avoid confusion later, especially when you have several similar elements on the same page.
 
-### Using the X-Ray feature
+### Finding and rearranging elements
 
-Clicking on the 'X-Ray' icon will make elements semi-transparent, which is handy combined with the CMD+click (MacOS) Ctrl+click (Windows) operation above.
+Larger pages can have many elements. A few tools make them easier to navigate:
 
-### Using the element tree
+#### The element picker
 
-The [Element Tree](#user-content-fn-5)[^5] gives you a clear hierarchic view of all the elements on your page and is an easy way to select (and even move) the elements that you need to.
+The element picker in the toolbar lists every element on the page. Start typing to filter, and hover to see a thumbnail before selecting.
 
-### The App Search Tool
+<figure><img src="/files/dM693UPgLSMWzURwuy1j" alt=""><figcaption><p>The element picker lets you quickly select an element by name.</p></figcaption></figure>
 
-The App Search tool can be used for more advanced search parameters and searching across pages. It's found in the upper right corner of the Bubble editor.
+#### The element tree
 
-<figure><img src="/files/KwDFk6LdRHTE1PWaeYE5" alt=""><figcaption><p>The App Search tool lets you search for specific element types and the text they contaon – even across pages.</p></figcaption></figure>
+The element tree gives you a hierarchical view of every element and is useful for both selecting and rearranging them by dragging and dropping them to a new position in the hierarchy. Use the search bar at the top of the element tree to filter elements by name.
 
-You can read more about the search tool in the article below.
+<figure><img src="/files/5QAXAv4s6rBYfBtUEZik" alt="Searching for elements in the element tree."><figcaption><p>You can quickly find elements by typing part of their name in the element tree's filter bar.</p></figcaption></figure>
 
-Article: [The search tool](/help-guides/getting-started/navigating-the-bubble-editor/tools/the-search-tool)
+#### X-ray view
 
-<details>
+X-ray view makes elements semi-transparent in the editor, allowing you to see elements that overlap.
 
-<summary>Video lesson</summary>
+<figure><img src="/files/orALcTz4F6eqG6Amnwvy" alt=""><figcaption></figcaption></figure>
 
-* [How to find anything using the app search tool](https://youtu.be/ks6WkQ--ESY)
+#### App search tool
 
-</details>
+The app search tool lets you search across pages and workflows for element names, expressions, and more.
 
-## Locking elements
+<figure><img src="/files/uKKw9v5YcMWXws2gR4Jl" alt=""><figcaption><p>The app search tool in the upper right half of the toolbar lets you search for elements and many other things across your app.</p></figcaption></figure>
 
-If you find yourself moving some elements that should never be moved, you can add some protection in the Editor by checking the box *Lock this element (not draggable in editor)*.
+**Article:** [The search tool](/help-guides/getting-started/navigating-the-bubble-editor/tools/the-search-tool)
 
-<figure><img src="/files/covxj9dNVtlf3lEqyrKh" alt=""><figcaption></figcaption></figure>
+### Inspecting elements
 
-This is purely for editing purposes, and can be handy when working on complex pages.
+In the element property editor, you can click the contextual dropdown and select *Inspect* to see other parts of your app that are connected to the element.
 
-## Using the Inspector to find Element connections
+<figure><img src="/files/C0L8zfdsKTyMTeR9hPUI" alt="Inspect element tool"><figcaption><p>In this example, we're using the <em>Inspect</em> tool to see workflows connected to a specific button.</p></figcaption></figure>
 
-An element can be connected to other parts of your app in many different ways: they can hold custom states, belong to a parent container, be used in a workflow or be referenced in an expression or condition somewhere.
+***
 
-To keep track of how elements are connected to different things you can use the Element inspector. This shows you element connections categorized by:
+## Styles and variables
 
-* [Custom states](#user-content-fn-6)[^6]
-  * Create, edit and delete custom states on the element
-* Events[^7]
-* Actions[^8]
-* Other elements
+Rather than styling each element individually, you can define reusable styles and variables that keep your design consistent across the app.
 
-To reveal the Element Inspector, click on the information icon in the title bar of the property editor.
+* **Styles** bundle multiple property values together and can be applied to elements of the same type.
+* **Font and color variables** let you save fonts and colors that you can reference throughout your app. Updating a variable updates everywhere it's used.
 
-![The Inspector gives you a useful look at different types of connections to the element you are looking at.](https://gblobscdn.gitbook.com/assets%2F-M5sbzwG7CljeZdkntrL%2F-M5smrJkMfjcu6xQRWw4%2F-M5smu57kdySNibvmg3P%2Finspector.gif?alt=media)
+This system makes it much easier to keep a consistent look and to make design changes at scale.
+
+**Article series:** [Styles and variables](/help-guides/design/variables-and-styles)
+
+***
 
 ## Element security
 
-Even though Bubble is a no-code platform, the final application consists of code so that a browser knows how it should look and function. The elements that you place on the page become a part of this code, which is downloaded to the device of every user who loads the page.
+Even though Bubble is a no-code platform, your app is ultimately delivered as code that runs in the user's browser. The elements you place on the page become part of that code, which means their names, static text, and default values are visible to anyone who inspects the page.
 
-This means that a tech-savvy user can open up the code file and have a look at the elements. From a security perspective, this means that you should never place any sensitive information in an element. Even if it's not visible in your app, it can still be revealed in the code.
-
-Places where you should keep this in mind are in the element name, text content and default values.
-
-{% hint style="warning" %}
-A good rule of thumb for element security is to assume that all information you add to a page, whether in elements or workflows, can be viewed by a user in the code. As such, you should avoid placing sensitive information on the page.
+{% hint style="info" icon="lock" %}
+A good rule of thumb is to assume that anything you add to an element can be seen by a curious user. Avoid placing sensitive information anywhere on the page, including in element properties, workflows, custom states, and option sets. For data that needs to be protected, use privacy rules in the database instead.
 {% endhint %}
+
+**Article:** [Client-side and server-side](/help-guides/security/client-side-and-server-side)
 
 ## Other ways to learn
 
@@ -246,43 +242,3 @@ A good rule of thumb for element security is to assume that all information you 
 * [How to swap element positions](https://www.youtube.com/watch?v=04dDc9VaW2Y)
 
 </details>
-
-[^1]: Data input in this context means elements that allow the user to provide some sort of data such as text, numbers, dates and uploads.
-
-[^2]: *Workflows* is where you tell Bubble to perform one or more actions, such as making changes in the database, hide and show things on the screen and navigation.\
-    \
-    This is what you would connect to a button in order for something to happen when you click it.\
-    \
-    Article: [Building workflows](/help-guides/logic/workflows)
-
-[^3]: Pages that you set up in Bubble are structured like a hierarchy where the page is the bottom level and all the containers and groups placed on it make up different levels.\
-    \
-    Article: [The page](/help-guides/design/elements/web-app/the-page)
-
-[^4]: With conditions, you can set up an expression to check whether something is true or not.
-
-    \
-    For example, you can instruct Bubble to check whether the current user is logged in or not. If the user *is* logged in, the condition is true and returns a *yes.*
-
-[^5]: The *element tree* is the list of elements organized in a hierarchy that you can see on the left side of the Bubble design editor.
-
-    \
-    Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
-
-[^6]: Custom states are variables that can be defined and used within a page, reusable element, or workflow to store information that can be referenced or updated throughout the application.
-
-    \
-    Custom states are reset when the page is refreshed, meaning that they are not intended to store data in permanent way.
-
-    \
-    Article: [Custom States](broken://pages/-MTk7oXWNllHSl-oVg_5)
-
-[^7]: An *event* is the part of a workflow that *triggers* it. For example, you can start running a workflow whenever a button is clicked. In that case the button click is the event.\
-    \
-    In the context of the Property inspector, it will show Events connected to the relevant element. For example, an event that register a button click would be present in the Property inspector of that button.
-
-[^8]: An *action* is a command that's executed as part of a workflow. They can be used to perform a wide range of tasks, such as creating or modifying data, displaying an alert or popup or navigating to a new page.\
-    \
-    In the context of the Property inspector, it will show any action that is connected to the relevant element somehow. For example, if you have an *animate* action on a text element, that action will show up in the Property inspector of that element.\
-    \
-    Article: [Workflows](broken://pages/-MTg7yxfYGtVIgVqqLOT)

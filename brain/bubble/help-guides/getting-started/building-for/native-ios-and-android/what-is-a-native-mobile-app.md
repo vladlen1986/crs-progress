@@ -1,7 +1,7 @@
 # What is a native mobile app?
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/what-is-a-native-mobile-app · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/what-is-a-native-mobile-app · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
-A native mobile app is downloaded from the Apple App Store or the Google Play Store, and runs directly on the user’s device – without the need to open it in a web browser or rely on a “wrapper.” It is usually more performant, has native mobile interactions and accesses device hardware/software. [Learn more in the next section](/help-guides/getting-started/building-for/native-ios-and-android/native-mobile-vs.-web-development).
+A native mobile app is downloaded from the Apple App Store or the Google Play Store, and runs directly on the user’s device – without the need to open it in a web browser or rely on a “wrapper.” It is usually more performant, has native mobile interactions and accesses device hardware/software. [Learn more in the next section](/help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-vs.-web-development).
 
 ### **How is the process different from building web apps?**
 

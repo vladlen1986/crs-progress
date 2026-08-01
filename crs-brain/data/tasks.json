@@ -611,7 +611,7 @@
       "auto": {
         "key": "chunk-report:casino-settings/c2"
       },
-      "notifiedDue": "2026-07-19T16:21:08.002Z"
+      "notifiedDue": "2026-07-19T10:18:45.641Z"
     },
     {
       "id": "edf88a67",
@@ -628,7 +628,7 @@
       "auto": {
         "key": "chunk-report:casino-settings/c3"
       },
-      "notifiedDue": "2026-07-19T16:21:08.003Z"
+      "notifiedDue": "2026-07-19T10:18:45.641Z"
     },
     {
       "id": "a5ab82e3",
@@ -645,7 +645,7 @@
       "auto": {
         "key": "chunk-report:casino-settings/c4"
       },
-      "notifiedDue": "2026-07-19T16:21:08.005Z"
+      "notifiedDue": "2026-07-19T10:18:45.642Z"
     },
     {
       "id": "8b3fa08a",
@@ -931,7 +931,7 @@
       "auto": {
         "key": "chunk-report:chatv2probe/c1"
       },
-      "notifiedDue": "2026-07-19T16:21:08.006Z"
+      "notifiedDue": "2026-07-19T16:18:29.310Z"
     },
     {
       "id": "b1fea3ad",
@@ -968,9 +968,9 @@
     {
       "id": "5a101153",
       "title": "Await BP report: casino-settings/c1",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T15:00:19.855Z",
-      "notes": "",
+      "notes": "auto-closed: chunk is failed (2026-07-20T13:41:31.963Z)",
       "followUp": true,
       "due": "2026-07-19T15:00:19.855Z",
       "link": {
@@ -980,7 +980,7 @@
       "auto": {
         "key": "chunk-report:casino-settings/c1"
       },
-      "notifiedDue": "2026-07-19T16:21:08.007Z"
+      "notifiedDue": "2026-07-19T16:18:29.311Z"
     },
     {
       "id": "e207b7c4",
@@ -995,9 +995,9 @@
     {
       "id": "dfe73e75",
       "title": "Smoke QA FAIL: plan-validate-buttons — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:plan-validate-buttons"
       }
@@ -1005,9 +1005,9 @@
     {
       "id": "b0cb5aa5",
       "title": "Smoke QA FAIL: plan-validate-pilot — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:plan-validate-pilot"
       }
@@ -1015,9 +1015,9 @@
     {
       "id": "75969b84",
       "title": "Smoke QA FAIL: scaffold-token-markers — §2.10: css fence not found",
-      "status": "todo",
+      "status": "done",
       "created": "2026-07-18T16:10:59.552Z",
-      "notes": "",
+      "notes": "auto-closed: smoke check green again (2026-07-19T12:48:49.105Z)",
       "auto": {
         "key": "smoke:scaffold-token-markers"
       }
@@ -1028,6 +1028,86 @@
       "status": "todo",
       "created": "2026-07-18T21:53:02.623Z",
       "notes": "Seen 2026-07-19 during the UM screenshot session; buildprint screenshot <email> also hung ~7min. Workaround shipped in BP_PROMPT (form sign-in via crs-brain/.bp-test-user)."
+    },
+    {
+      "id": "6ac8b8f9",
+      "title": "Smoke QA FAIL: sounds-24-wavs — 26 wavs",
+      "status": "todo",
+      "created": "2026-07-19T12:48:49.105Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:sounds-24-wavs"
+      }
+    },
+    {
+      "id": "3f9e4189",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-19T16:18:29.310Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-19T16:33:09.120Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "1da12beb",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-19T16:18:29.310Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-19T16:33:09.120Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
+    },
+    {
+      "id": "b49da290",
+      "title": "Smoke QA FAIL: engine-determinism — ENOENT: no such file or directory, open '/Users/vlad/projects/crs-progress/brain/bubble/conditional-style-swapping.md'",
+      "status": "todo",
+      "created": "2026-07-21T13:08:56.365Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:engine-determinism"
+      }
+    },
+    {
+      "id": "a1d9da63",
+      "title": "Sync failing: forum",
+      "status": "done",
+      "created": "2026-07-26T10:34:31.269Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-26T15:12:26.173Z)",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "c7be3895",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-26T10:34:31.269Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-07-26T15:12:26.173Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
+    },
+    {
+      "id": "bed0ea5b",
+      "title": "Sync failing: forum",
+      "status": "todo",
+      "created": "2026-07-31T12:23:18.897Z",
+      "notes": "fetch failed",
+      "auto": {
+        "key": "sync:forum"
+      }
+    },
+    {
+      "id": "74dd9a78",
+      "title": "Sync failing: release-notes",
+      "status": "done",
+      "created": "2026-07-31T12:23:18.897Z",
+      "notes": "fetch failed · auto-closed: sync succeeded (2026-08-01T14:12:58.954Z)",
+      "auto": {
+        "key": "sync:release-notes"
+      }
     }
   ]
 }

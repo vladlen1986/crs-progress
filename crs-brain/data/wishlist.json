@@ -112,6 +112,7 @@
       "detail": "Follow-up to w-loops MVP: parallel tasks, dependencies, retry policies, per-task model routing. Needs its own design session — MVP deliberately excludes all of this.",
       "priority": "P3",
       "status": "idea",
+      "order": 10,
       "ts": 1784248159627
     }
   ]

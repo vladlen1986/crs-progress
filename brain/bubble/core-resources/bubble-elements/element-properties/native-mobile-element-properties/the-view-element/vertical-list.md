@@ -1,5 +1,5 @@
 # Vertical list
-> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/vertical-list · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/vertical-list · Captured: 2026-07-28 (verbatim from manual.bubble.io llms-full.txt)
 
 The vertical list is a view type. It's not added from the element palette, but instead by setting the view type of a view to vertical list. A vertical list displays a list of repeating items in a vertical stack. It uses a single reusable list item template, and is best for longer scrolling screens like task lists or news feeds.
 
@@ -42,6 +42,30 @@ You can set the width of the separators as a pixel value, or as *harline.* This 
 **Color**
 
 Sets the color of the separators.
+
+#### Snapping
+
+Snapping controls how the list settles when the user stops scrolling. Instead of free-scrolling and stopping wherever momentum ends, a snapping list comes to rest at a defined point - on an individual item or on a full page of content. Bubble reads your layout settings (item size, padding, and gaps) and applies the correct native snapping behavior automatically.
+
+**Snap mode**
+
+<table><thead><tr><th width="120">Option</th><th>Description</th></tr></thead><tbody><tr><td>None</td><td>The default. The list scrolls freely and stops wherever the user's scroll momentum ends.</td></tr><tr><td>Item</td><td>The list settles on the nearest item after each swipe. Best for card carousels, media rows, and scrollable galleries. Requires a fixed item size (see note below).</td></tr><tr><td>Page</td><td>Each swipe advances one full screen of content. The list item is sized automatically - its height is set to fill the screen. Best for onboarding walkthroughs, full-bleed galleries, and vertical video-style feeds.</td></tr></tbody></table>
+
+{% hint style="info" %}
+**Item snapping requires a fixed item size.** Items that fit to their content don't have a known size until they render, so their snap positions can't be calculated in advance. If you select *Item* while the list item is set to fit to content, the editor displays an error prompting you to set a fixed size. Page mode doesn't have this requirement, since it sizes items to the screen automatically.
+{% endhint %}
+
+**Snap alignment**
+
+Applies to *Item* snapping only. Sets where the snapped item comes to rest in the list.
+
+<table><thead><tr><th width="120">Option</th><th>Description</th></tr></thead><tbody><tr><td>Start</td><td>Items line up with the leading edge of the list - the classic carousel look.</td></tr><tr><td>Center</td><td>The active item stays centered in the viewport. Works well for hero or featured content.</td></tr></tbody></table>
+
+**Deceleration rate**
+
+Sets how quickly the list settles onto a snap point after a swipe.
+
+<table><thead><tr><th width="120">Option</th><th>Description</th></tr></thead><tbody><tr><td>Fast</td><td>The list stops crisply on the next snap point. Usually the right choice for carousels.</td></tr><tr><td>Normal</td><td>Keeps the platform's natural scroll momentum - a flick coasts before settling. The longer glide tends to feel better for vertical page-style feeds. Vertical lists default to Normal.</td></tr></tbody></table>
 
 ## Interaction
 

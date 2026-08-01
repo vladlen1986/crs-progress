@@ -1,5 +1,5 @@
 # Mobile app quick start guide
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/mobile-app-quick-start-guide · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/mobile-app-quick-start-guide · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 Building a native mobile app with Bubble opens the door to new ways of designing, structuring, and delivering experiences — all while using the same powerful visual development tools you're already familiar with. This guide walks you through each step of the journey, from setting up your app’s interface to launching it on the App Store and Google Play.
 

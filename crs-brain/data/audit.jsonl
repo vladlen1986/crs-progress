@@ -58,3 +58,33 @@
 {"ts":"2026-07-29T20:21:04.543Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-30T20:21:04.918Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-31T21:21:05.033Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-19T01:03:17.789Z","action":"playbook-delete","target":"c74d4f7a","via":"desktop","meta":null}
+{"ts":"2026-07-19T01:04:47.161Z","action":"playbook-delete","target":"47aa6cc2","via":"desktop","meta":null}
+{"ts":"2026-07-19T01:05:47.228Z","action":"playbook-delete","target":"922150e0","via":"desktop","meta":null}
+{"ts":"2026-07-19T01:08:52.872Z","action":"playbook-delete","target":"de58cf7e","via":"desktop","meta":null}
+{"ts":"2026-07-19T02:38:00.423Z","action":"ask-answered","target":"202a13cd","via":"desktop","meta":{"question":"What kind of job should I run so you can test the brain app's latest updates?","answer":"Small structural change","standing":false}}
+{"ts":"2026-07-19T02:38:34.927Z","action":"ask-answered","target":"82142a71","via":"desktop","meta":{"question":"buildprint sync errored \"Unauthorized\" just now, but sync status shows the workspace already matches the latest fetched ","answer":"recommend","standing":false}}
+{"ts":"2026-07-19T02:38:47.233Z","action":"ask-answered","target":"e6a04107","via":"desktop","meta":{"question":"Recommend: proceed on current snapshot. sync status confirms workspace already matches be1670b3 (latest fetched), so the","answer":"Proceed on current snapshot","standing":false}}
+{"ts":"2026-07-19T02:40:16.238Z","action":"ask-answered","target":"58ebbd03","via":"desktop","meta":{"question":"Proceed with Step 1: add 4 entries (Task/Report/Thread/InfoboardItem) to the empty os___notification_entity_type option ","answer":"stop i wanna test when you are learning something and when applying learning there must be visual floating group for tha","standing":false}}
+{"ts":"2026-07-19T02:40:31.685Z","action":"ask-answered","target":"40ba44be","via":"desktop","meta":{"question":"The floating \"learning\" indicator is a Claude Code UI feature, not something I can build from this CRS/Buildprint sessio","answer":"Hold off","standing":false}}
+{"ts":"2026-07-19T13:48:49.116Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-19T16:42:24.252Z","action":"playbook-delete","target":"8c36b231","via":"desktop","meta":null}
+{"ts":"2026-07-19T16:42:24.264Z","action":"playbook-delete","target":"adc0ad95","via":"desktop","meta":null}
+{"ts":"2026-07-20T13:41:06.401Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
+{"ts":"2026-07-20T13:41:13.446Z","action":"chunk-status","target":"casino-settings/c1=verified","via":"desktop","meta":null}
+{"ts":"2026-07-20T13:41:14.501Z","action":"chunk-status","target":"casino-settings/c1=verified","via":"desktop","meta":null}
+{"ts":"2026-07-20T13:41:17.755Z","action":"chunk-status","target":"casino-settings/c1=failed","via":"desktop","meta":null}
+{"ts":"2026-07-20T14:08:56.136Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-21T14:08:56.380Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-22T14:12:26.530Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-23T15:08:03.922Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-24T15:30:42.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-25T13:52:29.089Z","action":"backup-snapshot","target":"state-2026-07-25.zip","via":"scheduler","meta":null}
+{"ts":"2026-07-25T15:54:33.653Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-26T16:12:26.194Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-27T16:59:26.786Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-28T17:20:54.238Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-29T17:39:26.069Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-31T12:23:19.038Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-08-01T14:12:59.120Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-08-01T14:12:59.977Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}

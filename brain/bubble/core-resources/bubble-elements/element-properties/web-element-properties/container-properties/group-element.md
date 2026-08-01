@@ -1,5 +1,5 @@
 # Group element
-> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/web-element-properties/container-properties/group-element · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/web-element-properties/container-properties/group-element · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 A Group is a general-purpose container that holds other elements. It serves both a visual and a data role in your app.
 
@@ -443,47 +443,13 @@ Shows the workflows connected to the selected element. Click the + symbol to cre
 
 ### Advanced
 
+#### ID attribute
+
 A unique identifier assigned to the element. This can be used to reference the element in custom code, such as JavaScript or CSS, using `document.getElementById()` or CSS selectors.
 
 {% hint style="info" %}
 For this property to be visible, you need to enable *Expose the option to add an ID attribute to HTML elements* in *Settings – Advanced options.*
 {% endhint %}
-
-<details>
-
-<summary>Group element: <strong>FAQ</strong></summary>
-
-#### When should I use a group instead of a repeating group?
-
-Use a group when you want to display a single item or organize elements within a defined section of the page. A group holds one data source and provides a single shared data context for all child elements.
-
-Use a repeating group when you need to display a list of items, where each cell represents a different entry from a data source.
-
-#### Why can’t I reference `Parent group’s thing` inside my group?
-
-`Parent group’s thing` is only available when:
-
-* The group has a *Type of content* set
-* The group has a valid *data source* (if it doesn't, you can still reference the parent group's thing, but it will be empty)
-
-If either is missing, the Group doesn’t have a data context, and child elements won’t be able to reference it.
-
-#### Can a group have no data type?
-
-Yes. A group can be used purely for layout purposes without setting a *Type of content*. In that case, it acts only as a visual container and does not provide a data context to its children.
-
-#### Can I change the data source of a group in runtime?
-
-Yes, in two ways:
-
-* If the data source is the result of a dynamic expression, any underlying data (such as changes to a thing in the database or the value of an input form) will automatically update the data source.
-* Workflow actions can also override the data source at runtime. These overrides remain in effect until a reset action restores the original configuration. Use the *Display data in a group/popup* action to change the data source, and *Reset a group/popup* to revert the data source back to its original state.
-
-#### Why doesn't *Reset a group/popup* set my group's data source to empty?
-
-The *Reset a group/popup* action restores the element to its original configuration. If the group initially had a static value or a dynamic expression set as its data source, this action reverts it back to that original data source.
-
-</details>
 
 [^1]: "Alt text" is short for **alternative text**. It's a written description of an image used by screen readers for visually impaired users, displayed when an image fails to load, and read by search engines to understand what an image depicts.
 

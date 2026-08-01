@@ -1,0 +1,20 @@
+/* sidebar3: invisible-until-needed scrollbars — shared app-wide (every page in public/).
+   Thumb + track are fully transparent at rest on every scroll container; the thumb is
+   revealed while the container is hovered or actively scrolling (.is-scrolling is
+   toggled by js/scrollbars.js). Tokens (--border-active, --text-muted) come from
+   tokens.css, so both themes are covered automatically.
+   Note: WebKit does not animate ::-webkit-scrollbar-* pseudo-elements — the reveal is
+   an instant swap by design (verified in Chromium; transition declarations there are
+   ignored). Firefox scrollbar-color swaps instantly too. */
+
+*{scrollbar-width:thin;scrollbar-color:transparent transparent}
+:hover{scrollbar-color:var(--border-active) transparent}
+.is-scrolling{scrollbar-color:var(--border-active) transparent}
+
+*::-webkit-scrollbar{width:8px;height:8px;background:transparent}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{background:transparent;border-radius:999px}
+*::-webkit-scrollbar-corner{background:transparent}
+:hover::-webkit-scrollbar-thumb,
+.is-scrolling::-webkit-scrollbar-thumb{background:var(--border-active)}
+*::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}

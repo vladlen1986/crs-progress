@@ -407,9 +407,11 @@ const LEARN_EVENTS_FILE = path.join(DATA_DIR, 'learn-events.jsonl');
 const PB_CATEGORIES = ['platform-gotcha', 'cli-bug', 'workspace-rule', 'design-pattern', 'verification', 'decision-pointer'];
 function loadPlaybook() { try { return JSON.parse(fs.readFileSync(PLAYBOOK_FILE, 'utf8')); } catch { return []; } }
 function savePlaybook(arr) { fs.writeFileSync(PLAYBOOK_FILE, JSON.stringify(arr, null, 2)); }
-// learn-events feed the top-right "brain is learning / applying" toasts
-function learnEvent(kind, title, detail, chatId) {
-  try { fs.appendFileSync(LEARN_EVENTS_FILE, JSON.stringify({ ts: nowIso(), kind, title: String(title || '').slice(0, 160), detail: String(detail || '').slice(0, 4000), chatId: chatId || '' }) + '\n'); } catch {}
+// learn-events feed the top-right "brain is learning / applying" toasts.
+// extra = optional structured fields (runId/signal/source/lessons) powering the
+// staged Signal → Analyzing → Solution toast; old readers ignore them (append-only compat).
+function learnEvent(kind, title, detail, chatId, extra) {
+  try { fs.appendFileSync(LEARN_EVENTS_FILE, JSON.stringify({ ts: nowIso(), kind, title: String(title || '').slice(0, 160), detail: String(detail || '').slice(0, 4000), chatId: chatId || '', ...(extra || {}) }) + '\n'); } catch {}
 }
 // error signature: normalized first line of a captured ✗ result (paths/numbers stripped)
 function normalizeErrSig(s) {
@@ -494,28 +496,50 @@ function turnLearnable(steps, ms) {
   if (s.some((x) => LESSON_SIGNAL_RE.test((x.label || '') + ' ' + (x.body || '')))) return true;
   return s.length >= 15 || (ms || 0) > 5 * 60 * 1000;   // long exploration = discoveries worth keeping
 }
-async function distillLessons(userMessage, steps, finalText, chatId) {
+// the ACTUAL trigger that fired turnLearnable(): which signal + the offending snippet
+// (failed command + its ✗ tail) — so the UI can show WHAT went wrong, not just the turn title.
+function learnSignalText(steps) {
+  const s = steps || [];
+  const clean = (t) => String(t || '').replace(/\s+/g, ' ').trim();
+  for (const x of s) {
+    const hay = (x.label || '') + ' ' + (x.body || '');
+    if (!LESSON_SIGNAL_RE.test(hay)) continue;
+    const which = /blocked|refused|denied|safety gate/i.test(hay) ? 'blocked command' : 'error';
+    const line = clean(String(x.body || '').split('\n').find((l) => LESSON_SIGNAL_RE.test(l)) || '');
+    const sep = line ? (line.startsWith('✗') ? ' ' : ' ✗ ') : '';
+    return (which + ' — ' + clean(x.label ? x.label + sep + line : line)).slice(0, 160);
+  }
+  return ('long exploration — ' + s.length + ' steps, distilling the discoveries').slice(0, 160);
+}
+async function distillLessons(userMessage, steps, finalText, chatId, chatTitle) {
   const known = loadPlaybook().filter((l) => l.status === 'active').map((l) => `- ${l.rule}${l.fix ? ' FIX: ' + l.fix : ''}`).join('\n').slice(0, 4000);
   const digest = (steps || []).map((s) => {
     const err = LESSON_SIGNAL_RE.test(s.body || '');
     return '· ' + (s.label || s.kind || '') + (err ? ' :: ' + (s.body || '').slice(0, 220).replace(/\s+/g, ' ') : '');
   }).join('\n').slice(0, 6000);
-  learnEvent('learning-start', 'Learning from this session…', 'Signal detected (errors/blocked commands/long exploration). Distilling operational lessons from:\n' + String(userMessage || '').slice(0, 200), chatId);
+  // staged run: runId keys the UI's single morphing toast (start → thinking → saved/clean)
+  const runId = crypto.randomUUID().slice(0, 8);
+  const source = String(chatTitle || userMessage || '').replace(/\s+/g, ' ').trim().slice(0, 120);
+  const signal = learnSignalText(steps);
+  learnEvent('learning-start', 'Signal detected', 'Signal: ' + signal + '\nDistilling operational lessons from: ' + source, chatId, { runId, signal, source });
   const instruction =
     'From this Buildprint work-session digest, extract AT MOST 3 genuinely NEW operational lessons worth remembering forever. A lesson is OPERATIONAL: a trigger (when it applies), a one-sentence rule (the law), and the exact working fix. Vague advice is NOT a lesson. ' +
     'NOT task-specific facts, NOT anything semantically covered by KNOWN LESSONS below (even reworded). ' +
     'Output ONLY a JSON array of {"category":"platform-gotcha"|"cli-bug"|"workspace-rule"|"design-pattern"|"verification","trigger":"comma-separated keywords/task-types this applies to","rule":"one sentence — the law","fix":"the exact working approach/command","errorSig":"the literal first line of the error it prevents, if any, else empty"}. Output [] if nothing genuinely new.\n\n' +
     'KNOWN LESSONS:\n' + (known || '(none)') + '\n\nTASK GIVEN:\n' + String(userMessage || '').slice(0, 400) +
     '\n\nSESSION DIGEST (· step — :: = error detail):\n' + digest + '\n\nFINAL REPORT (tail):\n' + String(finalText || '').slice(-1500);
+  // the "searching for a solution" stage — emitted right before the Haiku call
+  learnEvent('learning-thinking', 'Analyzing the failure — searching for a solution…', 'Signal: ' + signal, chatId, { runId, signal, source });
   const res = await runClaudeStream(instruction, null, {}, { model: 'claude-haiku-4-5-20251001', effort: 'low', systemPrompt: MEMORY_COMPILE_PROMPT, cwd: os.tmpdir(), purpose: 'lesson' });
   const m = (res.text || '').match(/\[[\s\S]*\]/);
   let arr = []; if (m) { try { arr = JSON.parse(m[0]); } catch {} }
   const saved = addPlaybookLessons((Array.isArray(arr) ? arr : []).slice(0, 3), 'chat ' + (chatId || '').slice(0, 8) + ' · ' + nowIso().slice(0, 10));
   if (saved.length) {
     addNotification({ type: 'info', level: 'info', title: 'Playbook learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), body: saved.map((s) => s.rule.slice(0, 60)).join(' · ') });
-    learnEvent('learning-saved', 'Learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), saved.map((s) => '• [' + s.category + '] ' + s.rule + (s.fix ? '\n  FIX: ' + s.fix : '')).join('\n'), chatId);
+    learnEvent('learning-saved', 'Learned ' + saved.length + ' lesson' + (saved.length > 1 ? 's' : ''), saved.map((s) => '• [' + s.category + '] ' + s.rule + (s.fix ? '\n  FIX: ' + s.fix : '')).join('\n'), chatId,
+      { runId, signal, source, lessons: saved.slice(0, 3).map((s) => ({ category: s.category, trigger: s.trigger, problem: s.rule, solution: s.fix })) });
   } else {
-    learnEvent('learning-clean', 'Nothing new to learn', 'Session reviewed — all its traps were already in the Playbook.', chatId);
+    learnEvent('learning-clean', 'Nothing new to learn', 'Session reviewed — all its traps were already in the Playbook.', chatId, { runId, signal, source });
   }
   return saved;
 }
@@ -742,6 +766,21 @@ const EVENT_TO_TYPE = {
 // Old 5-sound system → nearest new default (one-time migration of notify.soundName).
 const OLD_SOUND_MAP = { ping: 's01', chime: 's03', pop: 's16', alert: 's19', blip: 's13', none: 'none' };
 const SMTP_FILE = path.join(DATA_DIR, 'smtp.json');   // gitignored secrets store (see .gitignore)
+// Google AI (Gemini) key for mic-device transcription. Secret → lives in its own
+// gitignored file like smtp.json (settings.json is swept into brain: commits);
+// the client still reads/writes it through /api/settings, always masked on read.
+const GOOGLE_AI_FILE = path.join(DATA_DIR, 'google-ai.json');
+function loadGoogleKey() { try { return String(JSON.parse(fs.readFileSync(GOOGLE_AI_FILE, 'utf8')).key || ''); } catch { return ''; } }
+function saveGoogleKey(key) {
+  key = String(key || '').trim().slice(0, 200);
+  if (!key) { try { fs.unlinkSync(GOOGLE_AI_FILE); } catch {} return; }
+  fs.writeFileSync(GOOGLE_AI_FILE, JSON.stringify({ key }, null, 2));
+}
+// What the client sees: never the key itself — a ••••-masked tail + a set flag.
+function maskedSettings(s) {
+  const key = loadGoogleKey();
+  return { ...s, googleAiKey: key ? '••••••••' + key.slice(-4) : '', googleAiKeySet: !!key };
+}
 function loadSettings() {
   let s;
   try { s = { ...DEFAULT_SETTINGS, ...JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')) }; }
@@ -778,6 +817,54 @@ function saveSettings(s) { fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, nul
 // watchers, errors) and client UI events both post here; the header bell reads
 // it. `notify.email` + `emailTo` triggers a best-effort email per notification.
 const SOUNDS_DIR = path.join(DATA_DIR, 'sounds');   // rendered 16-bit PCM WAVs (committed — deterministic, cross-platform)
+// ---- read-aloud TTS (msedge-tts → Edge neural voices) ----------------------
+// POST /api/tts {text, lang} → audio/mpeg. sha1(voice+text)-keyed mp3 cache in
+// data/tts-cache/ (gitignored — generated audio, not brain memory).
+const TTS_CACHE_DIR = path.join(DATA_DIR, 'tts-cache');
+const TTS_VOICES = { en: 'en-US-AvaMultilingualNeural', ru: 'ru-RU-SvetlanaNeural', ka: 'ka-GE-EkaNeural' };
+const TTS_MAX_CHARS = 4000;
+function ttsClamp(text) {
+  let t = String(text || '').trim();
+  if (t.length <= TTS_MAX_CHARS) return t;
+  t = t.slice(0, TTS_MAX_CHARS);
+  // truncate at a sentence boundary when one exists reasonably deep in
+  const cut = Math.max(t.lastIndexOf('. '), t.lastIndexOf('! '), t.lastIndexOf('? '), t.lastIndexOf('\n'));
+  return cut > TTS_MAX_CHARS / 2 ? t.slice(0, cut + 1).trim() : t;
+}
+function ttsSynthChunk(text, voice) {
+  const { MsEdgeTTS, OUTPUT_FORMAT } = require('msedge-tts');
+  // msedge-tts drops the text into the SSML <voice> element verbatim — raw
+  // & / < / > make the XML invalid and the service closes the stream mid-turn.
+  text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('edge tts timeout')), 45000);
+    (async () => {
+      const tts = new MsEdgeTTS();
+      await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
+      const r = tts.toStream(text);
+      const stream = r.audioStream || r;
+      const chunks = [];
+      stream.on('data', (c) => chunks.push(c));
+      stream.on('end', () => { clearTimeout(timer); const buf = Buffer.concat(chunks); buf.length ? resolve(buf) : reject(new Error('empty audio')); });
+      stream.on('error', (e) => { clearTimeout(timer); reject(e); });
+    })().catch((e) => { clearTimeout(timer); reject(e); });
+  });
+}
+// The Edge service streams long input near-realtime (~57s for 4k chars), so one
+// request per reply is unusable. Split at sentence boundaries into ≤1200-char
+// chunks, synthesize them in parallel, and concatenate the MP3 frames (same
+// format throughout — browsers play the joined stream fine).
+async function ttsSynth(text, voice) {
+  const parts = [];
+  let buf = '';
+  for (const s of (text.match(/[^.!?\n]+[.!?\n]*\s*/g) || [text])) {
+    if (buf && buf.length + s.length > 1200) { parts.push(buf); buf = ''; }
+    buf += s;
+  }
+  if (buf.trim()) parts.push(buf);
+  const bufs = await Promise.all(parts.map((p) => ttsSynthChunk(p.trim(), voice)));
+  return Buffer.concat(bufs);
+}
 const NOTIF_FILE = path.join(DATA_DIR, 'notifications.jsonl');
 const NOTIF_READ_FILE = path.join(DATA_DIR, 'notifications-read.json');
 const NOTIF_LEVELS = ['info', 'success', 'warning', 'error'];
@@ -1730,6 +1817,7 @@ const BP_PROMPT = (ws) => [
 // Sync the workspace from Bubble, diff the snapshot, and have the brain update
 // its ledger files to reflect whatever changed in Buildprint (site/agent/editor).
 const BP_TRACK_FILE = path.join(DATA_DIR, 'buildprint', 'last-tracked.txt');
+const BP_LINK_CACHE = { t: 0, account: null };   // buildprint link-status probe cache (60s)
 const BP_TRACK_PROMPT = [
   'BUILDPRINT → BRAIN SYNC. The user just made changes to the CRS Bubble app in Buildprint. The changed',
   'files are listed in the message (git name-status). They live under your cwd (the cloned Test branch).',
@@ -2200,7 +2288,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
       '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
@@ -2374,19 +2462,33 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
   const chain = [primary, ...fallbacks].filter((m, i, a) => a.indexOf(m) === i);   // primary first, de-duped
   const models = autoFallback ? chain : [primary];
 
+  // Transient CLI/API deaths ("claude: error_during_execution") are NOT model
+  // outages, so the model chain never caught them — a hiccup killed the whole
+  // turn (seen live 2026-07-19: two back-to-back resume turns died pre-output
+  // while the same session resumed fine moments later). Recovery ladder, only
+  // ever when NOTHING was streamed yet: same model+session once more → then a
+  // fresh session (drops CLI-side memory of the chat — say so via onRetry).
+  const isTransientExec = (e) => e && e.stage === 'pre' && !e.retryable && /error_during_execution/i.test(e.message || '');
+
   let lastErr;
   for (let i = 0; i < models.length; i++) {
     const model = models[i];
-    try {
-      const r = await runClaudeStream(message, sessionId, hooks, { ...opts, model: model || undefined });
-      return { ...r, model: model || r.model || null };
-    } catch (e) {
-      lastErr = e;
-      const next = models[i + 1];
-      // Only switch when nothing was produced yet AND the cause is a model outage.
-      if (next === undefined || !e || e.stage !== 'pre' || !e.retryable) throw e;
-      try { (hooks.onModelSwitch || (() => {}))({ from: model || 'default', to: next, reason: e.message }); } catch {}
+    const attempts = [{ sid: sessionId }, { sid: sessionId, note: 'retrying the turn' }, ...(sessionId ? [{ sid: null, note: 'session was unrecoverable — starting a fresh session' }] : [])];
+    for (let a = 0; a < attempts.length; a++) {
+      const at = attempts[a];
+      if (a > 0) try { (hooks.onRetry || (() => {}))({ attempt: a, fresh: at.sid === null, note: at.note, reason: String(lastErr && lastErr.message || '').slice(0, 200) }); } catch {}
+      try {
+        const r = await runClaudeStream(message, at.sid, hooks, { ...opts, model: model || undefined });
+        return { ...r, model: model || r.model || null, freshSession: at.sid === null && sessionId != null };
+      } catch (e) {
+        lastErr = e;
+        if (!isTransientExec(e) || a === attempts.length - 1) break;   // only the transient class walks the ladder
+      }
     }
+    const e = lastErr, next = models[i + 1];
+    // Only switch models when nothing was produced yet AND the cause is a model outage.
+    if (next === undefined || !e || e.stage !== 'pre' || !e.retryable) throw e;
+    try { (hooks.onModelSwitch || (() => {}))({ from: model || 'default', to: next, reason: e.message }); } catch {}
   }
   throw lastErr;
 }
@@ -3260,6 +3362,7 @@ const server = http.createServer(async (req, res) => {
         // turn, updated if the fallback chain switches mid-run.
         let liveModel = runOpts.model || '';
         sse({ type: 'model', model: liveModel });
+        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
         // Buildprint chats run in the cloned Bubble workspace with the guardrailed
         // BP prompt, and can still read/write the brain repo (--add-dir).
         if (chat.bp) {
@@ -3347,7 +3450,14 @@ const server = http.createServer(async (req, res) => {
           },
           onStatus: (s) => sse({ type: 'status', text: s }),
           onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
-          onModelSwitch: (m) => { liveModel = m.to || liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
+          onModelSwitch: (m) => { liveModel = m.to || liveModel; const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
+          onRetry: (r) => {
+            // Transient CLI death recovered pre-output — show it instead of dying silently.
+            const label = 'Turn hiccup — ' + (r.note || 'retrying') + (r.fresh ? '' : ` (attempt ${r.attempt + 1})`);
+            steps.push({ kind: 'note', tool: null, label, body: capBody(r.reason || ''), actor: 'brain' });
+            sse({ type: 'block', kind: 'note', tool: null, actor: 'brain' });
+            sse({ type: 'label', text: label });
+          },
         }, runOpts);
         // Prefer the clean final segment (everything after the last tool call); fall
         // back to the CLI's full result only if the model ended without final text.
@@ -3364,7 +3474,7 @@ const server = http.createServer(async (req, res) => {
         // Self-learning: distill lessons from this BP session in the background
         // (only when the turn carries learnable signal — zero spend otherwise).
         if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
-          distillLessons(message, steps, finalText, chat.id).catch(() => {});
+          distillLessons(message, steps, finalText, chat.id, chat.title).catch(() => {});
         }
         await memPromise;   // ensure the memory save + toast land before we close the stream
         sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
@@ -3393,7 +3503,29 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/bp/status' && req.method === 'GET') {
       const ws = findBpWorkspace();
       let tracked = null; try { tracked = fs.existsSync(BP_TRACK_FILE); } catch {}
-      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null, baseline: !!tracked });
+      // linked = the CLI's own auth store exists (buildprint link writes ~/.buildprint/auth.json);
+      // account label comes from `buildprint link` (bare = status print), cached 60s.
+      const authFile = path.join(os.homedir(), '.buildprint', 'auth.json');
+      let linked = false; try { linked = fs.existsSync(authFile); } catch {}
+      if (linked && (!BP_LINK_CACHE.t || Date.now() - BP_LINK_CACHE.t > 60000)) {
+        BP_LINK_CACHE.t = Date.now();
+        const r = await sh(['buildprint', 'link']);
+        const m = (r.out + '\n' + r.err).match(/Linked Buildprint CLI as (.+?)\.?\n/);
+        BP_LINK_CACHE.account = m ? m[1] : null;
+      }
+      if (!linked) BP_LINK_CACHE.account = null;
+      return send(res, 200, { ready: !!ws, app: ws?.app || null, branch: ws?.branch || null, baseline: !!tracked, linked, account: linked ? BP_LINK_CACHE.account : null });
+    }
+
+    // Unlink the Buildprint CLI on THIS machine (removes the CLI's local auth store;
+    // the token itself stays valid in Buildprint's cloud and can be re-linked).
+    if (p === '/api/connections/buildprint-revoke' && req.method === 'POST') {
+      const authFile = path.join(os.homedir(), '.buildprint', 'auth.json');
+      try {
+        if (fs.existsSync(authFile)) fs.unlinkSync(authFile);
+        BP_LINK_CACHE.t = 0; BP_LINK_CACHE.account = null;
+        return send(res, 200, { ok: true });
+      } catch (e) { return send(res, 500, { ok: false, error: String(e.message || e) }); }
     }
 
     // Sync from Buildprint and update the brain ledger to match (streaming).
@@ -3506,11 +3638,15 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (p === '/api/settings' && req.method === 'GET') {
-      return send(res, 200, loadSettings());
+      return send(res, 200, maskedSettings(loadSettings()));
     }
     if (p === '/api/settings' && req.method === 'PUT') {
       const body = await readJsonBody(req);
       const cur = loadSettings();
+      // Google AI key rides the settings PUT but is stored in the gitignored
+      // secrets file, never in settings.json. Masked values echoed back by the
+      // client are ignored; '' clears the key.
+      if (typeof body.googleAiKey === 'string' && !body.googleAiKey.includes('••')) saveGoogleKey(body.googleAiKey);
       // Merge — never drop keys other callers may have stored in settings.json.
       const next = {
         ...cur,
@@ -3526,6 +3662,8 @@ const server = http.createServer(async (req, res) => {
         sounds: body.sounds && typeof body.sounds === 'object'
           ? {
               volume: body.sounds.volume != null ? Math.max(0, Math.min(100, Number(body.sounds.volume) || 0)) : cur.sounds.volume,
+              // learn chimes (s25/s26 on apply/learn events) — absent = ON; only an explicit boolean flips it
+              learnSounds: typeof body.sounds.learnSounds === 'boolean' ? body.sounds.learnSounds : cur.sounds.learnSounds,
               events: body.sounds.events && typeof body.sounds.events === 'object'
                 ? Object.fromEntries(SOUND_EVENTS.map((ev) => {
                     const v = body.sounds.events[ev] != null ? body.sounds.events[ev] : cur.sounds.events[ev];
@@ -3563,7 +3701,7 @@ const server = http.createServer(async (req, res) => {
           : (cur.notifyPrefs || { dnd: false, bannerSec: 4, types: {} }),
       };
       saveSettings(next);
-      return send(res, 200, next);
+      return send(res, 200, maskedSettings(next));
     }
 
     // ---- sounds: local WAV store (data/sounds/) ----
@@ -3593,6 +3731,56 @@ const server = http.createServer(async (req, res) => {
       fs.mkdirSync(SOUNDS_DIR, { recursive: true });
       fs.writeFileSync(abs, buf);
       return send(res, 200, { ok: true, file, bytes: buf.length });
+    }
+
+    // ---- read aloud: human-like TTS via Edge neural voices (mp3, disk-cached) ----
+    if (p === '/api/tts' && req.method === 'POST') {
+      const body = await readJsonBody(req);
+      const text = ttsClamp(body && body.text);
+      if (!text) return send(res, 400, { error: 'no text' });
+      const lang = TTS_VOICES[body && body.lang] ? body.lang : 'en';
+      const voice = TTS_VOICES[lang];
+      const hash = crypto.createHash('sha1').update(voice + '\n' + text).digest('hex');
+      const file = path.join(TTS_CACHE_DIR, hash + '.mp3');
+      try {
+        const buf = fs.readFileSync(file);
+        return send(res, 200, buf, { 'Content-Type': 'audio/mpeg', 'X-TTS-Cache': 'hit' });
+      } catch {}
+      try {
+        const buf = await ttsSynth(text, voice);
+        try { fs.mkdirSync(TTS_CACHE_DIR, { recursive: true }); fs.writeFileSync(file, buf); } catch {}
+        return send(res, 200, buf, { 'Content-Type': 'audio/mpeg', 'X-TTS-Cache': 'miss' });
+      } catch (e) {
+        return send(res, 502, { error: 'tts failed: ' + e.message });   // client falls back to speechSynthesis
+      }
+    }
+
+    // ---- dictation from a NON-default mic: audio blob → Gemini transcription ----
+    // (Chrome's SpeechRecognition is locked to the system-default input; chosen
+    // devices are captured via MediaRecorder client-side and transcribed here.)
+    if (p === '/api/transcribe' && req.method === 'POST') {
+      const body = await readJsonBody(req, 12 * 1024 * 1024);
+      const key = loadGoogleKey();
+      if (!key) return send(res, 501, { error: 'no Google AI key configured — add it in Settings → General (free at aistudio.google.com)' });
+      let audio;
+      try { audio = Buffer.from(String((body && body.audio) || ''), 'base64'); } catch { return send(res, 400, { error: 'bad audio' }); }
+      if (!audio.length) return send(res, 400, { error: 'no audio' });
+      const mime = /^[a-z0-9/;=+-]{3,80}$/i.test(String((body && body.mime) || '')) ? body.mime : 'audio/webm';
+      const langName = { en: 'English', ru: 'Russian', ka: 'Georgian' }[body && body.lang] || null;
+      try {
+        const { GoogleGenAI } = require('@google/genai');
+        const ai = new GoogleGenAI({ apiKey: key });
+        const r = await ai.models.generateContent({
+          model: 'gemini-2.5-flash-lite',
+          contents: [{ role: 'user', parts: [
+            { inlineData: { mimeType: mime, data: audio.toString('base64') } },
+            { text: 'Transcribe verbatim. Output only the transcript.' + (langName ? ' The speech is in ' + langName + '.' : '') },
+          ] }],
+        });
+        return send(res, 200, { text: String(r.text || '').trim() });
+      } catch (e) {
+        return send(res, 502, { error: 'transcription failed: ' + String(e.message || e).slice(0, 300) });
+      }
     }
 
     // ---- notifications (bell + inbox) ----
@@ -3756,7 +3944,7 @@ const server = http.createServer(async (req, res) => {
       const lastA = [...c.messages].reverse().find((m) => m.role === 'assistant' && m.steps && m.steps.length);
       if (!lastA) return send(res, 400, { error: 'no steps to learn from' });
       const lastU = [...c.messages].reverse().find((m) => m.role === 'user');
-      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content, c.id);
+      const saved = await distillLessons(lastU ? lastU.content : c.title, lastA.steps, lastA.content, c.id, c.title);
       return send(res, 200, { ok: true, learned: saved });
     }
     // ---- Playbook endpoints ----
@@ -3778,6 +3966,13 @@ const server = http.createServer(async (req, res) => {
       savePlaybook(arr);
       logAudit({ action: 'playbook-' + (b.delete ? 'delete' : b.status || 'edit'), target: b.id });
       return send(res, 200, { ok: true, lessons: arr });
+    }
+    // ---- live system map: who's active right now (floating panel, 3s poll) ----
+    if (p === '/api/livemap' && req.method === 'GET') {
+      const liveTurns = [...LIVE_TURNS.entries()].map(([chatId, t]) => ({ chatId, bp: !!(t.chat && t.chat.bp), model: t.model || '' }));
+      let lastLearnEvent = null;
+      try { const lines = fs.readFileSync(LEARN_EVENTS_FILE, 'utf8').trim().split('\n'); if (lines.length) lastLearnEvent = JSON.parse(lines[lines.length - 1]); } catch {}
+      return send(res, 200, { liveTurns, lastLearnEvent, now: nowIso() });
     }
     if (p === '/api/learn-events' && req.method === 'GET') {   // toast feed (since=ISO)
       const since = u.searchParams.get('since') || '';

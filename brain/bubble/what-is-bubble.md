@@ -1,5 +1,5 @@
 # What is Bubble?
-> Source: https://manual.bubble.io/what-is-bubble · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/what-is-bubble · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 ## What is Bubble?
 
@@ -47,7 +47,7 @@ You can read more about Bubble’s tools for scaling in the [performance and sca
 
 With Bubble, you can build both web apps (which run in a browser) and native mobile apps (which can be installed from the Apple App Store or Google Play Store). You don’t have to choose one over the other—Bubble supports both, and you can build them in the same editor. They share the same database, user authentication, and workflows, so your data and logic work seamlessly across both platforms.
 
-You can read more about this in our [Building for web and Android/iOS section.](https://github.com/bubblegroup/bubble-manual/blob/main/help-guides/getting-started/building-for)
+You can read more about this in our [Building for web and Android/iOS section.](https://github.com/bubblegroup/bubble-manual/blob/main/help-guides/getting-started/building-for...)
 
 ### We can’t wait to see what you build
 

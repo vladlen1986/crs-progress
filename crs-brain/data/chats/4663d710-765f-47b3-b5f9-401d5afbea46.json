@@ -1,0 +1,48 @@
+{
+  "id": "4663d710-765f-47b3-b5f9-401d5afbea46",
+  "title": "What is the current status of brain knowledge",
+  "sessionId": "4f9a7d78-af93-417c-a615-9208cd0ffc96",
+  "bp": false,
+  "created": "2026-07-19T10:18:38.312Z",
+  "updated": "2026-07-19T10:18:46.100Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "What is the current status of brain knowledge",
+      "ts": "2026-07-19T10:18:38.312Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "**Current status (last full sync: 2026-07-15):**\n\n**Foundation refactor — 2 of 4 modules closed:**\n- ✅ Roles & Permissions — complete, NEG-proven\n- ✅ Casino Settings — complete, NEG-proven\n- 🟡 User Management — UI/DB built, **security pass pending** (privacy rules 🔴, WF guards 🔴, 22 demo records to purge)\n- 🔴 Fiscal Week Management — not started (only",
+      "ts": "2026-07-19T10:18:46.100Z",
+      "startedAt": "2026-07-19T10:18:38.313Z",
+      "completedAt": "2026-07-19T10:18:46.100Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: quick mechanical task → Sonnet 5, low effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null; e…",
+          "body": "command: cat /Users/vlad/projects/crs-progress/brain/STATUS.md 2>/dev/null; echo \"---INDEX---\"; cat /Users/vlad/projects/crs-progress/brain/INDEX.md 2>/dev/null | head -100\n⇒ # CRS — Build Status *(product)* > **Source of truth for \"what's done / in-progress / next\" in the CRS Bubble product.** > Design specs live in `design/design.m",
+          "actor": "brain"
+        }
+      ],
+      "partial": true
+    }
+  ]
+}

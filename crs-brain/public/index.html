@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>CRS Brain</title>
 <link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="scrollbars.css">
+<script src="js/scrollbars.js" defer></script>
 <style>
   /* Canonical tokens + legacy aliases live in tokens.css (design system §2.10).
    * This block holds app-specific extras only. */
@@ -35,16 +37,9 @@
     color:var(--secondary);font-family:var(--sans);font-size:14px;line-height:1.55;-webkit-font-smoothing:antialiased;
   }
   button{font-family:inherit;cursor:pointer}
-  /* scrollbars — CRS tokens: track surface-1, thumb border→border-active, accent when dragging */
-  *{scrollbar-width:thin;scrollbar-color:var(--line3) var(--panel)}
-  ::-webkit-scrollbar{width:10px;height:10px}
-  ::-webkit-scrollbar-track{background:var(--panel);border-radius:10px}
-  ::-webkit-scrollbar-thumb{background:var(--line3);border-radius:10px;border:2px solid var(--panel)}
-  ::-webkit-scrollbar-thumb:hover{background:var(--muted)}
-  ::-webkit-scrollbar-thumb:active{background:var(--accent)}
-  ::-webkit-scrollbar-corner{background:transparent}
+  /* scrollbars → shared /scrollbars.css (sidebar3: invisible until hover/scroll) */
 
-  .app{display:grid;grid-template-columns:var(--left-w,274px) 1fr;height:100vh}
+  .app{display:grid;grid-template-columns:var(--left-w,280px) 1fr;height:100vh}   /* sidebar3: default 280px; user-dragged widths (localStorage.leftW) still win */
   .col{overflow:hidden;display:flex;flex-direction:column;min-width:0}
   .col.left{border-right:1px solid var(--line);background:var(--panel)}
   .col.right{border-left:1px solid var(--line);background:var(--panel)}
@@ -69,7 +64,6 @@
   .side-rail button:hover{color:var(--primary);background:var(--panel2);border-color:var(--line)}
   .side-rail button svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .side-rail .rsep{width:22px;height:1px;background:var(--line);margin:5px 0;flex:0 0 auto}
-  .side-rail .rspring{flex:1;min-height:6px}
   /* collapse toggle: absolutely pinned right so it doesn't shift the logo's centering;
      invisible until the sidebar is hovered OR the button is keyboard-focused (a11y) */
   .col-collapse{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:var(--elev);border:1px solid var(--line2);color:var(--secondary);border-radius:7px;width:28px;height:28px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;flex:0 0 auto;padding:0;opacity:0;transition:opacity .16s ease-in-out,color var(--transition),border-color var(--transition),background var(--transition)}
@@ -122,15 +116,6 @@
 
   /* account */
   .account{display:flex;align-items:center;gap:9px;margin:2px 12px 6px;padding:9px 11px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;font-size:12px}
-  .account .adot{width:8px;height:8px;border-radius:50%;background:var(--danger);flex:0 0 8px}
-  .account .adot.on{background:var(--good);}
-  .account .ainfo{min-width:0}
-  .account .aemail{color:var(--primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:150px}
-  .account .aplan{color:var(--muted);font-size:11px}
-  .account .alink{margin-left:auto;background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;white-space:nowrap;transition:var(--transition)}
-  .account .alink:hover{color:var(--primary)}
-  .account .connect{width:100%;background:var(--grad);border:none;color:#fff;font-weight:650;border-radius:6px;padding:9px;font-size:12.5px;cursor:pointer;transition:var(--transition)}
-  .account .connect:hover{background:var(--accent-hover)}
 
   /* tabs (segmented) */
   .tabs{display:flex;gap:3px;margin:6px 12px 10px;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:3px}
@@ -141,15 +126,23 @@
 
   /* bottom-pinned settings entry (visually separated from primary nav) */
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
-  .side-legend{font-size:10.5px;color:var(--muted);padding:0 12px 6px;font-family:var(--mono)}
   .surface-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
   .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
   .surface-back:hover{color:var(--primary);border-color:var(--line2)}
   .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
-  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:8px 12px 3px}
-  .item .chi,.item .bpi{width:16px;height:16px;flex:0 0 auto}   /* polish: 16px leading conversation type icon (spec) */
-  .item .chi{color:var(--muted)}
-  .item .pinned-ic{width:11px;height:11px;color:var(--muted);flex:0 0 auto}
+  /* sidebar3 density: overline caps get generous top rhythm (§15); first cap stays close to search */
+  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:18px 12px 6px}
+  .pane-cap:first-child{padding-top:6px}
+  .item .chi{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}   /* 16px leading conversation type icon */
+  /* sidebar3: Buildprint rows carry a mono "BP" wordmark chip (accent tint) instead of a glyph */
+  .item .bpchip{font:600 9px/16px var(--mono);letter-spacing:.04em;color:var(--accent-soft);background:var(--accent-tint);border-radius:4px;height:16px;padding:0 4px;flex:0 0 auto}
+  /* sidebar3: live-turn signal — the leading icon/chip pulses while that chat's turn streams */
+  @keyframes sb-live{0%,100%{opacity:1}50%{opacity:.35}}
+  .item.live .chi,.item.live .bpchip{animation:sb-live 1.6s ease-in-out infinite}
+  @media (prefers-reduced-motion:reduce){
+    .item.live .chi,.item.live .bpchip{animation:none}
+    .item.live::after{content:'';position:absolute;left:24px;top:7px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+  }
   .item .cmenu{border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:6px;opacity:0;min-width:24px}
   .item:hover .cmenu{opacity:1}
   .item .cmenu:hover{background:var(--panel2);color:var(--primary)}
@@ -159,17 +152,11 @@
   .side-set.on{background:var(--accent-glow);color:var(--primary)}
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
-  .newbtn{margin:0 12px 6px;padding:10px 12px;border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:11px;font-size:12.5px;font-weight:500;width:calc(100% - 24px);text-align:left;display:flex;align-items:center;gap:8px;transition:var(--transition)}
-  .newbtn:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
 
-  .item{padding:9px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
+  .item{position:relative;padding:6px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
   .item:hover{background:var(--panel2)}
-  .item.on{background:var(--accent-glow);color:var(--primary)}
-  .item .meta{margin-left:auto;color:var(--muted);font-size:11px;background:var(--veil);border-radius:20px;padding:0 7px;line-height:17px}
-  .item .bpi{color:var(--accent2);flex:0 0 auto}
-  .item .x{opacity:0;color:var(--muted);font-size:13px;transition:var(--transition)}
-  .item:hover .x{opacity:.7}
-  .item .x:hover{color:var(--danger)}
+  /* sidebar3: selected = accent wash + 2px accent bar (design-system selected-row language, §Tables) */
+  .item.on{background:var(--accent-glow);color:var(--primary);box-shadow:inset 2px 0 0 var(--accent)}
 
   .tree .node{padding:4px 7px;border-radius:7px;font-size:13px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;transition:.1s}
   .tree .node:hover{background:var(--panel2)}
@@ -205,14 +192,10 @@
   .uchip:hover{border-color:var(--line3);color:var(--primary)}
   .uchip .ic{width:14px;height:14px;color:var(--muted);flex:0 0 auto}
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
-  .uchip .usep{width:1px;height:12px;background:var(--line3);display:inline-block;margin:0 4px}
   /* polish: chip stays neutral in every state — severity lives in the dot + popover
      (was: .uchip.warn/.crit amber/red border tints at 75%/90% usage) */
   .upop{position:absolute;top:50px;right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:12px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
   .upop.show{display:block;animation:msgIn .16s ease both}
-  .upop-head{display:flex;align-items:center;gap:8px;padding:12px 14px 11px;border-bottom:1px solid var(--line);color:var(--primary);font-size:12.5px;font-weight:600}
-  .upop-head .hx{margin-left:auto;background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;line-height:1;padding:2px 4px;border-radius:6px;transition:var(--transition)}
-  .upop-head .hx:hover{color:var(--primary);background:var(--panel2)}
   .upop .usage{padding:14px 15px}
   /* account chip (header): connection dot + usage % only; detail lives in the popover */
   .uchip.acct{gap:7px}
@@ -225,7 +208,6 @@
   .apop-acct .apop-plan{color:var(--muted);font-size:11.5px;margin-top:2px}
   .apop-acct .apop-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:12px;color:var(--secondary)}
   .apop-acct .apop-row .apop-v{display:inline-flex;align-items:center;gap:6px;color:var(--muted)}
-  .apop-acct .apop-reset{color:var(--muted);font-size:11px;font-family:var(--mono);margin-top:6px}
   .apop-acct .apop-out{display:flex;align-items:center;gap:8px;width:100%;margin-top:11px;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px 11px;font:inherit;font-size:12.5px;cursor:pointer;transition:var(--transition)}
   .apop-acct .apop-out:hover{background:rgba(239,68,68,.1);border-color:var(--danger);color:var(--danger)}
   .apop-acct .apop-out svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.9}
@@ -303,7 +285,6 @@
   .modal-nav button svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 16px}
   .modal-nav button.on svg{color:var(--accent2)}
   .modal-pane{flex:1;overflow:auto;padding:18px 24px 24px}
-  .mpane{display:none}.mpane.on{display:block}
   .msec-title{font-size:10.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:2px 0 2px}
   .mrow{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
   .mrow:last-child{border-bottom:none}
@@ -323,9 +304,6 @@
   .seg button{background:none;border:none;color:var(--muted);font:inherit;font-size:12px;font-weight:600;padding:6px 13px;border-radius:7px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:var(--transition)}
   .seg button svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
   .seg button.on{background:var(--elev);color:var(--primary)}
-  /* header theme toggle — §6 theme-toggle pattern at §20.1 28px size */
-  .hseg{padding:2px;border-radius:8px}
-  .hseg button{padding:4px 8px;border-radius:6px}
   [data-theme="light"] .seg button.on{box-shadow:0 1px 3px rgba(0,0,0,.08)} /* §3.3: elevation = shadow in light */
   .tinput{background:var(--panel2);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:8px 11px;font:inherit;font-size:12.5px;outline:none;min-width:210px}
   .tinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
@@ -354,7 +332,6 @@
   .streaming{white-space:pre-wrap;word-break:break-word}
   .tok{opacity:0;animation:tokIn .42s cubic-bezier(.22,.61,.36,1) forwards}
   .caret{display:inline-block;width:7px;height:1.02em;background:var(--accent);border-radius:2px;vertical-align:text-bottom;margin-left:1px;animation:blink 1.05s steps(1) infinite}
-  .statusnote{color:var(--muted);font-style:italic;margin-left:7px;font-size:13px}
   .body.err{color:var(--error-soft)}
 
   /* work blocks — Buildprint-style grouped activity: one "Worked for Xs" header
@@ -410,14 +387,12 @@
   @keyframes aScan{0%,100%{transform:translate(-1.2px,-.6px) rotate(-8deg)}50%{transform:translate(1.2px,.6px) rotate(8deg)}}
   @keyframes aWrite{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(4deg) translateX(1px)}}
   @keyframes aRead{0%{transform:translateY(0);opacity:0}15%,85%{opacity:1}100%{transform:translateY(5px);opacity:0}}
-  .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px;border-left:1px solid var(--line2)}
+  .wsteps{display:none;flex-direction:column;gap:1px;margin:7px 0 1px;padding-left:5px}
   .wgroup.open .wsteps{display:flex}
   .wstep{display:flex;flex-direction:column}
   /* actor lanes: who did this step — Brain (app/analysis) vs Buildprint (Bubble side) */
   .wlane{display:flex;align-items:center;gap:8px;margin:7px 2px 2px;font:600 9px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
   .wlane.bp{color:var(--accent)}
-  .wlane::after{content:'';flex:1;height:1px;background:var(--line2);opacity:.6}
-  .wstep[data-actor=buildprint] .wstep-head{box-shadow:inset 2px 0 0 var(--accent)}
   .wstep-head{display:flex;align-items:center;gap:10px;padding:4px 8px;border-radius:7px;color:var(--secondary);font-size:12.5px;line-height:1.45;cursor:default}
   .wstep.has-body .wstep-head{cursor:pointer}
   .wstep.has-body .wstep-head:hover{background:var(--veil)}
@@ -435,7 +410,7 @@
   /* auto-fallback note: shown when the chosen model was inaccessible and the app switched */
   .switch-note{display:flex;align-items:center;gap:8px;margin:2px 0 10px;padding:7px 11px;border:1px solid var(--line);border-left:3px solid #F59E0B;background:var(--veil);border-radius:8px;color:var(--secondary);font-size:12.5px;line-height:1.4}
   .switch-note b{color:var(--primary);font-weight:600}
-  .sw-bolt{color:#F59E0B;font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
+  .sw-bolt{color:var(--warning);font-size:13px;line-height:1;flex:0 0 auto;animation:wpulse 1.5s ease-in-out infinite}
 
   /* prompt queue strip */
   .queue-strip{display:flex;flex-direction:column;gap:6px;align-items:stretch;padding:0 22px 8px;max-width:830px;margin:0 auto;width:100%}
@@ -492,6 +467,24 @@
   .composer-row .sel.mini{height:30px;padding:5px 22px 5px 9px;font-size:11.5px;max-width:118px;background-position:right 7px center}
   .attach-btn{background:none;border:none;color:var(--muted);width:38px;height:38px;border-radius:11px;font-size:16px;flex:0 0 auto;transition:var(--transition)}
   .attach-btn:hover{background:var(--elev);color:var(--primary)}
+  /* voice dictation: mic button pulses while listening; ghost strip shows interim speech */
+  .mic-btn{position:relative}
+  .mic-btn.rec{color:var(--accent);background:var(--accent-tint);animation:micPulse 1.5s ease-in-out infinite}
+  @keyframes micPulse{0%,100%{box-shadow:0 0 0 0 var(--accent-glow)}50%{box-shadow:0 0 0 6px var(--accent-glow)}}
+  @media (prefers-reduced-motion:reduce){.mic-btn.rec{animation:none}}
+  .mic-btn .devdot{position:absolute;top:5px;right:5px;width:7px;height:7px;border-radius:50%;background:var(--accent);border:1px solid var(--panel);pointer-events:none}
+  /* mic/device popover — expl-menu base, anchored above the composer */
+  .mic-menu{min-width:238px;max-width:320px}
+  .mic-menu .mm-t{font:600 9.5px/1 var(--mono);letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:7px 10px 5px}
+  .mic-menu .mm-lbl{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mic-menu .mm-radio{width:12px;height:12px;border-radius:50%;border:1.5px solid var(--line3);flex:0 0 auto}
+  .mic-menu button.on .mm-radio{border-color:var(--accent);background:var(--accent);box-shadow:inset 0 0 0 2.5px var(--panel)}
+  .mic-menu .mm-langs{display:flex;gap:5px;padding:2px 10px 6px}
+  .mic-menu .mm-langs button{width:auto;flex:1;justify-content:center;font-family:var(--mono);font-size:11px;padding:5px 0}
+  .mic-menu .mm-langs button.on{background:var(--accent-tint);color:var(--accent)}
+  .mic-menu .mm-note{padding:5px 10px 7px;font-size:11px;line-height:1.5;color:var(--muted)}
+  .dict-ghost{display:none;max-width:830px;margin:0 auto;padding:0 22px 8px;width:100%;font-family:var(--mono);font-size:11px;color:var(--text-muted,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dict-ghost.show{display:block}
   .send{background:var(--grad);border:none;color:#fff;font-weight:700;border-radius:8px;width:38px;height:38px;font-size:17px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
   .send:hover{background:var(--accent-hover)}
   .send:disabled{opacity:.4;cursor:default}
@@ -562,6 +555,35 @@
   .ltoast.learning{border-left-color:var(--purple)}
   .ltoast.applied{border-left-color:var(--good)}
   .ltoast.recurrence{border-left-color:var(--danger)}
+  /* staged learning toast — ONE toast per distill run, morphing in place:
+     Stage A "Signal detected" (the actual failed thing) → Stage B "Analyzing…"
+     (pulsing dots) → Stage C "Solution found" (PROBLEM → SOLUTION cards) or
+     C-alt "Already known" (muted). Tokens only; cards are border-only per design rules. */
+  .ltoast.staged .lt-body{margin-top:6px}
+  .ltoast .lt-sig{font:500 11px/1.5 var(--mono);color:var(--warning);background:var(--warning-tint);border-radius:7px;padding:6px 8px;word-break:break-word;max-height:52px;overflow:hidden}
+  .ltoast.expanded .lt-sig{max-height:none}
+  .ltoast .lt-src{color:var(--muted);font-size:10.5px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .ltoast .lt-think{display:inline-flex;gap:3px;margin-left:7px;vertical-align:middle}
+  .ltoast .lt-think i{width:4px;height:4px;border-radius:50%;background:var(--purple);opacity:.6}
+  .ltoast .lt-sol1{color:var(--secondary);max-height:40px;overflow:hidden;word-break:break-word}
+  .ltoast .lt-cards{display:none}
+  .ltoast.expanded .lt-cards{display:block}
+  .ltoast.expanded .lt-sol1{display:none}
+  .ltoast .lt-lesson{border:1px solid var(--line2);border-radius:9px;padding:9px 10px;margin-top:8px}
+  .ltoast .lt-k{display:block;font-size:9.5px;font-weight:700;letter-spacing:.08em;color:var(--muted);margin-bottom:3px}
+  .ltoast .lt-prob{color:var(--warning);background:var(--warning-tint);border-radius:6px;padding:5px 7px;word-break:break-word}
+  .ltoast .lt-sol{color:var(--good);background:var(--success-tint);border-radius:6px;padding:5px 7px;margin-top:6px;word-break:break-word}
+  .ltoast .lt-cat{color:var(--muted);font-size:10.5px;margin-top:6px}
+  .ltoast.done{border-left-color:var(--good)}
+  .ltoast.done .lt-ic{background:var(--success-tint);color:var(--good)}
+  .ltoast.mutedc{border-left-color:var(--line3);opacity:.85}
+  .ltoast.fading{opacity:0;transition:opacity .6s ease}
+  @media (prefers-reduced-motion: no-preference){
+    .ltoast .lt-think i{animation:ltPulse 1.05s ease-in-out infinite}
+    .ltoast .lt-think i:nth-child(2){animation-delay:.16s}
+    .ltoast .lt-think i:nth-child(3){animation-delay:.32s}
+  }
+  @keyframes ltPulse{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-2px)}}
   /* ── unified turn: prompt → thinking → working → answer read as ONE action ── */
   .turn{max-width:744px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
@@ -581,6 +603,10 @@
   .turn-acts button{display:inline-flex;align-items:center;gap:6px;background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 11px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:11px;font-weight:500;cursor:pointer;transition:var(--transition)}
   .turn-acts button:hover{border-color:var(--line3);color:var(--primary);background:var(--panel2)}
   .turn-acts button svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+  /* read aloud: stop control stays visible while fetching/playing (cluster is hover-revealed otherwise) */
+  .act-tts[aria-pressed=true]{color:var(--accent);border-color:var(--accent-border-active)}
+  .act-tts.busy .ic{animation:wpulse 1s ease-in-out infinite}
+  .turn-acts:has(.act-tts[aria-pressed=true]),.turn-acts:has(.act-tts.busy){opacity:1;pointer-events:auto}
 
   /* hero / empty */
   .hero{max-width:800px;margin:7vh auto 0;text-align:center;animation:msgIn .5s ease both;padding:0 16px}
@@ -626,7 +652,6 @@
   .md a[data-path]:hover{border-bottom-style:solid;text-decoration:none}
 
   /* Claude-style chat prose — brighter, airier than the file viewer; scoped to chat */
-  .hbackleft{margin-right:8px}
   .msg.assistant .body p,.msg.assistant .body li{color:var(--prose)}
   .msg.assistant .body p{margin:0 0 1em}
   .msg.assistant .body>*:last-child{margin-bottom:0}
@@ -744,7 +769,7 @@
   .envlist{font-family:var(--mono);font-size:10.5px;color:var(--muted);padding:4px 2px;line-height:1.7}
   /* P10 — phone-width command post: reading + ruling only */
   @media (max-width:480px){
-    .col.left, #input, .composer, .chatbar, .dash-head .subline{display:none !important}
+    .col.left, #input, .composer, .dash-head .subline{display:none !important}
     .actions, .tools, .lbl{display:none !important}
     .dash-inner{padding:12px}
     .dash-cols{grid-template-columns:1fr}
@@ -763,12 +788,6 @@
   .mpo .mpo-acts button{flex:1;min-height:48px;border-radius:var(--radius-btn);font:inherit;font-weight:700;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--secondary)}
   .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
   .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
-  .kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
-  .kpi{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:15px 16px;position:relative;overflow:hidden;transition:var(--transition);text-align:left;font-family:inherit;cursor:pointer}
-  .kpi:hover{border-color:var(--line2);background:var(--elev)}
-  .kpi::before{content:'';position:absolute;left:0;top:12px;bottom:12px;width:2.5px;border-radius:2px;background:var(--kc,var(--accent))}
-  .kpi .v{color:var(--primary);font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;font-family:var(--mono)}
-  .kpi .k{color:var(--muted);font-size:11.5px;margin-top:7px;font-weight:500}
   /* Quick actions — DISTINCT per-action color so the eye catches the icon, not the label */
   .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
   .action{background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 17px;text-align:left;cursor:pointer;transition:var(--transition);display:flex;align-items:flex-start;gap:13px;font-family:inherit}
@@ -791,8 +810,6 @@
   .dcard h3{color:var(--primary);font-size:12.5px;font-weight:600;margin:0 0 6px;display:flex;align-items:center;gap:8px}
   .dcard h3 .ic{color:var(--muted)}
   .dcard h3 .cnt{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500;font-family:var(--mono)}
-  .dcard .seeall{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500;cursor:pointer}
-  .dcard .seeall:hover{color:var(--accent2)}
   .drow{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--secondary);cursor:pointer}
   .drow.static{cursor:default}
   .drow:hover:not(.static){background:var(--panel2)}
@@ -801,45 +818,13 @@
   .drow .rmeta{margin-left:auto;color:var(--muted);font-size:11px;flex:0 0 auto;font-family:var(--mono)}
   .np-mod{color:var(--accent2);font-size:11px;font-weight:600;margin:2px 0 3px}
   .np-title{color:var(--primary);font-size:13px;font-weight:600;line-height:1.4}
-  .np-verify{color:var(--muted);font-size:11.5px;margin-top:4px;line-height:1.45}
   .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:var(--accent-tint);border:1px solid var(--accent-border-active);color:var(--accent2);border-radius:var(--radius-btn);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);height:32px}
   .np-draft:hover{background:var(--accent-glow);color:var(--accent2)}
   .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
-  @media (max-width:900px){.kpis{grid-template-columns:repeat(2,1fr)}.actions{grid-template-columns:1fr 1fr}}
+  @media (max-width:900px){.actions{grid-template-columns:1fr 1fr}}
   @media (max-width:760px){.dash{padding:22px 16px}.dash-cols,.actions{grid-template-columns:1fr}}
 
-  /* ───── Buildprint copilot (right panel) ───── */
-  .rtabs{display:flex;gap:3px;padding:10px 12px 8px;align-items:center;border-bottom:1px solid var(--line)}
-  .rtabs button{background:none;border:none;color:var(--muted);padding:5px 10px;font-size:11.5px;font-weight:700;letter-spacing:.4px;border-radius:6px;cursor:pointer;font-family:inherit}
-  .rtabs button.on{color:var(--primary);background:var(--panel2)}
-  .rtabs .col-collapse{margin-left:auto}
-  .bp-panel{flex:1;display:flex;flex-direction:column;min-height:0}
-  .bp-head{display:flex;align-items:center;gap:8px;padding:9px 14px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line)}
-  .bp-head .bp-dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:0 0 7px}
-  .bp-head .bp-dot.on{background:var(--good);}
-  .bp-head #bpWs{color:var(--secondary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .bp-head .refresh{margin-left:auto}
-  .bp-log{flex:1;overflow:auto;padding:12px 12px 6px;min-height:0}
-  .bp-msg{margin-bottom:14px;font-size:12.5px;line-height:1.55}
-  .bp-msg.user{background:var(--accent-tint);border:1px solid var(--line2);border-radius:4px 10px 10px 10px;padding:8px 11px;color:var(--primary)}
-  .bp-msg.bot .who{font-size:9.5px;letter-spacing:1px;color:var(--accent2);font-weight:700;margin-bottom:4px;text-transform:uppercase}
-  .bp-msg.bot .body{color:var(--secondary)}
-  .bp-msg.bot .body.err{color:var(--error-soft)}
-  .bp-status{color:var(--muted);font-style:italic;font-size:11.5px;padding:2px 0}
-  .bp-hero{color:var(--muted);font-size:12px;line-height:1.6;padding:14px 6px;text-align:center}
-  .bp-hero b{color:var(--secondary)}
-  .bp-hero .chip{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:4px 9px;margin:4px 3px 0;color:var(--secondary);cursor:pointer;font-size:11px;text-align:left}
-  .bp-hero .chip:hover{border-color:var(--line2);color:var(--primary)}
-  .bp-composer{display:flex;gap:6px;align-items:flex-end;padding:9px 11px 12px;border-top:1px solid var(--line)}
-  .bp-composer textarea{flex:1;resize:none;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;color:var(--primary);padding:9px 11px;font-family:inherit;font-size:13px;max-height:120px;min-height:20px;line-height:1.5;outline:none}
-  .bp-composer textarea:focus{border-color:var(--accent)}
-  .bp-conn{font-size:10.5px;color:var(--muted);padding:2px 14px 8px;display:flex;align-items:center;gap:6px}
-  .bp-conn .bp-ok,.bp-conn .bp-off{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
-  .bp-conn .bp-ok{background:var(--good);}
-  .bp-conn .bp-off{background:var(--muted)}
-  /* right panel scroll + recent files */
-  .col.right .rscroll{flex:1;overflow:auto;min-height:0}
-  .col.right .rscroll .cols{flex:none;overflow:visible;min-height:0}
+  /* recent files (right panel) */
   .recent{padding:0 12px 4px}
   .recent .rf{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;font-size:12px;color:var(--secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
   .recent .rf:hover{background:var(--panel2);color:var(--primary)}
@@ -872,10 +857,10 @@
   .expl-rs-se{bottom:-4px;right:-4px;width:13px;height:13px;cursor:nwse-resize}
   .expl-rs-sw{bottom:-4px;left:-4px;width:13px;height:13px;cursor:nesw-resize}
   .expl-nav{display:flex;gap:1px}
-  .expl-nav button,.expl-tb .tbtn{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
-  .expl-nav button:hover:not(:disabled),.expl-tb .tbtn:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
+  .expl-nav button{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--transition)}
+  .expl-nav button:hover:not(:disabled){background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .expl-nav button:disabled{opacity:.3;cursor:default}
-  .expl-nav svg,.expl-tb .tbtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .expl-nav svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .expl-crumb{display:flex;align-items:center;gap:1px;font-size:12.5px;color:var(--secondary);overflow:hidden;flex:1;white-space:nowrap;min-width:40px}
   .expl-crumb b{color:var(--primary);padding:2px 5px;overflow:hidden;text-overflow:ellipsis}
   .expl-crumb a{color:var(--secondary);cursor:pointer;padding:2px 5px;border-radius:5px;overflow:hidden;text-overflow:ellipsis;flex:0 1 auto}
@@ -894,8 +879,6 @@
   .expl-viewtog button{width:32px;height:30px;background:none;border:0;color:var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .expl-viewtog button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
   .expl-viewtog svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2}
-  .expl-x{width:32px;height:32px;border-radius:8px;background:none;border:1px solid transparent;color:var(--secondary);font-size:15px;cursor:pointer;flex:0 0 auto}
-  .expl-x:hover{background:var(--panel2);color:var(--primary);border-color:var(--line)}
   .expl-side{grid-area:side;border-right:1px solid var(--line);overflow:auto;padding:8px 6px;font-size:12.5px}
   .expl-side .shead{display:flex;align-items:center;gap:4px;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 6px 4px;cursor:pointer;user-select:none;border-radius:6px}
   .expl-side .shead:hover{color:var(--secondary)}
@@ -938,8 +921,6 @@
   .expl-item{display:flex;flex-direction:column;align-items:center;gap:7px;padding:11px 6px 9px;border-radius:9px;cursor:default;text-align:center}
   .expl-item .nm{font-size:11px;color:var(--secondary);line-height:1.3;word-break:break-word;max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
   .expl-item.peeking,.expl-row.peeking{background:var(--panel2)}   /* hover-preview marks the item with bg only — no ring */
-  .expl-group{grid-column:1/-1;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:6px 2px 0;padding-top:6px;border-top:1px solid var(--line)}
-  .expl-group:first-child{border-top:none;padding-top:0;margin-top:0}
   .fic{display:inline-flex;flex:0 0 auto;line-height:0}
   .tico{width:16px;height:16px;display:inline-flex;flex:0 0 auto}
   .tico svg{width:16px;height:16px;display:block}
@@ -1065,8 +1046,6 @@
   .docwin .dp-tblwrap table{border-collapse:collapse;font-size:12.5px;min-width:60%}
   .docwin .dp-tblwrap th{background:var(--panel2);color:var(--muted);text-transform:uppercase;font-size:10px;letter-spacing:.6px;text-align:left;padding:7px 11px;border:1px solid var(--line2)}
   .docwin .dp-tblwrap td{padding:6px 11px;border:1px solid var(--line);color:var(--secondary)}
-  .docwin .dp-imgwrap{height:100%;display:flex;align-items:center;justify-content:center;padding:18px}
-  .docwin .dp-imgwrap img{max-width:100%;max-height:100%;object-fit:contain;border-radius:8px}
   .docwin .dp-embed{width:100%;height:100%;border:0}
   .docwin .dp-card{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--secondary)}
   .docwin .dp-card .tico{width:64px;height:64px}.docwin .dp-card .tico svg{width:64px;height:64px}
@@ -1167,6 +1146,9 @@
   .htmlfull iframe{flex:1;border:0;background:#fff}
   /* prototype-studio chrome on the fullscreen bar (parent chrome — the sandboxed iframe can't host it) */
   .htmlfull .hf-bar button.hf-pbtn{width:auto;padding:0 11px;font:inherit;font-size:12px;font-weight:600;height:30px}
+  /* sidebar3: overlay-scoped control — quieter ghost so it can't read as an app-header toggle */
+  .htmlfull .hf-bar button.hf-pbtn.hf-scoped{font-size:11px;font-weight:500;height:26px;padding:0 9px;color:var(--muted)}
+  .htmlfull .hf-bar button.hf-pbtn.hf-scoped:hover{color:var(--primary)}
   .hf-proto{display:flex;align-items:center;gap:7px}
   .hf-chip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
   .hf-chip.st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
@@ -1193,8 +1175,13 @@
   .proppop .pp-row .cp{border:1px solid var(--line2);background:none;color:var(--muted);border-radius:5px;font-size:10.5px;padding:1px 7px;cursor:pointer;flex:0 0 auto}
   .proppop .pp-row .cp:hover{color:var(--primary);border-color:var(--line3)}
   /* chat search */
-  .chat-search{display:block;width:calc(100% - 24px);margin:0 12px 8px;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
+  /* sidebar3: one row = search (flex) + 32px icon-ghost "+" (new conversation) */
+  #chatActions{display:flex;align-items:center;gap:6px;margin:0 12px 8px}
+  .chat-search{display:block;flex:1 1 auto;min-width:0;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12.5px;font-family:inherit;outline:none}
   .chat-search:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .chat-new{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:8px;color:var(--muted);cursor:pointer;padding:0;transition:var(--transition)}
+  .chat-new:hover{background:var(--veil);color:var(--primary)}
+  .chat-new .ic{width:16px;height:16px}
   .item .snip{display:block;color:var(--muted);font-size:10.5px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   mark.hl{background:rgba(249,115,22,.35);color:var(--primary);border-radius:2px;padding:0 1px}
 
@@ -1234,23 +1221,17 @@
   .card:hover{border-color:var(--line2);transform:translateY(-1px)}
   .card .t{color:var(--primary)}
   .card .n{color:var(--muted);font-size:12px;margin-top:2px}
-  .missing .card{--cardc:#EF4444}
+  .missing .card{--cardc:var(--error)}
   .empty{color:var(--muted);font-size:12px;padding:5px 4px;font-style:italic}
   .refresh{background:none;border:none;color:var(--muted);font-size:13px;margin-left:auto;cursor:pointer;transition:var(--transition);border-radius:6px;width:24px;height:24px}
   .refresh:hover{color:var(--primary);background:var(--panel2)}
 
-  .conndot{width:8px;height:8px;border-radius:50%;align-self:center;flex:none;background:var(--good)}
-  .conndot.warn{background:var(--warn)}
-  .conndot.err{background:var(--danger)}
   .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--elev);border:1px solid var(--line2);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;z-index:400;box-shadow:var(--shadow-dropdown)}
   .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
   .spin{display:inline-block;width:12px;height:12px;border:2px solid var(--line2);border-top-color:var(--accent);border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
 
   /* icon + text alignment */
-  .account .connect{display:inline-flex;align-items:center;justify-content:center;gap:7px}
   .matt{display:inline-flex;align-items:center;gap:5px}
-  .item .x{display:inline-flex;align-items:center}
-  .newbtn .ic{opacity:.8}
   .avatar .ic{width:16px;height:16px}
   .hero-mark .ic{width:26px;height:26px}
 
@@ -1297,7 +1278,6 @@
   /* dashboard build-plan card bits */
   .np-mod{font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin:8px 0 3px}
   .np-title{font-size:13px;color:var(--primary);font-weight:600;line-height:1.45;margin-bottom:4px}
-  .np-verify{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:2px}
   .np-gen{display:flex;gap:6px;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
   .np-gen input{flex:1;margin:0;background:var(--panel2);border:1px solid var(--line);color:var(--primary);border-radius:7px;padding:7px 9px;font-size:12px;font-family:inherit;outline:none;min-width:0}
   .np-gen input:focus{border-color:var(--accent)}
@@ -1344,10 +1324,6 @@
     .bub-q{max-width:none}
   }
 
-  /* sidebar nav (Map / Kanban) */
-  .sidenav{display:flex;gap:6px;margin:2px 12px 8px}
-  .sidenav button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:6px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:8px;padding:8px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition)}
-  .sidenav button:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
   /* sidebar resizer (desktop only — on mobile .col.left is a fixed off-canvas drawer,
      so scoping position:relative here keeps it from overriding that and stealing a grid row) */
   @media (min-width:901px){ .col.left{position:relative} }
@@ -1356,9 +1332,6 @@
   /* equal-height controls inside the composer row */
   .composer-row button,.composer-row .sel{height:34px}
   .composer-row .attach-btn,.composer-row .send{width:34px}
-  /* clickable dashboard cards */
-  .stat.clk,.dcard.clk{cursor:pointer;transition:var(--transition)}
-  .stat.clk:hover,.dcard.clk:hover{border-color:var(--line2);background:var(--elev)}
 
   @keyframes sp{to{transform:rotate(360deg)}}
   @keyframes tokIn{from{opacity:0;filter:blur(4px)}to{opacity:1;filter:blur(0)}}
@@ -1393,6 +1366,7 @@
   <symbol id="i-ingest" viewBox="0 0 24 24"><path d="M3 14h5l2 3h4l2-3h5"/><path d="M5 8l-2 6v5a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-5l-2-6"/><line x1="12" y1="3" x2="12" y2="10"/><polyline points="9 7.5 12 10.5 15 7.5"/></symbol>
   <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/></symbol>
   <symbol id="i-terminal" viewBox="0 0 24 24"><polyline points="5 17 10 12 5 7"/><line x1="12" y1="17" x2="19" y2="17"/></symbol>
+  <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2.5" width="6" height="11.5" rx="3"/><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0"/><line x1="12" y1="18" x2="12" y2="21.5"/></symbol>
   <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 7.5 12 12 15 14"/></symbol>
   <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 4h6a3 3 0 0 1 3 3v13a2.5 2.5 0 0 0-2.5-2.5H2z"/><path d="M22 4h-6a3 3 0 0 0-3 3v13a2.5 2.5 0 0 1 2.5-2.5H22z"/></symbol>
   <symbol id="i-map" viewBox="0 0 24 24"><polygon points="2 6 9 3 15 6 22 3 22 18 15 21 9 18 2 21"/><line x1="9" y1="3" x2="9" y2="18"/><line x1="15" y1="6" x2="15" y2="21"/></symbol>
@@ -1401,12 +1375,10 @@
   <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"/></symbol>
   <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/></symbol>
   <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16" y2="16"/></symbol>
-  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5"/><path d="M5 9.5V20a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9.5"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></symbol>
   <symbol id="i-bell-off" viewBox="0 0 24 24"><path d="M13.7 21a2 2 0 0 1-3.4 0"/><path d="M18.6 13c-.4-1.3-.6-3-.6-5a6 6 0 0 0-9.3-5M6.3 6.3C6.1 6.8 6 7.4 6 8c0 7-3 9-3 9h14"/><line x1="2" y1="2" x2="22" y2="22"/></symbol>
   <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.2"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
   <symbol id="i-moon" viewBox="0 0 24 24"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></symbol>
-  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 17v5M6 10l1.5-6h9L18 10c0 2-2 4-6 4s-6-2-6-4z" fill="currentColor" stroke="currentColor" stroke-width="1"/></symbol>
   <symbol id="i-plug" viewBox="0 0 24 24"><path d="M9 2v6M15 2v6M7 8h10v3a5 5 0 0 1-10 0z"/><path d="M12 16v6"/></symbol>
   <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="4 9 8 9 13 5 13 19 8 15 4 15"/><path d="M17 8a5 5 0 0 1 0 8"/></symbol>
   <symbol id="i-arrow-right-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><polyline points="12 8 16 12 12 16"/><line x1="8" y1="12" x2="16" y2="12"/></symbol>
@@ -1439,10 +1411,9 @@
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div id="chatActions">
       <input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)">
-      <button class="newbtn" onclick="newChat()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg> New conversation</button>
+      <button class="chat-new" onclick="newChat()" title="New conversation" aria-label="New conversation"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
     </div>
     <div class="pane" id="paneChats"></div>
-    <div class="side-legend">›_ marks Buildprint conversations</div>
     <div class="side-foot">
       <button class="side-set" onclick="openSettings('general')"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg> Settings &amp; Preferences</button>
     </div>
@@ -1458,6 +1429,8 @@
       <span class="spacer"></span>
       <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
+      <button class="hicon" id="livemapBtn" onclick="window.LIVEMAP&&LIVEMAP.toggle()" title="Live system map — what's working now"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><circle cx="5" cy="6" r="1.7"/><circle cx="19" cy="6" r="1.7"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="18.5" cy="18.5" r="1.7"/><path d="M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1"/></svg></button>
+      <button class="hicon" id="appPreviewBtn" onclick="openTarget('/app-preview.html',{title:'App Preview'})" title="App Preview — all modules, sidebar, prototypes"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg></button>
       <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
@@ -1518,10 +1491,12 @@
         <div class="genmeter" id="genMeter"></div>
         <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
+        <div class="dict-ghost" id="dictGhost"></div>
         <div class="composer">
           <textarea id="input" placeholder="Ask about your CRS project…  (Enter to send · Shift+Enter for newline)" rows="1"></textarea>
           <div class="composer-row">
             <button class="attach-btn" id="attachBtn" title="Attach files" onclick="pickFiles()"><svg class="ic" viewBox="0 0 24 24"><use href="#i-clip"/></svg></button>
+            <button class="attach-btn mic-btn" id="micBtn" title="Dictate" style="display:none" onclick="toggleDictation()" oncontextmenu="return micContext(event)"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg></button>
             <select class="sel mini" id="modelSel" title="Model — Auto routes by task: quick/mechanical → Sonnet low, deep audits → Opus max" onchange="applyModelSettings()">
               <option value="auto">Auto (by task)</option>
               <option value="claude-opus-4-8">Opus 4.8</option>
@@ -1747,13 +1722,22 @@ function filterTree(tree){ if(!state.crsOnly) return tree;
 
 // ---------- chats ----------
 function chatItemEl(c){
-  const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
-  // Leading 16px type icon: terminal glyph = the conversation ran with Buildprint
-  // CLI tooling (the bp flag — per-message tool events are not persisted); plain
-  // chat icon otherwise. Pinned rows carry a small filled pin.
-  d.innerHTML=`<svg class="ic sm ${c.bp?'bpi':'chi'}" viewBox="0 0 24 24"><use href="${c.bp?'#i-terminal':'#i-chat'}"/></svg><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span>${c.pinned?`<svg class="ic pinned-ic" viewBox="0 0 24 24"><use href="#i-pin"/></svg>`:''}<span class="meta">${c.count}</span><button class="cmenu" title="Actions">⋮</button>`;
+  const live=state.live && !state.live.done && state.live.chatId===c.id;
+  const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'')+(live?' live':'');
+  d.dataset.chatId=c.id;
+  // sidebar3 rest state = leading type mark + truncated title ONLY. Mark: "BP" chip =
+  // the conversation ran with Buildprint CLI tooling (the bp flag — per-message tool
+  // events are not persisted); plain chat icon otherwise. Hover reveals only the ⋮.
+  d.innerHTML=`${c.bp?`<span class="bpchip">BP</span>`:`<svg class="ic sm chi" viewBox="0 0 24 24"><use href="#i-chat"/></svg>`}<span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(c.title||'Untitled')}</span><button class="cmenu" title="Actions">⋮</button>`;
   d.onclick=(e)=>{ if(e.target.closest('.cmenu')){ chatMenuAt(e, c); return; } openChat(c.id); };
   return d;
+}
+// sidebar3: toggle the .live pulse on the sidebar row of the in-flight turn.
+// Called when a stream starts, when it finishes/errors, and after every list render.
+function syncLiveRow(){
+  const id=(state.live && !state.live.done) ? state.live.chatId : null;
+  document.querySelectorAll('#paneChats .item.live').forEach(el=>{ if(el.dataset.chatId!==id) el.classList.remove('live'); });
+  if(id){ const el=document.querySelector('#paneChats .item[data-chat-id="'+CSS.escape(id)+'"]'); if(el) el.classList.add('live'); }
 }
 // Per-conversation ⋮ menu — same visual language as the explorer menu.
 function chatMenuAt(e, c){
@@ -1784,7 +1768,7 @@ function onChatSearch(q){ clearTimeout(chatSearchT);
       box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations match “'+esc(q)+'”.</div>';
       for(const c of chats){ const d=document.createElement('div'); d.className='item'+(c.id===state.chatId?' on':'');
         d.style.flexDirection='column'; d.style.alignItems='stretch';
-        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center">${c.bp?`<svg class="ic sm bpi" viewBox="0 0 24 24"><use href="#i-terminal"/></svg>`:''}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span><span class="meta">${c.count}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
+        d.innerHTML=`<div style="display:flex;gap:8px;align-items:center">${c.bp?`<span class="bpchip">BP</span>`:''}<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${hl(c.title||'Untitled',q)}</span></div>`+(c.snippet?`<span class="snip">${hl(c.snippet,q)}</span>`:'');
         d.onclick=()=>openChat(c.id); box.appendChild(d); }
     }catch{}
   }, 180);
@@ -1796,12 +1780,16 @@ async function loadChats(){
   const box=$('paneChats');
   box.innerHTML = chats.length? '' : '<div class="empty" style="padding:12px">No conversations yet.</div>';
   const pinned=chats.filter(c=>c.pinned), rest=chats.filter(c=>!c.pinned);
+  // API order is newest-first (server listChats sorts by `updated` desc) — kept as is.
   if(pinned.length){
     const h=document.createElement('div'); h.className='pane-cap'; h.textContent='Pinned'; box.appendChild(h);
     for(const c of pinned) box.appendChild(chatItemEl(c));
-    const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Conversations'; box.appendChild(h2);
+  }
+  if(rest.length){
+    const h2=document.createElement('div'); h2.className='pane-cap'; h2.textContent='Recents'; box.appendChild(h2);
   }
   for(const c of rest) box.appendChild(chatItemEl(c));
+  syncLiveRow();
 }
 // mode-aware chat starter templates — clicking a card seeds the input
 const TEMPLATES={
@@ -1832,10 +1820,9 @@ function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="b
 // reflect state.bp into the composer mode switch + placeholder
 function reflectMode(){ document.querySelectorAll('#chatMode .seg2 button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='bp')===(state.bp===true))); const inp=$('input'); if(inp) inp.placeholder=state.bp?bpPh:normPh; }
 function setChatMode(bp){ state.bp=!!bp; reflectMode();
-  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; }
-  if(bp) bpStatus(); }
+  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; } }
 function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); bpStatus(); loadChats(); $('input').focus(); }
+function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); loadChats(); $('input').focus(); }
 const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
@@ -1944,18 +1931,131 @@ const LEARN_KINDS={
   'playbook-applied':{ic:'⚡',cls:'applied',label:'Applying knowledge'},
   'recurrence':{ic:'⚠',cls:'recurrence',label:'Known mistake repeated'},
 };
+// magical chimes on knowledge events — s25 sparkle for ⚡ apply, s26 bloom for 🧠 learned.
+// Off switch lives in Settings→Sounds (sounds.learnSounds, default ON); DND mutes them like every other sound.
+const LEARN_SOUNDS={'playbook-applied':'s25','learning-saved':'s26'};
+function playLearnSound(kind){
+  const sid=LEARN_SOUNDS[kind]; if(!sid) return;
+  if((((SETTINGS||{}).sounds||{}).learnSounds)===false) return;
+  if(!!((SETTINGS||{}).notifyPrefs||{}).dnd) return;
+  try{ SOUNDS.playSound(sid); }catch{}   // autoplay policy may block before the first gesture — stay silent
+}
+// STAGED distill toast — Vlad sees the thinking: signal → analysis → solution.
+// One toast per distill run (keyed by the server's runId, chatId fallback),
+// morphing IN PLACE: A "Signal detected" → B "Analyzing — searching for a
+// solution…" → C "Solution found" (s26 chime HERE) or C-alt "Already known".
+// Old-format ledger events (no runId/signal/lessons) fall through to the
+// legacy per-event toasts; learning-clean with no live staged toast = silent.
+const LEARN_RUNS=new Map();   // key → {el, stage, minUntil, chimed, _w}
+const LEARN_STAGE_KINDS={'learning-start':1,'learning-thinking':1,'learning-saved':1,'learning-clean':1};
 async function pollLearnEvents(){
   try{
     const r=await api('/api/learn-events?since='+encodeURIComponent(LEARN_SINCE));
     for(const ev of (r.events||[])){
       if(ev.ts>LEARN_SINCE) LEARN_SINCE=ev.ts;
-      if(LEARN_KINDS[ev.kind]) showLearnToast(ev);   // learning-clean stays silent by design
+      if(LEARN_STAGE_KINDS[ev.kind]&&stagedLearnToast(ev)) continue;   // new-format staged run handled
+      if(LEARN_KINDS[ev.kind]) showLearnToast(ev);   // legacy path; learning-clean stays silent by design
     }
   }catch{}
 }
+function learnHost(){
+  let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
+  return host;
+}
+function stagedLearnToast(ev){   // → true when handled (legacy events return false → old toasts)
+  const key=ev.runId||('c:'+(ev.chatId||''));
+  let run=LEARN_RUNS.get(key);
+  if(run&&!run.el.isConnected){ clearTimeout(run._w); LEARN_RUNS.delete(key); run=null; }   // evicted by host cap → dead run
+  if(ev.kind==='learning-clean'){
+    window.LIVEMAP&&LIVEMAP.ping('learning-clean', ev);   // always release the distiller glow
+    if(!run) return true;                                 // no live staged toast → fully silent (as today)
+    ltStage(run,()=>ltStageClean(run,ev,key),key);
+    return true;
+  }
+  if(!ev.runId&&ev.signal==null&&!ev.lessons&&ev.kind!=='learning-thinking') return false;   // old-format start/saved
+  if(ev.kind==='learning-start'){
+    if(!run) run=ltCreate(key);
+    ltStage(run,()=>ltStageA(run,ev),key);
+  }else if(ev.kind==='learning-thinking'){
+    if(!run){ run=ltCreate(key); ltStageA(run,ev); }      // page opened mid-run: seed Stage A instantly
+    ltStage(run,()=>ltStageB(run,ev),key);
+  }else if(ev.kind==='learning-saved'){
+    if(!run) run=ltCreate(key);                           // saved can land alone (page opened late)
+    ltStage(run,()=>ltStageC(run,ev,key),key);
+  }
+  window.LIVEMAP&&LIVEMAP.ping(ev.kind, ev);
+  return true;
+}
+// each stage stays on screen ≥1.4s even when the 6s poll delivers several events at once
+function ltStage(run,fn,key){
+  const wait=Math.max(0,run.minUntil-Date.now());
+  run.minUntil=Date.now()+wait+1400;
+  if(!wait){ fn(); return; }
+  setTimeout(()=>{ if(run.el.isConnected) fn(); else { clearTimeout(run._w); LEARN_RUNS.delete(key); } },wait);
+}
+function ltCreate(key){
+  const host=learnHost();
+  while(host.children.length>=3) host.firstChild.remove();
+  const el=document.createElement('div'); el.className='ltoast learning staged';
+  el.innerHTML='<div class="lt-head"><span class="lt-ic">🧠</span><span class="lt-t"></span><button class="lt-x" title="Dismiss">✕</button></div><div class="lt-body"></div>';
+  el.querySelector('.lt-x').onclick=(e)=>{ e.stopPropagation(); ltKill(key); };
+  el.querySelector('.lt-head').onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };   // pinned open while expanded
+  el.querySelector('.lt-body').onclick=()=>{ el.classList.toggle('expanded'); clearTimeout(el._t); };
+  host.appendChild(el);
+  const run={el,stage:'',minUntil:Date.now(),chimed:false,_w:setTimeout(()=>ltFade(key),120000)};   // dead distill → quiet fade
+  LEARN_RUNS.set(key,run);
+  return run;
+}
+function ltKill(key){ const r=LEARN_RUNS.get(key); if(!r) return; clearTimeout(r._w); clearTimeout(r.el._t); r.el.remove(); LEARN_RUNS.delete(key); }
+function ltFade(key){ const r=LEARN_RUNS.get(key); if(!r) return; r.el.classList.add('fading'); setTimeout(()=>ltKill(key),700); }
+function ltStageA(run,ev){
+  run.stage='A';
+  run.el.querySelector('.lt-t').textContent='Signal detected';
+  run.el.querySelector('.lt-body').innerHTML=
+    '<div class="lt-sig">'+esc(ev.signal||ev.detail||'learnable signal in this turn')+'</div>'
+    +(ev.source?'<div class="lt-src">from: '+esc(ev.source)+'</div>':'');
+}
+function ltStageB(run,ev){
+  if(!run.el.querySelector('.lt-sig')&&(ev.signal||ev.source)) ltStageA(run,ev);   // keep the signal visible underneath
+  run.stage='B';
+  run.el.querySelector('.lt-t').innerHTML='Analyzing the failure — searching for a solution&hellip;'
+    +'<span class="lt-think" aria-hidden="true"><i></i><i></i><i></i></span>';   // reduced-motion: dots go static via CSS
+}
+function ltStageC(run,ev,key){
+  run.stage='C';
+  run.el.classList.add('done');
+  run.el.querySelector('.lt-ic').textContent='✓';
+  const lessons=(ev.lessons||[]).slice(0,3);
+  run.el.querySelector('.lt-t').textContent='Solution found'+(lessons.length>1?' — '+lessons.length+' lessons':'');
+  run.el.querySelector('.lt-body').innerHTML=lessons.length
+    ? '<div class="lt-sol1">'+esc((lessons[0].solution||lessons[0].problem||'').slice(0,150))+'</div>'
+      +'<div class="lt-cards">'+lessons.map(l=>
+        '<div class="lt-lesson">'
+        +'<div class="lt-prob"><span class="lt-k">Problem</span>'+esc(l.problem||'')+'</div>'
+        +'<div class="lt-sol"><span class="lt-k">Solution</span>'+esc(l.solution||'—')+'</div>'
+        +'<div class="lt-cat">filed under '+esc(l.category||'lesson')+(l.trigger?' · '+esc(String(l.trigger).slice(0,70)):'')+'</div>'
+        +'</div>').join('')+'</div>'
+      +'<div class="lt-more">click to expand</div>'
+    : '<div class="lt-sol1">'+esc(ev.detail||'Lesson saved to the Playbook')+'</div>';
+  if(!run.chimed){ run.chimed=true; playLearnSound('learning-saved'); }   // s26 fires at the REVEAL, once per run
+  clearTimeout(run._w);
+  run.el._t=setTimeout(()=>{ if(!run.el.classList.contains('expanded')) ltKill(key); },16000);   // longer — there's content to read
+}
+function ltStageClean(run,ev,key){
+  run.stage='CLEAN';
+  run.el.classList.add('mutedc');
+  run.el.querySelector('.lt-ic').textContent='✓';
+  run.el.querySelector('.lt-t').textContent='Already known — nothing new to learn ✓';
+  run.el.querySelector('.lt-body').innerHTML='<div class="lt-sol1">'+esc(ev.detail||'All of this run’s traps were already in the Playbook.')+'</div>';
+  clearTimeout(run._w);                                    // NO sound on the clean path
+  run.el._t=setTimeout(()=>ltKill(key),5000);
+}
 function showLearnToast(ev){
   const k=LEARN_KINDS[ev.kind];
-  let host=$('learnToasts'); if(!host){ host=document.createElement('div'); host.id='learnToasts'; document.body.appendChild(host); }
+  if(!k) return;   // undefined kinds no-op (kept in sync with the pollLearnEvents filter)
+  playLearnSound(ev.kind);
+  window.LIVEMAP&&LIVEMAP.ping(ev.kind, ev);   // live map learning pulses — full event → lesson motes + ticker (learning-clean stays invisible)
+  const host=learnHost();
   while(host.children.length>=3) host.firstChild.remove();
   const el=document.createElement('div'); el.className='ltoast '+k.cls;
   el.innerHTML=`<div class="lt-head"><span class="lt-ic">${k.ic}</span><span class="lt-t">${esc(k.label)} — ${esc(ev.title)}</span><button class="lt-x" title="Dismiss">✕</button></div>`
@@ -2080,15 +2180,84 @@ function renderChat(messages){
 }
 
 // Per-reply actions live to the RIGHT of the Completed stamp, hover-revealed:
-// save the reply as a .md doc, or copy it. Idempotent per turn.
+// save the reply as a .md doc, copy it, or read it aloud. Idempotent per turn.
 function addReplyActions(msgEl, text){
   const turnEl=msgEl.closest('.turn'); const acts=turnActs(turnEl); if(!acts) return;
-  acts.querySelectorAll('.act-doc,.act-copy').forEach(el=>el.remove());
+  acts.querySelectorAll('.act-doc,.act-copy,.act-tts').forEach(el=>el.remove());
   const b1=document.createElement('button'); b1.className='act-doc'; b1.innerHTML=svg('i-file','sm')+' Open as doc';
   b1.onclick=()=>openReplyDoc(text, $('centerTitle').textContent);
   const b2=document.createElement('button'); b2.className='act-copy'; b2.innerHTML=svg('i-copy','sm')+' Copy';
   b2.onclick=()=>{ navigator.clipboard.writeText(text).then(()=>toast('Copied')); };
-  acts.appendChild(b1); acts.appendChild(b2);
+  const b3=document.createElement('button'); b3.className='act-tts'; b3.setAttribute('aria-pressed','false'); ttsBtnState(b3,'idle');
+  b3.onclick=()=>toggleReadAloud(b3, text);
+  acts.appendChild(b1); acts.appendChild(b2); acts.appendChild(b3);
+}
+// ---- read aloud: server TTS (Edge neural voices, mp3) + speechSynthesis fallback ----
+// One shared Audio element — starting a new read stops the previous one; the
+// button flips to a stop control while fetching/playing.
+const TTS={audio:null,btn:null,url:null};
+function speechText(md){
+  let t=String(md||'');
+  t=t.replace(/```[\s\S]*?```/g,' ');            // code fences dropped entirely
+  t=t.replace(/^\s*\|.*\|\s*$/gm,' ');           // tables skipped
+  t=t.replace(/!\[[^\]]*\]\([^)]*\)/g,' ');      // images dropped
+  t=t.replace(/\[([^\]]*)\]\([^)]*\)/g,'$1');    // links → link text
+  t=t.replace(/`([^`]*)`/g,'$1');                // inline code → plain
+  t=t.replace(/^#{1,6}\s+/gm,'');                // heading markers
+  t=t.replace(/^\s*>\s?/gm,'');                  // blockquote markers
+  t=t.replace(/^\s*([-*_]\s*){3,}$/gm,' ');      // hr lines
+  t=t.replace(/^\s*(?:[-*+]|\d+[.)])\s+/gm,'');  // list markers
+  t=t.replace(/(\*\*|__|~~)/g,'').replace(/(^|\s)[*_]([^*_]+)[*_](?=\s|[.,;:!?)]|$)/g,'$1$2');  // emphasis
+  return t.replace(/\s+/g,' ').trim();
+}
+function speechLang(t){ return /[Ⴀ-ჿ]/.test(t)?'ka':(/[Ѐ-ӿ]/.test(t)?'ru':'en'); }
+function ttsBtnState(btn,st){
+  if(!btn) return;
+  btn.classList.toggle('busy',st==='loading');
+  btn.setAttribute('aria-pressed',st==='playing'?'true':'false');
+  if(st==='playing') btn.innerHTML='<svg class="ic sm" viewBox="0 0 24 24" style="fill:currentColor;stroke:none"><rect x="6" y="6" width="12" height="12" rx="2.5"/></svg> Stop';
+  else btn.innerHTML=svg('i-volume','sm')+(st==='loading'?' Fetching…':' Read aloud');
+  btn.title=st==='playing'?'Stop reading':'Read this reply aloud';
+}
+function stopReadAloud(){
+  if(TTS.audio){ try{ TTS.audio.pause(); }catch{} TTS.audio.onended=TTS.audio.onerror=null; }
+  if(TTS.url){ try{ URL.revokeObjectURL(TTS.url); }catch{} TTS.url=null; }
+  try{ speechSynthesis.cancel(); }catch{}
+  if(TTS.btn) ttsBtnState(TTS.btn,'idle');
+  TTS.btn=null;
+}
+function ttsFallbackSpeak(btn,t,lang){
+  const u=new SpeechSynthesisUtterance(t);
+  u.lang={en:'en-US',ru:'ru-RU',ka:'ka-GE'}[lang]||'en-US';
+  const v=(speechSynthesis.getVoices()||[]).find(x=>(x.lang||'').toLowerCase().startsWith(lang));
+  if(v) u.voice=v;
+  u.onend=u.onerror=()=>{ if(TTS.btn===btn) stopReadAloud(); };
+  speechSynthesis.speak(u);
+  ttsBtnState(btn,'playing');
+}
+async function toggleReadAloud(btn,md){
+  if(TTS.btn===btn){ stopReadAloud(); return; }   // acting stop control
+  stopReadAloud();                                 // a new read supersedes the old one
+  const t=speechText(md);
+  if(!t){ toast('Nothing readable in this reply'); return; }
+  const lang=speechLang(t);
+  TTS.btn=btn; ttsBtnState(btn,'loading');
+  try{
+    const r=await fetch('/api/tts',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:t,lang})});
+    if(!r.ok) throw new Error('tts '+r.status);
+    const blob=await r.blob();
+    if(TTS.btn!==btn) return;                      // superseded while fetching
+    if(!TTS.audio) TTS.audio=new Audio();
+    TTS.url=URL.createObjectURL(blob);
+    TTS.audio.src=TTS.url;
+    TTS.audio.onended=TTS.audio.onerror=()=>{ if(TTS.btn===btn) stopReadAloud(); };
+    await TTS.audio.play();
+    if(TTS.btn===btn) ttsBtnState(btn,'playing');
+  }catch(e){
+    if(TTS.btn!==btn) return;
+    try{ ttsFallbackSpeak(btn,t,lang); }           // degrade to the browser voice
+    catch(e2){ stopReadAloud(); toast('Read aloud failed: '+e.message); }
+  }
 }
 // Regenerate (and, after a Stop, Continue) — only the newest reply keeps these;
 // they sit first in the same hover cluster. Tagged .act-nav so a new turn can strip them.
@@ -2361,6 +2530,7 @@ async function renderDashboard(){
       ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
       ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
       ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
+      ${T('i-folder','App Preview',"openTarget('/app-preview.html',{title:'App Preview'})",c.green)}
       ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
     </div></section>
   </div>`;
@@ -2541,6 +2711,199 @@ function dequeue(){
   }
 }
 
+// ---------- voice dictation (Chrome Web Speech API + device picker) ----------
+// Mic button: first click opens the mic/language popover, afterwards it toggles
+// dictation with the remembered device (right-click reopens the popover).
+// System-default device → continuous SpeechRecognition into #input (final
+// results append with input event, interim results show as ghost text above the
+// composer). NON-default device → Chrome can't point SpeechRecognition at it,
+// so we capture that exact device with MediaRecorder and transcribe the blob
+// via POST /api/transcribe (Gemini, key in Settings → General); no key → honest
+// fallback to the system-default Web Speech path. No SpeechRecognition at all
+// (non-Chrome) → the button stays hidden.
+const DICT_LANGS=['en-US','ru-RU','ka-GE'];
+const DICT={on:false,engine:null,rec:null,media:null,recorder:null,chunks:[],devices:null,stopTimer:null,restarts:0,err:null,
+  lang:(()=>{ try{ const l=localStorage.getItem('crs-dict-lang'); return DICT_LANGS.includes(l)?l:'en-US'; }catch{ return 'en-US'; } })(),
+  device:(()=>{ try{ const d=JSON.parse(localStorage.getItem('crs-dict-device')||'null'); return (d&&d.deviceId)?d:null; }catch{ return null; } })()};
+function dictSR(){ return window.SpeechRecognition||window.webkitSpeechRecognition||null; }
+function dictTag(){ return DICT.lang.slice(0,2).toUpperCase(); }
+// Engine routing (honest): SpeechRecognition always records the system-default
+// input, so only the default device may use it; anything else goes recorder→API.
+function dictIsDefaultDevice(dev,devs){
+  if(!dev||!dev.deviceId||dev.deviceId==='default') return true;
+  const sys=(devs||[]).find(d=>d.deviceId==='default');
+  return !!(sys&&sys.label&&dev.label&&sys.label.toLowerCase().includes(dev.label.toLowerCase()));
+}
+function dictEngine(dev,devs){ return dictIsDefaultDevice(dev,devs)?'webspeech':'recorder'; }
+// Preferred default: the built-in mic when we can spot it, else the system default.
+function dictPickDefault(devs){ return devs.find(d=>/macbook.*micro|built-in/i.test(d.label||''))||devs.find(d=>d.deviceId==='default')||devs[0]||null; }
+async function dictListDevices(){
+  if(!navigator.mediaDevices||!navigator.mediaDevices.enumerateDevices) return [];
+  const ins=async()=> (await navigator.mediaDevices.enumerateDevices()).filter(d=>d.kind==='audioinput');
+  let list=await ins();
+  if(list.length&&list.every(d=>!d.label)){   // labels hidden until mic permission — ask once, release right away
+    try{ const st=await navigator.mediaDevices.getUserMedia({audio:true}); st.getTracks().forEach(t=>t.stop()); list=await ins(); }catch{}
+  }
+  return list.map(d=>({deviceId:d.deviceId,label:d.label||('Microphone '+String(d.deviceId||'').slice(0,6))}));
+}
+function dictSaveDevice(dev){ DICT.device=dev; try{ localStorage.setItem('crs-dict-device',JSON.stringify(dev?{deviceId:dev.deviceId,label:dev.label}:null)); }catch{} }
+function dictGhost(t){ const g=$('dictGhost'); if(!g) return; clearTimeout(g._t); g.textContent=t||''; g.classList.toggle('show',!!t); }
+function dictGhostFlash(t){ const g=$('dictGhost'); if(!g) return; dictGhost(t); g._t=setTimeout(()=>dictGhost(''),1600); }
+function dictAppendFinal(t){
+  t=String(t||'').trim(); if(!t) return;
+  const inp=$('input'); if(!inp) return;
+  inp.value=(inp.value&&!/\s$/.test(inp.value)?inp.value+' ':inp.value)+t;
+  inp.dispatchEvent(new Event('input',{bubbles:true}));
+}
+// Chrome 139+ on-device models: probe availability and kick off a background
+// install when the pack is merely downloadable — fire-and-forget, never blocks.
+function dictProbeInstall(lang){
+  try{
+    const SR=dictSR();
+    if(!SR||typeof SR.available!=='function') return;
+    Promise.resolve(SR.available({langs:[lang],processLocally:true})).then(st=>{
+      if(st==='downloadable'&&typeof SR.install==='function') Promise.resolve(SR.install({langs:[lang]})).catch(()=>{});
+    }).catch(()=>{});
+  }catch{}
+}
+function dictUpdateBtn(){
+  const b=$('micBtn'); if(!b) return;
+  b.classList.toggle('rec',DICT.on);
+  const nonDefault=!!DICT.device&&dictEngine(DICT.device,DICT.devices||[])==='recorder';
+  b.innerHTML='<svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg>'+(nonDefault?'<span class="devdot"></span>':'');
+  b.title=(DICT.on?'Stop dictation':'Dictate')+' — '+dictTag()
+    +(DICT.device&&DICT.device.label?' · '+DICT.device.label:'')
+    +' (right-click: mic & language)';
+}
+// ---- mic/language popover (same visual language as the explorer menus) ----
+async function micMenuAt(){
+  let m=$('micMenu');
+  if(!m){ m=document.createElement('div'); m.id='micMenu'; m.className='expl-menu mic-menu'; document.body.appendChild(m);
+    document.addEventListener('pointerdown',(ev)=>{ if(!ev.target.closest('#micMenu')&&!ev.target.closest('#micBtn')) m.style.display='none'; },true); }
+  const place=()=>{ const r=$('micBtn').getBoundingClientRect(); m.style.left=Math.min(r.left,innerWidth-250)+'px'; m.style.top='auto'; m.style.bottom=(innerHeight-r.top+6)+'px'; };
+  m.innerHTML='<div class="mm-t">Microphone</div><div class="mm-note">Looking for microphones…</div>';
+  m.style.display='block'; place();
+  const devs=await dictListDevices(); DICT.devices=devs;
+  if(!DICT.device&&devs.length) dictSaveDevice(dictPickDefault(devs));
+  const cur=DICT.device||{};
+  const needKey=dictEngine(DICT.device,devs)==='recorder'&&!(SETTINGS&&SETTINGS.googleAiKeySet);
+  m.innerHTML='<div class="mm-t">Microphone</div>'
+    +(devs.length?devs.map((d,i)=>`<button data-dev="${i}" class="${d.deviceId===cur.deviceId?'on':''}"><span class="mm-radio"></span><span class="mm-lbl">${esc(d.label)}</span></button>`).join(''):'<div class="mm-note">No microphones found.</div>')
+    +'<div class="mdiv"></div><div class="mm-t">Language</div>'
+    +'<div class="mm-langs">'+DICT_LANGS.map(l=>`<button data-lang="${l}" class="${l===DICT.lang?'on':''}">${l.slice(0,2).toUpperCase()}</button>`).join('')+'</div>'
+    +(needKey?'<div class="mm-note">This mic transcribes via Google AI — add the free key in Settings → General, or it falls back to the system-default mic.</div>':'')
+    +'<div class="mdiv"></div><button data-act="start">'+(DICT.on?'Stop dictation':'Start dictation')+'</button>';
+  place();
+  m.onclick=(ev)=>{
+    const b=ev.target.closest('button'); if(!b) return;
+    if(b.dataset.dev!=null){ dictSaveDevice(devs[+b.dataset.dev]); dictUpdateBtn(); micMenuAt(); }
+    else if(b.dataset.lang){ setDictLang(b.dataset.lang); micMenuAt(); }
+    else if(b.dataset.act==='start'){ m.style.display='none'; toggleDictation(true); }
+  };
+}
+function micContext(e){ if(e) e.preventDefault(); micMenuAt(); return false; }
+function setDictLang(l){
+  if(!DICT_LANGS.includes(l)) return;
+  DICT.lang=l; try{ localStorage.setItem('crs-dict-lang',l); }catch{}
+  const wasOn=DICT.on&&DICT.engine==='webspeech';
+  if(wasOn){ stopDictation(); startDictation(); }   // pick up the new lang mid-session
+  dictUpdateBtn(); dictProbeInstall(l);
+}
+function startWebSpeech(){
+  const SR=dictSR(); if(!SR||DICT.on) return;
+  let r;
+  try{ r=new SR(); }catch{ return; }
+  r.continuous=true; r.interimResults=true; r.lang=DICT.lang;
+  r.onresult=(e)=>{
+    let interim='';
+    for(let i=e.resultIndex;i<e.results.length;i++){
+      const res=e.results[i];
+      if(res.isFinal) dictAppendFinal(res[0]&&res[0].transcript); else interim+=(res[0]&&res[0].transcript)||'';
+    }
+    dictGhost(interim.trim());
+  };
+  r.onerror=(e)=>{ DICT.err=(e&&e.error)||'error'; };
+  r.onend=()=>{
+    if(DICT.rec!==r) return;   // superseded by a newer session
+    dictGhost('');
+    const transient=!DICT.err||DICT.err==='no-speech'||DICT.err==='network';
+    if(DICT.on&&transient&&DICT.restarts<3){
+      DICT.restarts++; DICT.err=null;
+      try{ r.start(); return; }catch{}
+    }
+    DICT.on=false; DICT.rec=null; DICT.err=null; dictUpdateBtn();
+  };
+  DICT.rec=r; DICT.on=true; DICT.engine='webspeech'; DICT.restarts=0; DICT.err=null;
+  try{ r.start(); }catch{ DICT.on=false; DICT.rec=null; }
+  dictUpdateBtn();
+}
+// ---- non-default device path: capture that exact mic, transcribe on stop ----
+async function startRecorder(){
+  if(DICT.on) return;
+  let stream;
+  try{ stream=await navigator.mediaDevices.getUserMedia({audio:{deviceId:{exact:DICT.device.deviceId}}}); }
+  catch(e){ toast('Mic "'+(DICT.device&&DICT.device.label||'?')+'" unavailable — using the system-default mic'); startWebSpeech(); return; }
+  const mime=(window.MediaRecorder&&MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/webm;codecs=opus'))?'audio/webm;codecs=opus':'audio/webm';
+  let mr;
+  try{ mr=new MediaRecorder(stream,{mimeType:mime}); }
+  catch(e){ stream.getTracks().forEach(t=>t.stop()); toast('Recording unsupported — using the system-default mic'); startWebSpeech(); return; }
+  DICT.media=stream; DICT.recorder=mr; DICT.chunks=[]; DICT.on=true; DICT.engine='recorder';
+  mr.ondataavailable=(ev)=>{ if(ev.data&&ev.data.size) DICT.chunks.push(ev.data); };
+  mr.onstop=()=>dictTranscribe();
+  mr.start();
+  DICT.stopTimer=setTimeout(()=>{ if(DICT.on&&DICT.engine==='recorder') stopDictation(); },5*60*1000);   // safety cap
+  dictUpdateBtn(); dictGhost('Listening — '+(DICT.device.label||'selected mic')+' · click the mic to stop & transcribe');
+}
+async function dictTranscribe(){
+  const blob=new Blob(DICT.chunks,{type:(DICT.chunks[0]&&DICT.chunks[0].type)||'audio/webm'});
+  DICT.chunks=[];
+  if(!blob.size){ dictGhost(''); return; }
+  dictGhost('Transcribing…');
+  try{
+    const b64=await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(String(fr.result).split(',')[1]||''); fr.onerror=rej; fr.readAsDataURL(blob); });
+    const r=await fetch('/api/transcribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({audio:b64,mime:blob.type,lang:DICT.lang.slice(0,2)})});
+    const j=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
+    dictAppendFinal(j.text);
+    dictGhost('');
+  }catch(e){ dictGhostFlash('Transcription failed — '+e.message); }
+}
+function stopDictation(){
+  DICT.on=false; clearTimeout(DICT.stopTimer);
+  const r=DICT.rec; DICT.rec=null;
+  if(r){ try{ r.stop(); }catch{} }
+  const mr=DICT.recorder; DICT.recorder=null;
+  if(mr){ try{ if(mr.state!=='inactive') mr.stop(); }catch{} }   // → onstop → dictTranscribe
+  if(DICT.media){ try{ DICT.media.getTracks().forEach(t=>t.stop()); }catch{} DICT.media=null; }
+  if(DICT.engine!=='recorder') dictGhost('');   // recorder path keeps its Transcribing… ghost
+  dictUpdateBtn();
+}
+// Short-click: picker on first ever use, then start/stop with the remembered
+// device. forceStart=true comes from the popover's Start action.
+async function toggleDictation(forceStart){
+  if(DICT.on){ stopDictation(); return; }
+  if(!DICT.device&&forceStart!==true){ micMenuAt(); return; }
+  await startDictation();
+}
+async function startDictation(){
+  if(DICT.on) return;
+  const devs=DICT.devices||(DICT.devices=await dictListDevices());
+  if(!DICT.device) dictSaveDevice(dictPickDefault(devs));
+  let engine=dictEngine(DICT.device,devs);
+  if(engine==='recorder'&&!(SETTINGS&&SETTINGS.googleAiKeySet)){
+    toast('This mic needs the free Google AI key (Settings → General) — using system-default mic instead');
+    engine='webspeech';
+  }
+  engine==='webspeech'?startWebSpeech():await startRecorder();
+}
+(function initDictation(){
+  const b=$('micBtn'); if(!b) return;
+  if(!dictSR()) return;          // unsupported browser — keep it hidden
+  b.style.display='';
+  dictUpdateBtn();
+  dictProbeInstall(DICT.lang);
+})();
+
 // ---------- attachments ----------
 function pickFiles(){ $('fileInput').click(); }
 function renderChips(){
@@ -2667,6 +3030,8 @@ async function streamChat(text, opts={}){
   // returns, and so it stops touching the composer once it's no longer the view.
   const live={ gen:state.viewGen, chatId:state.chatId, done:false, node:a, turn, userText:text, atts:(opts.attachments&&opts.attachments.length)?opts.attachments:opts.attachmentNames, bp:state.bp===true };
   state.live=live;
+  syncLiveRow();   // sidebar3: start the live pulse on this chat's sidebar row
+  window.LIVEMAP&&LIVEMAP.ping('turn-start');   // live map: You→Brain→Model path lights up
   const mine=()=> state.live===live && live.gen===state.viewGen;
   const nearBottom=()=> log.scrollHeight-log.scrollTop-log.clientHeight < 150;
 
@@ -2812,16 +3177,18 @@ async function streamChat(text, opts={}){
             // reclaim it from the answer body into a timeline note, then start the tool step.
             if(ev.kind==='tool' && full.trim()){ addNoteStep(full); full=''; revealed=0; answerEl.innerHTML=''; answerEl.appendChild(caret); }
             startCard(ev.kind, ev.tool, ev.actor);
+            if(ev.kind==='tool') window.LIVEMAP&&LIVEMAP.ping(ev.actor==='buildprint'?'bp-step':'tool',{tool:ev.tool});   // live map: Model→Tools (→Buildprint→Bubble) + tool-name child molecule
           }
         }
         else if(ev.type==='actor'){
           // Lane upgrade: a Bash step turned out to be a buildprint/agent-browser
           // command once its input streamed in — re-tag the live card + divider.
           if(activeStep && activeStep.el.dataset.actor!==ev.actor){ activeStep.el.dataset.actor=ev.actor; laneMark(ev.actor, activeStep.el); }
+          if(ev.actor==='buildprint') window.LIVEMAP&&LIVEMAP.ping('bp-step');   // live map: lane upgrade = Buildprint path
         }
         else if(ev.type==='think'){ appendThink(ev.text||''); }
         else if(ev.type==='label'){ if(activeStep&&ev.text){ activeStep.labelEl.textContent=ev.text; activeStep.icoEl.innerHTML=stepIco(activeStep.kind, ev.text); } }
-        else if(ev.type==='detail'){ if(activeStep){ setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
+        else if(ev.type==='detail'){ if(activeStep){ if(!activeStep.lmCmd&&activeStep.kind==='tool'&&ev.text){ activeStep.lmCmd=true; window.LIVEMAP&&LIVEMAP.ping('tool-detail',{cmd:String(ev.text).split('\n')[0]}); } setStepBody(activeStep.text + (activeStep.text?'\n':'') + (ev.text||'')); } }
         else if(ev.type==='status'){ /* superseded by work blocks */ }
         else if(ev.type==='question'){
           // session is BLOCKED on this — render the card right in the turn
@@ -2835,9 +3202,9 @@ async function streamChat(text, opts={}){
           const el=document.querySelector('.askcard[data-ask-id="'+ev.id+'"]');
           if(el){ el.replaceWith(askReceiptEl({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString()})); if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m.id===ev.id) ASK_LIVE_CARD=null; }
         }
-        else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); }
+        else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); window.LIVEMAP&&LIVEMAP.ping('model', genModel); }
         else if(ev.type==='model-switch'){
-          genModel=ev.to||genModel; paintMeter();
+          genModel=ev.to||genModel; paintMeter(); window.LIVEMAP&&LIVEMAP.ping('model', genModel);
           const note=document.createElement('div'); note.className='switch-note';
           note.innerHTML='<span class="sw-bolt">⚡</span><span>'+esc(modelNice(ev.from))+' unavailable — switched to <b>'+esc(modelNice(ev.to))+'</b> to keep going</span>';
           body.insertBefore(note, blocksEl);
@@ -2861,6 +3228,8 @@ async function streamChat(text, opts={}){
     }
   }finally{
     live.done=true; clearInterval(timerIv); clearInterval(meterIv); if(gm&&mine()) gm.classList.remove('show');
+    syncLiveRow();   // sidebar3: stop the live pulse the moment the turn completes
+    window.LIVEMAP&&LIVEMAP.ping('turn-end',{secs:Math.round((performance.now()-genStart)/1000)});   // live map: path back to idle + "✓ done · Ns" ticker
     try{ brainEl.remove(); }catch{}
     // Only touch the composer/queue if this stream still owns the active view —
     // otherwise the user has moved on and a different stream (or none) is in charge.
@@ -2877,21 +3246,6 @@ async function streamChat(text, opts={}){
   }
 }
 
-// Weekly digest — pull recent git commits + progress board, ask the Brain to synthesize.
-async function runDigest(){
-  if(state.sending) return;
-  newChat();
-  toast('Gathering recent changes…');
-  try{
-    const ctx=await api('/api/digest-context?days=7');
-    const prog=JSON.stringify(ctx.progress,null,2);
-    const msg=`Weekly digest. Use ONLY the context provided below — do not read repo files (keep this fast). Tell me:\n`+
-      `1) What changed in the last ${ctx.days} days\n2) What's in progress now\n3) What's next\n4) Anything missing, stalled, or at risk.\n`+
-      `Be concise and specific.\n\n`+
-      `## Git commits (last ${ctx.days} days)\n${ctx.log||'(none)'}\n\n## Progress board\n\`\`\`json\n${prog}\n\`\`\``;
-    streamChat(msg,{title:'Weekly digest — '+new Date().toISOString().slice(0,10)});
-  }catch(e){ toast('Digest failed: '+e.message); }
-}
 
 // ---------- files ----------
 async function loadFiles(){
@@ -2944,7 +3298,6 @@ function extOf(name){ return (name.split('.').pop()||'').toLowerCase(); }
 function fileTileFor(pth, big){ const name=pth.split('/').pop(); const cls='ftile'+(big?' lg':'');
   if(isImg(name)) return `<span class="${cls}"><img loading="lazy" src="/api/raw?path=${encodeURIComponent(pth)}"></span>`;
   return `<span class="fic">${fileIcon(name,20)}</span>`; }
-function folderTile(big){ return `<span class="ftile folder${big?' lg':''}">${svg('i-folder')}</span>`; }
 
 // ---------- Finder/Explorer-style file browser ----------
 // Source-agnostic filesystem ops. Branch A = real repo writes via /api/fs/* (all
@@ -3606,7 +3959,7 @@ async function dwDocxFill(w){
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
 // Window policy (polish): ONE router decides by target type. App surfaces open
 // full-area with a ← back; files open in their popup window/viewer.
-const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html','/playbook.html'];
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/app-preview.html','/entity.html','/cost.html','/playbook.html'];
 function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
 function openTarget(target, opts){
   opts=opts||{};
@@ -3861,7 +4214,7 @@ function openHtmlOverlay(p, protoName){
   hidePeek(); const h=ensureHtmlFull(); const name=p.split('/').pop();
   const protoBtns=protoName?`
     <span class="hf-proto" id="hfProtoMeta">…</span>
-    <button class="hf-pbtn" title="Toggle prototype theme" onclick="protoOverlayTheme()">◐ Theme</button>
+    <button class="hf-pbtn hf-scoped" title="Theme of the previewed prototype only — does not change the app theme" onclick="protoOverlayTheme()">◐ Prototype theme</button>
     <button class="hf-pbtn" title="Snapshot the current html into versions/" onclick="protoOverlaySnapshot('${jsq(protoName)}')">⬇ Snapshot</button>
     <button class="hf-pbtn" title="Freeze this exact html as the settled hash" onclick="protoOverlaySettle('${jsq(protoName)}')">✓ Mark settled</button>`:'';
   h.innerHTML=`<div class="hf-bar"><span class="hf-name">${esc(name)} <span style="color:var(--muted);font-weight:400">· ${esc(p)}</span></span>${protoBtns}
@@ -4481,7 +4834,7 @@ async function loadProgress(){
   }
   const missing=(p.missing||[]);
   const m=document.createElement('div'); m.className='pcol missing';
-  m.innerHTML=`<div class="hdr"><span class="pill" style="background:#EF4444"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
+  m.innerHTML=`<div class="hdr"><span class="pill" style="background:var(--error)"></span>Missing / gaps<span class="cnt">${missing.length}</span></div>`;
   if(!missing.length) m.innerHTML+='<div class="empty">—</div>';
   for(const x of missing){ const c=document.createElement('div'); c.className='card'; c.innerHTML=`<div class="t">${esc(typeof x==='string'?x:(x.title||''))}</div>`; m.appendChild(c); }
   box.appendChild(m);
@@ -4801,12 +5154,6 @@ async function loadUsage(){
     `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
     `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
 }
-// Header ↻ — instant re-read of the cached reading.
-async function refreshUsage(btn){
-  const ic=btn&&btn.querySelector('.ic'); if(ic) ic.classList.add('spinning');
-  await loadUsage();
-  if(ic) setTimeout(()=>ic.classList.remove('spinning'),400);
-}
 // Drive a brief interactive Claude session to get a brand-new reading.
 async function fetchFreshUsage(){
   if(state.populating) return;
@@ -4825,15 +5172,6 @@ async function enableUsage(){
 }
 async function disableUsage(){ try{ await api('/api/usage/disable',{method:'POST'}); toast('Usage tracking turned off'); }catch(e){} loadUsage(); }
 
-// ---------- Buildprint connection status (sidebar) ----------
-async function bpStatus(){
-  const el=$('bpConn'); if(!el) return;
-  try{ const s=await api('/api/bp/status');
-    el.innerHTML = s.ready
-      ? `<span class="bp-ok"></span> ${esc(s.app)} · ${esc(s.branch)} branch`
-      : '<span class="bp-off"></span> not connected — link the CLI first';
-  }catch{ el.textContent='offline'; }
-}
 // ---------- Sync from Buildprint → update the brain ledger ----------
 async function bpTrack(){
   if(state.sending) return;
@@ -4842,7 +5180,7 @@ async function bpTrack(){
   // order matters: setTab()→newChat() (chatView hidden, chatId null) resets state.bp,
   // so BP mode must be forced AFTER the view swap or follow-ups post bp:false
   state.chatId=null; setTab('buildprint'); showChat();
-  state.bp=true; reflectMode(); bpStatus();
+  state.bp=true; reflectMode();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
   const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));
@@ -5085,6 +5423,8 @@ function sendTestNotif(){ notifyT('success',{title:'Test notification',message:'
 async function resetTypePrefs(id){ const np=SETTINGS.notifyPrefs||{}; const types=Object.assign({},np.types); delete types[id]; SETTINGS.notifyPrefs=Object.assign({},np,{types}); await saveSettingsPatch({notifyPrefs:{types:{[id]:{reset:true}}}}); renderSettings(); }
 async function resetAllTypePrefs(){ if(!await crsConfirm({title:'Reset all notification preferences?',body:'Every notification type returns to its default channels and sound.',confirmLabel:'Reset all',danger:false})) return; SETTINGS.notifyPrefs=Object.assign({},SETTINGS.notifyPrefs,{types:{}}); await saveSettingsPatch({notifyPrefs:{resetAll:true}}); renderSettings(); }
 function setSoundVolume(v,save){ SOUNDS.setVolume(v); if(save){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{volume:Number(v)}); saveSettingsPatch({sounds:{volume:Number(v)}}); SOUNDS.playEvent('new-notification'); } }
+async function setLearnSounds(v){ SETTINGS.sounds=Object.assign({},SETTINGS.sounds,{learnSounds:!!v}); await saveSettingsPatch({sounds:{learnSounds:!!v}}); if(v) SOUNDS.playSound('s26'); }
+async function saveGoogleKeyUI(){ const inp=$('setGoogleKey'); const v=(inp&&inp.value||'').trim(); await saveSettingsPatch({googleAiKey:v}); if(inp)inp.value=''; renderSettings(); toast(v?'Google AI key saved':'Google AI key cleared'); }
 function setPref(k,v){ if(SETTINGS)SETTINGS[k]=v; saveSettingsPatch({[k]:v}); toast('Saved'); }
 function saveEmail(){ const v=($('setEmail')||{}).value||''; setNotifPref('emailTo',v.trim()); toast('Email saved'); }
 // ---- Bubble sync truth UI (D4): spinner while running, TRUE outcome through
@@ -5123,7 +5463,10 @@ async function renderSettings(){
       <div class="mrow"><div class="mlbl"><b>Bubble awareness — check now</b><span>Always-on daily watchers (no AI cost): new CRS-relevant forum topics → brain/bubble/forum-digest.md; new release entries → brain/bubble/release-notes.md with locked-decision cross-check.</span><span class="sync-stamp" id="syncStamp-forum">…</span><span class="sync-stamp" id="syncStamp-relnotes">…</span></div>
         <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('forum-check','Forum',this)">Check forum</button><button class="mbtn2" onclick="bubbleCheckNow('relnotes-check','Release notes',this)">Check releases</button></div></div>
       <div class="mrow"><div class="mlbl"><b>Bubble issue check (read-only)</b><span>Runs buildprint sync + check on the test branch and writes a dated report with PROPOSED fixes to brain/bubble/issue-reports/ — never applies anything. Also runs daily.</span><span class="sync-stamp" id="syncStamp-issues">…</span></div>
-        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check',this)">Check issues</button></div></div>`;
+        <div class="mctl"><button class="mbtn2" onclick="bubbleCheckNow('issue-check','Issue check',this)">Check issues</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Voice</div>
+      <div class="mrow"><div class="mlbl"><b>Google AI key (free, aistudio.google.com)</b><span>Only used to transcribe dictation from a non-default microphone (Gemini). Kept in a gitignored local file and always shown masked${s.googleAiKeySet?' — currently '+esc(s.googleAiKey||''):''}.</span></div>
+        <div class="mctl"><input class="tinput" id="setGoogleKey" type="password" autocomplete="off" placeholder="${s.googleAiKeySet?'saved — paste to replace, save blank to clear':'AIza…'}"><button class="mbtn2 primary" onclick="saveGoogleKeyUI()">Save</button></div></div>`;
   } else if(settingsTab==='appearance'){
     pane=`<div class="msec-title">Theme</div>
       <div class="mrow"><div class="mlbl"><b>Appearance</b><span>Switch between dark and light. Applies instantly across the app.</span></div>
@@ -5150,7 +5493,7 @@ async function renderSettings(){
         <div class="mctl"><input type="range" min="2" max="10" step="1" value="${np.bannerSec||4}" style="width:160px" oninput="setBannerSec(this.value,false)" onchange="setBannerSec(this.value,true)"><span class="dim" id="bannerSecLbl" style="min-width:28px;text-align:right">${np.bannerSec||4}s</span></div></div>
       <div class="mrow"><div class="mlbl"><b>Question re-notify</b><span>An unanswered session question knocks again once after this many minutes.</span></div>
         <div class="mctl"><input class="tinput" type="number" min="1" max="120" style="width:70px" value="${(np.askRenotifyMin||10)}" onchange="setAskRenotify(this.value)"><span class="dim">min</span></div></div>
-      <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 24-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
+      <div class="mrow"><div class="mlbl"><b>Volume &amp; sound library</b><span>Master volume, the 26-sound library, and regeneration live in the Sounds tab.</span></div><div class="mctl"><button class="mbtn2" onclick="setSettingsTab('sounds')">${svg('i-volume','sm')} Open Sounds</button></div></div>
       <div class="mrow"><div class="mlbl"><b>Test</b><span>Fire a real notification through your current preferences.</span></div><div class="mctl"><button class="mbtn2" onclick="sendTestNotif()">Send test notification</button></div></div>
       ${NOTIFY_CATEGORIES.map(c=>`<div class="msec-title" style="margin-top:16px">${esc(c.name)}</div>${typeRows(c.id)}`).join('')}
       <div class="mrow"><div class="mlbl"><b>Reset all</b><span>Return every notification type to its default channels and sound.</span></div><div class="mctl"><button class="mbtn2" onclick="resetAllTypePrefs()">Reset all</button></div></div>
@@ -5163,18 +5506,21 @@ async function renderSettings(){
     pane=`<div class="msec-title">Volume</div>
       <div class="mrow"><div class="mlbl"><b>Master volume</b><span>Applies to every sound. Release the slider to save + preview.</span></div>
         <div class="mctl"><input type="range" min="0" max="100" value="${snd.volume!=null?snd.volume:80}" style="width:160px" oninput="setSoundVolume(this.value,false)" onchange="setSoundVolume(this.value,true)"><span class="dim" style="min-width:32px;text-align:right">${snd.volume!=null?snd.volume:80}</span></div></div>
+      <div class="mrow"><div class="mlbl"><b>Learning sounds (apply/learn chimes)</b><span>Magical chimes when the brain applies knowledge (⚡ Spark shimmer) or saves a lesson (🧠 Mind bloom). DND mutes them too.</span></div>
+        <div class="mctl">${sw(snd.learnSounds!==false,"setLearnSounds(this.checked)")}</div></div>
       <div class="mrow"><div class="mlbl"><b>Per-type sounds</b><span>Sound assignment moved — each notification type picks its sound in the Notifications tab.</span></div>
         <div class="mctl"><button class="mbtn2" onclick="setSettingsTab('notifications')">${svg('i-bell','sm')} Open Notifications</button></div></div>
       <div class="msec-title" style="margin-top:16px">Sound files</div>
-      <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 24 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
-      <div class="msec-title" style="margin-top:16px">Library — all 24</div>
+      <div class="mrow"><div class="mlbl"><b>Regenerate sound files</b><span>Re-renders all 26 WAVs into data/sounds/ (they auto-regenerate on load if missing).</span></div><div class="mctl"><button class="mbtn2" onclick="regenSounds()">Regenerate</button></div></div>
+      <div class="msec-title" style="margin-top:16px">Library — all 26</div>
       ${cats.map(c=>`<div class="msec-title" style="margin-top:10px;font-size:11px;opacity:.7">${SOUNDS_SYNTH.catLabel[c]}</div>`+SOUNDS_SYNTH.list.filter(x=>x.cat===c).map(x=>`<div class="mrow"><div class="mlbl"><b>${esc(x.name)}</b><span>${esc(x.desc)}</span></div><div class="mctl"><button class="mbtn2" onclick="SOUNDS.playSound('${x.id}')">${svg('i-volume','sm')} Play</button></div></div>`).join('')).join('')}`;
   } else if(settingsTab==='connections'){
     pane=`<div class="msec-title">Claude (subscription)</div>
       <div class="mrow"><div class="mlbl"><b>Claude Code</b><span id="connClaudeSub">Checking…</span></div><div class="mctl"><span class="mstat" id="connClaude">…</span><button class="mbtn2" id="connClaudeBtn" onclick="connClaudeAction()">…</button></div></div>
       <div class="msec-title" style="margin-top:16px">Buildprint CLI</div>
       <div class="mrow"><div class="mlbl"><b>Buildprint link</b><span id="connBpSub">Paste your Buildprint token to link this machine. Runs <code>buildprint link</code> — the token is stored by Buildprint, not in the brain.</span></div><div class="mctl"><span class="mstat" id="connBp">…</span></div></div>
-      <div class="mrow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>
+      <div class="mrow" id="bpTokenRow"><div class="mlbl"><b>Token</b><span>From your Buildprint account.</span></div><div class="mctl"><input class="tinput" id="bpToken" type="password" placeholder="buildprint token…" autocomplete="off"><button class="mbtn2 primary" onclick="linkBuildprint()">Link</button></div></div>
+      <div class="mrow" id="bpLinkedRow" style="display:none"><div class="mlbl"><b>This machine</b><span id="bpLinkedSub">Linked.</span></div><div class="mctl"><button class="mbtn2" onclick="revokeBuildprint()">Unlink</button></div></div>
       <div class="msec-title" style="margin-top:16px">Email (SMTP)</div>
       <div class="mrow"><div class="mlbl"><b>SMTP server</b><span id="connSmtpSub">For email notifications. Stored in a gitignored local file — never committed.</span></div><div class="mctl"><span class="mstat" id="connSmtp">…</span></div></div>
       <div class="mrow"><div class="mlbl"><b>Host & port</b></div><div class="mctl"><input class="tinput" id="smtpHost" placeholder="smtp.example.com" autocomplete="off" style="min-width:150px"><input class="tinput" id="smtpPort" placeholder="587" autocomplete="off" style="min-width:70px"></div></div>
@@ -5195,7 +5541,12 @@ async function renderSettings(){
 }
 async function refreshConnStatus(){
   try{ const a=await api('/api/auth/status'); const el=$('connClaude'),sub=$('connClaudeSub'),btn=$('connClaudeBtn'); if(el){ if(a.loggedIn){ el.textContent='Connected'; el.className='mstat ok'; if(sub)sub.textContent=`${a.email||'signed in'} · ${a.subscriptionType||a.authMethod||''}`; if(btn)btn.textContent='Sign out'; } else { el.textContent='Not connected'; el.className='mstat off'; if(sub)sub.textContent='Sign in to Claude to use the brain.'; if(btn)btn.textContent='Sign in'; } } }catch{}
-  try{ const b=await api('/api/bp/status'); const el=$('connBp'); if(el){ const linked=b&&(b.linked||b.ok||b.workspace); el.textContent=linked?'Linked':'Not linked'; el.className='mstat '+(linked?'ok':'off'); } }catch{ const el=$('connBp'); if(el){ el.textContent='Unknown'; el.className='mstat warn'; } }
+  try{ const b=await api('/api/bp/status'); const el=$('connBp'); if(el){ const linked=b&&b.linked===true; el.textContent=linked?'Linked':'Not linked'; el.className='mstat '+(linked?'ok':'off');
+    const tokRow=$('bpTokenRow'),lnkRow=$('bpLinkedRow'),sub=$('bpLinkedSub');
+    if(tokRow)tokRow.style.display=linked?'none':'';
+    if(lnkRow)lnkRow.style.display=linked?'':'none';
+    if(sub&&linked)sub.textContent='Linked'+(b.account?' as '+b.account:'')+(b.app?' · workspace '+b.app+(b.branch?' ('+b.branch+')':''):'')+'. Unlink removes the CLI auth on this machine only.';
+  } }catch{ const el=$('connBp'); if(el){ el.textContent='Unknown'; el.className='mstat warn'; } }
   try{ const sm=await api('/api/connections/smtp'); const el=$('connSmtp'); if(el){ el.textContent=sm.configured?'Configured':'Not set'; el.className='mstat '+(sm.configured?'ok':'off'); }
     if($('smtpHost')){ $('smtpHost').value=sm.host||''; $('smtpPort').value=sm.port||''; $('smtpUser').value=sm.user||''; $('smtpFrom').value=sm.from||''; if(sm.configured&&$('smtpPass')) $('smtpPass').placeholder='•••••••• (saved — leave blank to keep)'; } }catch{}
 }
@@ -5203,14 +5554,18 @@ function connClaudeAction(){ const btn=$('connClaudeBtn'); if(btn&&/out/i.test(b
 async function linkBuildprint(){ const inp=$('bpToken'); const tok=(inp&&inp.value||'').trim(); if(!tok)return toast('Paste your Buildprint token first'); toast('Linking Buildprint…');
   try{ const r=await api('/api/connections/buildprint-link',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token:tok})}); if(r&&r.ok){ notifyT('success',{title:'Buildprint linked',banner:true,bell:false}); if(inp)inp.value=''; refreshConnStatus(); } else notifyT('error',{title:'Buildprint link failed',message:(r&&r.error)||''}); }
   catch(e){ notifyT('error',{title:'Buildprint link failed',message:e.message}); } }
+async function revokeBuildprint(){ const ok=await crsConfirm({title:'Unlink Buildprint?',body:'Removes the CLI auth on this machine. Your token stays valid in Buildprint — you can re-link any time.'}); if(!ok)return;
+  try{ const r=await api('/api/connections/buildprint-revoke',{method:'POST'}); if(r&&r.ok){ notifyT('warning',{title:'Buildprint unlinked on this machine'}); refreshConnStatus(); } else notifyT('error',{title:'Unlink failed',message:(r&&r.error)||''}); }
+  catch(e){ notifyT('error',{title:'Unlink failed',message:e.message}); } }
 async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),port:($('smtpPort').value||'').trim(),user:($('smtpUser').value||'').trim(),pass:($('smtpPass').value||''),from:($('smtpFrom').value||'').trim()};
   try{ const r=await api('/api/connections/smtp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}); if(r&&r.ok){ notifyT('success',{title:'SMTP settings saved'}); if($('smtpPass'))$('smtpPass').value=''; refreshConnStatus(); } else toast('Save failed'); }catch(e){ toast('Save failed: '+e.message); } }
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); bpStatus(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
 setInterval(loadUsage, 30000);
 </script>
+<script src="js/livemap.js"></script>
 <script src="js/palette.js"></script>
 </body>
 </html>

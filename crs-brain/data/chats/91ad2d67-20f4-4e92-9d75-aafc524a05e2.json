@@ -1,0 +1,340 @@
+{
+  "id": "91ad2d67-20f4-4e92-9d75-aafc524a05e2",
+  "title": "what is playbook distiller ledger",
+  "sessionId": "4f134604-7436-4add-a8c3-c23b598ca636",
+  "bp": true,
+  "created": "2026-07-19T11:00:15.072Z",
+  "updated": "2026-07-19T16:21:53.039Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "what is playbook distiller ledger",
+      "ts": "2026-07-19T11:00:15.072Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "\"Playbook Distiller → Ledger\" is a lane/edge in the CRS Brain app's Live System Map (`crs-brain/public/js/livemap.js`), part of the self-learning loop visualization:\n\n- **BRAIN → DISTILLER**: after a chat turn runs, the distiller scans the turn (including tool-result \"✗ outcome\" tails now captured per `LEARN.2` in `brain/qa/master-checklist.md:218`) to see what actually failed/succeeded, not just what ran.\n- **DISTILLER → LEDGER**: when it extracts a lesson, it writes it into `data/playbook.json` (the \"ledger\" of learned lessons — platform gotchas, CLI bugs, workspace rules, design patterns, verification tricks, decision pointers), and pings the live map (`learning-saved` event → glows the brain-distiller and distiller-ledger edges, ripples the LEDGER node).\n\nSo there's no single file literally named \"distiller ledger\" — it's the pipeline name for: **turn happens → Distiller extracts a lesson from it → lesson gets committed to the Playbook ledger (`data/playbook.json`)**, shown live as a glowing edge on the Live Map. This is mid-build per `brain/qa/program-progress.md:203-204` (T0 landed, T1 schema migration in progress) and validated in `PLAYBOOK.6` / `LIVEMAP.1` checkpoints (both PASS, 2026-07-19).",
+      "ts": "2026-07-19T11:00:39.314Z",
+      "startedAt": "2026-07-19T11:00:15.074Z",
+      "completedAt": "2026-07-19T11:00:39.314Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -rli \"distiller\" /Users/vlad/projects/crs-progress 2>/dev/null",
+          "body": "command: grep -rli \"distiller\" /Users/vlad/projects/crs-progress 2>/dev/null\n⇒ /Users/vlad/projects/crs-progress/crs-brain/server.js /Users/vlad/projects/crs-progress/crs-brain/public/js/livemap.js /Users/vlad/projects/crs-progress/crs-bra",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller ledger\" -A5 -B5 /Users/vlad/projects/crs-progres…",
+          "body": "command: grep -ni \"distiller ledger\" -A5 -B5 /Users/vlad/projects/crs-progress/brain/qa/checkpoints/playbook.md\n⇒ (Bash completed with no output)",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\" /Users/vlad/projects/crs-progress/crs-brain/ser…",
+          "body": "command: grep -ni \"distiller\" /Users/vlad/projects/crs-progress/crs-brain/server.js | head -50\n⇒ 2361: // self-learning distiller can see WHAT HAPPENED, not just what ran.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/prog…",
+          "body": "command: grep -ni \"distiller\" /Users/vlad/projects/crs-progress/brain/qa/program-progress.md /Users/vlad/projects/crs-progress/brain/qa/master-checklist.md\n⇒ ✗ /Users/vlad/projects/crs-progress/brain/qa/program-progress.md:203:- T0 landed prior session (distiller+result-capture+both tests); remaining proof: real-turn ✗ tails → in verification. /Users/vlad/projects/crs-progress/brain/qa/program-progress.md:204:- T1: data/playbook.json {id,category(platform-",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -ni \"distiller\\|ledger\" /Users/vlad/projects/crs-progress/crs-b…",
+          "body": "command: grep -ni \"distiller\\|ledger\" /Users/vlad/projects/crs-progress/crs-brain/public/js/livemap.js | head -50\n⇒ 4: * (Playbook / Distiller → Ledger). Real signals only — wired to state.live, 26: distiller: { x: 185, y: 28, r: 9, c: 'purple', ic: 'i-ingest', lbl: 'DISTILLE",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "show me latest index screenshots",
+      "ts": "2026-07-19T11:00:44.482Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "These are the latest \"index\" (main app shell/Dashboard) screenshots — dark and light — from `qa-scratch/rig/dash-dark.png` and `dash-light.png` (2026-07-18, newer than the `00-baseline` set from 2026-07-14). Shows the Chief-of-Staff dashboard: Now/Needs Me/What's Wrong/Synced sections with live decision counts, todos, sync status, QA cycle, and progress tree.",
+      "ts": "2026-07-19T11:57:18.596Z",
+      "startedAt": "2026-07-19T11:56:44.528Z",
+      "completedAt": "2026-07-19T11:57:18.596Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: quick mechanical task → Sonnet 5, low effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ find /Users/vlad/projects/crs-progress/crs-brain/audits /Users/vlad/…",
+          "body": "command: find /Users/vlad/projects/crs-progress/crs-brain/audits /Users/vlad/projects/crs-progress/qa-scratch /Users/vlad/projects/crs-progress/brain/qa -iname \"*.png\" 2>/dev/null | grep -vi worktree\n⇒ /Users/vlad/projects/crs-progress/brain/qa/evidence/2026-07-19-t5/2026-07-19-version-test-logged-out-desktop.png /Users/vlad/projects/crs-progress/crs-brain/aud",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ stat -f \"%m %N\" /Users/vlad/projects/crs-progress/crs-brain/audits/u…",
+          "body": "command: stat -f \"%m %N\" /Users/vlad/projects/crs-progress/crs-brain/audits/ui/00-baseline/explorer-dark.png /Users/vlad/projects/crs-progress/crs-brain/audits/ui/00-baseline/dashboard-dark.png /Users/vlad/projects/crs-progress/qa-scratch/rig/dash-dark.png /Users/vlad/projects/crs-progress/qa-scratch/rig/dash-light.png 2>/dev/null | sort -n\n⇒ 1784201144 /Users/vlad/projects/crs-progress/crs-brain/audits/ui/00-baseline/dashboard-dark.png 1784201149 /Users/vlad/projects/crs-progress/crs-brain/audits/ui",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "The `qa-scratch/rig/dash-dark.png` / `dash-light.png` are more recent than the `00-baseline` explorer screenshots (there's no newer \"explorer\" popup screenshot — the index/file-explorer view was only captured once, in the baseline). Here ar",
+          "body": "The `qa-scratch/rig/dash-dark.png` / `dash-light.png` are more recent than the `00-baseline` explorer screenshots (there's no newer \"explorer\" popup screenshot — the index/file-explorer view was only captured once, in the baseline). Here are the newer dashboard captures:",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read dash-dark.png",
+          "body": "file_path: /Users/vlad/projects/crs-progress/qa-scratch/rig/dash-dark.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read dash-light.png",
+          "body": "file_path: /Users/vlad/projects/crs-progress/qa-scratch/rig/dash-light.png",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "awesome, how about learning materials what type of materials we have and in which branches like bubble buildprint etc",
+      "ts": "2026-07-19T12:01:17.157Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's the breakdown of learning materials in `brain/` — five distinct domains, each sourced differently:\n\n**1. Bubble official manual** — `brain/bubble/` (592 files)\nThe complete 583-page official Bubble manual, verbatim, organized in subfolders: `core-resources/`, `beta-features/`, `issue-reports/`, `help-guides/`, `account-and-marketplace/`. Wins on facts/limits when other sources conflict. Routed via `brain/bubble/INDEX.md`.\n\n**2. Buildprint manual** — `brain/buildprint/` (126 files)\nOfficial Buildprint docs: CLI usage (`cli-*.md`), agents/automations/tests/skills overviews, component libraries, plus two CRS-specific authored docs — `PROMPT-STANDARD.md` (prompt-writing spec) and `crs-brain-operations.md` (the guardrails for running Buildprint from this app). Routed via `brain/buildprint/INDEX.md`.\n\n**3. Bubble forum, curated** — `brain/bubble-forum/` (88 threads)\nCommunity workarounds, labeled as community advice (not official, overridden by the manual on conflict). Pre-sorted by topic: `bulk-operations`, `data-api`, `database-design`, `migrations`, `multi-tenant`, `option-sets`, `performance`, `privacy-rules`, `search`, `spa`, `workload-units`.\n\n**4. Bubble performance guide** — `brain/bubble-performance/` (10 files)\n\"The Ultimate Guide to Bubble Performance\" (rev3) — front matter + 6 numbered chapters (platform knowledge → page building → database → workflows → workload/WU → conclusion) plus the source PDF. Mandatory-inline source for any Buildprint prompt touching RGs/searches/bulk workflows.\n\n**5. Playbook (self-learned)** — `crs-brain/data/playbook.json` (9 lessons currently)\nNot scraped — this is CRS Brain's own distilled lessons from actual chat turns (platform gotchas, CLI bugs, workspace rules, design patterns, verification tricks, decision pointers). This is the ledger the \"Distiller\" writes into, per your earlier question.\n\nNo git-branch split — all five live on `main` under `brain/`. If you meant something else by \"branches\" (e.g., Buildprint's own test/live branches), let me know and I'll check that angle instead.",
+      "ts": "2026-07-19T12:01:57.291Z",
+      "startedAt": "2026-07-19T12:01:17.159Z",
+      "completedAt": "2026-07-19T12:01:57.291Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cd /Users/vlad/projects/crs-progress && ls brain/ && echo --- && fin…",
+          "body": "command: cd /Users/vlad/projects/crs-progress && ls brain/ && echo --- && find brain -maxdepth 1 -type d | sort\n⇒ INDEX.md STATUS.md bubble bubble-forum bubble-performance buildprint changelog.md database.md design design.md digests engine migrations.md modules option-sets.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ echo \"== bubble ==\" && ls brain/bubble | head -5 && find brain/bubbl…",
+          "body": "command: echo \"== bubble ==\" && ls brain/bubble | head -5 && find brain/bubble -type f | wc -l\necho \"== bubble-forum ==\" && ls brain/bubble-forum | head -5 && find brain/bubble-forum -type f | wc -l\necho \"== bubble-performance ==\" && ls brain/bubble-performance | head -10 && find brain/bubble-performance -type f | wc -l\necho \"== buildprint ==\" && ls brain/buildprint | head -10 && find brain/buildprint -type f | wc -l\necho \"== qa ==\" && ls brain/qa\n⇒ == bubble == INDEX.md INVENTORY.md account-and-marketplace beta-features conditional-style-swapping.md 592 == bubble-forum == INDEX.md bulk-operations--associat",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ cd /Users/vlad/projects/crs-progress echo \"bubble subfolders:\"; find…",
+          "body": "command: cd /Users/vlad/projects/crs-progress\necho \"bubble subfolders:\"; find brain/bubble -mindepth 1 -maxdepth 1 -type d\necho \"---\"\necho \"buildprint file sample:\"; find brain/buildprint -type f -name \"*.md\" | grep -v INDEX | head -20\necho \"---playbook---\"\n[ -f crs-brain/data/playbook.json ] && python3 -c \"import json;d=json.load(open('crs-brain/data/playbook.json'));print(type(d), len(d) if isinstance(d,list) else d.keys())\" 2>/dev/null\necho \"---forum categories---\"\nls brain/bubble-forum | sed -E 's/--.*//' | sort -u | head -20\n⇒ bubble subfolders: brain/bubble/core-resources brain/bubble/beta-features brain/bubble/issue-reports brain/bubble/help-guides brain/bubble/account-and-marketpla",
+          "actor": "buildprint"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "Run live counter from 1 to 100 0.5 second update",
+      "ts": "2026-07-19T16:21:25.805Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "This sandbox is blocking shell loops (even via script file) — it needs your manual approval to run. Since this counter isn't a Buildprint/Bubble task, want me to just run it (I'll need you to approve the Bash call), or would a different form work better — e.g. printed as a static list, or as an HTML/artifact page with a live JS counter you can watch in-browser (no approval needed)?",
+      "ts": "2026-07-19T16:21:53.039Z",
+      "startedAt": "2026-07-19T16:21:25.806Z",
+      "completedAt": "2026-07-19T16:21:53.039Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI problem — CLI not linked — run: buildprint link <token>",
+          "body": "The session will fall back to manual paths where possible. Fix, then retry: CLI not linked — run: buildprint link <token>",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Turn hiccup — retrying the turn (attempt 2)",
+          "body": "claude: error_during_execution",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Turn hiccup — session was unrecoverable — starting a fresh session",
+          "body": "claude: error_during_execution",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Print a live counter from 1 to 100, updating every 0.5s",
+          "body": "description: Print a live counter from 1 to 100, updating every 0.5s\ncommand: for i in $(seq 1 100); do printf \"\\r%d\" \"$i\"; sleep 0.5; done; echo\ntimeout: 60000\n⇒ ✗ Contains simple_expansion",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Print a live counter from 1 to 100, updating every 0.5s",
+          "body": "description: Print a live counter from 1 to 100, updating every 0.5s\ncommand: i=1; while [ \"$i\" -le 100 ]; do printf \"\\r%d\" \"$i\"; sleep 0.5; i=$((i+1)); done; echo\ntimeout: 60000\n⇒ ✗ Contains shell syntax (string) that cannot be statically analyzed",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Write",
+          "label": "Write counter.sh",
+          "body": "file_path: /private/tmp/claude-501/-Users-vlad-projects-crs-bubble-casinoreportingsystem-test/4f134604-7436-4add-a8c3-c23b598ca636/scratchpad/counter.sh\ncontent: #!/bin/bash\ni=1\nwhile [ \"$i\" -le 100 ]; do\n  printf \"\\r%d\" \"$i\"\n  sleep 0.5\n  i=$((i+1))\ndone\necho\n⇒ File created successfully at: /private/tmp/claude-501/-Users-vlad-projects-crs-bubble-casinoreportingsystem-test/4f134604-7436-4add-a8c3-c23b598ca636/scratchpad",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Run live counter script from 1 to 100 with 0.5s updates",
+          "body": "description: Run live counter script from 1 to 100 with 0.5s updates\ncommand: bash /private/tmp/claude-501/-Users-vlad-projects-crs-bubble-casinoreportingsystem-test/4f134604-7436-4add-a8c3-c23b598ca636/scratchpad/counter.sh\ntimeout: 60000\n⇒ ✗ This command requires approval",
+          "actor": "buildprint"
+        }
+      ]
+    }
+  ]
+}

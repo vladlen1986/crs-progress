@@ -1,5 +1,5 @@
 # Running tests
-> Source: https://docs.buildprint.ai/running-tests-lh4vs · Captured: 2026-07-14 (verbatim .md)
+> Source: https://docs.buildprint.ai/running-tests-lh4vs · Captured: 2026-07-21 (verbatim .md)
 
 ## Running a single test
 
@@ -52,9 +52,9 @@ The start request includes the test or group ID, a branch ID or branch label, an
 
 The hosted MCP server exposes tools for test execution, including:
 
-- start_test_run
-- start_test_group_run
-- get_test_run
-- get_test_group_run
+- start\_test\_run
+- start\_test\_group\_run
+- get\_test\_run
+- get\_test\_group\_run
 
 Use these when an agent or external tool should start a Buildprint test run.

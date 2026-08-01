@@ -1,5 +1,5 @@
 # Web
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/web · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../web · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 A web app is an application that runs in a web browser. Unlike native mobile apps, which are installed directly onto a user’s device via an app store, a web app lives online—accessible by visiting a URL. This includes everything from productivity tools like Google Docs, to social platforms like Facebook, to AI interfaces like ChatGPT.
 
@@ -68,4 +68,4 @@ That’s one of the things that makes Bubble so powerful: in traditional develop
 
 You’re free to start with a web app, a mobile app, or focus on just one—there’s no need to decide upfront. If you’ve built a successful web app, you can extend it into a native mobile app at any time. Bubble is built to support both, and you can make that decision at any point in time.
 
-If you want to learn more about native mobile apps, keep reading our [Building a native iOS and Android app in Bubble section](/help-guides/getting-started/building-for/native-ios-and-android).
+If you want to learn more about native mobile apps, keep reading our [Building a native iOS and Android app in Bubble section](/help-guides/getting-started/building-for.../native-ios-and-android).

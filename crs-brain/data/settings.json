@@ -1,7 +1,7 @@
 {
   "model": "auto",
   "effort": "max",
-  "manualsCheckedAt": 1785234065916,
+  "manualsCheckedAt": 1785232012564,
   "autoRoute": false,
   "bubbleWatch": false,
   "bubbleCheckedAt": 0,
@@ -10,7 +10,7 @@
     "sonnet",
     "haiku"
   ],
-  "theme": "light",
+  "theme": "dark",
   "bpAutoTrack": false,
   "notify": {
     "inApp": true,
@@ -20,6 +20,7 @@
   },
   "sounds": {
     "volume": 100,
+    "learnSounds": true,
     "events": {
       "new-notification": "s03",
       "task-complete": "s02",

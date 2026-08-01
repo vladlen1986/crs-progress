@@ -1,5 +1,5 @@
 # Introduction
-> Source: https://manual.bubble.io/master · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/master · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 Welcome to the Bubble Docs.
 
@@ -28,7 +28,7 @@ Bubble's flexibility lets you create any type of app — ranging from simple MVP
 {% hint style="info" %}
 To get quickly started with native mobile app development, check out our Quick Start Guide below:
 
-Article: [Mobile app quick start guide](/help-guides/getting-started/building-for/native-ios-and-android/mobile-app-quick-start-guide)
+Article: [Mobile app quick start guide](/help-guides/getting-started/building-for.../native-ios-and-android/mobile-app-quick-start-guide)
 {% endhint %}
 
 ## Learning and building with Bubble

@@ -1,5 +1,5 @@
 # Bubble AI Agent
-> Source: https://manual.bubble.io/help-guides/ai/bubble-ai-agent · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/ai/bubble-ai-agent · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 {% hint style="info" %}
 **AI Agent availability:** The AI Agent is currently available on all new apps — blank, templated, and built by Bubble AI. It’s a beta release, and we’re continuously improving its output. Some responses may contain errors or inaccuracies.
@@ -28,7 +28,7 @@ The AI Agent has the following capabilities:
 * [Dynamic expressions](#dynamic-expressions)
 * [Generate and modify frontend workflows](#generate-and-modify-workflows)
 * [Create API calls and collections](#create-api-calls-and-collections)
-* [Work with plugins](#working-with-plugins)
+* [Work with plugins](#work-with-plugins)
 * [App-specific explanations](#app-specific-explanations)
 * [Issue checker integration](#issue-checker-integration)
 * [Education and guidance](#education-and-guidance)
@@ -149,15 +149,11 @@ The AI Agent can also create and modify [option sets](/help-guides/data/static-d
 
 ### Generate and modify frontend workflows
 
-You can prompt the AI Agent to generate frontend workflows within your app (backend workflows are coming soon). Prompt the Agent, then navigate to the Workflow tab to see the workflow it built for you. We recommend starting with simpler prompts for highest accuracy. At launch, workflow creation has higher accuracy than workflow editing.
+You can prompt the AI Agent to generate frontend workflows within your app. Prompt the Agent, then navigate to the Workflow tab to see the workflow it built for you. We recommend starting with simpler prompts for highest accuracy. At launch, workflow creation has higher accuracy than workflow editing.
 
 **Create new workflows**
 
 For example, as you're building a login and signup flow, you can click on the login button, then ask the Agent to “Please add a workflow that signs the user up given these inputs. Be sure to include the password confirmation and full name field.”
-
-{% hint style="info" %}
-For the above prompt to work, you’ll need an existing Full name field in your User data type. The Agent cannot yet create data types and workflows from the same prompt.
-{% endhint %}
 
 <figure><img src="/files/Ujre52CkF5NoI5jOaHta" alt=""><figcaption></figcaption></figure>
 
@@ -188,10 +184,6 @@ With the following actions:
 If you’ve made some changes to your database and you need to update the workflow accordingly, you can prompt “I’ve added a birthday date field to the user data type and to the form. Please capture that date field’s value here in the sign up action.”
 
 <figure><img src="/files/L7dl4uifZR8WE9OGrzzN" alt=""><figcaption></figcaption></figure>
-
-{% hint style="info" %}
-Current limitations: This version is limited to the most common actions that users take. Currently, backend workflows, analytics actions, custom events and very complex workflows are not supported. Bubble AI does not support plugins, so payment actions, analytics actions, and plugin actions are also out of scope.
-{% endhint %}
 
 ### Create API calls and collections
 

@@ -1,5 +1,5 @@
 # Apple IAP checklist
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/in-app-purchases/getting-ready-for-production/apple-iap-checklist · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/in-app-purchases/getting-ready-for-production/apple-iap-checklist · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 ### Apple App Store subscription readiness checklist
 

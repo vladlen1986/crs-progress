@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>App Preview · CRS Brain</title>
+<link rel="stylesheet" href="/tokens.css">
+<link rel="stylesheet" href="/scrollbars.css">
+<script src="/js/scrollbars.js" defer></script>
+<script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
+<style>
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;display:flex;flex-direction:column}
+
+  header.top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex:none}
+  header.top .t{flex:1;min-width:0}
+  h1{font-size:16px;color:var(--primary);margin:0;font-weight:700;letter-spacing:-.02em}
+  .sub{color:var(--muted);font-size:11.5px;margin-top:2px}
+  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
+
+  .body{flex:1;min-height:0;display:flex}
+
+  nav.side{width:256px;flex:none;border-right:1px solid var(--line);overflow-y:auto;padding:10px 0}
+  .sec{margin-bottom:2px}
+  .sec-h{padding:9px 16px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;position:sticky;top:0;background:var(--bg)}
+  .mod{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;color:var(--secondary);font-size:12.5px;border-left:2px solid transparent}
+  .mod:hover{background:var(--panel2);color:var(--primary)}
+  .mod.active{background:var(--accent-tint);color:var(--primary);border-left-color:var(--accent)}
+  .mod .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .dot{width:6px;height:6px;border-radius:50%;flex:none}
+  .dot.has{background:var(--success)}
+  .dot.no{background:var(--na)}
+  .cnt{margin-left:auto;padding-left:8px}
+
+  main.pane{flex:1;min-width:0;display:flex;flex-direction:column}
+  .panebar{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--line);flex:none;min-height:38px}
+  .panebar .pm{color:var(--primary);font-weight:700;font-size:13px}
+  .panebar .ps{color:var(--muted);font-size:11px;font-family:var(--mono)}
+  .stchip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
+  .st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
+  .st-settled{background:var(--accent-tint);color:var(--accent-soft);border:1px solid var(--accent-border-active)}
+  .st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
+  .tabs{display:flex;gap:5px;margin-left:auto}
+  .tabbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:4px 10px;font:inherit;font-size:11.5px;cursor:pointer}
+  .tabbtn.active{background:var(--accent);border-color:var(--accent);color:var(--white)}
+  .frame-wrap{flex:1;min-height:0;position:relative}
+  iframe{width:100%;height:100%;border:0;background:var(--bg)}
+  .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)}
+  .empty .big{font-size:36px;opacity:.4}
+  .empty .tag{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:3px 10px;border-radius:var(--radius-pill);text-transform:uppercase;background:var(--panel2);color:var(--muted);border:1px solid var(--line)}
+  .empty .d{font-size:12px;max-width:320px;text-align:center}
+
+  .loading{padding:40px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+  <header class="top">
+    <div class="t">
+      <h1>App Preview</h1>
+      <div class="sub">All 46 modules, real sidebar order — click one to view its design prototype</div>
+    </div>
+    <button class="hbtn" onclick="(window.parent&&window.parent!==window&&window.parent.surfaceBack)?window.parent.surfaceBack():location.href='/'">Back to app</button>
+  </header>
+
+  <div class="body">
+    <nav class="side" id="side"><div class="loading">Loading modules…</div></nav>
+    <main class="pane">
+      <div class="panebar" id="panebar" style="display:none"></div>
+      <div class="frame-wrap" id="frameWrap"></div>
+    </main>
+  </div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SECTION_ORDER=['Admin / Core','Operations','Surveillance','Guests','HR / Employees','Compliance','Communication'];
+let MODULES=[],PROTOS_BY_MOD={},ACTIVE_MOD=null,ACTIVE_PROTO=null;
+
+async function api(p){const r=await fetch(p);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j}
+
+async function load(){
+  try{
+    const [md,pr]=await Promise.all([api('/api/modules'),api('/api/protos')]);
+    MODULES=(md.modules||[]).slice().sort((a,b)=>(a.order||0)-(b.order||0));
+    PROTOS_BY_MOD={};
+    for(const p of (pr.protos||[])){ (PROTOS_BY_MOD[p.module]=PROTOS_BY_MOD[p.module]||[]).push(p); }
+    renderSide();
+    const first=MODULES.find(m=>PROTOS_BY_MOD[m.id]&&PROTOS_BY_MOD[m.id].length)||MODULES[0];
+    if(first) selectModule(first.id);
+  }catch(e){$('side').innerHTML='<div class="loading">'+esc(e.message)+'</div>'}
+}
+
+function renderSide(){
+  const bySec={};
+  for(const m of MODULES) (bySec[m.section]=bySec[m.section]||[]).push(m);
+  const secs=SECTION_ORDER.filter(s=>bySec[s]);
+  for(const s of Object.keys(bySec)) if(!secs.includes(s)) secs.push(s);
+  $('side').innerHTML=secs.map(s=>{
+    const mods=bySec[s];
+    return `<div class="sec"><div class="sec-h">${esc(s)}</div>${mods.map(m=>{
+      const protos=PROTOS_BY_MOD[m.id]||[];
+      const has=protos.length>0;
+      return `<div class="mod${m.id===ACTIVE_MOD?' active':''}" onclick="selectModule('${esc(m.id)}')" title="${esc(m.name)}">
+        <span class="dot ${has?'has':'no'}"></span>
+        <span class="nm">${esc(m.name)}</span>
+        ${protos.length>1?`<span class="cnt ps" style="color:var(--muted);font-size:10.5px">${protos.length}</span>`:''}
+      </div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+function selectModule(id){
+  ACTIVE_MOD=id;
+  const protos=PROTOS_BY_MOD[id]||[];
+  ACTIVE_PROTO=protos[0]?protos[0].name:null;
+  renderSide();
+  renderPane();
+}
+
+function selectProto(name){ ACTIVE_PROTO=name; renderPane(); }
+
+function renderPane(){
+  const mod=MODULES.find(m=>m.id===ACTIVE_MOD);
+  const protos=PROTOS_BY_MOD[ACTIVE_MOD]||[];
+  const proto=protos.find(p=>p.name===ACTIVE_PROTO);
+  if(!mod){ $('panebar').style.display='none'; $('frameWrap').innerHTML=''; return; }
+  $('panebar').style.display='flex';
+  $('panebar').innerHTML=`<span class="pm">${esc(mod.name)}</span><span class="ps">${esc(mod.section)} · ${esc(mod.route)}</span>
+    ${proto?`<span class="stchip st-${esc(proto.status)}">${esc(proto.status)}</span>`:''}
+    ${protos.length>1?`<div class="tabs">${protos.map(p=>`<button class="tabbtn${p.name===ACTIVE_PROTO?' active':''}" onclick="selectProto('${esc(p.name)}')">${esc(p.name)}</button>`).join('')}</div>`:''}`;
+
+  if(!proto){
+    $('frameWrap').innerHTML=`<div class="empty">
+      <div class="big">◇</div>
+      <span class="tag">Coming soon</span>
+      <div class="d">No design prototype registered yet for <b style="color:var(--secondary)">${esc(mod.name)}</b>. Register one from the <a href="#" onclick="event.preventDefault();openProtos()" style="color:var(--accent-soft)">Prototypes</a> page.</div>
+    </div>`;
+    return;
+  }
+  $('frameWrap').innerHTML=`<iframe src="/api/raw?path=${encodeURIComponent(proto.html)}"></iframe>`;
+}
+
+function openProtos(){
+  if(window.parent&&window.parent!==window&&window.parent.openTarget){ window.parent.openTarget('/protos.html',{title:'Prototypes'}); }
+  else location.href='/protos.html';
+}
+
+load();
+</script>
+</body>
+</html>

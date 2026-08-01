@@ -1,0 +1,23 @@
+const puppeteer=require('puppeteer-core');
+(async()=>{
+  const b=await puppeteer.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:'new'});
+  const p=await b.newPage(); await p.setViewport({width:1400,height:900});
+  const errs=[]; p.on('console',m=>{if(m.type()==='error')errs.push(m.text())}); p.on('pageerror',e=>errs.push(e.message));
+  await p.goto('http://127.0.0.1:4317/',{waitUntil:'networkidle2'});
+  await p.waitForFunction('window.LIVEMAP');
+  await p.evaluate(()=>{localStorage.removeItem('crs-livemap-mode');LIVEMAP.ping('turn-start');LIVEMAP.ping('turn-end',{secs:1})});
+  await p.waitForSelector('#lmPanel',{visible:true});
+  const box=await p.evaluate(()=>{const r=document.getElementById('lmPanel').getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
+  await p.mouse.move(box.x,box.y); await new Promise(r=>setTimeout(r,300));
+  const hovered=await p.evaluate(()=>document.getElementById('lmPanel').classList.contains('chrome'));
+  await p.mouse.move(10,10);
+  const t0=Date.now();
+  await p.waitForFunction(()=>!document.getElementById('lmPanel').classList.contains('chrome'),{polling:16,timeout:3000});
+  const removalMs=Date.now()-t0;
+  const trans=await p.evaluate(()=>getComputedStyle(document.getElementById('lmPanel')).transition);
+  console.log('hover adds chrome:',hovered?'PASS':'FAIL');
+  console.log('class removed in',removalMs,'ms',removalMs<150?'PASS (no grace delay)':'FAIL');
+  console.log('transition:',trans.includes('0.2s ease-in-out')?'PASS':'FAIL','→',trans.slice(0,120));
+  console.log('console errors:',errs.length);
+  await b.close();
+})().catch(e=>{console.error('RIGFAIL',e);process.exit(1)});

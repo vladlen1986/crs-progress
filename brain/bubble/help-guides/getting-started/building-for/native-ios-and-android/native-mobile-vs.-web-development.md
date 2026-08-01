@@ -1,5 +1,5 @@
 # Native mobile vs. web development
-> Source: https://manual.bubble.io/help-guides/getting-started/building-for/native-ios-and-android/native-mobile-vs.-web-development · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-for.../native-ios-and-android/native-mobile-vs.-web-development · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
 A native mobile app and a web app are not fundamentally different. They both offer the user a visual interface built on top of a foundation of workflows and a database. The primary difference lies in how they are delivered to the user.
 

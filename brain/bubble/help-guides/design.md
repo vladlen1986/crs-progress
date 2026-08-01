@@ -1,27 +1,33 @@
 # Design
-> Source: https://manual.bubble.io/help-guides/design · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
 
-At the heart of Bubble's capabilities is the ability to effortlessly create designs with precision: from basic forms to professional websites and SaaS applications
+At the heart of Bubble's capabilities is the ability to build precise, professional designs, from simple forms to full-featured websites and SaaS apps.
 
 ## Introduction
 
 <figure><img src="/files/yKkgGJApcsHUEJvfpxTF" alt=""><figcaption></figcaption></figure>
 
-Design is about the look and feel of your app, including its visual appeal, the experience it provides, and the emotions it evokes in its users. When you work on design you focus on the aesthetics: the layout of elements, the typography, the colors and effects like borders, shadows and transitions.
+Design is about the look and feel of your app, including its visual appeal, the experience it delivers, and the emotions it evokes in users. Working on design means focusing on the aesthetics: the layout of elements, typography, colors, and effects like borders, shadows, and transitions.
 
-The design of your app serves several important functions: a good and thoughtful design can provide an intuitive user interface, making it easy and enjoyable for your users to navigate and use the app. It can also help you establish a consistent brand identity that makes your app recognizable and helps it stand out.
+Good design serves several important purposes. A thoughtful design creates an intuitive user interface, making the app easy and enjoyable to navigate. It also helps you establish a consistent brand identity, making your app recognizable and helping it stand out.
 
 {% embed url="<https://www.youtube.com/watch?v=21n8iSE6Xwk&list=PLoNVJrdvQQYlGHGcKDCpbgAv1lruNA8db&index=3>" %}
 
 ### Great design solves problems
 
-If you think about it, most apps are really a pretty layer on top of a machinery that aims to simplify a task for a user that would otherwise be complicated.
+If you think about it, most apps are really a polished layer on top of machinery that simplifies a task the user would otherwise find complicated.
 
-For example, if you are running a marketplace for finding freelancers, a task management app or an e-commerce store for buying art, none of these tasks would be impossible for the user to solve in the first place – but your app can hopefully make it simpler and more enjoyable. Great app ideas make it easy for your users to solve a problem and store data securely.
+Take a marketplace for finding freelancers, a task management app, or an e-commerce store for buying art. None of these tasks are impossible to solve without an app, but a good app makes them simpler and more enjoyable. Great app ideas make it easy for users to solve a problem and store their data securely.
 
-This is why design is not just about making your app look good: the goal of any well-designed app is to *combine* appealing visuals with user-friendliness. There are multiple aspects to a successful design and the list below can give you a good starting point for planning your app's user interface.
+This is why design isn't just about making your app look good. The goal of any well-designed app is to combine appealing visuals with user-friendliness. There are several aspects to a successful design, and the list below is a good starting point for planning your app's user interface
 
-{% hint style="info" %}
+{% hint style="info" icon="user-robot" %}
+Bubble's AI Agent can generate polished, on-brand designs from a natural-language description. Try prompting it with the layout, tone, or specific components you want, and let it handle the initial setup so you can focus on refining the details.
+
+Article: [Bubble's AI Agent](/help-guides/ai/bubble-ai-agent)
+{% endhint %}
+
+{% hint style="info" icon="newspaper" %}
 You can read out more extensive guide on the theory behind designing user interfaces (UI) and thinking about the user experience (UX) in the article below:
 
 Article: [Design and UX](/help-guides/getting-started/building-your-first-app/design-and-ux)
@@ -31,13 +37,13 @@ Article: [Design and UX](/help-guides/getting-started/building-your-first-app/de
 
 Bubble offers a unique way to build apps: 100% WYSIWYG[^1] tools to draw your app on an empty canvas and preview[^2] the design immediately. There's no code to write or unexpected results.
 
-By combining Bubble's different tools you can create designs that are consistent, pixel-perfect, fully responsive and compatible with all devices and browsers.
+By combining Bubble's design tools, you can create layouts that are consistent, pixel-perfect, fully responsive, and compatible across devices and browsers. If you're building with [AI](/help-guides/ai/bubble-ai-agent), these tools let you fine-tune the results after the initial generation, or keep prompting the Agent to adjust things for you.
 
 ### Elements
 
-Your app's user interface consists of elements: input fields, buttons, images, checkboxes, calendars, images, icons that each serve a specific purpose. Bubble offers a WYSIWYG visual editor that lets you pick and place elements directly on the page instead of writing code and immediately preview it.
+Your app's user interface is made up of elements: input fields, buttons, images, checkboxes, calendars, icons, and more, each serving a specific purpose. Bubble's WYSIWYG visual editor lets you pick and place elements directly on the page instead of writing code, and preview the result immediately.
 
-<figure><img src="/files/4ZzMPmpMOZMDihRFqOPs" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/fBbxL9kiI3cOD9Ri9tSd" alt="A screenshot of the Bubble editor showing a dashboard interface being built."><figcaption><p>By combining elements, you can build interfaces ranging from simple forms to full-featured dashboards.</p></figcaption></figure>
 
 Our Element section covers the different element types and how they can be combined to build a virtually limitless number of different user interfaces.
 
@@ -49,15 +55,15 @@ Every visible element on your page can be styled in different ways. You can appl
 
 Bubble also allows you to set up [Font and Color variables](#user-content-fn-3)[^3] that apply those properties to Styles and elements across your app.
 
-Article series: [Styling](/help-guides/design/variables-and-styles)\
-Core reference: [List of styling properties](/core-resources/elements/styling-properties)
+**Article series**: [Styling](/help-guides/design/variables-and-styles)\
+**Core reference:** [List of styling properties](/core-resources/elements/styling-properties)
 
 ### Responsive design
 
 Bubble's responsive engine ensures that your app looks and behaves well on different devices, such as smartphones, tablets, and desktop computers. Settings up a responsive design eliminates the need to create separate versions of a website for different devices.
 
-Article series: [Responsive design](/help-guides/design/responsive-design)\
-Core reference: [List of responsive properties](/core-resources/elements/responsive-properties)
+**Article series**: [Responsive design](/help-guides/design/responsive-design)\
+**Core reference:** [List of responsive properties](/core-resources/elements/responsive-properties)
 
 ## Additional design resources
 
@@ -69,20 +75,18 @@ Article section: [Design and UX resources](/help-guides/getting-started/building
 
 Figma is a popular and useful tool for the first stage of prototyping and design and Bubble has a tool for importing design from Figma into Bubble.
 
-Article: [Importing from Figma](/help-guides/design/importing-from-figma)
+**Article:** [Importing from Figma](/help-guides/design/importing-from-figma)
 
-[^1]: *WYSIWYG* stands for "What You See Is What You Get."
+[^1]: WYSIWYG stands for *What You See Is What You Get*.
 
-    In the context of the Bubble editor, it means that the layout and elements you arrange and design in the editor will look and behave similarly when previewed or live. Essentially, it allows you to visually build and see the app as your users will experience it.
+    In the Bubble editor, this means the layout and elements you arrange in the editor look and behave the same way when previewed or deployed live. You can build your app visually and see it exactly as your users will experience it.
 
 [^2]: Every change that you make in the Bubble editor is immediately visible in the preview of your app.
 
     Article: [Previewing your app](/help-guides/getting-started/navigating-the-bubble-editor/previewing-your-app)
 
-[^3]: The *Font/Color variables* feature in the Styles tab enables you to save colors and fonts that you can apply throughout your app.
+[^3]: The *Font* and *Color* variables in the [*Styles*](/help-guides/design/variables-and-styles/styles) tab let you save colors and fonts to reuse throughout your app. When you change a variable, every style and element linked to it updates automatically.
 
-    Making changes in a a variable automatically applies those changes to every Style and element connected to that variable.
-
-    Article: [Color variables](/help-guides/design/variables-and-styles/color-variables)<br>
+    Article: [Color variables](/help-guides/design/variables-and-styles/color-variables)
 
     Article: [Font variables](/help-guides/design/variables-and-styles/font-variables)
