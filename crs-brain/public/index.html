@@ -1430,6 +1430,7 @@
       <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
       <button class="hicon" id="livemapBtn" onclick="window.LIVEMAP&&LIVEMAP.toggle()" title="Live system map — what's working now"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><circle cx="5" cy="6" r="1.7"/><circle cx="19" cy="6" r="1.7"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="18.5" cy="18.5" r="1.7"/><path d="M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1"/></svg></button>
+      <button class="hicon" id="appPreviewBtn" onclick="openTarget('/app-preview.html',{title:'App Preview'})" title="App Preview — all modules, sidebar, prototypes"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg></button>
       <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
       <div class="viewseg" id="viewSeg">
@@ -2529,6 +2530,7 @@ async function renderDashboard(){
       ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
       ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
       ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
+      ${T('i-folder','App Preview',"openTarget('/app-preview.html',{title:'App Preview'})",c.green)}
       ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
     </div></section>
   </div>`;
@@ -3957,7 +3959,7 @@ async function dwDocxFill(w){
 // cascade, dedupe-by-url → focus, and the shared soft cap. No browser tabs.
 // Window policy (polish): ONE router decides by target type. App surfaces open
 // full-area with a ← back; files open in their popup window/viewer.
-const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/entity.html','/cost.html','/playbook.html'];
+const APP_SURFACES=['/tree.html','/wishlist.html','/queue.html','/memory.html','/activity.html','/protos.html','/app-preview.html','/entity.html','/cost.html','/playbook.html'];
 function isSurface(url){ const base=(url||'').split('#')[0]; return APP_SURFACES.includes(base); }
 function openTarget(target, opts){
   opts=opts||{};
