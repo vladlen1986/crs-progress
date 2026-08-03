@@ -222,5 +222,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-07-30T06:58:05.353Z"
+  },
+  {
+    "id": "69b0d6a7",
+    "category": "platform-gotcha",
+    "trigger": "sed, text extraction, bash commands in buildprint sessions",
+    "rule": "sed commands are blocked by the sandbox safety gate as potentially dangerous operations.",
+    "fix": "Use Read tool with offset/limit for file extraction or Grep for pattern searches; request explicit approval only if sed is necessary.",
+    "errorSig": "sed command requires approval contains potentially dangerous operations",
+    "source": "chat 582bb44c · 2026-08-01",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-01T21:00:51.560Z"
+  },
+  {
+    "id": "9480d788",
+    "category": "workspace-rule",
+    "trigger": "running brain/engine/gen.js for prompt generation",
+    "rule": "gen.js fails when context-map.json contains references to files that have been deleted.",
+    "fix": "Audit context-map.json for dead file references before running gen.js; if it still fails, manually write the prompt using PROMPT-STANDARD.md as template and flag context-map for maintenance.",
+    "errorSig": "",
+    "source": "chat 582bb44c · 2026-08-01",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-01T21:00:51.560Z"
   }
 ]

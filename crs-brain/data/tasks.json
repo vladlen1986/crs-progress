@@ -1108,6 +1108,36 @@
       "auto": {
         "key": "sync:release-notes"
       }
+    },
+    {
+      "id": "eda7b71c",
+      "title": "Smoke QA FAIL: plan-validate-buttons — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-08-01T20:52:46.687Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:plan-validate-buttons"
+      }
+    },
+    {
+      "id": "e888ba29",
+      "title": "Smoke QA FAIL: plan-validate-pilot — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-08-01T20:52:46.687Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:plan-validate-pilot"
+      }
+    },
+    {
+      "id": "87e512d7",
+      "title": "Smoke QA FAIL: scaffold-token-markers — §2.10: css fence not found",
+      "status": "todo",
+      "created": "2026-08-01T20:52:46.687Z",
+      "notes": "",
+      "auto": {
+        "key": "smoke:scaffold-token-markers"
+      }
     }
   ]
 }

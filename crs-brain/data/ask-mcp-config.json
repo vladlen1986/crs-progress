@@ -1,9 +1,9 @@
 {
   "mcpServers": {
     "crsask": {
-      "command": "/usr/local/bin/node",
+      "command": "C:\\Program Files\\nodejs\\node.exe",
       "args": [
-        "/Users/vlad/projects/crs-progress/crs-brain/ask-mcp.js"
+        "C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\ask-mcp.js"
       ]
     }
   }

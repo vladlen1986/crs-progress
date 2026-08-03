@@ -44,6 +44,20 @@
 {"ts":"2026-07-19T00:23:27.279Z","action":"playbook-retired","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.288Z","action":"playbook-active","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.298Z","action":"playbook-edit","target":"db198c67","via":"desktop","meta":null}
+{"ts":"2026-07-19T16:21:08.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-20T16:21:08.398Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-21T17:21:07.070Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-22T17:21:07.242Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-23T18:21:06.312Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-24T18:21:06.467Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-25T16:21:07.206Z","action":"backup-snapshot","target":"state-2026-07-25.zip","via":"scheduler","meta":null}
+{"ts":"2026-07-25T18:21:06.602Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-26T19:21:05.426Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-27T19:21:05.570Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-28T19:21:05.770Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-29T20:21:04.543Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-30T20:21:04.918Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-31T21:21:05.033Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-19T01:03:17.789Z","action":"playbook-delete","target":"c74d4f7a","via":"desktop","meta":null}
 {"ts":"2026-07-19T01:04:47.161Z","action":"playbook-delete","target":"47aa6cc2","via":"desktop","meta":null}
 {"ts":"2026-07-19T01:05:47.228Z","action":"playbook-delete","target":"922150e0","via":"desktop","meta":null}
@@ -74,5 +88,7 @@
 {"ts":"2026-07-31T12:23:19.038Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-01T14:12:59.120Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-01T14:12:59.977Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
+{"ts":"2026-08-01T16:52:47.306Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
+{"ts":"2026-08-01T21:52:49.338Z","action":"backup-push","target":"pushed","via":"scheduler","meta":null}
 {"ts":"2026-08-02T14:16:04.833Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-03T14:32:28.991Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
