@@ -21,3 +21,6 @@
 ## 2026-08-01 — forum check
 - **2025-07-01** [[NEW PLUGIN] Thermal Printer Plugin - USB & Bluetooth 🖨️](https://forum.bubble.io/t/new-plugin-thermal-printer-plugin-usb-bluetooth/374661) — Hey Bubble community! I’m excited to share two new plugins designed to make thermal printing easy, flexible, and fully customizable directly from your Bubble app. These plugins are built for printing via USB or Bluetoot…
 
+## 2026-08-03 — forum check
+- **2026-08-03** [Getting frustrated with Bubble development experience](https://forum.bubble.io/t/getting-frustrated-with-bubble-development-experience/398963) — I am building a new web app and I wanted to use the Bubble AI Agent to implement some privacy rules. However, it ended up deleting all my data fields and data types without my consent. Tbh, I’m losing hope on Bubble.
+
