@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CRS — User Card Variations</title>
+<style>
+/* ── CRS tokens (design/CRS-design-system.md §2) ─────────────────────── */
+:root,:root[data-theme="dark"]{
+  --bg:#181818; --surface:#1E1E1E; --surface-2:#242424; --surface-3:#2A2A2A;
+  --border:#242424; --border-hover:#333333; --border-active:#3D3D3D;
+  --accent:#3B82F6; --accent-text:#3B82F6; --accent-soft:#60A5FA;
+  --accent-tint:rgba(59,130,246,0.08); --accent-glow:rgba(59,130,246,0.13);
+  --accent-border-active:rgba(59,130,246,0.55);
+  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
+  --success:#22C55E; --success-soft:#4ADE80; --error:#EF4444; --error-soft:#F87171;
+  --error-tint:rgba(239,68,68,0.13);
+  --ph-a:#3A3A3A; --ph-b:#262626; --ph-ink:#6B6B6B;
+}
+:root[data-theme="light"]{
+  --bg:#FAFAFA; --surface:#FFFFFF; --surface-2:#F4F4F5; --surface-3:#FFFFFF;
+  --border:#EAEAEB; --border-hover:#DCDCDE; --border-active:#C8C8CB;
+  --accent:#3B82F6; --accent-text:#1D4ED8; --accent-soft:#2563EB;
+  --accent-tint:rgba(59,130,246,0.08); --accent-glow:rgba(59,130,246,0.13);
+  --accent-border-active:rgba(59,130,246,0.55);
+  --text-primary:#18181B; --text-secondary:#5F5F66; --text-muted:#8E8E95; --text-disabled:#B6B6BB;
+  --success:#16A34A; --success-soft:#22C55E; --error:#DC2626; --error-soft:#DC2626;
+  --error-tint:rgba(220,38,38,0.10);
+  --ph-a:#E4E4E7; --ph-b:#F1F1F3; --ph-ink:#A8A8AF;
+}
+:root{
+  --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,'Cascadia Mono',Consolas,monospace;
+  --r-card:10px; --r-btn:7px; --r-badge:5px;
+  --ease:160ms cubic-bezier(.4,0,.2,1); --tc:200ms ease-in;
+}
+*{box-sizing:border-box}
+html{background:var(--bg);color:var(--text-secondary);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
+body{margin:0;padding:36px 32px 88px;max-width:1240px}
+body,.card,.ph,.dot,.btn,.strip{transition:background-color var(--tc),color var(--tc),border-color var(--tc),fill var(--tc)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ── page chrome ─────────────────────────────────────────────────────── */
+.top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;flex-wrap:wrap}
+.eyebrow{font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:0 0 8px}
+h1{font-size:24px;font-weight:700;letter-spacing:-.03em;color:var(--text-primary);margin:0 0 6px}
+.lede{font-size:13px;color:var(--text-secondary);margin:0;max-width:62ch;line-height:1.55}
+.seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-btn);padding:2px;gap:2px;flex:none}
+.seg button{height:28px;padding:0 12px;border:0;border-radius:5px;background:transparent;color:var(--text-muted);
+  font-family:var(--sans);font-size:11.5px;font-weight:600;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
+
+.diag{margin:30px 0 0;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);padding:20px 22px}
+.diag h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin:0 0 14px}
+.diag ol{margin:0;padding-left:0;list-style:none;counter-reset:d;display:grid;gap:9px}
+.diag li{counter-increment:d;position:relative;padding-left:26px;font-size:12.5px;line-height:1.5;max-width:88ch}
+.diag li::before{content:counter(d);position:absolute;left:0;top:1px;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text-disabled)}
+.diag b{color:var(--text-primary);font-weight:600}
+
+/* ── variation blocks ────────────────────────────────────────────────── */
+section{margin-top:46px;scroll-margin-top:20px}
+.vhead{border-top:1px solid var(--border);padding-top:16px;margin-bottom:18px}
+.vtitle{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.vnum{font-family:var(--mono);font-size:10.5px;font-weight:600;color:var(--accent-text);letter-spacing:.06em}
+h3{font-size:15px;font-weight:600;letter-spacing:-.01em;color:var(--text-primary);margin:0}
+.vthesis{font-size:12.5px;color:var(--text-secondary);margin:7px 0 0;max-width:74ch;line-height:1.55}
+.vtags{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.vtag{font-family:var(--mono);font-size:10px;font-weight:600;letter-spacing:.03em;color:var(--text-muted);
+  background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-badge);padding:3px 7px}
+.vtag b{color:var(--text-secondary);font-weight:600}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(236px,1fr));gap:14px}
+.grid.wide{grid-template-columns:repeat(auto-fill,minmax(320px,1fr))}
+.grid.tight{grid-template-columns:repeat(auto-fill,minmax(196px,1fr))}
+
+/* ── shared card atoms ───────────────────────────────────────────────── */
+.card{display:block;background:var(--surface);border:1px solid var(--border);border-radius:var(--r-card);
+  text-decoration:none;color:inherit;cursor:pointer;overflow:hidden}
+.card:hover{border-color:var(--border-hover);background:var(--surface-2)}
+.card:focus-visible{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+.nm{font-size:13.5px;font-weight:600;color:var(--text-primary);letter-spacing:-.01em;line-height:1.25}
+.role{font-size:11.5px;color:var(--text-secondary);line-height:1.3}
+.meta{font-size:11.5px;color:var(--text-muted);line-height:1.35}
+.id{font-family:var(--mono);font-size:10.5px;color:var(--text-disabled);letter-spacing:-.01em}
+.lbl{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.11em;text-transform:uppercase;color:var(--text-muted)}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--success-soft);flex:none}
+.dot.off{background:var(--error-soft)}
+.off-name .nm{color:var(--text-muted)}
+
+/* photo slot — placeholder silhouette stands in for the real image */
+.ph{position:relative;display:grid;place-items:center;flex:none;overflow:hidden;
+  background:linear-gradient(155deg,var(--ph-a),var(--ph-b))}
+.ph svg{width:62%;height:62%;fill:var(--ph-ink);opacity:.85;transform:translateY(6%)}
+.ph.t2{background:linear-gradient(155deg,var(--ph-b),var(--ph-a))}
+.ph.t3{background:linear-gradient(200deg,var(--ph-a),var(--ph-b))}
+.ph.t4{background:linear-gradient(120deg,var(--ph-b),var(--ph-a))}
+.ph.rd{border-radius:50%}
+.ini{font-family:var(--mono);font-size:12px;font-weight:600;color:var(--text-secondary);letter-spacing:.02em}
+
+.btn{display:flex;align-items:center;justify-content:center;height:30px;border-radius:var(--r-btn);
+  border:1px solid var(--border-active);background:transparent;color:var(--text-secondary);
+  font-family:var(--sans);font-size:11.5px;font-weight:600;cursor:pointer}
+.card:hover .btn{border-color:var(--accent-border-active);color:var(--accent-text)}
+
+/* ── V1 Roster row ───────────────────────────────────────────────────── */
+.v1 .card{display:flex;align-items:center;gap:12px;padding:11px 14px}
+.v1 .ph{width:36px;height:36px;border-radius:50%}
+.v1 .body{min-width:0;flex:1}
+.v1 .nm{display:flex;align-items:center;gap:7px}
+.v1 .meta{margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v1 .right{text-align:right;flex:none}
+.v1 .right .role{color:var(--text-secondary)}
+.v1 .right .id{display:block;margin-top:3px}
+
+/* ── V2 Portrait left ────────────────────────────────────────────────── */
+.v2 .card{display:flex;gap:13px;padding:14px}
+.v2 .ph{width:60px;height:60px;border-radius:8px}
+.v2 .body{min-width:0;display:flex;flex-direction:column;gap:3px;padding-top:1px}
+.v2 .nm{display:flex;align-items:center;gap:7px}
+.v2 .id{margin-top:auto}
+
+/* ── V3 Quiet hero ───────────────────────────────────────────────────── */
+.v3 .ph{width:100%;height:104px}
+.v3 .ph svg{width:auto;height:78%}
+.v3 .body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:4px}
+.v3 .nm{display:flex;align-items:center;gap:7px}
+.v3 .foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.v3 .btn{height:0;padding:0;border:0;opacity:0;overflow:hidden}
+.v3 .card:hover .btn,.v3 .card:focus-visible .btn{height:30px;opacity:1;border:1px solid var(--accent-border-active);margin-top:10px}
+
+/* ── V4 Status rail ──────────────────────────────────────────────────── */
+.v4 .card{display:flex;gap:12px;padding:14px 15px 14px 13px;border-left:2px solid var(--border-active)}
+.v4 .card.on{border-left-color:var(--success)}
+.v4 .card.offc{border-left-color:var(--error)}
+.v4 .ph{width:40px;height:40px;border-radius:50%}
+.v4 .body{min-width:0;display:flex;flex-direction:column;gap:3px}
+
+/* ── V5 Two-line ─────────────────────────────────────────────────────── */
+.v5 .card{display:flex;align-items:center;gap:11px;padding:12px 13px}
+.v5 .ph{width:34px;height:34px;border-radius:50%}
+.v5 .body{min-width:0}
+.v5 .extra{display:block;font-size:11px;color:var(--text-disabled);max-height:0;opacity:0;overflow:hidden;
+  transition:max-height var(--ease),opacity var(--ease)}
+.v5 .card:hover .extra,.v5 .card:focus-visible .extra{max-height:34px;opacity:1;margin-top:3px}
+
+/* ── V6 Personnel record ─────────────────────────────────────────────── */
+.v6 .card{padding:14px 15px}
+.v6 .hd{display:flex;align-items:center;gap:8px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.v6 dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:11px 0 0;align-items:baseline}
+.v6 dt{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--text-disabled)}
+.v6 dd{margin:0;font-size:11.5px;color:var(--text-secondary);text-align:right}
+.v6 dd.mono{font-family:var(--mono);font-size:10.5px}
+.v6 dd.on{color:var(--success)} .v6 dd.offv{color:var(--error)}
+
+/* ── V7 Initials ─────────────────────────────────────────────────────── */
+.v7 .card{display:flex;align-items:center;gap:12px;padding:13px 14px}
+.v7 .ini-w{width:38px;height:38px;border-radius:50%;background:var(--surface-2);border:1px solid var(--border);
+  display:grid;place-items:center;flex:none}
+.v7 .card:hover .ini-w{background:var(--surface-3);border-color:var(--border-hover)}
+.v7 .body{min-width:0;display:flex;flex-direction:column;gap:2px}
+.v7 .nm{display:flex;align-items:center;gap:7px}
+
+/* ── V8 Department strip ─────────────────────────────────────────────── */
+.v8 .strip{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:8px 14px;border-bottom:1px solid var(--border);background:var(--surface-2)}
+.v8 .card:hover .strip{background:var(--surface-3)}
+.v8 .body{display:flex;gap:12px;padding:13px 14px}
+.v8 .ph{width:38px;height:38px;border-radius:50%}
+.v8 .txt{min-width:0;display:flex;flex-direction:column;gap:3px;flex:1}
+.v8 .foot{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-top:5px}
+
+/* ── V9 Badge tile ───────────────────────────────────────────────────── */
+.v9 .card{display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px;padding:20px 14px 16px}
+.v9 .ph{width:52px;height:52px;border-radius:50%;box-shadow:0 0 0 2px var(--success);margin-bottom:9px}
+.v9 .ph.offr{box-shadow:0 0 0 2px var(--error)}
+.v9 .id{margin-top:7px}
+
+/* ── V10 Exception-only ──────────────────────────────────────────────── */
+.v10 .card{display:flex;gap:12px;padding:14px}
+.v10 .ph{width:38px;height:38px;border-radius:50%}
+.v10 .body{min-width:0;display:flex;flex-direction:column;gap:3px}
+.v10 .card.flag{background:var(--error-tint);border-color:rgba(239,68,68,.28)}
+.v10 .card.flag:hover{border-color:rgba(239,68,68,.5)}
+:root[data-theme="light"] .v10 .card.flag{border-color:rgba(220,38,38,.24)}
+.v10 .flagtag{display:inline-flex;align-items:center;gap:5px;align-self:flex-start;margin-top:4px;
+  font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--error);border:1px solid rgba(239,68,68,.35);border-radius:var(--r-badge);padding:2px 6px}
+.v10 .ph.dim{opacity:.5}
+
+footer{margin-top:56px;border-top:1px solid var(--border);padding-top:20px;font-size:12.5px;line-height:1.6;max-width:80ch}
+footer h2{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-muted);margin:0 0 12px}
+footer p{margin:0 0 10px}
+footer b{color:var(--text-primary);font-weight:600}
+.fine{font-family:var(--mono);font-size:10.5px;color:var(--text-disabled);margin-top:18px}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <div>
+    <p class="eyebrow">CRS · User Management · card grid</p>
+    <h1>Ten quieter cards</h1>
+    <p class="lede">Same tokens, same data, same grid — ten ways to carry it with less noise. Nothing here
+      introduces a colour, radius or font that isn't already in the CRS design system.</p>
+  </div>
+  <div class="seg" role="group" aria-label="Theme">
+    <button type="button" data-t="dark" aria-pressed="true">Dark</button>
+    <button type="button" data-t="light" aria-pressed="false">Light</button>
+  </div>
+</div>
+
+<div class="diag">
+  <h2>What the current card is doing</h2>
+  <ol>
+    <li><b>Three org facts compete at equal weight.</b> Department, job title and CRS role are genuinely
+      different things — Hakan Dagtas is a <em>Casino Manager</em> in CRS and <em>Chief Operating Officer</em>
+      by title — but set at three sizes in three greys they read as one blurred block. This screen governs
+      <em>access</em>, so the CRS role is the operative fact; department and title are context.</li>
+    <li><b>"Active" on 23 of 24 cards isn't information.</b> Only the exception carries signal. Marking every
+      row spends ink to say nothing.</li>
+    <li><b>Twenty-four buttons, twenty-four equal calls to action.</b> If the card's only action is "open it",
+      the card <em>is</em> the button.</li>
+    <li><b>The photo is the loudest element and the weakest sorting key.</b> Nobody scans a roster by face —
+      they scan by name, then confirm by face.</li>
+    <li><b>Two badges float on a second plane.</b> Overlays on the image mean every card is read twice: once
+      as picture, once as text.</li>
+    <li><b>The ID shares a baseline with the name</b> and swings from 9 to 15 characters, so no two cards
+      align down the column.</li>
+  </ol>
+</div>
+
+<!-- ══ V1 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V1</span><h3>Roster row</h3></div>
+    <p class="vthesis">The card turns on its side. Name and role lead, department and title merge into one
+      muted line, the ID parks in a right-hand column where it can align. Densest option — roughly three
+      times the people per screen.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> photo hero · badges · button</span>
+      <span class="vtag"><b>Leads with</b> name + role</span>
+      <span class="vtag"><b>Status</b> dot at the name</span></div>
+  </div>
+  <div class="grid wide v1">
+    <a class="card" href="#"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan <span class="dot" title="Active"></span></div>
+        <div class="meta">Surveillance · Surveillance Executive</div></div>
+      <div class="right"><span class="role">CCTV Supervisor</span><span class="id">USR-80363</span></div></a>
+    <a class="card" href="#"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili <span class="dot" title="Active"></span></div>
+        <div class="meta">Surveillance · Surveillance Operator</div></div>
+      <div class="right"><span class="role">CCTV Operator</span><span class="id">USR-80358</span></div></a>
+    <a class="card off-name" href="#"><div class="ph rd t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Sopiko Abashidze <span class="dot off" title="Inactive"></span></div>
+        <div class="meta">Casino Marketing &amp; Hosting · Guest Services Host</div></div>
+      <div class="right"><span class="role">CCTV Operator</span><span class="id">USR-11310</span></div></a>
+    <a class="card" href="#"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Hakan Dagtas <span class="dot" title="Active"></span></div>
+        <div class="meta">Senior Management · Chief Operating Officer</div></div>
+      <div class="right"><span class="role">Casino Manager</span><span class="id">USR-777777</span></div></a>
+  </div>
+</section>
+
+<!-- ══ V2 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V2</span><h3>Portrait left</h3></div>
+    <p class="vthesis">The photo stays, but as an identity anchor rather than a hero — 60px, squared,
+      beside the text instead of above it. One reading plane, one column of type, ID on the last line.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> photo band · badges · button</span>
+      <span class="vtag"><b>Keeps</b> the face</span>
+      <span class="vtag"><b>Card height</b> ~92px vs ~300px</span></div>
+  </div>
+  <div class="grid v2">
+    <a class="card" href="#"><div class="ph t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Supervisor</div><div class="meta">Surveillance Executive</div>
+        <div class="id">USR-80363</div></div></a>
+    <a class="card" href="#"><div class="ph t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Operator</div><div class="meta">Surveillance Operator</div>
+        <div class="id">USR-80358</div></div></a>
+    <a class="card off-name" href="#"><div class="ph t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Sopiko Abashidze <span class="dot off" title="Inactive"></span></div>
+        <div class="role">CCTV Operator</div><div class="meta">Guest Services Host</div>
+        <div class="id">USR-11310</div></div></a>
+    <a class="card" href="#"><div class="ph t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Hakan Dagtas <span class="dot" title="Active"></span></div>
+        <div class="role">Casino Manager</div><div class="meta">Chief Operating Officer</div>
+        <div class="id">USR-777777</div></div></a>
+  </div>
+</section>
+
+<!-- ══ V3 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V3</span><h3>Quiet hero</h3></div>
+    <p class="vthesis">For when the photograph has to stay large. Same architecture as today, three things
+      removed: both overlay badges and the resting button. The image is shortened to 104px so type gets the
+      lower half of the card, and the action appears on hover.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> 2 overlays · resting button</span>
+      <span class="vtag"><b>Closest</b> to what's live now</span>
+      <span class="vtag"><b>Hover</b> reveals the action</span></div>
+  </div>
+  <div class="grid v3">
+    <a class="card" href="#"><div class="ph t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Supervisor</div>
+        <div class="foot"><span class="meta">Surveillance</span><span class="id">USR-80363</span></div>
+        <span class="btn">View profile</span></div></a>
+    <a class="card" href="#"><div class="ph t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Operator</div>
+        <div class="foot"><span class="meta">Surveillance</span><span class="id">USR-80358</span></div>
+        <span class="btn">View profile</span></div></a>
+    <a class="card off-name" href="#"><div class="ph t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Sopiko Abashidze <span class="dot off" title="Inactive"></span></div>
+        <div class="role">CCTV Operator</div>
+        <div class="foot"><span class="meta">Casino Marketing</span><span class="id">USR-11310</span></div>
+        <span class="btn">View profile</span></div></a>
+    <a class="card" href="#"><div class="ph t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Hakan Dagtas <span class="dot" title="Active"></span></div>
+        <div class="role">Casino Manager</div>
+        <div class="foot"><span class="meta">Senior Management</span><span class="id">USR-777777</span></div>
+        <span class="btn">View profile</span></div></a>
+  </div>
+</section>
+
+<!-- ══ V4 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V4</span><h3>Status rail</h3></div>
+    <p class="vthesis">Status moves out of the content entirely and becomes a 2px rail down the left edge.
+      No pill, no dot, no word — the card's own edge says it. Everything inside is then free to be
+      monochrome, which is what makes the grid calm.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> status pill · badges · button</span>
+      <span class="vtag"><b>Status</b> = card edge</span>
+      <span class="vtag"><b>Scans</b> down the gutter</span></div>
+  </div>
+  <div class="grid v4">
+    <a class="card on" href="#"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan</div><div class="role">CCTV Supervisor</div>
+        <div class="meta">Surveillance Executive</div><div class="id">USR-80363</div></div></a>
+    <a class="card on" href="#"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili</div><div class="role">CCTV Operator</div>
+        <div class="meta">Surveillance Operator</div><div class="id">USR-80358</div></div></a>
+    <a class="card offc" href="#"><div class="ph rd t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Sopiko Abashidze</div><div class="role">CCTV Operator</div>
+        <div class="meta">Guest Services Host</div><div class="id">USR-11310</div></div></a>
+    <a class="card on" href="#"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Hakan Dagtas</div><div class="role">Casino Manager</div>
+        <div class="meta">Chief Operating Officer</div><div class="id">USR-777777</div></div></a>
+  </div>
+</section>
+
+<!-- ══ V5 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V5</span><h3>Two-line</h3></div>
+    <p class="vthesis">The minimum that still answers "who is this and what can they do": face, name, CRS
+      role. Department, title and ID are one hover away, and they're on the profile anyway. Fits six across
+      where four fit today.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> everything but name + role</span>
+      <span class="vtag"><b>Hover</b> reveals dept · title · ID</span>
+      <span class="vtag"><b>Risk</b> a hover-only fact is invisible on touch</span></div>
+  </div>
+  <div class="grid tight v5">
+    <a class="card" href="#"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan</div><div class="role">CCTV Supervisor</div>
+        <span class="extra">Surveillance · USR-80363</span></div></a>
+    <a class="card" href="#"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili</div><div class="role">CCTV Operator</div>
+        <span class="extra">Surveillance · USR-80358</span></div></a>
+    <a class="card off-name" href="#"><div class="ph rd t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Sopiko Abashidze</div><div class="role">CCTV Operator · Inactive</div>
+        <span class="extra">Casino Marketing · USR-11310</span></div></a>
+    <a class="card" href="#"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><div class="nm">Hakan Dagtas</div><div class="role">Casino Manager</div>
+        <span class="extra">Senior Management · USR-777777</span></div></a>
+  </div>
+</section>
+
+<!-- ══ V6 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V6</span><h3>Personnel record</h3></div>
+    <p class="vthesis">The most corporate of the ten. No photograph at all — the card reads as a file:
+      name on a header rule, then labelled rows in mono, right-aligned so the values form a column. Every
+      fact keeps its own label instead of being guessed from its size.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> photo · badges · button</span>
+      <span class="vtag"><b>Adds</b> field labels</span>
+      <span class="vtag"><b>Best for</b> audit / records work</span></div>
+  </div>
+  <div class="grid v6">
+    <a class="card" href="#"><div class="hd"><span class="nm">Rima Ambartsumyan</span></div>
+      <dl><dt>Role</dt><dd>CCTV Supervisor</dd><dt>Dept</dt><dd>Surveillance</dd>
+        <dt>Title</dt><dd>Surveillance Executive</dd><dt>ID</dt><dd class="mono">USR-80363</dd>
+        <dt>Status</dt><dd class="on">Active</dd></dl></a>
+    <a class="card" href="#"><div class="hd"><span class="nm">Natalia Aznaurishvili</span></div>
+      <dl><dt>Role</dt><dd>CCTV Operator</dd><dt>Dept</dt><dd>Surveillance</dd>
+        <dt>Title</dt><dd>Surveillance Operator</dd><dt>ID</dt><dd class="mono">USR-80358</dd>
+        <dt>Status</dt><dd class="on">Active</dd></dl></a>
+    <a class="card off-name" href="#"><div class="hd"><span class="nm">Sopiko Abashidze</span></div>
+      <dl><dt>Role</dt><dd>CCTV Operator</dd><dt>Dept</dt><dd>Casino Marketing &amp; Hosting</dd>
+        <dt>Title</dt><dd>Guest Services Host</dd><dt>ID</dt><dd class="mono">USR-11310</dd>
+        <dt>Status</dt><dd class="offv">Inactive</dd></dl></a>
+    <a class="card" href="#"><div class="hd"><span class="nm">Hakan Dagtas</span></div>
+      <dl><dt>Role</dt><dd>Casino Manager</dd><dt>Dept</dt><dd>Senior Management</dd>
+        <dt>Title</dt><dd>Chief Operating Officer</dd><dt>ID</dt><dd class="mono">USR-777777</dd>
+        <dt>Status</dt><dd class="on">Active</dd></dl></a>
+  </div>
+</section>
+
+<!-- ══ V7 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V7</span><h3>Initials</h3></div>
+    <p class="vthesis">No photographs anywhere — the initials fallback already in the design system (§20.5)
+      becomes the default. The wall of grayscale faces disappears and the grid goes quiet; names carry the
+      scanning, which is what people use anyway. Also removes the "24 mugshots" look.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> photos entirely</span>
+      <span class="vtag"><b>Uses</b> existing initials avatar</span>
+      <span class="vtag"><b>Trade-off</b> no face confirmation</span></div>
+  </div>
+  <div class="grid v7">
+    <a class="card" href="#"><div class="ini-w"><span class="ini">RA</span></div>
+      <div class="body"><div class="nm">Rima Ambartsumyan <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Supervisor</div>
+        <div class="meta">Surveillance · <span class="id">USR-80363</span></div></div></a>
+    <a class="card" href="#"><div class="ini-w"><span class="ini">NA</span></div>
+      <div class="body"><div class="nm">Natalia Aznaurishvili <span class="dot" title="Active"></span></div>
+        <div class="role">CCTV Operator</div>
+        <div class="meta">Surveillance · <span class="id">USR-80358</span></div></div></a>
+    <a class="card off-name" href="#"><div class="ini-w"><span class="ini">SA</span></div>
+      <div class="body"><div class="nm">Sopiko Abashidze <span class="dot off" title="Inactive"></span></div>
+        <div class="role">CCTV Operator</div>
+        <div class="meta">Casino Marketing · <span class="id">USR-11310</span></div></div></a>
+    <a class="card" href="#"><div class="ini-w"><span class="ini">HD</span></div>
+      <div class="body"><div class="nm">Hakan Dagtas <span class="dot" title="Active"></span></div>
+        <div class="role">Casino Manager</div>
+        <div class="meta">Senior Management · <span class="id">USR-777777</span></div></div></a>
+  </div>
+</section>
+
+<!-- ══ V8 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V8</span><h3>Department strip</h3></div>
+    <p class="vthesis">Department stops being a floating grey line above the name and becomes a proper
+      header strip with a rule under it. When the grid is sorted or filtered by department the strips line
+      up across the row and the grouping becomes visible without any headers.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> photo hero · badges · button</span>
+      <span class="vtag"><b>Promotes</b> department to a header</span>
+      <span class="vtag"><b>Pays off</b> when grouped by dept</span></div>
+  </div>
+  <div class="grid v8">
+    <a class="card" href="#"><div class="strip"><span class="lbl">Surveillance</span><span class="dot" title="Active"></span></div>
+      <div class="body"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+        <div class="txt"><span class="nm">Rima Ambartsumyan</span><span class="role">CCTV Supervisor</span>
+          <div class="foot"><span class="meta">Surveillance Executive</span><span class="id">USR-80363</span></div></div></div></a>
+    <a class="card" href="#"><div class="strip"><span class="lbl">Surveillance</span><span class="dot" title="Active"></span></div>
+      <div class="body"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+        <div class="txt"><span class="nm">Natalia Aznaurishvili</span><span class="role">CCTV Operator</span>
+          <div class="foot"><span class="meta">Surveillance Operator</span><span class="id">USR-80358</span></div></div></div></a>
+    <a class="card off-name" href="#"><div class="strip"><span class="lbl">Casino Marketing</span><span class="dot off" title="Inactive"></span></div>
+      <div class="body"><div class="ph rd t3"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+        <div class="txt"><span class="nm">Sopiko Abashidze</span><span class="role">CCTV Operator</span>
+          <div class="foot"><span class="meta">Guest Services Host</span><span class="id">USR-11310</span></div></div></div></a>
+    <a class="card" href="#"><div class="strip"><span class="lbl">Senior Management</span><span class="dot" title="Active"></span></div>
+      <div class="body"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+        <div class="txt"><span class="nm">Hakan Dagtas</span><span class="role">Casino Manager</span>
+          <div class="foot"><span class="meta">Chief Operating Officer</span><span class="id">USR-777777</span></div></div></div></a>
+  </div>
+</section>
+
+<!-- ══ V9 ══════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V9</span><h3>Badge tile</h3></div>
+    <p class="vthesis">A formal, org-chart reading: circular portrait, name, role, ID, centred. Status
+      becomes the ring around the photo, so it's attached to the person rather than parked in a corner.
+      Reads as a directory of people rather than a table of accounts.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> badges · button · department</span>
+      <span class="vtag"><b>Status</b> = avatar ring</span>
+      <span class="vtag"><b>Tone</b> HR directory</span></div>
+  </div>
+  <div class="grid v9">
+    <a class="card" href="#"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <span class="nm">Rima Ambartsumyan</span><span class="role">CCTV Supervisor</span><span class="id">USR-80363</span></a>
+    <a class="card" href="#"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <span class="nm">Natalia Aznaurishvili</span><span class="role">CCTV Operator</span><span class="id">USR-80358</span></a>
+    <a class="card off-name" href="#"><div class="ph rd t3 offr"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <span class="nm">Sopiko Abashidze</span><span class="role">CCTV Operator</span><span class="id">USR-11310</span></a>
+    <a class="card" href="#"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <span class="nm">Hakan Dagtas</span><span class="role">Casino Manager</span><span class="id">USR-777777</span></a>
+  </div>
+</section>
+
+<!-- ══ V10 ═════════════════════════════════════════════════════════════ -->
+<section>
+  <div class="vhead">
+    <div class="vtitle"><span class="vnum">V10</span><h3>Exception only</h3></div>
+    <p class="vthesis">Every active account is rendered identically and completely without colour — no dot,
+      no pill, no word. Only a deactivated account gets any ink at all. On a 24-card grid with one inactive
+      user, the one you need to see is the only thing you see.</p>
+    <div class="vtags"><span class="vtag"><b>Drops</b> all status marking on normal rows</span>
+      <span class="vtag"><b>Marks</b> exceptions only</span>
+      <span class="vtag"><b>Principle</b> ink = information</span></div>
+  </div>
+  <div class="grid v10">
+    <a class="card" href="#"><div class="ph rd t1"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><span class="nm">Rima Ambartsumyan</span><span class="role">CCTV Supervisor</span>
+        <span class="meta">Surveillance</span><span class="id">USR-80363</span></div></a>
+    <a class="card" href="#"><div class="ph rd t2"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><span class="nm">Natalia Aznaurishvili</span><span class="role">CCTV Operator</span>
+        <span class="meta">Surveillance</span><span class="id">USR-80358</span></div></a>
+    <a class="card flag" href="#"><div class="ph rd t3 dim"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><span class="nm">Sopiko Abashidze</span><span class="role">CCTV Operator</span>
+        <span class="meta">Casino Marketing &amp; Hosting</span><span class="id">USR-11310</span>
+        <span class="flagtag">Deactivated</span></div></a>
+    <a class="card" href="#"><div class="ph rd t4"><svg viewBox="0 0 64 64"><circle cx="32" cy="23" r="11"/><path d="M8 62c0-13 11-21 24-21s24 8 24 21z"/></svg></div>
+      <div class="body"><span class="nm">Hakan Dagtas</span><span class="role">Casino Manager</span>
+        <span class="meta">Senior Management</span><span class="id">USR-777777</span></div></a>
+  </div>
+</section>
+
+<footer>
+  <h2>How to pick</h2>
+  <p>They're not ten flavours of the same idea — they answer different questions. <b>V1, V5 and V7</b> are for
+    getting through a long list of accounts. <b>V2 and V3</b> are for keeping the photographs. <b>V6</b> is for
+    working with the records themselves. <b>V4, V8 and V10</b> are single moves you can lift into any of the
+    others: status as an edge, department as a header, colour reserved for exceptions.</p>
+  <p>Three of them combine well — <b>V1's</b> layout with <b>V4's</b> rail and <b>V10's</b> exception rule is
+    probably the most corporate result available from this set.</p>
+  <p class="fine">Photo slots are placeholders. All colour, radius and type tokens come from
+    design/CRS-design-system.md — no new values introduced. Cards are the click target throughout; each has a
+    visible focus ring.</p>
+</footer>
+
+<script>
+document.querySelectorAll('.seg button').forEach(function(b){
+  b.addEventListener('click', function(){
+    document.documentElement.setAttribute('data-theme', b.dataset.t);
+    document.querySelectorAll('.seg button').forEach(function(o){
+      o.setAttribute('aria-pressed', String(o === b));
+    });
+  });
+});
+</script>
+</body>
+</html>
