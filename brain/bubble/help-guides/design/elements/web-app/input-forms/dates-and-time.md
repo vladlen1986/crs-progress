@@ -1,5 +1,5 @@
-# Dates and time
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/dates-and-time · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+# Date and time input elements (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/dates-and-time · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers elements that accepts dates and time as user input
 
@@ -29,7 +29,7 @@ To learn more about how this works and how to override time zones when needed, c
 
 The date/time picker lets your users pick a date and a time from a visual calendar. It can also be set up to only pick a date, in which case the field to the right in the animation below will be hidden.
 
-<figure><img src="/files/EefTSgKvF5wXpBeCrE6M" alt=""><figcaption><p>The date/time picker gives your users a visual interface to pick a date or both.</p></figcaption></figure>
+<figure><img src="/files/EefTSgKvF5wXpBeCrE6M" alt="Animation showing how a datetime picker works."><figcaption><p>The date/time picker gives your users a visual interface to pick a date or both.</p></figcaption></figure>
 
 If you set up the element to only ask for a date, the date will be saved at 12 am (00:00) on the chosen date in the [current user's time zone](#user-content-fn-1)[^1]. If you have selected a different time zone in the [Property Editor](#user-content-fn-2)[^2], the date will be saved at 12 am (00:00) in that time zone.
 
@@ -45,14 +45,14 @@ You can set a minimum and maximum date as well as a minimum and maximum time of 
 
 </details>
 
-## Input element
+## Input
 
 The input element is mainly used for text input, but can be set up to expect a date instead. In this case the user will not see a calendar or time picker, but will instead be able to type the date directly. Note that the input element supports dates but not time. It can be set up to format the date in:
 
 * US format (mm/dd/yyyy)
 * European format (dd/mm/yyyy)
 
-<figure><img src="/files/EWZcrPENMU6p6PQif6PP" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/EWZcrPENMU6p6PQif6PP" alt="Input element with date formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** date
 

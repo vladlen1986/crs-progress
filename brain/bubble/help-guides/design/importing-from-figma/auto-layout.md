@@ -1,5 +1,5 @@
 # Auto layout
-> Source: https://manual.bubble.io/help-guides/design/importing-from-figma/auto-layout · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design/importing-from-figma/auto-layout · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 Our converter works best with Figma elements that use Auto Layout.
 
@@ -37,10 +37,3 @@ Not sure whether your design uses Auto Layout? Here's one quick way to check:
 #### Native mobile elements
 
 Currently, some native mobile elements won't perfectly convert. Please make sure to check that all elements are working as expected.
-
-
-
-
----
-
-[Next Page](/llms-full.txt/1)

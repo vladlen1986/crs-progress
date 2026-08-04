@@ -1,5 +1,5 @@
 # Design tab
-> Source: https://manual.bubble.io/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% hint style="info" %}
 Bubble introduced a new responsive engine in 2021. If you have an older app, you may still see the legacy engine and its properties. We recommend that you update your app to the new responsive engine. The documentation for the legacy responsive engine is available in the link below.
@@ -15,7 +15,7 @@ Using Bubble's intuitive WYSIWYG[^1] editor, you can visualize how elements will
 
 By default, every Bubble app includes certain pages[^4] such as the 404 page, displayed when users access a non-existent URL on your app, and the reset\_pw page for password resets. To manage multiple pages or dive into reusable components, navigate using the dropdown on the top left of the top bar.
 
-Article series: [Design](/help-guides/design)
+**Article series:** [Design](/help-guides/design)
 
 ## The element tree
 
@@ -23,7 +23,7 @@ The element tree displays all the components present on the page. Indentation in
 
 <figure><img src="/files/ntBrRs6NXT9pVO7O4GtY" alt=""><figcaption><p>The element tree shows all elements on the page in a hierarchy.</p></figcaption></figure>
 
-Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
+**Article:** [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
 
 ## The element pallet
 
@@ -43,7 +43,7 @@ You can also use the search bar to quickly find the element you are looking for.
 * Drag the element from the element pallet
 * Click the element in the element pallet and then "draw" it on the page
 
-Article series: [Elements](/help-guides/design/elements)
+**Article series:** [Elements](/help-guides/design/elements)
 
 ## Responsive
 
@@ -55,7 +55,7 @@ At the top of the left flyout of this sub-tab, there are shortcuts to snap the p
 
 The responsive type will also show you the current size of the selected element as well as its parent.
 
-Article series: [Responsive design](/help-guides/design/responsive-design)
+**Article series:** [Responsive design](/help-guides/design/responsive-design)
 
 ## Other ways to learn
 

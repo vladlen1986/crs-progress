@@ -1,5 +1,5 @@
 # Design and UX
-> Source: https://manual.bubble.io/help-guides/getting-started/building-your-first-app/design-and-ux · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-your-first-app/design-and-ux · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 Unless you come from a design background, it can be difficult to know where to start. Luckily, there is an abundance of design resources both within the Bubble community and on the web in general.
 
@@ -161,7 +161,7 @@ Whenever you need a new type of element, make a habit of adding it to your UI ki
 {% hint style="warning" %}
 If you create your UI kit on a page, remember to remove that page before you deploy your app to live users (or they page will be accessible online). If you want to keep the UI kit without it being available to your end-users, you can place it inside of a reusable element instead.
 
-Article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+Article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 {% endhint %}
 
 ### Building the page

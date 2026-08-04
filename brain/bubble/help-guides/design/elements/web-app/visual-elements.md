@@ -1,5 +1,5 @@
-# Visual elements
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/visual-elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+# Visual elements (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/visual-elements · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section describes the visual elements that are available in the Bubble editor
 

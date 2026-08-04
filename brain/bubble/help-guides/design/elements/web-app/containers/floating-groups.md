@@ -1,5 +1,5 @@
-# Floating groups
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/floating-groups · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Floating group element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/floating-groups · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the floating group, a container type used to attach a group to one of the sides of the screen so it stays in place regardless of scrolling position.
 
@@ -213,7 +213,7 @@ We have multiple video lessons on how to set up and use Floating groups:
 
     **Core reference:** [Data sources](/core-resources/data/data-sources)
 
-[^3]: The **Type of content** property tells Bubble what kind of data the repeating group will hold, such as `User` or `Post`. This determines what data source it accepts and what child elements can reference through `Current cell`.
+[^3]: The **Type of content** property tells Bubble what kind of data the container will hold, such as `User` or `Post`. This determines what data source it accepts and what child elements can reference through `Current cell`.
 
 [^4]: **Dynamic expressions** are how you reference and manipulate data in Bubble. They let you pull values from data sources, apply operators, and combine data in different ways to produce a final result, such as `Current User's name` or `Do a search for Posts:count`.
 

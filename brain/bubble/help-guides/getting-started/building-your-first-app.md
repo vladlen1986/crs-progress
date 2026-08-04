@@ -1,5 +1,5 @@
 # Building your first app
-> Source: https://manual.bubble.io/help-guides/getting-started/building-your-first-app · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/building-your-first-app · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 Starting your journey in app development can feel like learning a new language, especially with the intricate jargon and technical terminologies used in traditional programming. Bubble uses intuitive and self-explanatory terminology like *things*, *workflows*, and *conditions*, to remove the barriers of complex coding languages, allowing you to focus on bringing your ideas to life.
 
@@ -137,7 +137,7 @@ As you build, you might create a component that you want to use repeatedly. That
 
 **Learn more:**
 
-* Article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+* Article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 </details>
 

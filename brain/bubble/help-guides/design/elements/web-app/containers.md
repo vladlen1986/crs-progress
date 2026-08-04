@@ -1,5 +1,5 @@
 # Containers
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the container elements, used to group and control the behavior of other elements
 
@@ -64,7 +64,7 @@ There are two main ways to load data into a container:
 
 #### Set the container's data source
 
-Setting a container's data source makes the data load instantly. First, you need to set the **Type of content**, such as `User`. This tells Bubble what kind of data to expect, and the container will only accept that type. Then set the **data source** itself, such as `Current User`.
+Setting a container's data source makes the data load instantly. First, you need to set the *Type of content*, such as `User`. This tells Bubble what kind of data to expect, and the container will only accept that type. Then set the *data source* itself, such as `Current User`.
 
 *`Current User`* is just one option. Any expression that returns a `user` is valid, such as `Do a search for:first item`, as long as the search returns a `user`.
 
@@ -221,7 +221,7 @@ Yes. Setting up a workflow on the container's *An element is clicked* event lets
 
 [^2]: The *element tree* is the list of elements organized in a hierarchy that you can see on the left side of the Bubble design editor.\
     \
-    Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
+    Article: [The element tree](broken://pages/I16X4KOwxZmqx2I6J6XO)
 
 [^3]: Workload is a measure of how much processing your app uses. Every server-side operation, like database queries, workflow actions, and external API calls, consumes workload
 

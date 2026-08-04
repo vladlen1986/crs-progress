@@ -1,5 +1,5 @@
-# Repeating groups
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/repeating-groups · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Repeating group element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/repeating-groups · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the container type repeating group, used to display lists of things such as records from the database
 

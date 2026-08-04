@@ -1,5 +1,5 @@
-# Table elements
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/table-elements · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Table element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/table-elements · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the table element, used to display lists of things such as records from the database in a table-like structure of rows and columns
 

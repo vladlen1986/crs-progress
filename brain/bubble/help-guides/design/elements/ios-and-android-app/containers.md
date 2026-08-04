@@ -1,162 +1,103 @@
-# Containers
-> Source: https://manual.bubble.io/help-guides/design/elements/ios-and-android-app/containers · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+# Container elements (mobile)
+> Source: https://manual.bubble.io/help-guides/design/elements/ios-and-android-app/containers · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
-## Lists
+Containers hold other elements and control how they behave on the view. Placing an element inside a container makes the container its parent and the element its child, forming the hierarchical structure the browser uses to render the layout correctly. You can see this parent-child relationship in the element tree.
 
-Mobile lists differ from web lists in a few important ways. In mobile apps, lists should never be placed within a scrolling container. Instead, a mobile list should expand to fit its content, allowing users to scroll through the screen itself rather than a confined container.
+Containers are one of the most important tools in Bubble. They control layout, hold data, group related elements, and are the foundation of any responsive design. Mastering containers is essential to mastering design in Bubble.
 
-Similarly, list pagination is a web pattern that doesn't translate well to mobile and should be avoided. To support this, Vertical and Section lists are their own view types, and lists cannot be nested within each other. The only exception is with Horizontal lists, which can be placed inside a vertical or section list or on any non-list view, as they scroll in a different direction (similar to how Netflix displays content).
+## What containers do <a href="#what-containers-do" id="what-containers-do"></a>
 
-#### Multiple lists
+Containers serve three main purposes:
 
-At this time, you cannot add multiple lists with different data sources to the same List view. However, Section lists offer a way to group list items by a specific property, essentially creating a list within a list. If having multiple lists on a single view is important for your use case, feel free to send us a feature request.
+1. **They organize elements into a hierarchy.** Grouping related elements together makes them easier to manage, move, style, and reference.
+2. **They control layout.** A container's layout settings determine how its child elements are arranged and how they respond to different screen sizes.
+3. **They hold data.** A container can be given a data source, making that data available to every element inside it.
 
-#### List Header / Footer content areas
+Most containers do more than one of these at the same time. A single group might hold a form's fields, control their layout, and load the user record being edited, all in one.
 
-Since a List view can only accept List items as content, it provides header and footer content areas to let you add additional visual elements to your view. For instance, you might want to display a title or description above your list. These content areas can be enabled by clicking the *plus* buttons that appear at the top and bottom of the list element on the canvas.
+<details>
 
-Doing so adds empty content areas where you can drop any visual elements (except for lists). Keep in mind that these areas don’t have their own layout or visual properties and cannot be selected independently on the canvas or within the elements tree.
+<summary>The element hierarchy</summary>
 
-<figure><img src="/files/mHzDyUPl07YlX4BuAdQ5" alt="" width="563"><figcaption><p>You can add visual elements on top of your list view...</p></figcaption></figure>
+All elements in a mobile app are organized in a hierarchy that shapes both the layout and how data flows through your design. Understanding this hierarchy is key to building views that behave predictably and look right across devices.
 
-<figure><img src="/files/pyHp8bO3X7cZShMybA0b" alt="" width="563"><figcaption><p>... or underneath it.</p></figcaption></figure>
+Article: [The element hierarchy](/help-guides/design/elements/the-element-hierarchy)
 
-## Vertical list
+</details>
 
-Vertical lists display a set of repeating items stacked vertically, much like a repeating group in the web editor. Each vertical list includes a list item cell template that replicates based on the data provided, ensuring a consistent layout for every item in the list.
+## Container types
 
-#### **Properties**
+<table><thead><tr><th width="168.4296875">Element</th><th>Description</th></tr></thead><tbody><tr><td><a href="/pages/NvacCqH3lNaRhxAJVECA">Group</a></td><td>The most basic and versatile container type. Used to organize elements, control layout, and hold data.</td></tr><tr><td><a href="/pages/lhtfublW1vNS4m5LiZcN">Floating group</a></td><td>A container that stays fixed to a side of the screen as the user scrolls, ideal for persistent headers, floating action buttons, or status banners.</td></tr><tr><td><a href="/pages/tMWVlyqYJBFmjso00QHy">Short list</a></td><td>A container for displaying a small, fixed list of items.</td></tr><tr><td><a href="/pages/QxGmyPCTI498McajLuRP">Horizontal list</a></td><td>A container that displays a scrollable list of items side by side, useful for carousels, category rows, and media galleries.</td></tr><tr><td><a href="/pages/j7YZDQYm5o8UbHD5UeKS">Sheet</a></td><td>A container that slides up from the bottom of the view, sitting above the current content while keeping the underlying view partially visible.</td></tr><tr><td><a href="/pages/kc2HeG4yI6rEmy95HTvO#selectable-lists">Selectable list</a></td><td>A list with built-in functionality for selecting one or more records.<br><strong>Note:</strong> a selectable list behaves like a container, but is listed as an input form in the element palette, because it accepts user input. </td></tr></tbody></table>
 
-* Separators
-* Separator inset (px)
-* Separator width
-* Separator color
-* List item gap spacing
-* Gap spacing (px)
-* Reverse scroll\
-  Reverse scroll reverts the scrolling direction, which is the expected behavior in certain scenarios such as in chat conversations.
+## Lists in mobile apps
 
-#### Section list
+In a web app, you will mostly use repeating groups or tables to build lists. Native mobile apps use the mobile operating system's native components, and thus behave a bit differently. Lists *can* be built using elements, but are often instead displayed as a property of an already existing element. For example, the view has two built-in list types:
 
-Section lists display a set of repeating items that are grouped by a specific characteristic or property. Each section list includes two cell templates: the Section Header and the List Item. The Section Header allows you to style the repeating header separately from the list items and, most importantly, set the property used to group the items. The List Item functions similarly to the Vertical List, but the individual list items will be automatically grouped based on the property defined in the Section Header's Grouping setting.
+* [**Vertical lists**](/help-guides/design/elements/ios-and-android-app/the-view#view-types)**:** a list that take up the full screen and lazy-loads[^1] as the user scrolls.
+* [**Section lists**](/help-guides/design/elements/ios-and-android-app/the-view#view-types)**:** lists that are divided into a section, such a by category or by a numerical value such as age. Also lazy-loads.
 
-<figure><img src="/files/cScFpkLL2Y8TvrLl5rCr" alt=""><figcaption><p>In this example, we have taken a list of users and created sections based on their age (a numerical value).</p></figcaption></figure>
+You won't find these in the element palette, as they are pseudo child elements of the view itself. You set this behavior in the *View type* property.
 
-In the example above, we have taken a list of Users, each containing the field *Age* (number). After selecting Section List as our view type, we'll set the content type of our section list to Users and perform a search for all Users.
+**Article:** [The view](/help-guides/design/elements/ios-and-android-app/the-view)
 
-Next, we'll open the section header property editor to set the Grouping. Since we want to group by the user's age, we'll set the *Group by* to *Age*.
+### Pagination
 
-{% hint style="info" %}
-Any property within the data type can be used for grouping, **except** for fields that **reference another data type**.
-{% endhint %}
+Pagination is a web pattern that doesn't translate well to mobile because of the small screen. It's still possible to set up pagination, but we recommend instead using the more mobile-friendly pattern of fullscreen lists that lazy-load[^1]. For lists longer than 20-30 or so items, we recommend using [vertical lists](/help-guides/design/elements/ios-and-android-app/the-view#view-types) or [section lists](/help-guides/design/elements/ios-and-android-app/the-view#view-types).
 
-**Properties**
+For very long lists, implementing search or filtering can be a user-friendly option to long scrolling.
 
-* Separators
-* Separator inset (px)
-* Separator width
-* Separator color
-* List item gap spacing
-* Gap spacing (px)
-* Group by (Section header)
+### List elements
 
-## Horizontal List
+While longer lists should use [vertical lists](/help-guides/design/elements/ios-and-android-app/the-view#view-types) or [section lists](/help-guides/design/elements/ios-and-android-app/the-view#view-types), native mobile apps also has list elements that can be placed directly on the view or inside a container.&#x20;
 
-Used to display a list of repeating items that scrolls horizontally. The horizontal list cannot be added directly to a List view; it can only be nested within another list on a List view or added to a non-list view.
+* [**Short list:**](/help-guides/design/elements/ios-and-android-app/containers/short-list-element-mobile) Short lists are similar to repeating groups, but load all content immediately. As the name suggests, they should be used only to hold lists of a few items.
+* [**Horizontal list:**](/help-guides/design/elements/ios-and-android-app/containers/horizontal-list-element-mobile) A horizontal list is used to display a list of items in a scrollable, side-to-side layout.
+* [**Selectable list:**](/help-guides/design/elements/ios-and-android-app/input-forms#selectable-lists) A selectable list is also a container for small lists, that has built-in functionality for selecting one or more records, similar to radio buttons or a list of checkboxes in web apps.\
+  **Note:** the selectable list element is considered an input form element because i accepts user input. You'll find it under Input forms in the element palette.
 
-#### **Properties**
+## Popups in mobile apps
 
-* List item gap spacing
-  * Toggles the ability to add gap spacing between list items
-* Item gap (px)
-  * Defines the actual pixel value of the gap spacing between list items
+Using popups is a common scenario in web apps, used to display messages, ask for confirmation, show details about data and for login/sign-up flows.
 
-#### List item swipe actions
+Native mobile apps don't have popups, but you can instead use one of the native alternatives:
 
-List items in vertical and section lists have the option to include swipe actions, allowing users to interact with the list by swiping an item to trigger certain actions.
+* [**A view:**](/core-resources/elements/native-mobile-elements/view-element) A view can be quickly navigated to, fills the whole screen and can be navigated back from
+* [**A sheet:**](/help-guides/design/elements/ios-and-android-app/containers/sheet-mobile) A sheet is a container that slides up from the bottom of a native mobile view, sitting above the current content while keeping it partially visible.
 
-For example, let's say you have a task management app where users can add tasks to a list. Using swipe actions, you can allow the users to swipe left or right to complete or detele a task. This interaction provides a seamless and intuitive way for users to manage items directly within the list without adding extra elements that clutter the user interface.
+## Controlling layout with containers
 
-<figure><img src="/files/DqlJcVc95RrL0q5w0FVU" alt="" width="375"><figcaption><p>List item swipe actions lets users interact with items in a list without adding additional elements to the user interface.</p></figcaption></figure>
+Containers use one of four layout modes to arrange their children:
 
-Swipe actions can be customized with leading (left side) and trailing (right side) actions, and you can also set it up so that a full swipe automatically triggers the action. You can design swipe actions by selecting the relevant frame that appears on either side of the canvas, eliminating the need to hide or unhide layers. Each list item can have up to three leading swipe actions and three trailing swipe actions for a range of interactions.
+* **Column** stacks children vertically. Each element sits below the previous one.
+* **Row** arranges children horizontally, side by side.
+* **Align** lets you position children in one of nine fixed positions within the container.
+* **Fixed** gives each element a fixed position, without automatic layout logic.
 
-One advantage of swipe actions is that they come with default animations and swipe behavior built in, making setup quick and easy. You only need to focus on customizing the look of the swipe action and deciding which workflow it triggers when swiped or tapped. To maintain a clean, consistent design, layout controls are intentionally limited to prevent swipe actions from deviating from established design best practices.
+Each layout mode comes with its own set of alignment and spacing options. Choosing the right layout mode is one of the most important decisions when building a responsive design. You can also nest containers inside other containers.
 
-#### **Properties**
+Using containers to control layout is the key to an efficient responsive design.
 
-* Button type - icon, label, icon and label
-* Icon and label fields
-* Icon size
-* Icon color
-* Font controls (for label)
-* Background style
-* Container alignment
-* Padding
+**Article series:** [Responsive design](/help-guides/design/responsive-design)
 
-## **Short List**
+## Styling containers
 
-{% hint style="warning" %}
-**Note on performance:** Short lists load the entire data source at once, rather than using lazy loading. This makes them ideal for shorter lists, while longer lists may impact performance.
-{% endhint %}
+Containers can be styled just like any other element. They support background colors, borders, border radius, shadows, opacity, and more. They can also be set to fully transparent or invisible when their only purpose is to control layout or hold data.
 
-A *Short list* is a container for displaying a fixed list of data items. Unlike list views, short lists load all data at once rather than lazy-loading, which makes them best suited for small to medium lists where performance remains smooth.
+To open a container's style settings, click on it in the element tree or on the canvas. Its properties appear in the property editor on the right.
 
-Key considerations for short lists:
+<figure><img src="/files/vxjr9tr8a6DOOyrstymg" alt="A container&#x27;s styling properties in the element property editor."><figcaption><p>Containers can be styled individually, or by using predetermined styles.</p></figcaption></figure>
 
-* Supports multiple lists per view (unlike list view).
-* Loads all data at once.
-* Works well for displaying small sets of frequently used information.
+Using shared styles or style variables keeps container styling consistent across your app.
 
-## Sheets
+Article series: [Styles](/help-guides/design/variables-and-styles/styles)
 
-Sheets are similar to modals in that they provide a focused user experience, but they are best used when the immediate context of the view behind them is still relevant. For instance, Google Maps uses a sheet to display search results while allowing users to view the map in the background without switching screens. Unlike navigation elements, sheets are added directly to a view, functioning much like popups in Bubble’s web editor.
+## Working with containers in the editor
 
-Sheets are opened using the *Show element* action.
+A few tips make working with containers easier:
 
-<figure><img src="/files/yUPqdXFG2eqocnw7Jrl3" alt="" width="285"><figcaption></figcaption></figure>
+* **Use the element tree to navigate parent-child relationships**. It's the fastest way to select a specific container in a complex design.
+* **Give containers meaningful names**. Group Header and Group Cart Items are much easier to work with than Group A and Group B.
+* **Nest carefully**. Nested containers make responsive design more flexible, but excessive nesting can slow down rendering and make the layout more difficult to manage.
+* **Consider reusable elements**. If the same container structure appears in multiple places, converting it into a reusable element saves time and keeps the design consistent.
 
-**Properties**
-
-* Swipe to close
-  * Toggles the ability to swipe down from the top to close the sheet. Disable this if you’d rather have the user dismiss a sheet with a button.
-* Block interaction behind sheet
-  * Toggles the ability for a user to interact with the base screen when a sheet is open, similar to the behabior of popups in a web app.
-* Backdrop color
-  * Sets a color that is applied over the base screen when the sheet is open, similar to the behavior of popups in a web app.
-* Backdrop blur
-  * Sets a blurred overlay over the base screen when the sheet is open, similar to the behavior of popups in a web app.
-* Drag handle
-  * Toggles the visibility of the horizontal drag bar at the top of a sheet. This does not impact the functionality of the sheet.
-* Snap points
-  * Snap points let you define the various sizes a sheet can be. The sheet will have a default snap point, which is the size it opens to, and the user can then swipe up or down to move the sheet between the different snap points as needed. This feature is useful if the sheet contains a lot of content or if you want to allow the user to partially move the sheet out of the way to interact with the content behind it.
-
-## Floating Group
-
-Floating groups are elements that can sit above other content in a view and remain fixed in place, even while the user scrolls through the rest of the page. They are especially useful for creating toolbars, banners, or any persistent elements that should always stay visible, regardless of the user's scrolling actions.
-
-{% hint style="info" %}
-Floating groups will position themselves just below the top app bar when aligned to the top or just above the tab bar when aligned to the bottom, if either of these elements are present on the view.
-{% endhint %}
-
-Floating groups on mobile share most of the same controls as they do on the web, with a few new options that are specific to mobile use cases, highlighted below.
-
-**Properties**
-
-* Vertically float relative to
-  * Top: Aligns to the top of the screen
-  * Bottom: Aligns to the bottom of the screen
-  * Both: Aligns to the center of the screen
-  * Nothing: Defaults to the top
-* Horizontally float relative to
-  * Left: Aligns to the left of the screen
-  * Right: Aligns to the right of the screen
-  * Center: Aligns to the center of the screen
-* Safe Area Behavior
-  * Ignore: The safe area will not impact the position of the floating group on the screen
-  * Apply to container: Position the floating group after the safe area
-  * Apply to children: The container will ignore the safe arena but the child content in the floating group will be offset by the safe area
-* Move with keyboard
-  * Checked: When selected, the floating group will shift upward to accommodate the keyboard when it appears.
-  * Unchecked: The floating group will stay in its fixed position and will be covered by the keyboard if it appears in the same area.
-* Floating z-index: Determines whether the floating group should hover above or below other elements, including the view itself. Note that adding a background color to the view will block the floating group.
+[^1]: Lazy loading is a technique where data or content is loaded only when it's needed, such as when the user scrolls into view. This helps improve performance by avoiding loading everything upfront.

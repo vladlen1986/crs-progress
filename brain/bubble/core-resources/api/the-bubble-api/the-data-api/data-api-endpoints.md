@@ -1,5 +1,5 @@
 # Data API endpoints
-> Source: https://manual.bubble.io/core-resources/api/the-bubble-api/the-data-api/data-api-endpoints · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/api/the-bubble-api/the-data-api/data-api-endpoints · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section describes how to identify the correct endpoints when using the Data API
 
@@ -104,3 +104,10 @@ You can read more about the formatting of type names in [this article.](/help-gu
 [^3]: An API endpoint is a specific URL or address where an API (Application Programming Interface) receives requests.\
     \
     Article series: [Introduction to APIs](/help-guides/integrations/api/introduction-to-apis)
+
+
+
+
+---
+
+[Next Page](/llms-full.txt/4)

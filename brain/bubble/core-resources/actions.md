@@ -1,5 +1,5 @@
 # Actions
-> Source: https://manual.bubble.io/core-resources/actions · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/actions · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 Actions are the tasks that Bubble performs. All actions are part of a workflow.
 
@@ -233,4 +233,4 @@ Article series: [Debugging your application](/help-guides/getting-started/naviga
     \
     \
     \
-    \&#xNAN;*User manual article series:* [*Introduction to APIs*](/help-guides/integrations/api)
+    *User manual article series:* [*Introduction to APIs*](/help-guides/integrations/api)

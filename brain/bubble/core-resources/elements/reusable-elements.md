@@ -1,5 +1,5 @@
 # Reusable Elements
-> Source: https://manual.bubble.io/core-resources/elements/reusable-elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/elements/reusable-elements · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% tabs %}
 {% tab title="Experience level" %}
@@ -13,7 +13,7 @@ To learn about this topic more in-depth, we recommend reading the suggested arti
 
 #### Reusable elements
 
-Article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+Article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 ***
 

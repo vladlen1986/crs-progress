@@ -1,5 +1,5 @@
-# Selection controls
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/selection-controls · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+# Selection control input elements (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/selection-controls · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers selection control elements, that lets you set up input elements with predefined options
 
@@ -11,7 +11,7 @@ Selection control elements are input elements that let your users make a choice 
 
 The Checkbox element is the most basic selection control element which simply returns a yes or a no depending on whether the box is checked or not.
 
-<figure><img src="/files/gaDPRK7UsSYXwu0Xubx6" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/gaDPRK7UsSYXwu0Xubx6" alt="Checkbox example with terms and conditions."><figcaption></figcaption></figure>
 
 <details>
 
@@ -27,7 +27,7 @@ The Checkbox element is the most basic selection control element which simply re
 
 The Radio button element is similar to the checkbox, but allows you to add more than one option. You can set up a static list of text options (in the example below we have used the texts Option 1, Option 2 and Option 3) or you can fetch a list of Things from the database and display one of their fields as the label.
 
-<figure><img src="/files/7Iq3FHQ0zZlOeHhRk342" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/7Iq3FHQ0zZlOeHhRk342" alt="A list of three radio buttons."><figcaption></figcaption></figure>
 
 <details>
 
@@ -43,7 +43,7 @@ The Radio button element is similar to the checkbox, but allows you to add more 
 
 The Dropdown element, similarly to the Radio button element lets you give your users one choice out of a selection of texts or from the database.
 
-<figure><img src="/files/KhGnhBlB1hE9zPivCITA" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/KhGnhBlB1hE9zPivCITA" alt="A dropdown element."><figcaption></figcaption></figure>
 
 <details>
 
@@ -59,7 +59,7 @@ The Dropdown element, similarly to the Radio button element lets you give your u
 
 The search box element lets you set up a flexible text search for database records. The element looks like a regular [input field](/help-guides/design/elements/web-app/input-forms/text-and-numbers#input-elements) but quickly and dynamically returns search results as the user types.
 
-<figure><img src="/files/9QOlKfqS9MxJQYpF4rBJ" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/9QOlKfqS9MxJQYpF4rBJ" alt="The searchbox element showing products."><figcaption></figcaption></figure>
 
 {% hint style="warning" %}
 **Note:** Each time you type or change a character in the search box element, it triggers a fresh [database query](#user-content-fn-1)[^1]. While this ensures a rapid search response, it's worth remembering that each query consumes some workload[^2]. To learn more about workload management, refer to our article series linked below.\
@@ -83,7 +83,7 @@ Article series: [Pricing and workload](/account-and-marketplace/account-and-bill
 
 The Slider input element lets your users select a numerical value out of a range. You can set a minimum and a maximum value and the value of each step.
 
-<figure><img src="/files/IaFPpJa4QRXVcHDEs77b" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/IaFPpJa4QRXVcHDEs77b" alt="SliderInput element."><figcaption></figcaption></figure>
 
 <details>
 
@@ -97,7 +97,7 @@ The Slider input element lets your users select a numerical value out of a range
 
 The Multiselect dropdown element lets your users select multiple choices from a list of texts or records from the database. They choose the item from a dropdown list or search for them by typing.
 
-<figure><img src="/files/VvfayREIs7ayPtui7bR1" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/VvfayREIs7ayPtui7bR1" alt="Multiselect dropdown element."><figcaption></figcaption></figure>
 
 The element returns a list of whichever type of data you specify.
 

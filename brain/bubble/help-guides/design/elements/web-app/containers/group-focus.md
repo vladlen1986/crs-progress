@@ -1,5 +1,5 @@
-# Group focus
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/group-focus · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Group focus element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/group-focus · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the group type Group Focus. This group will remain visible for as long as it is in focus, typically used for dropdown menus
 
@@ -190,7 +190,7 @@ Reference: [Group focus](/core-resources/elements/containers#group-focus)
 
 </details>
 
-[^1]: The **Type of content** property tells Bubble what kind of data the repeating group will hold, such as `User` or `Post`. This determines what data source it accepts and what child elements can reference through `Current cell`.
+[^1]: The **Type of content** property tells Bubble what kind of data the container will hold, such as `User` or `Post`. This determines what data source it accepts and what child elements can reference through `Parent group`.
 
 [^2]: A **data source** is any source your app pulls data from, such as a database search, a specific record, an option set, or an external API.
 

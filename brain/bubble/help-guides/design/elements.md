@@ -1,5 +1,5 @@
 # Elements
-> Source: https://manual.bubble.io/help-guides/design/elements · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design/elements · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers elements – the building blocks that make up your application's user interface
 
@@ -102,7 +102,7 @@ Input forms are elements that allow your users to provide data to your applicati
 
 Reusable elements let you build a component once and use it across your app. When you update the reusable element's definition, every instance updates too, which makes them useful for headers, footers, or any component that appears in multiple places.
 
-**Article:** [Resuable elements](/help-guides/design/elements/reusable-elements)
+**Article:** [Resuable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 ***
 
@@ -184,6 +184,8 @@ The element picker in the toolbar lists every element on the page. Start typing 
 #### The element tree
 
 The element tree gives you a hierarchical view of every element and is useful for both selecting and rearranging them by dragging and dropping them to a new position in the hierarchy. Use the search bar at the top of the element tree to filter elements by name.
+
+**Article:** [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
 
 <figure><img src="/files/5QAXAv4s6rBYfBtUEZik" alt="Searching for elements in the element tree."><figcaption><p>You can quickly find elements by typing part of their name in the element tree's filter bar.</p></figcaption></figure>
 

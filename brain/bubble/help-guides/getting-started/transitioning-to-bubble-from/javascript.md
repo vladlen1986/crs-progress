@@ -1,5 +1,5 @@
 # JavaScript
-> Source: https://manual.bubble.io/help-guides/getting-started/transitioning-to-bubble-from/javascript · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/getting-started/transitioning-to-bubble-from/javascript · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 For those accustomed to working with JavaScript, transitioning to Bubble will in many ways feel similar. This article will explore the transition from JavaScript to Bubble specifically, but since several programming languages like Python, Ruby, and PHP share many commonalities with JavaScript, you may find it useful if you come from a different language as well.
 
@@ -67,7 +67,7 @@ It also means the data is not static. Populating a custom state with a database 
 
 You can read more about reusable elements and custom properties in the article below:\
 \
-Article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+Article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 #### Result of step X
 
@@ -199,7 +199,7 @@ Additionally, Bubble abstracts the numerous server metrics typically managed in 
 
 [^6]: *Reusable elements* are a collection of elements, actions and customizable properties that can be re-used across your app. They are commonly used for headers and footers, for example.
 
-    Article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+    Article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 [^7]: *Create a new thing* is an action that creates a new thing (database record) and optionally populates it with data.
 

@@ -1,5 +1,5 @@
 # API Glossary
-> Source: https://manual.bubble.io/help-guides/integrations/api/api-glossary · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/integrations/api/api-glossary · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers widely used API terminology.
 
@@ -167,7 +167,7 @@ For example, in the [JSON](#json) code below, the text marked in bold are two ke
 `"user": {`
 
 **`"id": "123456",`**\
-\&#xNAN;**`"username": "johnDoe123",`**
+**`"username": "johnDoe123",`**
 
 `}`
 

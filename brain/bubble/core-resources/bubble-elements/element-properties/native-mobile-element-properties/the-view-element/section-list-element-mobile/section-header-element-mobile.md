@@ -1,5 +1,5 @@
 # Section header element (mobile)
-> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/section-list-element-mobile/section-header-element-mobile · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/section-list-element-mobile/section-header-element-mobile · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 The section list header is a pseudo child element of the [Section list element](/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/section-list-element-mobile). Rather than being added from the element palette, it's enabled by setting the *View type* property to *Section list* in the view element's *Configure* section. Once set, it appears in the element tree under *Overlays,* as a child of the section list element.
 
@@ -446,10 +446,3 @@ For this property to be visible, you need to enable *Expose the option to add an
     \
     Reference: [List of actions](/core-resources/actions)\
     Article series: [Workflows](/help-guides/logic/workflows)
-
-
-
-
----
-
-[Next Page](/llms-full.txt/5)

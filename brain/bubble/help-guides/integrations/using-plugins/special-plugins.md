@@ -1,5 +1,5 @@
 # Special Plugins
-> Source: https://manual.bubble.io/help-guides/integrations/using-plugins/special-plugins · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/integrations/using-plugins/special-plugins · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 A few plugins have been developed by the Bubble Development Team to let you add connections with external services (or private backends).
 
@@ -50,10 +50,3 @@ If you need the connection to be encrypted (for instance with Microsoft Azure), 
 Once you create a connection string and validate it, you can create queries that use it. Any SQL statement is allowed, but for SELECT statements you need to add LIMIT N at the end, where N <= 100. Once you tested and saved your query, you can now use it as an action, datasource or both, depending on how you configured it. Please note that a SELECT query returns a list of things.
 
 ![](https://gblobscdn.gitbook.com/assets%2F-M5sbzwG7CljeZdkntrL%2F-M5smrJkMfjcu6xQRWw4%2F-M5smtAsAMAX1jpt8dx7%2FDesktop%202017-03-14%20at%2010.50.08%20PM.png?alt=media)
-
-
-
-
----
-
-[Next Page](/llms-full.txt/3)

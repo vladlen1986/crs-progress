@@ -1,5 +1,5 @@
 # General properties
-> Source: https://manual.bubble.io/core-resources/elements/shared-properties · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/elements/shared-properties · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% tabs %}
 {% tab title="Experience level" %}
@@ -272,7 +272,7 @@ If you don't have a style applied, this setting will not be visible.
 
 [^13]: The *Element tree* is the left-hand bar in the Design tab where you can see the hierarchy of all the elements of the current page.
 
-    Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
+    Article: [The element tree](broken://pages/I16X4KOwxZmqx2I6J6XO)
 
     Article: [The element hierarchy](/help-guides/design/elements/the-element-hierarchy)
 

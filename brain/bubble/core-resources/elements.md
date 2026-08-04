@@ -1,5 +1,5 @@
 # Elements
-> Source: https://manual.bubble.io/core-resources/elements · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/elements · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% content-ref url="/pages/BQnH2YEYKKUO7W8X7ZHA" %}
 [Navigating the Redesigned Property Editor](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/property-editor-beta/property-editor-migration-guide-for-existing-users)
@@ -191,7 +191,7 @@ Reusable elements are collections of elements that can be re-used across your ap
 
 If you're unfamiliar with reusable elements and how they work, you may be interested in checking out our more in-depth user manuel article below:
 
-User manual article: [Reusable elements](/help-guides/design/elements/reusable-elements)
+User manual article: [Reusable elements](/help-guides/design/elements/web-app/reusable-elements)
 
 </details>
 

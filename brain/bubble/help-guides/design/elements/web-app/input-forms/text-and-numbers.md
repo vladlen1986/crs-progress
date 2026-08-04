@@ -1,5 +1,5 @@
-# Text and numbers
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/text-and-numbers · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+# Text and number input elements (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/input-forms/text-and-numbers · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers elements that accept text and numbers as user input
 
@@ -7,7 +7,7 @@ Text and number inputs allow your users to provide their own text strings and nu
 
 There are a few different elements that are useful in various scenarios, and those elements can be set up to handle different kinds of formatting and user experiences.
 
-## Input elements
+## Input
 
 {% hint style="info" %}
 This is the user manual article on the Input Element which gives an overview of how the element works. If you want the technical reference that describes all the settings for this element, check out the Reference entry:
@@ -30,7 +30,7 @@ External link: [BBCode tags reference](https://www.bbcode.org/reference.php)
 
 ### I want to use HTML instead
 
-Sometimes it's useful to be able to store formatted text as HTML, such as when you want to pass formatted text to an email sending service that ony supports this format.
+Sometimes it's useful to be able to store formatted text as HTML, such as when you want to pass formatted text to an email sending service that only supports this format.
 
 None of the built-in Bubble text editors supports HTML formatting, but there are multiple [plugins](https://bubble.io/plugins) that allow you to store text with formatting as HTML instead of BBCode. Searching the plugin store for *Rich Text Editor* is likely to give you some results that support this.
 
@@ -52,7 +52,7 @@ The input will accept any text value.
 
 **Field type returned:** text
 
-<figure><img src="/files/a1Q0jz2bcbAdu5fpdfYl" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/a1Q0jz2bcbAdu5fpdfYl" alt="Input element with no formatting."><figcaption></figcaption></figure>
 
 ### Email
 
@@ -60,7 +60,7 @@ The input will only accept text values that are formatted like an email address.
 
 **Field type returned:** text
 
-<figure><img src="/files/GriLSgjCJpgr8sTV8MZX" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/GriLSgjCJpgr8sTV8MZX" alt="Input element with email formatting."><figcaption></figcaption></figure>
 
 ### Password
 
@@ -68,7 +68,7 @@ The input will accept any kind of text value, but the characters written will be
 
 **Field type returned**: text
 
-<figure><img src="/files/vBj6C4qHCMng4Nf23vos" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/vBj6C4qHCMng4Nf23vos" alt="Input element with password formatting, showing only asterisks."><figcaption></figcaption></figure>
 
 ### Integer
 
@@ -76,7 +76,7 @@ The input will only accept any whole number. Use this when you need to collect n
 
 **Field type returned:** number
 
-<figure><img src="/files/ZYMD2yXbuEoubawLm67g" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/ZYMD2yXbuEoubawLm67g" alt="Input element with number (integer) formatting."><figcaption></figcaption></figure>
 
 ### Decimal
 
@@ -84,7 +84,7 @@ The input will accept any whole number or decimal number. You can specify a mini
 
 **Field type returned:** number
 
-<figure><img src="/files/BnP7kHBYfhYrI7PaYuY2" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/BnP7kHBYfhYrI7PaYuY2" alt="Input element with decimal formatting."><figcaption></figcaption></figure>
 
 ### Address
 
@@ -92,13 +92,13 @@ A geographic address. With this option, the input automatically validates the ad
 
 **Field type returned:** address
 
-<figure><img src="/files/9cnwKVNAwGQOK59WRIfF" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/9cnwKVNAwGQOK59WRIfF" alt="Input element with address formatting."><figcaption></figcaption></figure>
 
 ### US phone
 
 This input will accept correctly formatted US phone numbers. The value is saved as a text.
 
-<figure><img src="/files/uS8qFmnoEJqpXOtFXC4M" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/uS8qFmnoEJqpXOtFXC4M" alt="Input element with US phone number formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** text
 
@@ -106,7 +106,7 @@ This input will accept correctly formatted US phone numbers. The value is saved 
 
 This input will format the user's input as a percentage and accept input such as 20%. Bubble will automatically save it in the correct numerical equivalent of the provided percentage point. For example, 20% will be saved as the number 0.2 and 150% will be saved as 1.5.
 
-<figure><img src="/files/YOiLpe8N9roHvSowr7iZ" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/YOiLpe8N9roHvSowr7iZ" alt="Input element with percentage formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** number
 
@@ -114,7 +114,7 @@ This input will format the user's input as a percentage and accept input such as
 
 The input will accept any whole number or decimal number and it will automatically format the input in the chosen currency, such as *$20*. You can specify a minimum and maximum value, as well as the number of decimals to include. You can also set the input to automatically include thousands separators as the user types. The currency and thousands separators settings are only aesthetic and do not affect the final value.
 
-<figure><img src="/files/uk1MRzt7V4kYMZUT9FrV" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/uk1MRzt7V4kYMZUT9FrV" alt="Input element with currency formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** number
 
@@ -122,7 +122,7 @@ The input will accept any whole number or decimal number and it will automatical
 
 The input will accept any date, but does not include time. It automatically formats the input's value as mm/dd/yyyy while the user types, guiding the user to provide the date in the right way. You can specify a given time zone for the input and Bubble will automatically calculate any offset from the user's current time zone. If no time zone is provided, the user's current time zone will be used. Dates are saved at 12 am (00:00) on the given date.
 
-<figure><img src="/files/EWZcrPENMU6p6PQif6PP" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/EWZcrPENMU6p6PQif6PP" alt="Input element with date formatting."><figcaption></figcaption></figure>
 
 Field type returned: date
 
@@ -130,7 +130,7 @@ Field type returned: date
 
 The input will accept any date, but does not include time. It automatically formats the input's value as dd/mm/yyyy while the user types, guiding the user to provide the date in the right way. You can specify a given time zone for the input and Bubble will automatically calculate any offset from the user's current time zone. If no time zone is provided, the user's current time zone will be used. Dates are saved at 12 am (00:00) on the given date. The difference between this content format and the *Date* format is purely visual.
 
-<figure><img src="/files/xkrI80oOgVOP2jBF6YsR" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/xkrI80oOgVOP2jBF6YsR" alt="Input element with European date formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** date
 
@@ -138,7 +138,7 @@ The input will accept any date, but does not include time. It automatically form
 
 This input will only accept whole numbers and the result will be saved as text. This is useful when you want to save numerical values that need to remain exactly as the user typed (without losing leading zero's for example) and will not be used for any type of calculation, such as international phone numbers, zip codes and order numbers.
 
-<figure><img src="/files/ZYMD2yXbuEoubawLm67g" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/ZYMD2yXbuEoubawLm67g" alt="Input element with numbers as text formatting."><figcaption></figcaption></figure>
 
 **Field type returned:** text
 
@@ -187,7 +187,7 @@ Sometimes when you communicate with an external system through an API, that syst
 
 As the name suggests, the Multiline input element allows you to set up a text input element that allows for multiple lines of text. Like the regular text input, this element supports plaintext only, and does not provide any custom formatting.
 
-<figure><img src="/files/PrgSppsIEgZXv80Ezl8O" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/PrgSppsIEgZXv80Ezl8O" alt="Multiline input element"><figcaption></figcaption></figure>
 
 Use the Multiline input element when you need the user to be able to supply multiple lines of text but you don't want them to be able to add formatting such as bold, italic and headers.
 
@@ -203,13 +203,13 @@ Plugin link: [Rich text Editor](https://bubble.io/plugin/rich-text-editor-158023
 
 The Rich Text Editor is another multiline input element that allows users to type a rich formatted text with formatting such as colors, fonts, bullet points and links.
 
-<figure><img src="/files/rTJ5LGrk9XLOJYG413MT" alt=""><figcaption><p>The Rich Text Editor plugin lets your users add advanced formatting to their text.</p></figcaption></figure>
+<figure><img src="/files/rTJ5LGrk9XLOJYG413MT" alt="Rich text input with toolbar at the top."><figcaption><p>The Rich Text Editor plugin lets your users add advanced formatting to their text.</p></figcaption></figure>
 
 ### Hidden toolbar
 
 The Rich Text Editor element comes with a setting to give it a more minimalistic design where the toolbar is only visible when you select some text:
 
-<figure><img src="/files/qzrdogIHH3hWjItcriYM" alt=""><figcaption></figcaption></figure>
+<figure><img src="/files/qzrdogIHH3hWjItcriYM" alt="Rich text input with hidden, floating toolbar."><figcaption></figcaption></figure>
 
 You can also choose to show fewer format settings than the ones above. The screenshot shows the full suite of available options.
 

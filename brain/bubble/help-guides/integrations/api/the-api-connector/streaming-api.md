@@ -1,5 +1,5 @@
 # Streaming API
-> Source: https://manual.bubble.io/help-guides/integrations/api/the-api-connector/streaming-api · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/integrations/api/the-api-connector/streaming-api · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 ## What is a streaming API?
 
@@ -177,3 +177,10 @@ Each response field you configure in the API initialization popup automatically 
 | <p><br></p> | Is done      | Yes/no      | Returns a yes if the stream is done.                                                                              |
 | <p><br></p> | Is waiting   | Yes/no      | Returns a yes if Bubble is awaiting a response.                                                                   |
 | <p><br></p> | Is streaming | Yes/no      | Returns a yes if the stream is ongoing.                                                                           |
+
+
+
+
+---
+
+[Next Page](/llms-full.txt/3)

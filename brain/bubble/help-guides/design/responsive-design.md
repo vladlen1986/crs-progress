@@ -1,5 +1,5 @@
 # Responsive design
-> Source: https://manual.bubble.io/help-guides/design/responsive-design · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/design/responsive-design · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% embed url="<https://www.youtube.com/watch?v=vy1YqP5RUlc>" %}
 
@@ -60,3 +60,10 @@ Bubble's responsive engine is a feature that was introduced in 2022. In older ap
     Optimizing these elements can improve your page's visibility and position in search results. This is known as Search Engine Optimization (SEO).
 
     Article series: [SEO](/help-guides/maintaining-an-application/seo)
+
+
+
+
+---
+
+[Next Page](/llms-full.txt/1)

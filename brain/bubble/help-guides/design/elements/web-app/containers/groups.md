@@ -1,5 +1,5 @@
-# Groups
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/groups · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Group element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/groups · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers Groups, that can be used to contain elements and data and control the responsive behavior of child elements
 
@@ -27,7 +27,7 @@ For a broader look at container types and how they compare, see the article on c
 
 Groups can hold a single piece of data, made available to every element inside. Setting this up takes two steps:
 
-1. Set the group's *Type of content* to the type of data it will hold, such as `User` or `Post`. This tells Bubble what to expect and prevents mismatched data sources.
+1. Set the group's [*Type of content*](#user-content-fn-1)[^1] to the type of data it will hold, such as `User` or `Post`. This tells Bubble what to expect and prevents mismatched [data sources](#user-content-fn-2)[^2].
 2. Set the *Data source* to an expression that returns a value of that type, such as `Current User` or `Do a search for:first item`.
 
 Once the data source is set, child elements can reference it directly using expressions like `Parent group's User's name`.
@@ -91,7 +91,7 @@ By placing different sections of your app inside separate groups and toggling th
 
 <figure><img src="/files/8XwCjAUuciKrG3sIbr7E" alt="Animation of a group collapsing, making room for another group." width="417"><figcaption><p>In the example above, we are toggling the visibility of Group A and Group B.</p></figcaption></figure>
 
-### **Building an** [**SPA**](#user-content-fn-1)[^1] **with groups**
+### **Building an** [**SPA**](#user-content-fn-3)[^3] **with groups**
 
 The pattern typically looks like this:
 
@@ -127,7 +127,7 @@ Use actions like [*Show an element*](/core-resources/bubble-workflows/bubble-act
 
 * SPAs can grow complex quickly. Naming groups clearly and organizing the element tree carefully makes the design easier to manage.
 * All assets on the page load at once, so a large SPA can affect initial load time.
-* [URL parameters](#user-content-fn-2)[^2] or custom states are commonly used to track which section is currently visible, letting users bookmark or share links to specific views.
+* [URL parameters](#user-content-fn-4)[^4] or custom states are commonly used to track which section is currently visible, letting users bookmark or share links to specific views.
 
 ## FAQ: Groups in web apps
 
@@ -211,10 +211,16 @@ Reference: [Groups](/core-resources/bubble-elements/element-properties/web-eleme
 
 </details>
 
-[^1]: A single-page app (SPA) lets users move between different sections without reloading the page. Instead of splitting content across multiple pages, everything lives on one page, and elements are shown or hidden based on the user's actions.\
+[^1]: The **Type of content** property tells Bubble what kind of data the container will hold, such as `User` or `Post`. This determines what data source it accepts and what child elements can reference through `Parent group`.
+
+[^2]: A **data source** is any source your app pulls data from, such as a database search, a specific record, an option set, or an external API.
+
+    **Core reference:** [Data sources](/core-resources/data/data-sources)
+
+[^3]: A single-page app (SPA) lets users move between different sections without reloading the page. Instead of splitting content across multiple pages, everything lives on one page, and elements are shown or hidden based on the user's actions.\
     \
     **Article:** [Single-page applications](/help-guides/logic/navigation/single-page-applications-spa)
 
-[^2]: A URL parameter is a piece of data attached to the end of a URL, used to pass information to the page. Parameters follow a `?key=value` format, such as `?section=dashboard`, and can be read by your app to control what's displayed or how it behaves.
+[^4]: A URL parameter is a piece of data attached to the end of a URL, used to pass information to the page. Parameters follow a `?key=value` format, such as `?section=dashboard`, and can be read by your app to control what's displayed or how it behaves.
 
     **Article:** [URL-parameters](/help-guides/data/temporary-data/url-parameters)

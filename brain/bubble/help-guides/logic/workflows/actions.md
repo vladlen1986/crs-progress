@@ -1,5 +1,5 @@
 # Actions
-> Source: https://manual.bubble.io/help-guides/logic/workflows/actions · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/logic/workflows/actions · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers actions, which are the steps in a workflow that perform different tasks
 
@@ -123,6 +123,10 @@ For example, if a stack displays a login form and the user successfully logs in,
 Note that this feature removes the original stack from Bubble's memory. As a result, you can no longer access any data from the original view (such as form content), and actions applied to that stack will fail (such as attempting to reset the form).
 {% endhint %}
 
+#### Go to tab
+
+The *Go to tab* action functions similarly to the [Go to view](#go-to-view) action, but the target view must be associated with a tab. When navigating using the Go to tab action, the tab bar automatically updates to reflect the new tab.
+
 #### Modal
 
 Another way to navigate to a new view is to use a modal. A modal should be used when you want to provide a scoped experience to the user that requires the full screen. A good example of this is the new message modal in the iOS messages app. Since you don’t need the context of the messages view below, the modal takes up the full screen to allow you to craft your message, but also allows you to quickly return to your messages view.
@@ -136,10 +140,6 @@ To add a close button, add an app bar to the view that will be opened as a modal
 {% hint style="info" %}
 Modals are similar to sheets, as both are used to provide a more focused experience for the user. Since a modal represents an entire view, it’s best used when specific data from the "base" view isn’t needed, such as when the data source of a particular group on the base view is irrelevant.
 {% endhint %}
-
-#### Go to tab
-
-*The Go to tab* action functions similarly to the *Go to view* action, including the use of view properties. However, the target view must be associated with a tab. When navigating using the *Go to tab* action, the tab bar will automatically update to reflect the new tab
 
 ### Set current view's property
 

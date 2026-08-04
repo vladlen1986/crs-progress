@@ -1,5 +1,5 @@
 # Operators and comparisons
-> Source: https://manual.bubble.io/core-resources/data/operations-and-comparisons · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/data/operations-and-comparisons · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 Aggregating, manipulating and comparing data.
 
@@ -94,6 +94,14 @@ This checks whether the entry is empty, i.e., has no content.
 ### **... is not empty**
 
 This checks whether the entry is not empty, i.e., has content.
+
+### ...converted to list
+
+Converts a single item into a list.
+
+### ...defaulting to
+
+Returns a default value if the original expression is empty. Works with a wide range of types, including text, numbers, dates, data types, option sets, and API values.
 
 ### :formatted as JSON-safe
 
@@ -231,6 +239,10 @@ We recommend using a [Regex builder](https://regex101.com) to test your expressi
 ### **:defaulting to**
 
 Returns a default value if the original text is empty.
+
+### :converted to date
+
+Converts a text value into a date. You can either use *Automatic detection*, which attempts to interpret whatever format the text is in, or specify the expected date format. If the text doesn't match a supported format, the operator returns an empty value.
 
 ## Number type
 
@@ -631,9 +643,21 @@ Returns the logic OR of two yes/no values. Returns yes if either of the two valu
 
 Formats the result of the yes/no differently. Use this function to change the language of 'yes' and 'no.'
 
+{% hint style="info" %}
+The `:formatted as text` operator has been moved into the `:formatted as` [operator](#boolean-formatted-as). Functionally, it works the same way, and existing expressions using `:converted to text` will still run and can be edited as usual.
+{% endhint %}
+
 ### **...:formatted as number**
 
-Formats the result of the yes/no as a number to use in a calculation. A standard use case is '1' for yes and '0' for no, but you can use any numbers.
+Formats the result of the yes/no as a number to use in a calculation. A standard use case is '1' for yes and '0' for no, but you can use any numbers.&#x20;
+
+{% hint style="info" %}
+The `:formatted as number` operator has been moved into the `:formatted as` [operator](#boolean-formatted-as). Functionally, it works the same way, and existing expressions using `:converted to number` will still run and can be edited as usual.
+{% endhint %}
+
+### ...:formatted as... <a href="#boolean-formatted-as" id="boolean-formatted-as"></a>
+
+Formats the result of the yes/no as a specific data type, such as text, number, an option set or a custom data type.
 
 ## File type
 
@@ -1000,6 +1024,12 @@ This operator returns the index of a specific thing in a list. For example, to r
 {% hint style="info" %}
 **Note:** Bubble uses 1-indexing, meaning the count starts at 1 rather than 0.
 {% endhint %}
+
+### ...:toggle item
+
+The `:toggle item` operator adds an item to a list if it isn't already there, and removes it if it is. The syntax is \[`List]:toggle item:[item to toggle]`, such as `Current user's Tasks:toggle item:Current page's Task`.
+
+The operator returns the updated list.
 
 ## Custom Types
 

@@ -1,5 +1,5 @@
 # Design tab
-> Source: https://manual.bubble.io/core-resources/bubbles-interface/design-tab · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubbles-interface/design-tab · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% tabs %}
 {% tab title="Experience level" %}
@@ -50,7 +50,7 @@ This is also true for the page itself.
 
 <summary>Related articles</summary>
 
-* Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)\
+* Article: [The element tree](broken://pages/I16X4KOwxZmqx2I6J6XO)\
   How the Element tree works.
 * Article: [The element hierarchy](/help-guides/design/elements/the-element-hierarchy)\
   Introduction to how elements on the page are sorted into a hierarchy that affects their look and responsive behavior.

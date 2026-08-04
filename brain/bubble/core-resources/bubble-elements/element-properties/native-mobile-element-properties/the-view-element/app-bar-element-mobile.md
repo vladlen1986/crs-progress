@@ -1,5 +1,5 @@
 # App bar element (mobile)
-> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/app-bar-element-mobile · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubble-elements/element-properties/native-mobile-element-properties/the-view-element/app-bar-element-mobile · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 The app bar is a pseudo child element of the view element — it isn't added from the element palette, but enabled directly in the view's property editor.
 
@@ -273,3 +273,10 @@ For this property to be visible, you need to enable *Expose the option to add an
 {% endhint %}
 
 [^1]: "Alt text" is short for **alternative text**. It's a written description of an image used by screen readers for visually impaired users, displayed when an image fails to load, and read by search engines to understand what an image depicts.
+
+
+
+
+---
+
+[Next Page](/llms-full.txt/5)

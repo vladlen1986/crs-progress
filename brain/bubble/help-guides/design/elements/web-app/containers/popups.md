@@ -1,5 +1,5 @@
-# Popups
-> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/popups · Captured: 2026-07-21 (verbatim from manual.bubble.io llms-full.txt)
+# Popup element (web)
+> Source: https://manual.bubble.io/help-guides/design/elements/web-app/containers/popups · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the container type Popup, which is a group that hovers above all other elements on the screen
 

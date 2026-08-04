@@ -1,5 +1,5 @@
 # Bubble-made Plugins
-> Source: https://manual.bubble.io/core-resources/bubble-made-plugins · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubble-made-plugins · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers all of the Bubble made plugins and their parameters. Some of the special plugins like the API Connector, App Connector, and SQL Database Connector have guides in the Help Guides section, while others have tutorials within here, where each bubble-made plugin is listed in alphabetical order.
 
@@ -206,10 +206,3 @@ This section covers all of the Bubble made plugins and their parameters. Some of
 {% content-ref url="/pages/-MRq2VNhyniaNcQ2vP4r" %}
 [Broken mention](broken://pages/-MRq2VNhyniaNcQ2vP4r)
 {% endcontent-ref %}
-
-
-
-
----
-
-[Next Page](/llms-full.txt/4)

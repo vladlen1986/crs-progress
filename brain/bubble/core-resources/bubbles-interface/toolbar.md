@@ -1,5 +1,5 @@
 # Toolbar
-> Source: https://manual.bubble.io/core-resources/bubbles-interface/toolbar · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/core-resources/bubbles-interface/toolbar · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 {% tabs %}
 {% tab title="Experience level" %}
@@ -19,7 +19,7 @@ This article series covers the different tools available in the Bubble editor.
   * Article section: [The app interface manager](/help-guides/getting-started/navigating-the-bubble-editor/tools/key-features#app-interface-manager)
   * Article: [The search tool](/help-guides/getting-started/navigating-the-bubble-editor/tools/the-search-tool)
   * Article: [The Issue Checker](/help-guides/getting-started/navigating-the-bubble-editor/tools/the-issue-tracker)
-  * Article: [The element tree](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-element-tree)
+  * Article: [The element tree](broken://pages/I16X4KOwxZmqx2I6J6XO)
   * Article: [The element property editor](/help-guides/getting-started/navigating-the-bubble-editor/tabs-and-sections/design-tab/the-property-editor)
   * Article: [The debugger](/help-guides/getting-started/navigating-the-bubble-editor/tools/using-the-debugger)
   * Article: [Notes](/help-guides/getting-started/navigating-the-bubble-editor/tools/notes)

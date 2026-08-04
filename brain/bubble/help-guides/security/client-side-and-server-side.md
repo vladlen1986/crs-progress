@@ -1,5 +1,5 @@
 # Client-side and server-side
-> Source: https://manual.bubble.io/help-guides/security/client-side-and-server-side · Captured: 2026-07-14 (verbatim from manual.bubble.io llms-full.txt)
+> Source: https://manual.bubble.io/help-guides/security/client-side-and-server-side · Captured: 2026-08-04 (verbatim from manual.bubble.io llms-full.txt)
 
 This section covers the difference between client-side and server-side operations in your app
 
@@ -150,10 +150,3 @@ With that understanding, let's move on to the more practical aspects of security
     Similarly, when you send or receive information online, that data is in transit until it safely reaches its intended destination.
 
     Data in transit is automatically encrypted using TLS.
-
-
-
-
----
-
-[Next Page](/llms-full.txt/2)
