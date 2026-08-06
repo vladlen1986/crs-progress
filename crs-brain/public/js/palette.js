@@ -3,6 +3,32 @@
  * Loaded AFTER the core script (its load-time addEventListener needs core's $).
  * ⌘K palette: search-anything + > command mode, routed through existing APIs. */
 
+// ---------- palette skin (spec-aligned) ----------
+// SOURCE OF TRUTH: brain/design/claude-code-spec.md. The palette is a popover: radius 8
+// container (the only element here allowed a shadow), radius 6 rows, two type sizes only
+// (13/20 rows + input, 12/16 meta + group headers), sentence-case headers with no
+// uppercase/letter-spacing, hover = --cc-bg-hover-canvas, selected = --cc-bg-selected +
+// --cc-text-primary, icons 13px monochrome --cc-text-muted. No hue anywhere: the palette
+// owns no links, so nothing here is coloured. Tokens only.
+// This block is injected (not edited into the page's stylesheet) because palette.js is the
+// module that owns the palette; it is appended last, so it wins over the older rules at
+// equal specificity without !important. Rendering only — no behaviour is touched.
+if(!document.getElementById('palSkin')){
+  const palSkin=document.createElement('style'); palSkin.id='palSkin';
+  palSkin.textContent=`
+  .pal{border-radius:8px;background:var(--cc-bg-panel);border:1px solid var(--cc-border);box-shadow:var(--shadow-dropdown)}
+  .pal input{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);padding:12px 14px;color:var(--cc-text-primary);border-bottom:1px solid var(--cc-border-divider)}
+  .pal input::placeholder{color:var(--cc-text-placeholder)}
+  .pal .res{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);border-radius:var(--radius-btn);color:var(--cc-text-body);box-shadow:none}
+  .pal .res .ic{color:var(--cc-text-muted)}
+  .pal .res .k{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);text-transform:none;letter-spacing:0}
+  .pal .res:hover{background:var(--cc-bg-hover-canvas)}
+  .pal .res.on{background:var(--cc-bg-selected);color:var(--cc-text-primary)}
+  .pal .pal-grp{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-secondary);font-weight:600;text-transform:capitalize;letter-spacing:0}
+  .pal .none{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted)}`;
+  document.head.appendChild(palSkin);
+}
+
 // ---------- quick-open palette (Cmd/Ctrl+K) ----------
 let palIdx=0, palItems=[];
 function openPal(){ $('palWrap').classList.add('show'); $('palQ').value=''; $('palQ').placeholder='Search anything — or type > for commands  (Esc to close)'; palFilter(''); $('palQ').focus(); }
@@ -44,7 +70,8 @@ async function palFilter(q){
     palIdx=0; palRender(); return;
   }
   if(!q.trim()){   // empty → recent (pinned chats + recent files)
-    const chats=(state.chatList||[]).slice(0,6).map(c=>({kind:'chat',label:(c.pinned?'📌 ':'')+(c.title||'Untitled'),go:()=>{closePal();openChat(c.id);}}));
+    // spec §TELLS TO DESTROY: no emoji as icons — the pinned marker is monochrome text.
+    const chats=(state.chatList||[]).slice(0,6).map(c=>({kind:'chat',label:(c.pinned?'Pinned · ':'')+(c.title||'Untitled'),go:()=>{closePal();openChat(c.id);}}));
     palItems=chats; palIdx=0; palRender(); return;
   }
   // client files first (instant), then server global index (all stores)

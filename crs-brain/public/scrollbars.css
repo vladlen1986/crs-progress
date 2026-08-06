@@ -1,20 +1,76 @@
-/* sidebar3: invisible-until-needed scrollbars — shared app-wide (every page in public/).
-   Thumb + track are fully transparent at rest on every scroll container; the thumb is
-   revealed while the container is hovered or actively scrolling (.is-scrolling is
-   toggled by js/scrollbars.js). Tokens (--border-active, --text-muted) come from
-   tokens.css, so both themes are covered automatically.
-   Note: WebKit does not animate ::-webkit-scrollbar-* pseudo-elements — the reveal is
-   an instant swap by design (verified in Chromium; transition declarations there are
-   ignored). Firefox scrollbar-color swaps instantly too. */
+/* sidebar3 — invisible-until-needed scrollbars, shared app-wide (every page in public/).
+ *
+ * SPEC: brain/design/claude-code-spec.md (§METRICS "scrollbar 6") — a 6px thumb,
+ * rgba(255,255,255,.14), radius 3, NO track, held 14px in from the region's right edge,
+ * fading out when idle. Greyscale only, both themes.
+ *
+ * BEHAVIOUR PRESERVED (checklist row SIDEBAR3.5): thumb and track are fully transparent
+ * at rest on every scroll container; the thumb is revealed only while the container is
+ * hovered or is actively scrolling (.is-scrolling is toggled by js/scrollbars.js).
+ * Same selectors as before — only the geometry and colours changed.
+ *
+ * GEOMETRY: the vertical scrollbar box is 20px = 6px of visible thumb + a 14px inset.
+ * The inset is a transparent border on the thumb plus background-clip:padding-box — the
+ * only way in CSS to hold a thumb off the region's edge. Corner radii on the inset side
+ * are grown by the border width so the *visible* (padding-box) thumb keeps radius 3
+ * (a padding-box corner = border-radius − border-width).
+ * Horizontal scrollbars keep the 6px thumb with no inset: the spec defines the inset for
+ * the right edge only, and a 20px-tall gutter would eat a fifth of a short code block.
+ *
+ * ENGINE SPLIT: from Chromium 121, setting `scrollbar-width`/`scrollbar-color` makes the
+ * engine IGNORE every ::-webkit-scrollbar-* rule — which would silently throw away the
+ * 6px/r3/inset geometry. So the standard properties are now confined to Firefox
+ * (@supports (-moz-appearance:none)), which cannot express thumb size/radius/inset at all
+ * and gets `thin` plus the same two colours. Chromium/WebKit get the exact spec geometry.
+ *
+ * Note: WebKit does not animate ::-webkit-scrollbar-* pseudo-elements — the reveal/fade is
+ * an instant swap by design (verified in Chromium; transition declarations there are
+ * ignored). Firefox's scrollbar-color swaps instantly too.
+ */
 
-*{scrollbar-width:thin;scrollbar-color:transparent transparent}
-:hover{scrollbar-color:var(--border-active) transparent}
-.is-scrolling{scrollbar-color:var(--border-active) transparent}
+:root, [data-theme="dark"] {
+  /* Literal, cited: the spec's thumb colour is rgba(255,255,255,.14) and no token in
+     tokens.css carries .14 (the ramp stops at --cc-border-hairline .10). Declared once
+     here so every rule below stays token-driven. */
+  --sb-thumb: rgba(255,255,255,0.14);
+  --sb-thumb-w: 6px;    /* spec §METRICS: scrollbar 6 */
+  --sb-inset: 14px;     /* spec: 14px in from the region's right edge */
+  --sb-radius: 3px;     /* spec: radius 3 */
+  --sb-size: 20px;      /* 6px thumb + 14px inset */
+}
 
-*::-webkit-scrollbar{width:8px;height:8px;background:transparent}
-*::-webkit-scrollbar-track{background:transparent}
-*::-webkit-scrollbar-thumb{background:transparent;border-radius:999px}
-*::-webkit-scrollbar-corner{background:transparent}
+/* Light theme: same discipline, ink instead of paper. */
+[data-theme="light"] {
+  --sb-thumb: rgba(0,0,0,0.16);   /* light-theme equivalent of the spec's .14 white */
+}
+
+/* ── Chromium / WebKit — exact spec geometry ─────────────────────────────── */
+*::-webkit-scrollbar { width: var(--sb-size); height: var(--sb-thumb-w); background: transparent; }
+*::-webkit-scrollbar-track { background: transparent; border: 0; box-shadow: none; }   /* no track, ever */
+*::-webkit-scrollbar-corner { background: transparent; }
+
+/* Transparent at rest. background-color (not the `background` shorthand) is used in every
+   thumb rule so background-clip:padding-box is never reset back to border-box. */
+*::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  background-clip: padding-box;
+  border-radius: var(--sb-radius);
+  border: 0 solid transparent;
+}
+*::-webkit-scrollbar-thumb:vertical {
+  border-right: var(--sb-inset) solid transparent;
+  border-radius: var(--sb-radius) calc(var(--sb-radius) + var(--sb-inset))
+                 calc(var(--sb-radius) + var(--sb-inset)) var(--sb-radius);
+}
+
+/* Revealed while the container is hovered or actively scrolling. */
 :hover::-webkit-scrollbar-thumb,
-.is-scrolling::-webkit-scrollbar-thumb{background:var(--border-active)}
-*::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+.is-scrolling::-webkit-scrollbar-thumb { background-color: var(--sb-thumb); }
+*::-webkit-scrollbar-thumb:hover { background-color: var(--cc-text-muted); }
+
+/* ── Firefox — no thumb geometry available; colours only ─────────────────── */
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: transparent transparent; }
+  :hover { scrollbar-color: var(--sb-thumb) transparent; }
+  .is-scrolling { scrollbar-color: var(--sb-thumb) transparent; }
+}
