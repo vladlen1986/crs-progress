@@ -4,7 +4,7 @@
   "sessionId": "d30fa174-36b8-4e14-b3a3-8d8908bfa573",
   "bp": false,
   "created": "2026-08-06T21:40:34.551Z",
-  "updated": "2026-08-06T21:44:47.819Z",
+  "updated": "2026-08-06T21:47:57.907Z",
   "messages": [
     {
       "role": "user",
@@ -344,6 +344,57 @@
           "tool": "Write",
           "label": "Write user-management-spec.html",
           "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\docs\\user-management-spec.html\ncontent: <!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<title>User Management — Full Spec (v17)</title>\n<style>\n  :root {\n    --bg: #181818; --surface-1: #1E1E1E; --surface-2: #242424; --surface-3: #2A2A2A;\n    --border: #242424; --border-hover: #333333; --border-active: #3D3D3D;\n    --accent: #3B82F6; --accent-soft: #60A5FA; --accent-tint: rgba(59,130,246,0.08); --accent-glow: rgba(59,130,246,0.13);\n    --text-primary: #E0E0E0; --text-secondary: #A6A6A6; --text-muted: #6B6B6B; --text-disabled: #565656;\n    --success: #22C55E; --success-soft: #4ADE80; --error: #EF4444; --warning: #F59E0B; --purple: #8B5CF6; --cyan: #06B6D4;\n    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;\n    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Me …\n⇒ File created successfully at: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\docs\\user-management-spec.html",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "look i believe it shall be tenancy linked to property only and not property plus company",
+      "ts": "2026-08-06T21:47:21.883Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Before I touch anything — what's driving this? Push back a bit, because I don't think property-only survives contact with the model you already locked.\n\n**The redundancy argument (why you might think company is dead weight):** Property → Company is a fixed 1:1 FK. If you only stored `property` and checked `This Thing's property = Current User's property`, you *do* get correct tenant isolation — a property can't leak into another company's data because it belongs to exactly one company. So functionally, storing `company` on every business DT looks redundant.\n\n**Where it breaks — the things `company` alone buys you:**\n\n1. **Company Admin / corporate roles.** Decision #1 says a user belongs to exactly one property — but someone (Owner, Company Admin) still needs to see across *all* properties in their company. If a business DT only carries `property`, a company-wide privacy rule becomes `This Thing's property's company is Current User's property's company` — a cross-table traversal instead of a direct field match. That's slower and burns more WU per Bubble's own optimization rules (`brain/bubble-performance/INDEX.md` — direct constraints beat traversals).\n2. **Company-scoped DTs with no property at all.** Company Settings, Subscription — these don't have a property to hang off of. You'd need a separate pattern for them anyway, which is exactly the \"known exception\" carve-out already in `decisions.md`.\n3. **The \"Same Company\" privacy rule you just read in the User Management spec** (Rule 3) explicitly depends on `company` being a direct field — that's how non-admins in the same company see each other's basic info regardless of property.\n\n**So the real question isn't \"company redundant\" — it's \"does CRS need any company-wide visibility at all, ever?\"** If the honest answer is *no, a user only ever sees their own property, period, no corporate rollup* — then yes, drop `company` and simplify to property-only, and Company Admin becomes a role that's granted access to N properties individually rather than the whole company implicitly.\n\nThat's a real architecture change to a **locked** decision (`decisions.md` 2026-04-27), not a tweak — it touches every business DT's privacy rules across all 46 modules. Before I change anything: is there a Company Admin / corporate rollup role in this product, or is \"one user, one property, no exceptions\" actually the intent?",
+      "ts": "2026-08-06T21:47:57.907Z",
+      "startedAt": "2026-08-06T21:47:21.884Z",
+      "completedAt": "2026-08-06T21:47:57.907Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-effort: standard task → medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
           "actor": "brain"
         }
       ]
