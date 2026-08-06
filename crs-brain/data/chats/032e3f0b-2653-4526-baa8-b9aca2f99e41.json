@@ -4,7 +4,7 @@
   "sessionId": "d30fa174-36b8-4e14-b3a3-8d8908bfa573",
   "bp": false,
   "created": "2026-08-06T21:40:34.551Z",
-  "updated": "2026-08-06T21:41:16.601Z",
+  "updated": "2026-08-06T21:42:46.654Z",
   "messages": [
     {
       "role": "user",
@@ -179,6 +179,99 @@
           "tool": "Grep",
           "label": "Grep roadmap-num.*tag-mvp|roadmap-num.*tag-pending in CRS_Blueprint.html",
           "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\specs\\CRS_Blueprint.html\npattern: roadmap-num.*tag-mvp|roadmap-num.*tag-pending\noutput_mode: content\n-n: true\n⇒ 1513: <tr><td class=\"roadmap-num\">01</td><td>Reporting</td><td>Operations</td><td><span class=\"tag tag-mvp\">Complete</span></td></tr> 1514: <tr><td class=\"roadm",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "give me full specs of user management",
+      "ts": "2026-08-06T21:42:13.068Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "I've read the full spec (lines 5818–6812 in `specs/CRS_Blueprint.html`). Here it is condensed.\n\n## User Management — Full Spec (v17, Spec Complete)\n\n**Core principle:** User = login identity only. All PII lives on **Employee**. `User.employee` is required — a User cannot exist without a linked Employee.\n\n**Scope:** 3 new DTs (User, UserPreferences, Session) · 4 Option Sets · 10 permissions.\n\n### 1. Data Model\n\n**User** (25 fields) — `email`, `company`, `property`, `employee` (FK, required), `role` (FK, required), `extra_permissions`, `is_active`, `last_login`, `created_by`, `last_password_change`, `must_change_password`, `password_changed_by`, `is_anonymized` + anonymize metadata, `notification_prefs`, `preferences`, `two_fa_enabled`/`two_fa_secret`(never client-visible)/`two_fa_backup_codes`/`two_fa_activated_date`, `presence_status`, `presence_override_until`.\n\n**UserPreferences** (1-to-1) — `dark_mode`, `user_directory_view`.\n\n**Session** (audit trail) — `session_token` (never visible), `ip_address`, `user_agent`, `device_type`, `location_country`, `login_date`, `last_activity_date`, `expires_date`, `status`.\n\n**Option Sets:** Device Type, Session Status, Directory View, Presence Status (Online/Away/Busy/Offline with hex colors).\n\n### 2. Workflows\n- **Creation:** admin-created only, no email invites (casino staff vetted by HR first). Temp password shown once; forces password change on first login.\n- **Auth:** Bubble native email+password + optional TOTP 2FA (backup codes, session-kill on 2FA toggle). Mandatory-2FA-by-role parked for v1.1.\n- **Password mgmt:** fully Bubble-native actions, no custom tokens. No forced periodic expiry (NIST guidance).\n- **Deactivation → Anonymization:** strict 2-step GDPR flow. Must deactivate before anonymize; anonymize requires typed `ANONYMIZE` confirmation + reason. Scrubs Employee PII, rewrites `User.email` to a stub, preserves ActivityLog/reports/financial records.\n- **Role assignment:** single dropdown, logged to ActivityLog, hard safeguards (can't self-change role, can't assign/strip the seeded Admin role from the sole admin).\n- **Presence system (v17.1):** computed from Session activity (Online <5min / Away 5–30min / Offline) with manual override; throttled writes to avoid WU blowup.\n\n### 3. Privacy Rules\n5 rules on User: **Self** (all fields except `two_fa_secret`) → **Admin** (`admin.view_users`, same company) → **Same Company** (basic fields only) → **Anonymized** (locked down for non-admins) → **Cross-company** (zero access). Session and UserPreferences have their own self/admin-only rules. `two_fa_secret`, `two_fa_backup_codes`, `session_token` are blocked in every rule, including \"self.\"\n\n### 4. Permissions (10, under Admin → User Management)\n`view_users`, `create_user`, `edit_user`, `change_user_role`, `deactivate_user`, `reactivate_user`, `anonymize_user` (flagged destructive), `send_password_reset`, `view_sessions`, `revoke_sessions` — each with dependency chains.\n\n### 5. UI\n- **Profile page** (`/profile`): identity (read-only, pulled from Employee), email/password (editable via Update Credentials), 2FA, preferences, notifications, active sessions with per-device revoke.\n- **User Directory** (Admin → Users): hybrid table/card view (toggle persists), filters (role/department/status/last-login), search, row actions gated by permission. WU notes: use cached `Company.user_count`, Typesense above 500 users, server-side filter constraints only.\n\n### Gaps in the written spec itself\n- **Dependencies tab is empty** — cross-module mapping not filled in.\n- All 14 UI Components + 19 Features are marked **\"Planned\"** — spec text is done, component-level build tracking hasn't started.\n\n⚠️ Per `brain/STATUS.md`: actual Bubble build is UI-built + data-wired, but **security Pass-2 is not done** — tenant-isolation privacy rules above are *designed*, not yet enforced live (User DT is currently property-only, no company check; 22 demo records still present; mobile Filters button broken).",
+      "ts": "2026-08-06T21:42:46.654Z",
+      "startedAt": "2026-08-06T21:42:13.069Z",
+      "completedAt": "2026-08-06T21:42:46.654Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-effort: standard task → medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Find line range for User Management module section",
+          "body": "description: Find line range for User Management module section\ncommand: awk 'NR==5818,0' \"specs/CRS_Blueprint.html\" | grep -n \"module-title\" | head -5\n⇒ ✗ This Bash command contains multiple operations. The following part requires approval: awk 'NR==5818,0' \"specs/CRS_Blueprint.html\"",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep class=\"module-title\" in CRS_Blueprint.html",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\specs\\CRS_Blueprint.html\npattern: class=\"module-title\"\noutput_mode: content\n-n: true\n⇒ 2567: <h1 class=\"module-title\">Roles & Permissions<span class=\"module-status done\">Complete</span></h1> 3283: <h1 class=\"module-title\">Notifications<span class=",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "User Management spec spans lines 5818–6816. Let me read it in full.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read CRS_Blueprint.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\specs\\CRS_Blueprint.html\noffset: 5818\nlimit: 500\n⇒ 5818 <h1 class=\"module-title\">User Management<span class=\"module-status done\">Complete</span></h1> 5819 <div class=\"module-desc\">Create users, assign roles + de",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read CRS_Blueprint.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\specs\\CRS_Blueprint.html\noffset: 6318\nlimit: 499\n⇒ ✗ 6318 <li><span class=\"dot\"></span><span class=\"txt\">Each option shows: role icon + name + permission count (e.g. \"Surveillance Lead · 23 permissions\").</span></li> 6319 </ul> 6320 6321 <div class=\"label-row mt-16\">Safeguards (hard-coded, non-configurable)</div> 6322 <ul class=\"spec-list\"> 6323 <li><",
           "actor": "brain"
         }
       ]
