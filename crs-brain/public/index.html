@@ -1954,46 +1954,66 @@ function greeting(){ const h=new Date().getHours(); return h<5?'Good night':h<12
 // aria-hidden, pointer-events:none, monochrome ink (Clay stays reserved for the
 // spark glyph) and dies entirely under prefers-reduced-motion.
 function cosmosHtml(){
-  // The chat thinking indicator's molecule cloud, scaled up and multiplied: five
-  // tilted orbital planes, counter-rotating at different speeds, each carrying
-  // three glowing molecules in the AI palette. Long dashes with short gaps so an
-  // orbit reads as a RING with breaks, not as scattered ticks.
-  const HUES = ['#EC4899', '#22D3EE', '#A855F7', '#6366F1', '#F59E0B', '#34D399', '#F472B6', '#38BDF8'];
-  // `dash` is "on off"; `flow` MUST be a whole multiple of (on+off) or the dash
-  // pattern jumps when the keyframe loops. `tip` squashes the plane so it tilts
-  // through edge-on and back — that is what sells it as 3D rather than a decal.
+  // ATOM, rebuilt 2026-08-07 after two rejected attempts (dashed rings read as
+  // "dashed and static"; a train of follower dots read as "a snake game").
+  //
+  // Architecture, per web research on how the good ones are actually built:
+  //  * Each plane is a CIRCLE squashed by scale(1,k) — NOT an ellipse path. That
+  //    buys correct non-uniform orbital speed for free (fast across the middle,
+  //    slow at the turnarounds), which is the tell that separates a real orbit
+  //    from a decal. offset-path moves at constant ARC length and cannot do this.
+  //  * The tail is ONE gradient stroke, split into three arc chunks whose stop
+  //    opacities match at the seams so it reads as a single continuous fade, with
+  //    the stroke-width tapering 2.6 -> 0.6. A gradient tail IS the motion blur.
+  //  * The head is a baked radialGradient glow + a near-white core. Baked paint,
+  //    never an SVG filter: a filter on a moving element re-runs every frame.
+  //  * ~15 moving nodes total, down from 120.
+  // Opacity budget on near-black: outer haze .04-.08, mid .12-.20, and the ONLY
+  // thing near 1.0 is the 2px head. That contrast is the whole premium look.
+  const HUES = ['#EC4899', '#22D3EE', '#A855F7', '#6366F1', '#34D399'];
+  // Durations deliberately share no factors — 34/26/48 all divide by 2 and the
+  // system visibly re-syncs into a beat.
   const ORBITS = [
-    { tilt: -16, rx: 50, ry: 17, dash: '13 7', flow: -200, spin: '15s', rev: false, tip: '11s', fade: '3.4s' },
-    { tilt: 38, rx: 41, ry: 13, dash: '9 6', flow: -150, spin: '9.5s', rev: true, tip: '7.5s', fade: '2.6s' },
-    { tilt: 84, rx: 58, ry: 21, dash: '16 9', flow: -250, spin: '23s', rev: false, tip: '14s', fade: '4.2s' },
-    { tilt: 118, rx: 46, ry: 15, dash: '7 6', flow: -130, spin: '12.5s', rev: true, tip: '9s', fade: '3s' },
-    { tilt: 62, rx: 64, ry: 23, dash: '18 11', flow: -290, spin: '28s', rev: false, tip: '17s', fade: '5s' },
+    { tilt: -16, R: 50, k: 0.34, spin: 33.7, rev: false },
+    { tilt: 38, R: 41, k: 0.31, spin: 26.3, rev: true },
+    { tilt: 84, R: 58, k: 0.36, spin: 47.9, rev: false },
+    { tilt: 118, R: 46, k: 0.33, spin: 41.3, rev: true },
+    { tilt: 62, R: 64, k: 0.37, spin: 55.1, rev: false },
   ];
-  const ell = (rx, ry) => `M ${rx} 0 A ${rx} ${ry} 0 1 1 ${-rx} 0 A ${rx} ${ry} 0 1 1 ${rx} 0`;
-  let n = 0;
-  const sys = ORBITS.map((o, i) => {
-    const mols = [0, 1, 2].map((k) => {
-      const col = HUES[n++ % HUES.length];
-      const r = [2.3, 1.6, 1.9][k];
-      return `<circle class="dhc-el" r="${r}" style="offset-path:path('${ell(o.rx, o.ry)}');color:${col};animation-duration:${(3 + k * 1.3).toFixed(1)}s,${(1.4 + k * 0.35).toFixed(2)}s;animation-delay:-${(k * 1.7 + n * 0.31).toFixed(2)}s,-${(k * 0.6).toFixed(2)}s"/>`;
-    }).join('');
-    // a short bright segment that races the whole way round the ring — the link
-    // itself carrying charge, not just a rotating dash pattern
-    const arc = `<ellipse class="dhc-arc" rx="${o.rx}" ry="${o.ry}" stroke-dasharray="9 291" style="color:${HUES[i % HUES.length]};animation-duration:${(2.2 + i * 0.4).toFixed(1)}s;animation-delay:-${(i * 0.7).toFixed(1)}s"/>`;
-    return `<g class="dhc-plane" style="--t:${o.tilt}deg;animation-duration:${o.tip};animation-delay:-${(i * 1.3).toFixed(1)}s">
-      <g class="dhc-spin" style="animation-duration:${o.spin}${o.rev ? ';animation-direction:reverse' : ''}">
-        <ellipse class="dhc-ring" rx="${o.rx}" ry="${o.ry}" stroke-dasharray="${o.dash}" style="--flow:${o.flow};animation-duration:${(3.5 + i * 0.9).toFixed(1)}s,${o.fade};animation-delay:0s,-${(i * 0.9).toFixed(1)}s"/>
-        ${arc}${mols}
+  const pt = (R, deg) => { const a = deg * Math.PI / 180; return [(R * Math.cos(a)).toFixed(2), (R * Math.sin(a)).toFixed(2)]; };
+  // three chunks of the tail, measured BACKWARDS from the head
+  const CHUNKS = [[0, 34, 2.6, 0.85, 0.5], [34, 72, 1.9, 0.5, 0.22], [72, 112, 1.1, 0.22, 0]];
+  let defs = '', sys = '';
+  ORBITS.forEach((o, i) => {
+    const col = HUES[i % HUES.length];
+    const dir = o.rev ? 1 : -1;            // the tail trails the direction of travel
+    const sweep = o.rev ? 1 : 0;
+    let tail = '';
+    CHUNKS.forEach((c, j) => {
+      const [a1, a2, w, o1, o2] = c;
+      const [x1, y1] = pt(o.R, dir * a1), [x2, y2] = pt(o.R, dir * a2);
+      const gid = `dhcT${i}${j}`;
+      defs += `<linearGradient id="${gid}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}"><stop offset="0" stop-color="${col}" stop-opacity="${o1}"/><stop offset="1" stop-color="${col}" stop-opacity="${o2}"/></linearGradient>`;
+      tail += `<path class="dhc-tail" d="M ${x1} ${y1} A ${o.R} ${o.R} 0 0 ${sweep} ${x2} ${y2}" stroke="url(#${gid})" stroke-width="${w}"${j === 0 ? ' stroke-linecap="round"' : ''}/>`;
+    });
+    defs += `<radialGradient id="dhcH${i}"><stop offset="0" stop-color="${col}" stop-opacity=".95"/><stop offset=".18" stop-color="${col}" stop-opacity=".5"/><stop offset=".45" stop-color="${col}" stop-opacity=".15"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></radialGradient>`;
+    const sd = `animation-duration:${o.spin}s;animation-delay:-${(i * 7.3).toFixed(1)}s;animation-direction:${o.rev ? 'reverse' : 'normal'}`;
+    const ud = `animation-duration:${o.spin}s;animation-delay:-${(i * 7.3).toFixed(1)}s;animation-direction:${o.rev ? 'normal' : 'reverse'}`;
+    sys += `<g transform="rotate(${o.tilt}) scale(1 ${o.k})">
+      <circle class="dhc-track" r="${o.R}" stroke="${col}"/>
+      <g class="dhc-spin" style="${sd}">${tail}
+        <g transform="translate(${o.R} 0)"><g class="dhc-spin" style="${ud}"><g transform="scale(1 ${(1 / o.k).toFixed(3)}) rotate(${-o.tilt})">
+          <g class="dhc-depth" style="color:${col};animation-duration:${o.spin}s;animation-delay:-${(i * 7.3).toFixed(1)}s">
+            <circle r="11" fill="url(#dhcH${i})"/><circle class="dhc-core-dot" r="2.1"/>
+          </g>
+        </g></g></g>
       </g></g>`;
-  }).join('');
+  });
   const MOTES = [[-52, -33], [46, -41], [-37, 38], [56, 25], [-60, 7], [18, -54], [34, 49], [-24, -49], [63, -8], [-68, -22], [70, 40], [-14, 62]];
-  const motes = MOTES.map((m, i) => `<circle class="dhc-mote${i % 3 === 0 ? ' big' : ''}" cx="${m[0]}" cy="${m[1]}" style="color:${HUES[i % HUES.length]};animation-delay:-${(i * 0.6).toFixed(1)}s,-${(i * 0.45).toFixed(2)}s"/>`).join('');
-  // NO expanding ripple rings: they animate, but in any given frame they read as
-  // a circle drawn around the mark — the exact thing Vlad rejected. The energy
-  // reads through the racing arcs and the pulsing core instead.
+  const motes = MOTES.map((m, i) => `<circle class="dhc-mote${i % 3 === 0 ? ' big' : ''}" cx="${m[0]}" cy="${m[1]}" style="color:${HUES[i % HUES.length]};animation-delay:-${(i * 1.1).toFixed(1)}s,-${(i * 0.83).toFixed(2)}s"/>`).join('');
   return `<svg class="dh-cosmos" viewBox="0 0 190 190" aria-hidden="true">
-    <defs><radialGradient id="dhcGlow"><stop offset="0%" stop-color="#A855F7" stop-opacity=".42"/><stop offset="45%" stop-color="#6366F1" stop-opacity=".16"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></radialGradient>
-    <radialGradient id="dhcCore"><stop offset="0%" stop-color="#EC4899" stop-opacity=".55"/><stop offset="100%" stop-color="#EC4899" stop-opacity="0"/></radialGradient></defs>
+    <defs>${defs}<radialGradient id="dhcGlow"><stop offset="0%" stop-color="#A855F7" stop-opacity=".17"/><stop offset="45%" stop-color="#6366F1" stop-opacity=".06"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></radialGradient>
+    <radialGradient id="dhcCore"><stop offset="0%" stop-color="#EC4899" stop-opacity=".22"/><stop offset="100%" stop-color="#EC4899" stop-opacity="0"/></radialGradient></defs>
     <g transform="translate(95,95)">
       <circle class="dhc-halo" r="70" fill="url(#dhcGlow)"/>
       <circle class="dhc-core" r="26" fill="url(#dhcCore)"/>

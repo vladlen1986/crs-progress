@@ -147,57 +147,55 @@ b, strong { font-weight: 600; }
 .dash-hero .dh-stack:focus-within .dh-cosmos{opacity:1;transition:opacity .5s ease}
 /* the mark itself goes gradient and hue-shifts, exactly like the chat thinking brain */
 .dash-hero .dh-stack:hover .dh-mark,
-.dash-hero .dh-stack:focus-within .dh-mark{animation:dhThink 1.5s ease-in-out infinite}
+.dash-hero .dh-stack:focus-within .dh-mark{animation:dhThink 3.6s ease-in-out infinite}
+/* on hover the glyph eases DOWN into a small nucleus and everything floats
+   around it (Vlad 2026-08-07) — transform needs its own transition, the global
+   one only covers colours */
+.dash-hero .dh-mark svg:not(.dh-cosmos){transform-origin:50% 50%;transition:transform .6s cubic-bezier(.32,.72,0,1)}
 .dash-hero .dh-stack:hover .dh-mark svg:not(.dh-cosmos),
-.dash-hero .dh-stack:focus-within .dh-mark svg:not(.dh-cosmos){stroke:url(#g-ai);animation:aihue 2.4s linear infinite}
+.dash-hero .dh-stack:focus-within .dh-mark svg:not(.dh-cosmos){transform:scale(.4);stroke:url(#g-ai);animation:aihue 14s linear infinite}
 /* the whole field drifts through the spectrum, exactly like the chat brain's aihue */
 .dash-hero .dh-stack:hover .dh-cosmos,
-.dash-hero .dh-stack:focus-within .dh-cosmos{animation:dhcHue 9s linear infinite}
+.dash-hero .dh-stack:focus-within .dh-cosmos{animation:dhcHue 28s linear infinite}
 /* .dash-hero .dh-mark svg sets stroke:currentColor and it INHERITS into every
    child — which drew a hard outline around the soft halo and made it read as a
    bubble. Only the paths that should carry a line are stroked. */
-.dh-cosmos .dhc-halo,.dh-cosmos .dhc-core,.dh-cosmos .dhc-mote,.dh-cosmos .dhc-el{stroke:none}
+.dh-cosmos circle:not(.dhc-track){stroke:none}
 
-/* --- the links: nothing here is a fixed dash ---------------------------------
-   Each orbit runs TWO animations at once: dhcFlow slides the dash pattern along
-   the path (charge moving through the link) and dhcFade breathes its opacity on
-   a different, longer cycle, so the ring is never at a constant strength. */
-.dh-cosmos .dhc-ring{fill:none;stroke:url(#g-ai-lg);stroke-width:1.1;stroke-linecap:round;
-  animation:dhcFlow 4s linear infinite, dhcFade 3.4s ease-in-out infinite}
-/* one short bright segment racing the full circuit of each ring */
-.dh-cosmos .dhc-arc{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;
-  filter:drop-shadow(0 0 3px currentColor);animation:dhcArc 2.4s linear infinite}
-/* the plane itself tips through edge-on and back — this is what makes it read as
-   a 3-D atom instead of flat rings on a decal */
-.dh-cosmos .dhc-plane{animation:dhcTip 11s ease-in-out infinite;transform-origin:0 0}
-.dh-cosmos .dhc-spin{animation:dhcSpin 15s linear infinite;transform-origin:0 0}
-.dh-cosmos .dhc-halo{animation:dhcHalo 4.4s ease-in-out infinite;transform-origin:0 0}
-/* nucleus glow behind the glyph (no expanding ripple RINGS — they animate, but
-   every frame of one reads as a circle drawn around the mark) */
-.dh-cosmos .dhc-core{animation:dhcCore 2.8s ease-in-out infinite;transform-origin:0 0}
-/* molecules: the chat indicator's glowing dots, on real elliptical orbits, each
-   also throbbing on its own cycle */
-.dh-cosmos .dhc-el{fill:currentColor;offset-rotate:0deg;filter:drop-shadow(0 0 3px currentColor);
-  animation:dhcTravel 3.4s linear infinite, dhcThrob 1.7s ease-in-out infinite}
+/* --- the atom -----------------------------------------------------------
+   No dashed rings (they read as static geometry) and no train of follower dots
+   (that reads as a snake). Each plane is a circle squashed by scale(1,k), spun
+   linearly; the tail is one gradient stroke tapering to nothing, and the head is
+   baked radial paint rather than a filter — a filter on a moving element
+   re-renders every frame. */
+.dh-cosmos .dhc-tail{fill:none;stroke-linejoin:round}
+/* a whisper-faint SOLID track: below conscious perception, but without it the
+   comet looks like it is drifting rather than orbiting. Never dashed. */
+.dh-cosmos .dhc-track{fill:none;stroke-width:.6;stroke-opacity:.05}
+.dh-cosmos .dhc-spin{animation:dhcSpin linear infinite;transform-origin:0 0}
+/* the ONE thing on screen allowed near full opacity: a 2px head */
+.dh-cosmos .dhc-core-dot{fill:#F4FBFF;filter:drop-shadow(0 0 3px currentColor)}
+/* near/far depth: the head brightens and grows crossing the front of the orbit
+   and dims away at the back. One animation, locked to the orbit period — this
+   does more for the 3-D read than everything else combined. */
+.dh-cosmos .dhc-depth{animation:dhcDepth linear infinite;transform-box:fill-box;transform-origin:center}
+.dh-cosmos .dhc-halo{animation:dhcHalo 8s ease-in-out infinite;transform-origin:0 0}
+.dh-cosmos .dhc-core{animation:dhcCore 6s ease-in-out infinite;transform-origin:0 0}
 /* the mote field drifts the opposite way to the orbits — parallax, so the thing
    reads as depth rather than as one flat rotating decal */
-.dh-cosmos .dhc-field{animation:dhcSpin 90s linear infinite reverse;transform-origin:0 0}
+.dh-cosmos .dhc-field{animation:dhcSpin 170s linear infinite reverse;transform-origin:0 0}
 /* transform-box/origin so a mote swells in place — SVG's default origin is 0,0,
    which would swing it toward the nucleus instead */
 .dh-cosmos .dhc-mote{r:1;fill:currentColor;filter:drop-shadow(0 0 2px currentColor);transform-box:fill-box;transform-origin:center;
-  animation:dhcTwinkle 4.2s ease-in-out infinite, dhcSwell 6.5s ease-in-out infinite}
+  animation:dhcTwinkle 9s ease-in-out infinite, dhcSwell 14s ease-in-out infinite}
 .dh-cosmos .dhc-mote.big{r:1.6}
 @keyframes dhcSpin{to{transform:rotate(360deg)}}
-@keyframes dhcTip{0%,100%{transform:rotate(var(--t)) scaleY(1)}50%{transform:rotate(var(--t)) scaleY(.42)}}
-@keyframes dhcFlow{to{stroke-dashoffset:var(--flow)}}
-@keyframes dhcFade{0%,100%{opacity:.22}50%{opacity:.8}}
-@keyframes dhcArc{from{stroke-dashoffset:0}to{stroke-dashoffset:-300}}
-@keyframes dhcTravel{from{offset-distance:0%}to{offset-distance:100%}}
-@keyframes dhcThrob{0%,100%{opacity:.45}50%{opacity:1}}
-@keyframes dhcTwinkle{0%,100%{opacity:.12}50%{opacity:.75}}
+@keyframes dhcDepth{0%,100%{opacity:.8;transform:scale(1)}25%{opacity:1;transform:scale(1.18)}50%{opacity:.8;transform:scale(1)}75%{opacity:.3;transform:scale(.68)}}
+@keyframes dhcTwinkle{0%,100%{opacity:.05}50%{opacity:.3}}
 @keyframes dhcSwell{0%,100%{transform:scale(.7)}50%{transform:scale(1.35)}}
-@keyframes dhcHalo{0%,100%{opacity:.55}50%{opacity:1}}
-@keyframes dhcCore{0%,100%{opacity:.35;transform:scale(.82)}50%{opacity:.9;transform:scale(1.12)}}
+/* the background glow reads as atmosphere, never as a lit disc behind the mark */
+@keyframes dhcHalo{0%,100%{opacity:.3}50%{opacity:.62}}
+@keyframes dhcCore{0%,100%{opacity:.18;transform:scale(.85)}50%{opacity:.46;transform:scale(1.1)}}
 @keyframes dhcHue{to{filter:hue-rotate(360deg)}}
 @keyframes dhThink{0%,100%{opacity:.7}50%{opacity:1}}
 @media (prefers-reduced-motion: reduce){

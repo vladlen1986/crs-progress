@@ -57,7 +57,41 @@ the defs). It was recovered from `f609abb` and restored, then scaled up for the 
   thinking layer is the one colour carve-out, and it supersedes exactly one clause of the
   08-06 entry. Colour never shows at rest, so §10 acceptance still passes 13/13.
 - Rigs: `probe-thinking-brain.js` (8 checks, builds the indicator by injecting
-  `brainHtml()` so **no model call is spent**) and `shoot-cosmos.js` (14 checks).
+  `brainHtml()` so **no model call is spent**) and `shoot-atom.js` (14 checks).
+
+**Third cut — the atom, rebuilt from web research.** Two rejections first:
+dashed rings ("dashed and static") and a 7-dot follower trail ("looks like a snake
+game / terrible"). The trail failed for a measurable reason: on a 223-unit orbit the
+dot spacing was 4.7 units against a 4.8-unit head diameter, i.e. exactly one diameter
+apart, which can only ever render as beads. Researched how the good ones are built and
+replaced the ARCHITECTURE, not the parameters:
+
+- **Each plane is a CIRCLE squashed by `scale(1,k)`, not an ellipse path.** That gives
+  correct non-uniform orbital speed for free — fast across the middle, slow at the
+  turnarounds. `offset-path` moves at constant ARC length and physically cannot do this;
+  constant-speed travel round an ellipse is the classic tell of a fake 3-D orbit.
+- **The tail is ONE gradient stroke**, split into three arc chunks whose stop opacities
+  match at the seams so it reads as a single continuous fade, stroke-width tapering
+  2.6 → 1.9 → 1.1 and ending at opacity 0. A gradient tail *is* the motion blur. (A
+  `linearGradient` can't follow a curve; matching seam opacities across short chunks is
+  the standard workaround.)
+- **The head is baked radial paint** — a 4-stop `radialGradient` glow plus a near-white
+  2.1px core — never an SVG filter. A filter on a moving element re-renders every frame;
+  baked paint is just a texture the compositor translates.
+- **`dhcDepth`** brightens and grows the head crossing the near side and dims it away at
+  the back, locked to the orbit period. Biggest single 3-D cue after the squash.
+- **Durations must share no factors** — 34/26/48 all divide by 2 and the system visibly
+  re-syncs into a beat. Now 33.7 / 26.3 / 47.9 / 41.3 / 55.1s.
+- **A whisper-faint SOLID track** (stroke-opacity .05) sits behind each comet. Below
+  conscious perception, but without it the comet reads as drifting rather than orbiting.
+  Never dashed.
+- **Opacity budget:** outer haze .04–.08, mid .12–.20, and the only thing near 1.0 is the
+  2px head. That contrast is the premium look; the earlier version had 120 objects all
+  competing with it.
+- **120 animated nodes → 30.** Rig asserts ≤30, zero dashed strokes, zero filters on
+  moving strokes, linear easing on every orbit, and that the glyph shrinks 72px → 29px.
+- Also this pass: the glyph eases down into a nucleus on hover, every mote pulses, and
+  the background glow came down (it read as a lit disc).
 
 **Follow-up the same day — "everything must animate".** Vlad: *"links in animation are
 kinda plain not animated and i want them to be fading not fixed … super futuristic every
