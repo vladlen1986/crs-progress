@@ -1,6 +1,6 @@
 {
-  "model": "auto",
-  "effort": "max",
+  "model": "claude-opus-5",
+  "effort": "auto",
   "manualsCheckedAt": 1785839157913,
   "autoRoute": false,
   "bubbleWatch": false,
