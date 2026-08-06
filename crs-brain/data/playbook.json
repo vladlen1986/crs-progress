@@ -264,5 +264,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T10:01:35.667Z"
+  },
+  {
+    "id": "49e61d35",
+    "category": "platform-gotcha",
+    "trigger": "Node.js scripts, buildprint CLI, Windows bash",
+    "rule": "execFileSync fails to resolve buildprint on Windows; use execSync with shell-safe quoted paths.",
+    "fix": "Replace execFileSync with execSync; quote args with spaces using (a)=>/[ ]/.test(a)?`\"${a}\"`:a; buildprint resolves via shell.",
+    "errorSig": "exit code #",
+    "source": "chat 55701032 · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T16:11:03.915Z"
+  },
+  {
+    "id": "2231086d",
+    "category": "workspace-rule",
+    "trigger": "Live Bubble environment, querying custom fields, type definition mismatches",
+    "rule": "Live workspace type registry may be incomplete; queryable fields and types may not appear in buildprint data list.",
+    "fix": "Verify schema via sample records: fetch one record and inspect all fields; use buildprint data get-record for ID-level lookups on non-queryable types.",
+    "errorSig": "",
+    "source": "chat 55701032 · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T16:11:03.915Z"
   }
 ]

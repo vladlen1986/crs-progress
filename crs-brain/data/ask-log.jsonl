@@ -26,3 +26,4 @@
 {"ts":"2026-08-06T16:01:41.495Z","sig":"22258e608571","chatId":"55701032-1b59-4507-8c8f-ed04d5b4a2eb","question":"Blank-currency reports: treat as USD?"}
 {"ts":"2026-08-06T16:04:06.497Z","sig":"f33fa8ed4290","chatId":"55701032-1b59-4507-8c8f-ed04d5b4a2eb","question":"23 reports are tagged GEL (8 carry amounts, each with a forex rate ~2.5-2.9 GEL/USD). How should I handle them so the file stays one currency?"}
 {"ts":"2026-08-06T16:04:37.138Z","sig":"e5f0076b259d","chatId":"55701032-1b59-4507-8c8f-ed04d5b4a2eb","question":"I filtered on the EMPLOYEE's department = Live Game. 137 of the 6,723 reports are themselves filed under another department (Cage 96, Electronic Gaming 14, Surveillance 6, other 21). Keep those rows?"}
+{"ts":"2026-08-06T16:18:37.194Z","sig":"60d9d5ec3b64","chatId":"55701032-1b59-4507-8c8f-ed04d5b4a2eb","question":"The CSV is on your disk (1.49 MB) but Claude Code can't attach files to chat. Where do you want it so it's easy to grab?"}

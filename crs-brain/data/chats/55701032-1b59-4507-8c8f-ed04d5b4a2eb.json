@@ -4,7 +4,7 @@
   "sessionId": "604e2ce8-9948-4487-83ec-6cdbd3492001",
   "bp": true,
   "created": "2026-08-06T15:29:15.225Z",
-  "updated": "2026-08-06T16:09:48.663Z",
+  "updated": "2026-08-06T16:32:10.631Z",
   "messages": [
     {
       "role": "user",
@@ -2140,6 +2140,842 @@
           "label": "Confirm deliverable in place",
           "body": "description: Confirm deliverable in place\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/exports/\"\n⇒ total 1504 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 20:09 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:53 .. -rw-r--r-- 1 CCTV Mgr 197121 1525739 Aug 6 20:09 LG_active",
           "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "i dont see file attachment and download button",
+      "ts": "2026-08-06T16:17:42.148Z",
+      "attachments": []
+    },
+    {
+      "role": "user",
+      "content": "i dont see file attachment and download button for the file you prepared",
+      "ts": "2026-08-06T16:18:18.210Z",
+      "attachments": []
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "de18a771",
+      "question": "The CSV is on your disk (1.49 MB) but Claude Code can't attach files to chat. Where do you want it so it's easy to grab?",
+      "context": "",
+      "options": [
+        {
+          "label": "Copy to Desktop",
+          "hint": ""
+        },
+        {
+          "label": "Copy to Downloads",
+          "hint": ""
+        },
+        {
+          "label": "Just open the folder in Explorer",
+          "hint": ""
+        },
+        {
+          "label": "Leave it, I'll navigate there",
+          "hint": ""
+        }
+      ],
+      "sig": "60d9d5ec3b64",
+      "askedCount": 1,
+      "ts": "2026-08-06T16:18:37.196Z",
+      "answer": "So add functionality to this chat and response contains file there must be download or save to disk option, implement this feature in brain app",
+      "answeredAt": "2026-08-06T16:20:43.618Z"
+    },
+    {
+      "role": "assistant",
+      "content": "Download button shipped and visually verified in both themes.\n\n## What changed\n\n| File | Change |\n|---|---|\n| `public/js/chat-media.js` | `cmChipEl()` now builds a `<span class=\"cm-chip\">` wrapper holding **two** anchors: `a.cm-open` (icon + filename, keeps `data-path` so the existing open-delegation is untouched) and `a.cm-dl` (`/api/raw?path=…&dl=1` + `download` attr) |\n| `public/index.html` | CSS for `.cm-chip a.cm-open` / `a.cm-dl` — specificity `(0,3,1)` to beat the `.md a[data-path]` link styling; download pill is always visible, not hover-only |\n| `server.js` | **untouched** — `/api/raw?dl=1` already emitted `Content-Disposition: attachment` behind `safeRepoPath()` |\n\nKey constraint that shaped it: **anchors cannot nest**, so the chip wrapper had to stop being an `<a>`.\n\n## Result\n\nEvery file chip in an assistant response now carries a download arrow. Dead/missing-file chips correctly get **no** button.\n\n**Dark**\n![Chips with download buttons, dark theme](crs-brain/data/screenshots/adhoc/chip-download-dark-zoom.png)\n\n**Light**\n![Chips with download buttons, light theme](crs-brain/data/screenshots/adhoc/chip-download-light-zoom.png)\n\nVerified beyond structure:\n- `/api/raw?path=…&dl=1` → **200**, `application/octet-stream`, `attachment; filename=\"LG_active_employee_report_links_to_2026-07-31.csv\"`\n- Rendered through the real `renderMd` + `enhanceChatMedia` pipeline: **4 chips / 3 download buttons**, zero nested anchors\n- Test DOM cleared on reload (0 remaining)\n\nCaptures: `crs-brain/data/screenshots/adhoc/chip-download-{dark,light}-zoom.png`, plus full-page `chip-download-light.png`.\n\n## Next\n\nYour CSV is now downloadable straight from this chat — the chip below saves it to disk:\n\n`crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv` (9,865 rows, 1.53 MB, USD)",
+      "ts": "2026-08-06T16:32:10.631Z",
+      "startedAt": "2026-08-06T16:18:18.210Z",
+      "completedAt": "2026-08-06T16:32:10.631Z",
+      "model": "claude-opus-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI ready — v4.3.0, linked",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Right — I can't attach files to chat. Claude Code writes to your disk, so the CSV is sitting on your machine, not in this conversation. **Full Windows path:** ``` C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\exports\\LG_active_empl",
+          "body": "Right — I can't attach files to chat. Claude Code writes to your disk, so the CSV is sitting on your machine, not in this conversation.\n\n**Full Windows path:**\n```\nC:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\exports\\LG_active_employee_report_links_to_2026-07-31.csv\n```\n\nLet me confirm it's there and put it somewhere more convenient.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Confirm CSV exists on disk",
+          "body": "description: Confirm CSV exists on disk\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv\"\n⇒ -rw-r--r-- 1 CCTV Mgr 197121 1525739 Aug 6 20:09 /c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.cs",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "mcp__crsask__ask_vlad",
+          "label": "Crsask Ask Vlad",
+          "body": "question: The CSV is on your disk (1.49 MB) but Claude Code can't attach files to chat. Where do you want it so it's easy to grab?\noptions: [{\"label\":\"Copy to Desktop\"},{\"label\":\"Copy to Downloads\"},{\"label\":\"Just open the folder in Explorer\"},{\"label\":\"Leave it, I'll navigate there\"}]\n⇒ Vlad answered: So add functionality to this chat and response contains file there must be download or save to disk option, implement this feature in brain app",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Understood — you want the CRS Brain chat UI itself to render a download button when a response produces a file. Let me look at how that app is built.",
+          "body": "Understood — you want the CRS Brain chat UI itself to render a download button when a response produces a file. Let me look at how that app is built.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "List crs-progress root",
+          "body": "description: List crs-progress root\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/\"\n⇒ total 449 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 1 19:06 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 4 20:51 .. drwxr-xr-x 1 CCTV Mgr 197121 0 Jul 17 19:21 .claude drwxr-x",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "List crs-brain app",
+          "body": "description: List crs-brain app\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/\"\n⇒ total 569 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:39 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 1 19:06 .. -rw-r--r-- 1 CCTV Mgr 197121 1182 Jul 16 19:11 .gitattribut",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "List public assets",
+          "body": "description: List public assets\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/public/\"\n⇒ total 776 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:35 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:39 .. -rw-r--r-- 1 CCTV Mgr 197121 14917 Aug 1 19:06 activity.htm",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Big files (452 KB UI, 348 KB server). Let me map the rendering and file-serving paths.",
+          "body": "Big files (452 KB UI, 348 KB server). Let me map the rendering and file-serving paths.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Agent",
+          "label": "Agent · Map brain app chat rendering",
+          "body": "description: Map brain app chat rendering\nprompt: I need to add a \"download / save to disk\" button to the CRS Brain chat app, so that when an assistant response references a file that was generated on disk (e.g. a CSV export), the chat UI renders a download affordance instead of just a path string.\n\nThe app lives at `C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\`. Key files:\n- `server.js` (~348 KB, Node/Express-ish backend)\n- `public/index.html` (~452 KB, the single-page chat UI, vanilla JS inline)\n\nThis is a \"very thorough\" investigation. Please report:\n\n1. **Assistant message rendering**: Where in `public/index.html` is an assistant message turned into HTML? Find the function(s) that render markdown to HTML (name + approximate line numbers). Is there a markdown library (marked.js?) in `public/vendor/`, or a hand-rolled renderer? Ho …\nsubagent_type: Explore\n⇒ ✗ EISDIR: illegal operation on a directory, read 'C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain'\n⇒ ✗ Exit code 2 /usr/bin/bash: eval: line 1: unexpected EOF while looking for matching `\"'\n⇒ ✗ <tool_use_error>Cancelled: parallel tool call Bash(ls -la \"C:\\Users\\CCTV Mgr\\Projects\\crs-p…) errored</tool_use_error>\n⇒ total 569 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:39 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 1 19:06 .. -rw-r--r-- 1 CCTV Mgr 197121 1182 Jul 16 19:11 .gitattribut\n⇒ total 776 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:35 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:39 .. -rw-r--r-- 1 CCTV Mgr 197121 14917 Aug 1 19:06 activity.htm\n⇒ /c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/public/icons.js /c/Users/CCTV…",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Good — most of the plumbing exists. Let me verify the actual code before changing anything.",
+          "body": "Good — most of the plumbing exists. Let me verify the actual code before changing anything.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "List js modules",
+          "body": "description: List js modules\ncommand: ls -la \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/public/js/\"\n⇒ total 84 drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 1 19:06 . drwxr-xr-x 1 CCTV Mgr 197121 0 Aug 6 19:35 .. -rw-r--r-- 1 CCTV Mgr 197121 11903 Jul 19 00:59 chat-media.j",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chat-media.js",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js\n⇒ 1 /* CRS Brain — chat-media + markdown region (Program 3 Phase 5 module split). 2 * Build-less, zero-dep, classic script sharing the app's global scope (matches",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Now I see the gap precisely: image refs get a download button (`.mda-dl`), but **file chips (`cmChipEl`, line 55) only have open-on-click**. Let me verify the `/api/raw?dl=1` route and whether my exports path is even in the file tree.",
+          "body": "Now I see the gap precisely: image refs get a download button (`.mda-dl`), but **file chips (`cmChipEl`, line 55) only have open-on-click**. Let me verify the `/api/raw?dl=1` route and whether my exports path is even in the file tree.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Read /api/raw route",
+          "body": "description: Read /api/raw route\ncommand: cd \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain\" && sed -n '4876,4900p' server.js\n⇒ ✗ sed in 'C:\\c\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\server.js' was blocked. For security, Claude Code may only edit files in the allowed working directories for this session: 'C:\\Users\\CCTV Mgr\\projects\\crs-bubble\\casinoreportingsystem\\test', 'C:\\Users\\CCTV Mgr\\Projects\\crs-progress'.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read server.js",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\server.js\noffset: 4874\nlimit: 28\n⇒ 4874 res.writeHead(200, { 'Content-Type': 'audio/wav', 'Content-Length': data.length, 'Cache-Control': 'no-cache, must-revalidate' }); 4875 res.end(req.method =",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Backend needs no change — `?dl=1` already works with the path guard. Now the critical question: is my exports path even in the file tree that classifies chips?",
+          "body": "Backend needs no change — `?dl=1` already works with the path guard. Now the critical question: is my exports path even in the file tree that classifies chips?",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read .gitignore",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\.gitignore\n⇒ 1 node_modules/ 2 data/usage.json 3 data/tts-cache/ 4 data/notifications.jsonl 5 data/notifications-read.json 6 data/state.json 7 data/bubble-release-notes.snap",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep allPaths in index.html",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\npattern: allPaths\noutput_mode: content\n-n: true\n⇒ 3204: DW.allPaths=new Set(); (function flat(ns){ for(const n of ns){ n.type==='dir'?flat(n.children):DW.allPaths.add(n.path); } })(tree); // FULL tree — doc-win",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\noffset: 3196\nlimit: 14\n⇒ 3196 if(opts.ingest || live.bp){ loadFiles(); loadRecentEdited(); } 3197 } 3198 } 3199 3200 3201 // ---------- files ---------- 3202 async function loadFiles(){",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep api/files|function walkTree|const SKIP|IGNORE_DI… in server.js",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\server.js\npattern: api/files|function walkTree|const SKIP|IGNORE_DIRS|skipDir\noutput_mode: content\n-n: true\n-C: 4\n⇒ 1675- '.md', '.txt', '.json', '.html', '.css', '.py', '.js', '.csv', '.yml', '.yaml', 1676- '.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp', 1677-]); 1678-cons",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "`.csv` is in `ALLOWED_EXT` and `exports/` isn't ignored — so the path already classifies as a live file chip. The only missing piece is the download affordance. Let me check the click delegation and chip CSS.",
+          "body": "`.csv` is in `ALLOWED_EXT` and `exports/` isn't ignored — so the path already classifies as a live file chip. The only missing piece is the download affordance. Let me check the click delegation and chip CSS.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep a\\[data-path\\]|\\.cm-chip|smartOpen in index.html",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\npattern: a\\[data-path\\]|\\.cm-chip|smartOpen\noutput_mode: content\n-n: true\n⇒ 651: .md a[data-path]{color:var(--accent2);border-bottom:1px dashed var(--accent-border-active)} 652: .md a[data-path]:hover{border-bottom-style:solid;text-deco",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Clear plan. Let me look at the existing image download button markup to match its icon and styling.",
+          "body": "Clear plan. Let me look at the existing image download button markup to match its icon and styling.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\noffset: 1604\nlimit: 24\n⇒ 1604 1605 // ---------- tiny markdown renderer (no external deps) ---------- 1606 function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "I have everything I need. Let me check the app is running before I touch code.",
+          "body": "I have everything I need. Let me check the app is running before I touch code.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check app entry and port",
+          "body": "description: Check app entry and port\ncommand: cat \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/package.json\"; cat \"/c/Users/CCTV Mgr/Projects/crs-progress/crs-brain/start.bat\"\n⇒ {\"name\":\"crs-brain\",\"version\":\"1.0.0\",\"private\":true,\"dependencies\":{\"@google/genai\":\"^2.12.0\",\"msedge-tts\":\"^2.0.7\",\"node-pty\":\"^1.1.0\"}}@echo off title CRS Br",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep const PORT|PORT\\s*=|listen\\( in server.js",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\server.js\npattern: const PORT|PORT\\s*=|listen\\(\noutput_mode: content\n-n: true\nhead_limit: 10\n⇒ 1598:const PORT = process.env.CRS_BRAIN_PORT || 4317; 5505:server.listen(PORT, HOST, () => {",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check if brain app is running on 4317",
+          "body": "description: Check if brain app is running on 4317\ncommand: curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:4317/ --max-time 5\n⇒ ✗ This command requires approval",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "PowerShell",
+          "label": "Powershell · Check if brain app is listening on port 4317",
+          "body": "description: Check if brain app is listening on port 4317\ncommand: try { $r = Invoke-WebRequest -Uri \"http://127.0.0.1:4317/\" -TimeoutSec 5 -UseBasicParsing; \"RUNNING status=\" + $r.StatusCode } catch { \"NOT RUNNING: \" + $_.Exception.Message }\n⇒ ✗ Command invokes .NET methods",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "PowerShell",
+          "label": "Powershell · Check for listener on port 4317",
+          "body": "description: Check for listener on port 4317\ncommand: Get-NetTCPConnection -LocalPort 4317 -State Listen -ErrorAction SilentlyContinue | Select-Object -First 3 LocalAddress,LocalPort,OwningProcess\n⇒ ✗ This command requires approval",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check listener on port 4317",
+          "body": "description: Check listener on port 4317\ncommand: netstat -ano -p tcp | grep -i listening | grep 4317\n⇒ ✗ This Bash command contains multiple operations. The following part requires approval: netstat -ano -p tcp",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Frontend-only change (static files, so just a browser reload). Let me edit the chip builder.",
+          "body": "Frontend-only change (static files, so just a browser reload). Let me edit the chip builder.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit chat-media.js",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js\nold_string:   const a=document.createElement('a'); a.className='cm-chip'; a.href='#'; a.dataset.path=info.p; a.title=info.p;\n  a.innerHTML=`<span class=\"cm-ic\">${fileIcon(info.name,16)}</span><span class=\"cm-nm\">${esc(info.name)}</span>`; return a;   // click → smartOpen via global a[data-path] delegation\n}\nnew_string:   // wrapper is a <span>, not an <a>: the Download anchor lives inside the chip and\n  // anchors cannot nest. Name+icon stay an a[data-path] so the global open\n  // delegation is unchanged; the Download anchor has no data-path, so it falls\n  // through to the browser's native save.\n  const w=document.createElement('span'); w.className='cm-chip'; w.title=info.p;\n  const open=document.createElement('a'); open.className='cm-open'; open.href='#'; open.dataset.path=info.p;\n  open.innerHTML=`<span class=\"cm-ic\">${fileIcon(info.name,16)}</span><span class=\"cm-nm\">${esc(info.name)}</span>`;   // click → smartOpen via global a[data-path] delegation\n  const dl=document.createElement('a'); dl.className='cm-dl';\n  dl.href='/api/raw?path='+encodeURIComponent(info.p)+'&dl=1';\n  dl.setAttribute('download …\n⇒ The file C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js has been updated successfully.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit chat-media.js",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js\nold_string: function cmChipEl(info){\n  if(info.kind==='dead'){\nnew_string: const CM_DL_SVG='<svg viewBox=\"0 0 24 24\" width=\"13\" height=\"13\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M12 3v12m0 0l-4-4m4 4l4-4M5 21h14\"/></svg>';\nfunction cmChipEl(info){\n  if(info.kind==='dead'){\nreplace_all: false\n⇒ The file C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js has been updated successfully.",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Now the CSS.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read index.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\noffset: 683\nlimit: 16\n⇒ 683 .cm-chip{display:inline-flex;align-items:center;gap:5px;padding:2px 9px 2px 6px;border:1px solid var(--border-default);border-radius:var(--radius-pill);back",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit index.html",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\nold_string:   .cm-chip .cm-dead-tag{font-size:10px;color:var(--text-muted);opacity:.85}\n\nnew_string:   .cm-chip .cm-dead-tag{font-size:10px;color:var(--text-muted);opacity:.85}\n  /* file chip = [ open ][ download ]. Download stays visible (not hover-only) so it\n     is discoverable on touch, where there is no hover. */\n  .cm-chip{padding-right:3px}\n  .md .cm-chip a.cm-open{display:inline-flex;align-items:center;gap:5px;color:inherit;text-decoration:none;border-bottom:none}\n  .md .cm-chip a.cm-dl{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;flex:0 0 auto;margin-left:1px;border-radius:50%;border-bottom:none;color:var(--text-muted);text-decoration:none;transition:background .15s ease,color .15s ease}\n  .md .cm-chip a.cm-dl:hover{background:var(--bg-tertiary);color:var(--accent-text)}\n  .cm-chip.cm-dead{padding-right:9px}\n\nreplace_all: false\n⇒ The file C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html has been updated successfully.",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Now let me verify visually. Opening the app.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Open brain app in agent browser",
+          "body": "description: Open brain app in agent browser\ncommand: agent-browser open \"http://127.0.0.1:4317/\"\ntimeout: 120000\n⇒ [agent-browser] launched browser ✓ CRS Brain http://127.0.0.1:4317/",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Show agent-browser commands",
+          "body": "description: Show agent-browser commands\ncommand: agent-browser --help\n⇒ agent-browser - fast browser automation CLI for AI agents Usage: agent-browser <command> [args] [options] Start here (for AI agents): agent-browser skills get c",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "`eval` is available. Let me verify the file is in the tree the chip classifier uses.",
+          "body": "`eval` is available. Let me verify the file is in the tree the chip classifier uses.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check exports paths present in file tree",
+          "body": "description: Check exports paths present in file tree\ncommand: agent-browser eval \"[...DW.allPaths].filter(p=>p.indexOf('exports/')>-1).slice(0,5)\"\ntimeout: 60000\n⇒ [ \"crs-brain/data/exports/lg_links/build.js\", \"crs-brain/data/exports/lg_links/employees.json\", \"crs-brain/data/exports/lg_links/fetch.js\", \"crs-brain/data/expo",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Let me reload to pick up my changes, then render a test chip through the real code path.",
+          "body": "Let me reload to pick up my changes, then render a test chip through the real code path.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Reload to pick up JS/CSS changes",
+          "body": "description: Reload to pick up JS/CSS changes\ncommand: agent-browser reload\ntimeout: 120000\n⇒ http://127.0.0.1:4317/",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Confirm new chat-media.js is loaded",
+          "body": "description: Confirm new chat-media.js is loaded\ncommand: agent-browser eval \"typeof CM_DL_SVG !== 'undefined' ? 'NEW CODE LOADED' : 'OLD CODE'\"\ntimeout: 60000\n⇒ \"NEW CODE LOADED\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Render a test file chip through the real pipeline",
+          "body": "description: Render a test file chip through the real pipeline\ncommand: agent-browser eval \"(()=>{const d=document.createElement('div');d.className='body md';d.innerHTML=renderMd('Export ready: \\`crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv\\`');enhanceChatMedia(d);return d.innerHTML;})()\"\ntimeout: 60000\n⇒ \"<p>Export ready: <span class=\\\"cm-chip\\\" title=\\\"crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv\\\"><a class=\\\"cm-open\\\" href=\\\"#\\\" dat",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Chip structure is correct — no nested anchors. Let me verify the download endpoint actually serves it.",
+          "body": "Chip structure is correct — no nested anchors. Let me verify the download endpoint actually serves it.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Verify download endpoint headers",
+          "body": "description: Verify download endpoint headers\ncommand: agent-browser eval \"fetch('/api/raw?path=crs-brain%2Fdata%2Fexports%2FLG_active_employee_report_links_to_2026-07-31.csv&dl=1').then(r=>({status:r.status,type:r.headers.get('content-type'),disp:r.headers.get('content-disposition')}))\"\ntimeout: 60000\n⇒ { \"disp\": \"attachment; filename=\\\"LG_active_employee_report_links_to_2026-07-31.csv\\\"\", \"status\": 200, \"type\": \"application/octet-stream\" }",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Download works (200, `attachment`). Now visual verification in the real page. Let me find the chat container.",
+          "body": "Download works (200, `attachment`). Now visual verification in the real page. Let me find the chat container.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Locate chat message container structure",
+          "body": "description: Locate chat message container structure\ncommand: agent-browser eval \"(()=>{const m=document.querySelector('.msg.assistant .body.md')||document.querySelector('.body.md');return {found:!!m, parentChain:m?(()=>{let n=m,out=[];while(n&&out.length<6){out.push(n.tagName+'.'+(n.className||'').split(' ').join('.')+(n.id?'#'+n.id:''));n=n.parentElement;}return out;})():null};})()\"\ntimeout: 60000\n⇒ { \"found\": false, \"parentChain\": null }",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Set desktop viewport",
+          "body": "description: Set desktop viewport\ncommand: agent-browser set viewport 1600 1000 2\ntimeout: 60000\n⇒ ✓ Done",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Screenshot current app state",
+          "body": "description: Screenshot current app state\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\brain-current-state.png\"\ntimeout: 120000\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\brain-current-state.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read brain-current-state.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\brain-current-state.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "App is on the Dashboard. Let me open a conversation so I can see the chip in its real context.",
+          "body": "App is on the Dashboard. Let me open a conversation so I can see the chip in its real context.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Open a recent conversation",
+          "body": "description: Open a recent conversation\ncommand: agent-browser find text \"Perfect now we have opus 5\" click\ntimeout: 120000\n⇒ ✓ Done",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Locate message body structure in open chat",
+          "body": "description: Locate message body structure in open chat\ncommand: agent-browser eval \"(()=>{const m=document.querySelector('.body.md');if(!m)return{found:false};let n=m,out=[];while(n&&out.length<5){out.push(n.tagName+(n.id?'#'+n.id:'')+'.'+String(n.className||'').split(' ').filter(Boolean).join('.'));n=n.parentElement;}return{found:true,chain:out};})()\"\ntimeout: 60000\n⇒ { \"chain\": [ \"DIV.body.md\", \"DIV.content\", \"DIV.msg.assistant\", \"DIV.turn\", \"DIV#chatLog.chat\" ], \"found\": true }",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Now let me inject a realistic assistant message with the chip into the live chat DOM and view it.",
+          "body": "Now let me inject a realistic assistant message with the chip into the live chat DOM and view it.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Inject test message with file chips into live chat",
+          "body": "description: Inject test message with file chips into live chat\ncommand: agent-browser eval \"(()=>{document.querySelectorAll('.turn.cmtest').forEach(e=>e.remove());const log=document.getElementById('chatLog');const t=document.createElement('div');t.className='turn cmtest';t.innerHTML='<div class=\\\"msg assistant\\\"><div class=\\\"content\\\"><div class=\\\"body md\\\"></div></div></div>';const b=t.querySelector('.body.md');b.innerHTML=renderMd('Export ready — 9,865 rows:\\n\\n\\`crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv\\`\\n\\nSupporting files: \\`crs-brain/data/exports/lg_links/build.js\\` and \\`crs-brain/data/exports/lg_links/employees.json\\`.\\n\\nMissing one: \\`crs-brain/data/exports/nope-does-not-exist.csv\\`');enhanceChatMedia(b);log.appendChild(t);t.scrollIntoView({block:'center'});return 'injected chips='+t.querySelectorAll('.cm-chip').length …\ntimeout: 60000\n⇒ \"injected chips=4 dl=3\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "4 chips, 3 download buttons (dead chip correctly has none). Screenshotting dark theme.",
+          "body": "4 chips, 3 download buttons (dead chip correctly has none). Screenshotting dark theme.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Screenshot chips in dark theme",
+          "body": "description: Screenshot chips in dark theme\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark.png\"\ntimeout: 120000\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chip-download-dark.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "I need to capture the light theme to close this out. Let me check the browser state first.",
+          "body": "I need to capture the light theme to close this out. Let me check the browser state first.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check current theme state",
+          "body": "description: Check current theme state\ncommand: agent-browser eval \"document.documentElement.className + ' | ' + (document.body.dataset.theme||'') + ' | ' + (localStorage.getItem('theme')||'none')\"\n⇒ \" | | none\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep light|theme in index.html",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\index.html\npattern: light|theme\noutput_mode: content\n-i: true\nhead_limit: 40\n⇒ 16: /* themeable veils + code/prose surfaces — approved literals, no canonical token exists (judgment-calls.md #4) */ 19: --folder-icon:#5B9CF6; --hl-str:#7EC69",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Switch to light theme",
+          "body": "description: Switch to light theme\ncommand: agent-browser eval \"setTheme('light'); document.documentElement.getAttribute('data-theme')+' | injected='+document.querySelectorAll('.turn.cmtest').length\"\n⇒ \"light | injected=1\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Scroll test turn into view",
+          "body": "description: Scroll test turn into view\ncommand: agent-browser eval \"document.querySelector('.turn.cmtest').scrollIntoView({block:'center'}); document.querySelectorAll('.turn.cmtest .cm-chip').length+' chips / '+document.querySelectorAll('.turn.cmtest a.cm-dl').length+' dl'\"\n⇒ \"4 chips / 3 dl\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture light theme screenshot",
+          "body": "description: Capture light theme screenshot\ncommand: agent-browser screenshot --full \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light.png\"\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Viewport capture light theme",
+          "body": "description: Viewport capture light theme\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-view.png\"\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-view.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chip-download-light-view.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-view.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Zoom test turn for legibility",
+          "body": "description: Zoom test turn for legibility\ncommand: agent-browser eval \"document.querySelector('.turn.cmtest').style.zoom='2.6'; document.querySelector('.turn.cmtest').scrollIntoView({block:'center'}); 'ok'\"\n⇒ \"ok\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture zoomed light theme",
+          "body": "description: Capture zoomed light theme\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-zoom.png\"\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-zoom.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chip-download-light-zoom.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-light-zoom.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Light theme confirmed. Now the dark equivalent at the same zoom.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Switch back to dark theme",
+          "body": "description: Switch back to dark theme\ncommand: agent-browser eval \"setTheme('dark'); document.querySelector('.turn.cmtest').scrollIntoView({block:'center'}); document.documentElement.getAttribute('data-theme')\"\n⇒ \"dark\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture zoomed dark theme",
+          "body": "description: Capture zoomed dark theme\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark-zoom.png\"\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark-zoom.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chip-download-dark-zoom.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-download-dark-zoom.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Reload to clear injected test DOM",
+          "body": "description: Reload to clear injected test DOM\ncommand: agent-browser reload\n⇒ http://127.0.0.1:4317/",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Confirm test DOM cleared",
+          "body": "description: Confirm test DOM cleared\ncommand: agent-browser eval \"document.querySelectorAll('.turn.cmtest').length\"\n⇒ 0",
+          "actor": "buildprint"
         }
       ]
     }
