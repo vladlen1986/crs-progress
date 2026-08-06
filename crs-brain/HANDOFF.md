@@ -1,4 +1,4 @@
-# CRS Brain — handoff (2026-08-07, Windows → Mac)
+# CRS Brain — handoff (2026-08-07; Windows → Mac, then Mac → Windows)
 
 Everything below is committed and pushed to `origin/main` (head `a4d6c10`). Working
 tree clean. Pick up on the Mac with `git pull`.
@@ -64,21 +64,28 @@ they overturn a prior ruling, in `decisions.md` (the AI-colour carve-out, 2026-0
 
 ## 3. OPEN — pick up here
 
-### 3.1 Claude Code CLI upgrade (blocks the Fable weekly bar)
-**This is the one unfinished item.** Vlad approved running it; the `winget upgrade`
-call errored out and **the CLI is still 2.1.120** — nothing was changed.
+### 3.1 Claude Code CLI upgrade + Fable weekly bar — ✅ DONE on the Mac (2026-08-07)
+Closed on the Mac side; **Windows still needs the CLI upgrade** to get the same bar.
 
-- Measured fact: CLI **2.1.120**'s statusline payload contains exactly
-  `rate_limits.five_hour` and `rate_limits.seven_day`. No per-model bucket. That is why
-  no "Weekly · Fable" bar can be drawn — it is not in the data.
-- **2.1.223 is available.** The Claude Code Desktop UI does show a Fable row, so the
-  data exists somewhere; a newer CLI is the plausible route to it in the statusline.
-- Mac: `brew upgrade claude` or the installer, whichever manages it there
-  (`claude update` prints the right command).
-- **Verify afterwards, self-serve:** delete `crs-brain/data/statusline-raw.json`, open
-  the usage window, press **Refresh**, then read that file. If a per-model key appears,
-  the bar renders on its own — `windowLabel()` already maps `seven_day_<model>` →
-  "Weekly · <Model>". No code change needed.
+- CLI upgraded on the Mac to **2.1.223** via `claude update` (it self-manages; no brew).
+  Windows is still on 2.1.120 — run `claude update` there.
+- **The hypothesis was WRONG, and it is now settled with evidence.** 2.1.223's statusline
+  payload still carries exactly `five_hour` + `seven_day` (captured verbatim in
+  `crs-brain/data/statusline-raw.json`). Upgrading does NOT add a per-model bucket.
+- The per-model window lives **only on the interactive `/usage` screen**:
+  `Current week (all models) 62% used` / `Current week (Fable) 79% used`.
+- Implemented (`55020d5`): `populateUsage()` now opens `/usage` inside the pty session it
+  already drives, scrapes `Current week (<Model>) N% used`, and merges the rows into
+  `usage.json` as `seven_day_<model>`. `windowLabel()` needed no change — the bar renders
+  as **"Weekly · Fable 79%"**. Rig: `brain/qa/rig-scripts/fable-bar.js`.
+- Reset time is reused from `seven_day.resets_at` on purpose (the per-model week runs the
+  same cycle — observed 2:59am vs 3am — and parsing a localized "Resets Aug 8 at 2:59am
+  (Asia/Tbilisi)" string across timezones is far more fragile than the epoch we already have).
+- **Mac-only blocker fixed in the same commit:** npm drops the executable bit on node-pty's
+  bundled `spawn-helper`, so EVERY pty spawn failed with `posix_spawnp failed.` (even
+  `/bin/echo`) and the usage refresh was permanently dead on the Mac. The server now
+  self-heals that bit before requiring node-pty. If Windows ever shows the same error after
+  an `npm install`, this is why — but the fix path is POSIX-only, Windows uses `cmd.exe`.
 
 ### 3.2 Usage window header label — decision made, NOT yet implemented
 Vlad chose **"show the routed model only"** (what the router picked for the current/next
