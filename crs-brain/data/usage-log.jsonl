@@ -141,3 +141,6 @@
 {"ts":"2026-08-06T15:23:30.274Z","purpose":"chat","model":"claude-sonnet-5","in":45180,"out":146,"ms":55412,"costUsd":0.13773,"estimated":true}
 {"ts":"2026-08-06T15:25:13.754Z","purpose":"issue","model":"claude-sonnet-5","in":55922,"out":1085,"ms":28782,"costUsd":0.184041,"estimated":true}
 {"ts":"2026-08-06T15:50:36.701Z","purpose":"chat","model":"claude-opus-5","in":111680,"out":906,"ms":1281474,"costUsd":1.74315,"estimated":true,"aborted":true}
+{"ts":"2026-08-06T15:50:41.430Z","purpose":"bp-chat","model":"claude-opus-5","in":0,"out":0,"ms":2214,"costUsd":0,"estimated":true}
+{"ts":"2026-08-06T15:50:43.518Z","purpose":"bp-chat","model":"claude-opus-5","in":0,"out":0,"ms":2086,"costUsd":0,"estimated":true}
+{"ts":"2026-08-06T16:09:48.663Z","purpose":"bp-chat","model":"claude-opus-5","in":112177,"out":1026,"ms":1145143,"costUsd":1.759605,"estimated":true}
