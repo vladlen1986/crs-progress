@@ -33,6 +33,19 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## HANDOFF 2026-08-07 → Mac
+
+`crs-brain/HANDOFF.md` is the pick-up point: how to start the app on the Mac, the QA rig
+inventory and how to repoint the Chrome path, what shipped this stretch, and the OPEN
+items. Two of those are live decisions Vlad already made that are NOT yet implemented:
+
+1. **Upgrade the Claude Code CLI (2.1.120 → 2.1.223).** Approved, attempted, and it did
+   NOT happen — the `winget upgrade` call errored and the CLI is unchanged at 2.1.120.
+   This is what blocks the "Weekly · Fable" bar: measured, that build's statusline payload
+   carries only `five_hour` and `seven_day`.
+2. **Usage window title should show the ROUTED model**, not the model this chat last ran
+   on. Decided; `brainModel()` in `usagewin.js` still does the latter.
+
 ## Session 2026-08-07 (Windows) — the missing Fable weekly bar: measured, not argued
 
 Vlad kept reporting the per-model weekly limit was missing; I kept asserting the payload
