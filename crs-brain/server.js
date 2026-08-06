@@ -1999,14 +1999,10 @@ function runBuildprint(args, ws) {
 const BUBBLE_INTENT_RE = /buildprint|bubble|savepoint|option.?set|privacy rule|repeating group|test branch|run.?mode|data.?type|\bapply\b.{0,20}\b(change|step|it|them)\b|screenshot/i;
 const ROUTE_QUICK_RE = /screenshot|capture|\bsync\b|\bversion\b|status\s*(check)?\b|\blist\b|\bopen\b.+\bpage\b|\bping\b|copy|rename|move\b/i;
 const ROUTE_DEEP_RE = /audit|analy[sz]e|review|investigat|security|design|architect|plan\b|implement|build\b|refactor|migrat|why\b|debug|root cause|compare|verify/i;
-function routeTaskModel(message, cfg) {
-  const m = String(message || '');
-  const deep = ROUTE_DEEP_RE.test(m);
-  const quick = !deep && m.length < 500 && ROUTE_QUICK_RE.test(m);
-  if (quick) return { model: 'claude-sonnet-5', effort: 'low', label: 'quick mechanical task → Sonnet 5, low effort' };
-  if (deep) return { model: cfg.model || 'claude-opus-4-8', effort: cfg.effort || 'max', label: 'deep task → ' + (cfg.model || 'claude-opus-4-8') + ', ' + (cfg.effort || 'max') + ' effort' };
-  return { model: 'claude-sonnet-5', effort: 'medium', label: 'standard task → Sonnet 5, medium effort' };
-}
+// (routeTaskModel removed 2026-08-07 — deliberateRoute() below replaced it. It
+// resolved its 'deep' branch to cfg.model, so once any concrete model had been
+// picked in the composer it silently became the target of every future auto
+// route, in every chat. That is what made auto feel like a one-time decision.)
 
 // ---- effort levels -------------------------------------------------------
 // The CLI's --effort only accepts low|medium|high|xhigh|max. Two extra levels
@@ -2046,6 +2042,83 @@ function routeTaskEffort(message, model) {
   if (m.length < 500 && ROUTE_QUICK_RE.test(m)) return { effort: 'low', label: 'quick mechanical task → low effort' };
   return { effort: 'medium', label: 'standard task → medium effort' };
 }
+// ---------- deliberated routing (2026-08-07) ----------------------------------
+// Vlad: the brain must re-pick model AND effort on EVERY message, and think
+// harder about it before applying. The old one-shot did a keyword test on the
+// raw message only; this weighs the whole turn — conversation history, the
+// attachments, file paths and code in the message, Bubble/Buildprint intent,
+// the playbook lessons that matched, and whether the user is repeating
+// themselves because the last answer missed. It runs AFTER the playbook check
+// so those lessons are an input, and it reports its reasoning as a step.
+// No extra model call: this is deeper ANALYSIS, not a second round-trip.
+const ROUTE_ESCALATE_RE = /\b(still|again|did ?n'?t work|does ?n'?t work|not working|no luck|broken|wrong|terrible|awful|same (error|issue|problem|thing)|you (missed|forgot|ignored)|try again|retry|failed|nope)\b/i;
+const ROUTE_MULTI_RE = /\b(and then|after that|also,|finally|next,|step \d|firstly|secondly)\b/i;
+const ROUTE_RISK_RE = /\b(delete|drop|destroy|purge|production|\blive\b|privacy rule|permission|migrat\w*|irreversible|force|overwrite|credential|secret|token)\b/i;
+const ROUTE_MODEL_FAST = 'claude-sonnet-5';
+const ROUTE_MODEL_DEEP = 'claude-opus-5';
+function countMatches(re, s) { const m = String(s).match(new RegExp(re.source, 'gi')); return m ? m.length : 0; }
+function deliberateRoute(ctx) {
+  const msg = String(ctx.message || '');
+  const why = [];
+  const add = (cond, pts, reason) => { if (cond) { why.push(reason); return pts; } return 0; };
+
+  const deepHits = countMatches(ROUTE_DEEP_RE, msg);
+  const quick = msg.length < 500 && ROUTE_QUICK_RE.test(msg) && deepHits === 0;
+  const orchestrate = ROUTE_ORCHESTRATE_RE.test(msg);
+  const code = countMatches(/```/, msg) >= 2;
+  const paths = countMatches(/[\w./-]+\.(?:js|ts|tsx|css|html|md|json|py|yml|yaml)\b/, msg);
+  const questions = countMatches(/\?/, msg);
+  const atts = (ctx.attachments || []).length;
+  const priorTurns = (ctx.history || []).filter((m) => m.role === 'user').length;
+  // "still broken", "again", "terrible" AFTER we already answered once = the
+  // previous rung was not enough. This is the cross-turn signal the old router
+  // had no way to see, because it only ever looked at one message in isolation.
+  const escalating = priorTurns > 1 && ROUTE_ESCALATE_RE.test(msg);
+  const lastModel = [...(ctx.history || [])].reverse().find((m) => m.role === 'assistant' && m.model)?.model || '';
+
+  let depth = 0.3;
+  depth += add(deepHits > 0, Math.min(deepHits, 3) * 0.12, deepHits + ' deep-work cue' + (deepHits > 1 ? 's' : ''));
+  depth += add(orchestrate, 0.2, 'multi-step build');
+  depth += add(code, 0.08, 'code block pasted');
+  depth += add(paths >= 3, 0.08, paths + ' file paths') || add(paths > 0 && paths < 3, 0.04, paths + ' file path' + (paths > 1 ? 's' : ''));
+  depth += add(msg.length > 1200, 0.12, 'long brief') || add(msg.length > 500, 0.06, 'detailed brief');
+  depth += add(questions >= 3, 0.06, questions + ' questions');
+  depth += add(ROUTE_MULTI_RE.test(msg), 0.06, 'several asks in one message');
+  depth += add(ctx.bubbleIntent, 0.08, 'touches the Bubble app');
+  depth += add(atts > 0, atts > 2 ? 0.1 : 0.05, atts + ' attachment' + (atts > 1 ? 's' : ''));
+  depth += add((ctx.lessons || []).length > 0, 0.06, (ctx.lessons || []).length + ' playbook lesson(s) in play');
+  depth += add(escalating, 0.18, 'follow-up after a miss — escalating');
+  depth -= add(quick, 0.3, 'mechanical one-liner');
+  depth = Math.max(0, Math.min(1, depth));
+
+  let risk = 0;
+  risk += add(ctx.bubbleIntent, 0.35, '');
+  risk += add(ROUTE_RISK_RE.test(msg), 0.35, 'destructive/irreversible vocabulary');
+  risk += add((ctx.lessons || []).length > 0, 0.2, '');
+  risk = Math.min(1, risk);
+
+  let model, effort;
+  if (depth < 0.25) { model = ROUTE_MODEL_FAST; effort = 'low'; }
+  else if (depth < 0.5) { model = ROUTE_MODEL_FAST; effort = 'medium'; }
+  else if (depth < 0.7) { model = ROUTE_MODEL_DEEP; effort = 'high'; }
+  else if (depth < 0.88) { model = ROUTE_MODEL_DEEP; effort = 'max'; }
+  else { model = ROUTE_MODEL_DEEP; effort = 'max'; }
+  // A real multi-step build wants orchestration, not just more thinking — and it
+  // should not have to also clear the top depth rung to get it.
+  if (orchestrate && depth >= 0.7) { model = ROUTE_MODEL_DEEP; effort = 'ultracode'; why.push('orchestration warranted'); }
+  // risky work never runs cheap, however casually it was phrased
+  if (risk >= 0.5 && (effort === 'low' || effort === 'medium')) { model = ROUTE_MODEL_DEEP; effort = 'high'; why.push('risky change — floored at Opus/high'); }
+  // if the last turn already ran on the deep model and the user says it missed,
+  // there is no rung left except staying there and spending more thinking time
+  if (escalating && /opus/i.test(lastModel) && effort !== 'ultracode') {
+    model = ROUTE_MODEL_DEEP; effort = 'max';
+    why.push('last turn was already Opus — staying there and spending more thinking');
+  }
+
+  const label = modelShort(model) + ' · ' + effort + ' effort  (depth ' + depth.toFixed(2) + ' · risk ' + risk.toFixed(2) + ')';
+  return { model, effort, label, depth, risk, why: why.filter(Boolean) };
+}
+function modelShort(id) { return /opus-5/.test(id) ? 'Opus 5' : /opus/.test(id) ? 'Opus' : /sonnet-5/.test(id) ? 'Sonnet 5' : /haiku/.test(id) ? 'Haiku' : id; }
 // Expand the 'auto' routing token for callers that don't report a routing label.
 function effortFor(effort, message, model) {
   const e = String(effort || '');
@@ -3446,32 +3519,26 @@ const server = http.createServer(async (req, res) => {
         // hands that axis to the task classifier, a concrete pick always wins.
         const pickedModel = (body.model || cfg.model || '').toString();
         const pickedEffort = (body.effort || cfg.effort || '').toString();
-        const routed = pickedModel === 'auto'
-          ? routeTaskModel(message, { ...cfg, model: cfg.model === 'auto' ? '' : cfg.model, effort: '' })
-          : null;
-        const finalModel = (routed ? routed.model : pickedModel) || undefined;
-        const routedEffort = (!pickedEffort || pickedEffort === 'auto') ? routeTaskEffort(message, finalModel) : null;
+        // Routing is DEFERRED to after the playbook check so the matched lessons,
+        // the Bubble-intent verdict and the conversation history are all inputs.
+        // A concrete pick in either dropdown still wins that axis outright.
+        const autoModel = pickedModel === 'auto' || !pickedModel;
+        const autoEffort = pickedEffort === 'auto' || !pickedEffort;
         LIVE_TURNS.set(chat.id, { sse, chat });   // ask cards land in THIS stream + chat object
         const runOpts = {
           askChatId: chat.id,
           idleExempt: () => [...ASKS.values()].some((a) => a.chatId === chat.id && !a.answered),
-          model: finalModel,
-          effort: (routedEffort ? routedEffort.effort : pickedEffort) || undefined,
+          model: autoModel ? undefined : pickedModel,
+          effort: autoEffort ? undefined : pickedEffort,
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
           purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
-        // Every routing decision is surfaced as a lifecycle step — never silent.
-        if (routed) lifeStep('Auto-routing: ' + routed.label);
-        if (routedEffort) lifeStep('Auto-effort: ' + routedEffort.label);
         // Which model is ACTUALLY running — shown live in the meter, stamped on the
-        // turn, updated if the fallback chain switches mid-run.
-        let liveModel = runOpts.model || '';
-        // The composer selectors mirror what is ACTUALLY running, so 'Auto' can
-        // show the resolved pick without pinning it for the next turn.
-        sse({ type: 'model', model: liveModel, effort: runOpts.effort || '', routed: !!routed, routedEffort: !!routedEffort });
-        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
+        // turn, updated if the fallback chain switches mid-run. Assigned below,
+        // once the deliberation has run.
+        let liveModel = '';
         // ONE CHAT: every conversation is rooted in the brain repo and ALSO owns
         // the Bubble worktree (--add-dir) + the Buildprint CLI. No mode branch:
         // the session decides per task which tree it needs.
@@ -3497,6 +3564,36 @@ const server = http.createServer(async (req, res) => {
           lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
           learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
         } else lifeStep('Playbook check — clean');
+        // ---- ROUTING, deliberated, EVERY message -------------------------------
+        // Runs here (not at the top of the turn) so it can weigh the playbook
+        // lessons and the Bubble-intent verdict alongside the message itself and
+        // the conversation so far. Re-decided on every single user message: there
+        // is no per-chat sticky value, and 'auto' never inherits a previously
+        // pinned model.
+        if (autoModel || autoEffort) {
+          const dec = deliberateRoute({
+            message,
+            history: chat.messages.slice(0, -1),
+            attachments: body.attachments || [],
+            lessons: injectedLessons,
+            bubbleIntent: BUBBLE_INTENT_RE.test(message) || chat.bp === true,
+          });
+          if (autoModel) runOpts.model = dec.model;
+          if (autoEffort) runOpts.effort = dec.effort;
+          lifeStep(
+            'Routing — ' + (autoModel && autoEffort ? dec.label
+              : autoModel ? modelShort(dec.model) + ' (effort pinned to ' + pickedEffort + ')'
+              : dec.effort + ' effort (model pinned to ' + modelShort(pickedModel) + ')'),
+            (dec.why.length ? 'Weighed: ' + dec.why.join(' · ') : 'Nothing unusual in this message — standard handling.')
+            + '\nDepth ' + dec.depth.toFixed(2) + ' · risk ' + dec.risk.toFixed(2)
+            + '\nRe-decided from scratch for this message.'
+          );
+        } else lifeStep('Routing — pinned by you: ' + modelShort(pickedModel) + ' · ' + pickedEffort + ' effort');
+        liveModel = runOpts.model || '';
+        // The composer selectors mirror what is ACTUALLY running, so 'Auto' can
+        // show the resolved pick without pinning it for the next turn.
+        sse({ type: 'model', model: liveModel, effort: runOpts.effort || '', routed: autoModel, routedEffort: autoEffort });
+        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
         connectedMark = false;   // next stream event stamps "Connected — model session live"
         // "Remember this" → compile the message into structured memory in the
         // background; emit a toast when saved. Runs concurrently with the reply,
@@ -4409,6 +4506,20 @@ const server = http.createServer(async (req, res) => {
     // ---- Dashboard aggregate: EVERYTHING the board renders, from state files
     // only (tasks, decisions.md, modules.json, build plans, master-checklist,
     // sync stamps, wishlist). No file-tree introspection, no file counts.
+    // What WOULD this message route to? Same deliberation the turn runs, with no
+    // turn — so the router can be tested and inspected without spending a call.
+    if (p === '/api/route-preview' && req.method === 'GET') {
+      const m = u.searchParams.get('m') || '';
+      const turns = Number(u.searchParams.get('turns') || 0);
+      const history = Array.from({ length: turns }, (_, i) => (i % 2 ? { role: 'assistant', model: u.searchParams.get('last') || '' } : { role: 'user', content: 'x' }));
+      return send(res, 200, deliberateRoute({
+        message: m,
+        history,
+        attachments: Array.from({ length: Number(u.searchParams.get('atts') || 0) }, () => ({})),
+        lessons: Array.from({ length: Number(u.searchParams.get('lessons') || 0) }, () => ({})),
+        bubbleIntent: BUBBLE_INTENT_RE.test(m),
+      }));
+    }
     if (p === '/api/dash' && req.method === 'GET') {
       const tasks = reconcileAutoTasks();
       const modsDoc = loadModulesDoc();

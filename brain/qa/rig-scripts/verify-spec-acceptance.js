@@ -82,7 +82,7 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   const audit = await page.evaluate(() => {
     const sizes = new Map(), weights = new Map(), radii = new Map();
     const upper = [], shadowed = [], ring = [];
-    const shadowOk = /(pal|menu|pop|inbox|toast|modal|docwin|filepeek|minchip|rowmenu|ninbox|upop|apop|submenu|expl|drag|lmPill|lmPanel|lmTip|hgmenu)/i;
+    const shadowOk = /(pal|menu|pop|inbox|toast|modal|docwin|filepeek|minchip|rowmenu|ninbox|upop|apop|submenu|expl|drag|lmPill|lmPanel|lmTip|hgmenu|uwPanel)/i;
     for (const el of document.querySelectorAll('body *')) {
       const cs = getComputedStyle(el);
       if (!el.offsetParent && cs.position !== 'fixed') continue;      // visible only
