@@ -1,0 +1,40 @@
+{
+  "id": "ce626f86-99c4-4e89-878b-024917f0efd1",
+  "title": "In one sentence, what does brain/INDEX.md route to?",
+  "sessionId": "6ebffcf0-2eb1-4cd7-bd94-2077adf9f90c",
+  "bp": false,
+  "created": "2026-08-06T17:56:05.889Z",
+  "updated": "2026-08-06T17:56:12.524Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "In one sentence, what does brain/INDEX.md route to?",
+      "ts": "2026-08-06T17:56:05.889Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "brain/INDEX.md maps every infrastructure domain (database schema, option sets, security/privacy rules, workflows, migrations) to its authoritative file and source.",
+      "ts": "2026-08-06T17:56:12.524Z",
+      "startedAt": "2026-08-06T17:56:05.890Z",
+      "completedAt": "2026-08-06T17:56:12.524Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
