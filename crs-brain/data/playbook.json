@@ -329,8 +329,8 @@
     "fix": "The unified chat runs with cwd = the CRS repo and the Bubble worktree attached via --add-dir. For any buildprint workspace command (sync/apply/check/savepoint/audit/data/screenshot) first run `cd ~/projects/crs-bubble/<app>/test` as its OWN Bash call (never chained with && or ; � chaining breaks the prefix allowlist), then the buildprint command; cwd persists across Bash calls. cd back to the repo for brain work.",
     "errorSig": "sandbox restricts cwd to",
     "source": "manual · 2026-08-06",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-08-06T19:34:20.069Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T17:53:10.148Z"
