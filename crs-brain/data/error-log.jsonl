@@ -10,3 +10,4 @@
 {"ts":"2026-07-18T14:49:39.384Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}
 {"ts":"2026-07-18T14:49:39.396Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}
 {"ts":"2026-07-18T14:49:39.405Z","source":"client","message":"c2probe-clienterr-boom-zqx987","stack":"","url":""}
+{"ts":"2026-08-06T15:18:32.847Z","source":"server-rejection","message":"Invalid URL","stack":"TypeError: Invalid URL\n    at new URL (node:internal/url:840:25)\n    at Server.<anonymous> (C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\server.js:2912:13)\n    at Server.emit (node:events:509:28)\n    at parserOnIncoming (node:_http_server:1226:12)\n    at HTTPParser.parserOnHeadersComplete (node:_http_common:125:17)"}
