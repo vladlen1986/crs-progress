@@ -149,3 +149,5 @@
 {"ts":"2026-08-06T16:32:10.630Z","purpose":"bp-chat","model":"claude-opus-5","in":48982,"out":791,"ms":832418,"costUsd":0.794055,"estimated":true}
 {"ts":"2026-08-06T16:32:54.334Z","purpose":"lesson","model":"claude-haiku-4-5-20251001","in":23027,"out":3348,"ms":43695,"costUsd":0.039767,"estimated":true}
 {"ts":"2026-08-06T16:34:47.694Z","purpose":"bp-chat","model":"claude-opus-5","in":69663,"out":467,"ms":154207,"costUsd":1.07997,"estimated":true}
+{"ts":"2026-08-06T16:35:12.782Z","purpose":"lesson","model":"claude-haiku-4-5-20251001","in":21572,"out":1840,"ms":25081,"costUsd":0.030772,"estimated":true}
+{"ts":"2026-08-06T17:43:52.894Z","purpose":"chat","model":"claude-sonnet-5","in":36605,"out":70,"ms":16179,"costUsd":0.110865,"estimated":true}
