@@ -491,8 +491,12 @@
   @media (max-width:520px){.tcards{grid-template-columns:1fr}}
 
   /* live generation meter — elapsed + running input/output tokens */
-  .genmeter{display:none;align-items:center;gap:10px;max-width:768px;margin:0 auto 8px;padding:6px 13px;background:var(--panel2);border:1px solid var(--line2);border-radius:8px;font-size:12px;color:var(--secondary);width:max-content}
-  .genmeter.show{display:inline-flex}
+  /* run meter — naked text sitting directly above the composer, left-aligned with
+     it. It used to be `inline-flex`, so `margin:0 auto` could not centre it and it
+     drifted to the far left of the column instead of tracking the composer; a
+     block-level flex box of the same max-width fixes that. No fill, no border. */
+  .genmeter{display:none;align-items:center;gap:10px;max-width:768px;margin:0 auto 6px;padding:0 13px;background:none;border:none;font-size:12px;color:var(--secondary)}
+  .genmeter.show{display:flex}
   .genmeter .gm-live{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:wpulse 1.2s ease-in-out infinite;flex:0 0 7px}
   .genmeter .gm-t{font-variant-numeric:tabular-nums;font-family:var(--mono);color:var(--primary);font-weight:600}
   .genmeter .gm-sep{width:1px;height:11px;background:var(--line3)}
