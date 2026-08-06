@@ -421,14 +421,8 @@
   .qchip .qx{cursor:pointer;color:var(--muted);font-size:15px;line-height:1;padding:0 4px;border-radius:50%}
   .qchip .qx:hover{color:var(--danger)}
 
-  /* chat mode switch (Chat · Buildprint) — sits above the composer */
-  .chatmode{display:flex;justify-content:center;margin:0 auto 10px;max-width:830px}
-  .col.center.no-composer .chatmode{display:none}
-  .seg2{display:inline-flex;background:var(--panel2);border:1px solid var(--line2);border-radius:10px;padding:3px;gap:2px}
-  .seg2 button{background:none;border:none;color:var(--secondary);font:inherit;font-size:12.5px;font-weight:600;padding:6px 18px;border-radius:8px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:var(--transition)}
-  .seg2 button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8}
-  .seg2 button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule */
-  .seg2 button:not(.on):hover{color:var(--secondary)}
+  /* (2026-08-06) the Chat·Buildprint mode switch is gone — ONE chat that reaches
+     the repo, the brain and the Buildprint CLI as each task requires. */
   /* chat starter template cards (mode-aware) */
   .tcards{display:grid;grid-template-columns:repeat(2,1fr);gap:11px;max-width:600px;margin:24px auto 0}
   .tcard{text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:13px 15px;cursor:pointer;transition:var(--transition);font-family:inherit}
@@ -695,6 +689,13 @@
   .cm-chip.cm-dead{cursor:default;color:var(--text-muted);border-style:dashed;background:none}
   .cm-chip.cm-dead:hover{border-color:var(--border-default);color:var(--text-muted)}
   .cm-chip .cm-dead-tag{font-size:10px;color:var(--text-muted);opacity:.85}
+  /* file chip = [ open ][ download ]. Download stays visible (not hover-only) so it
+     is discoverable on touch, where there is no hover. */
+  .cm-chip{padding-right:3px}
+  .md .cm-chip a.cm-open{display:inline-flex;align-items:center;gap:5px;color:inherit;text-decoration:none;border-bottom:none}
+  .md .cm-chip a.cm-dl{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;flex:0 0 auto;margin-left:1px;border-radius:50%;border-bottom:none;color:var(--text-muted);text-decoration:none;transition:background .15s ease,color .15s ease}
+  .md .cm-chip a.cm-dl:hover{background:var(--bg-tertiary);color:var(--accent-text)}
+  .cm-chip.cm-dead{padding-right:9px}
 
   /* version guard: unobtrusive "app updated" banner (never yanks an in-use tab) */
   .ver-banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9999;display:flex;align-items:center;gap:8px;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-pill);padding:8px 8px 8px 16px;box-shadow:0 6px 24px var(--overlay,rgba(0,0,0,.3));font-size:13px;color:var(--text-primary)}
@@ -1492,12 +1493,6 @@
     </div>
     <!-- persistent composer — always visible on every view -->
     <div class="composer-wrap">
-        <div class="chatmode" id="chatMode">
-          <div class="seg2">
-            <button data-m="chat" class="on" onclick="setChatMode(false)"><svg viewBox="0 0 24 24"><use href="#i-chat"/></svg> Chat</button>
-            <button data-m="bp" onclick="setChatMode(true)"><svg viewBox="0 0 24 24"><use href="#i-terminal"/></svg> Buildprint</button>
-          </div>
-        </div>
         <div class="genmeter" id="genMeter"></div>
         <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
@@ -1509,18 +1504,22 @@
             <button class="attach-btn mic-btn" id="micBtn" title="Dictate" style="display:none" onclick="toggleDictation()" oncontextmenu="return micContext(event)"><svg class="ic" viewBox="0 0 24 24"><use href="#i-mic"/></svg></button>
             <select class="sel mini" id="modelSel" title="Model — Auto routes by task: quick/mechanical → Sonnet low, deep audits → Opus max" onchange="applyModelSettings()">
               <option value="auto">Auto (by task)</option>
+              <option value="claude-opus-5">Opus 5</option>
               <option value="claude-opus-4-8">Opus 4.8</option>
               <option value="claude-opus-4-7">Opus 4.7</option>
               <option value="claude-sonnet-5">Sonnet 5</option>
               <option value="claude-haiku-4-5-20251001">Haiku 4.5</option>
               <option value="claude-fable-5">Fable 5</option>
             </select>
-            <select class="sel mini" id="effortSel" title="Reasoning effort" onchange="applyModelSettings()">
+            <select class="sel mini" id="effortSel" title="Reasoning effort — Auto picks it per task: quick → Low, deep reasoning → Max, multi-step builds → Ultracode" onchange="applyModelSettings()">
+              <option value="auto">Auto (by task)</option>
               <option value="low">Low</option>
               <option value="medium">Medium</option>
               <option value="high">High</option>
               <option value="xhigh">X-High</option>
               <option value="max">Max</option>
+              <option value="ultra" title="Max effort + the ultrathink cue">Ultra</option>
+              <option value="ultracode" title="X-High + dynamic workflow orchestration (more parallel agents) — not deeper than Max, but better at multi-step work">Ultracode</option>
             </select>
             <span style="flex:1"></span>
             <button class="ingest-btn" id="ingestBtn" title="Route this report into brain/ — updates database, security, workflows, migrations, changelog" onclick="sendMsg(true)"><svg class="ic sm" viewBox="0 0 24 24"><use href="#i-ingest"/></svg> Ingest</button>
@@ -1811,29 +1810,22 @@ const TEMPLATES={
     {i:'i-arrow-right-circle',t:'What’s next?',d:'Highest-leverage task',s:'Based on the current sprint state in STATUS.md, what is the single highest-leverage task I should do next, and why?'},
     {i:'i-grid',t:'Module status',d:'Built vs planned',s:'Give me a status snapshot of the CRS modules by section from modules.json: what is built, in progress, and still planned.'},
     {i:'i-shield',t:'Security posture',d:'Rules & gaps',s:'Summarize the current security posture from security.md: privacy rules, permission gates, tenant scoping, and any known gaps.'},
-    {i:'i-search',t:'Last audit',d:'Findings & open items',s:'Summarize the most recent audit in audits/: key findings, functional holes, and what is still open.'},
-  ],
-  bp:[
-    {i:'i-file-plus',t:'Write a build prompt',d:'Draft a Buildprint prompt',s:'Write a Buildprint prompt to [describe the change]. Include a compressed context header of the relevant locked decisions (Pattern A tenant isolation, permission-based access, single App page, ActivityLog), TEST/DEV branch only, the hard-stop rule (max 2 fix attempts then halt and report), and explicit verification requirements.'},
-    {i:'i-search',t:'Audit a module',d:'Read-only as-built',s:'Write a read-only, section-by-section as-built audit prompt for the [module] page — no writes, just report what is built vs specified.'},
-    {i:'i-tool',t:'Fix pass',d:'Bounded fix with hard-stop',s:'Write a Buildprint fix-pass prompt for [issue], TEST/DEV branch only, with the hard-stop rule (max 2 fix attempts then halt and report) and explicit before/after verification steps.'},
-    {i:'i-db',t:'Wire real data',d:'Replace demo data',s:'Write a Buildprint prompt to replace demo data with the real [data type], listing the expression sites and search nodes to update, TEST/DEV branch only, with verification that no demo references remain.'},
-    {i:'i-lock',t:'Add privacy rules',d:'Property-scoped + super-admin',s:'Write a Buildprint prompt to add property-scoped privacy rules plus super-admin override for [data type] (company = Current User\'s company AND property = Current User\'s property), TEST/DEV branch only, with NEG-proof verification steps.'},
-    {i:'i-check-circle',t:'Security test checklist',d:'STRUCT / POS / NEG',s:'Write a security test checklist for [module], grouped into Data Isolation / Write Authorization / Integrity & State / Identity & Audit, each item tagged STRUCT / POS / NEG.'},
+    {i:'i-search',t:'Audit a module',d:'Read-only, against the live app',s:'Audit the [module] page in the Bubble test app read-only: sync first, report what is built vs specified section by section (UI, UX, data, privacy rules, workflow guards, theme), and change nothing.'},
+    {i:'i-tool',t:'Change the Bubble app',d:'Plan → savepoint → apply → check',s:'In the Bubble test app: [describe the change]. Plan it as numbered steps and wait for my go-ahead before the first apply.'},
+    {i:'i-lock',t:'Add privacy rules',d:'Pattern A + super-admin',s:'Add property-scoped privacy rules plus super-admin override to [data type] in the test app (Current User\'s company AND property), then verify and tell me which NEG tests I still have to run myself.'},
   ],
 };
 function seedInput(text){ const inp=$('input'); if(!inp)return; inp.value=text; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus(); }
 function seedTpl(mode,idx){ const t=(TEMPLATES[mode]||[])[idx]; if(t) seedInput(t.s); }
 function heroCards(mode){ return '<div class="tcards">'+(TEMPLATES[mode]||[]).map((t,i)=>`<button class="tcard" onclick="seedTpl('${mode}',${i})"><span class="tct">${svg(t.i,'sm')} ${esc(t.t)}</span><span class="tcd">${esc(t.d)}</span></button>`).join('')+'</div>'; }
 function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure.</div>'+heroCards('chat')+'</div>'; }
-function bpHeroHtml(){ return '<div class="hero"><div class="hero-mark" style="background:var(--accent)">'+svg('i-terminal')+'</div><div class="hero-t">Buildprint task</div><div class="hero-s">Operate your CRS Bubble app on the <b style="color:var(--primary)">test</b> branch — plan → apply → check, logged to the brain, never live.</div>'+heroCards('bp')+'</div>'; }
-// reflect state.bp into the composer mode switch + placeholder
-function reflectMode(){ document.querySelectorAll('#chatMode .seg2 button').forEach(b=>b.classList.toggle('on',(b.dataset.m==='bp')===(state.bp===true))); const inp=$('input'); if(inp) inp.placeholder=state.bp?bpPh:normPh; }
-function setChatMode(bp){ state.bp=!!bp; reflectMode();
-  const log=$('chatLog'); if(log && log.querySelector('.hero')){ log.innerHTML=bp?bpHeroHtml():heroHtml(); if(!state.chatId) $('centerTitle').textContent=bp?'New Buildprint task':'New conversation'; } }
+// ONE CHAT (2026-08-06): no mode switch. state.bp is now a read-only DISPLAY flag
+// meaning "this conversation actually used Buildprint" (server auto-tags it) —
+// it never gates capability, and nothing in the UI sets it any more.
+function reflectMode(){ const inp=$('input'); if(inp) inp.placeholder=normPh; }
 function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
-function newBpChat(){ bumpView(); state.chatId=null; setTab('chats'); state.bp=true; showChat(); $('chatLog').innerHTML=bpHeroHtml(); $('centerTitle').textContent='New Buildprint task'; reflectMode(); loadChats(); $('input').focus(); }
-const bpPh='Tell Buildprint what to do on the test branch…', normPh='Ask about your CRS project…  (Enter to send · Shift+Enter for newline)';
+const newBpChat=newChat;   // legacy entry points (dashboard, plan steps, tree/activity hand-off) → the one chat
+const normPh='Ask anything — the brain, the repo, or your Bubble app…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
   bumpView();
   // Returning to a chat that's still generating? Re-attach the live stream so it
@@ -2078,7 +2070,7 @@ function showLearnToast(ev){
 }
 setInterval(pollLearnEvents, 6000);
 // human model names — used by the live meter, turn stamps and the ⚡ fallback note
-function modelNice(m){ return ({'auto':'Auto','claude-opus-4-8':'Opus 4.8','claude-opus-4-7':'Opus 4.7','claude-sonnet-5':'Sonnet 5','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-fable-5':'Fable 5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'})[m]||m||''; }
+function modelNice(m){ return ({'auto':'Auto','claude-opus-5':'Opus 5','claude-opus-4-8':'Opus 4.8','claude-opus-4-7':'Opus 4.7','claude-sonnet-5':'Sonnet 5','claude-sonnet-4-6':'Sonnet 4.6','claude-haiku-4-5-20251001':'Haiku 4.5','claude-fable-5':'Fable 5','opus':'Opus','sonnet':'Sonnet','haiku':'Haiku','default':'Default model'})[m]||m||''; }
 // ---- turn timestamps: Started (top-left) + Completed (bottom-left), 24h, no icon ----
 const T24_={hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'};
 function fmtClock(iso){ const d=new Date(iso); if(isNaN(d)) return ''; return d.toLocaleTimeString([], T24_); }
@@ -2452,7 +2444,6 @@ async function renderDashboard(){
       <div class="dcard"><h3>${svg('i-chat','sm')} Continue <span class="cnt">${chats.length}</span></h3>
         <div class="chatnew">
           <button class="np-draft" onclick="newChat()">${svg('i-chat','sm')} New conversation</button>
-          <button class="np-draft" onclick="newBpChat()">${svg('i-terminal','sm')} Buildprint task</button>
         </div>
         ${chats.slice(0,8).map(ch=>`<div class="drow" onclick="openChat('${ch.id}')"><span class="rt">${esc(ch.title||'Untitled')}</span><span class="rmeta">${ch.count||0}</span></div>`).join('')||'<div class="dempty">No conversations yet — type below.</div>'}
       </div>
@@ -3102,7 +3093,7 @@ async function streamChat(text, opts={}){
   setTimeout(pump, 16);
 
   try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],ingest:opts.ingest===true,regenerate:opts.regenerate===true,bp:state.bp===true,model:$('modelSel')?.value,effort:$('effortSel')?.value}),signal:ac.signal});
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:state.chatId,message:text,title:opts.title,attachments:opts.attachments||[],ingest:opts.ingest===true,regenerate:opts.regenerate===true,model:$('modelSel')?.value,effort:$('effortSel')?.value}),signal:ac.signal});
     if(!res.body) throw new Error('no stream');
     const reader=res.body.getReader(); const dec=new TextDecoder(); let buf='';
     while(true){
@@ -3114,7 +3105,7 @@ async function streamChat(text, opts={}){
         const dl=chunk.split('\n').find(l=>l.startsWith('data: ')); if(!dl) continue;
         let ev; try{ ev=JSON.parse(dl.slice(6)); }catch{ continue; }
         if(ev.type==='meta'){ live.chatId=ev.id; live.startedAt=ev.startedAt; if(ev.startedAt) setTurnStart(turn, ev.startedAt); if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; }
-          if(live.bp && state.planRef) markPlanPrompted(ev.id); }   // link plan step → this bp chat
+          if(state.planRef) markPlanPrompted(ev.id); }   // link plan step → this chat
         else if(ev.type==='block'){
           // Server-pushed lifecycle notes (prompt sent / CLI preflight / connected)
           // arrive complete with label+actor — render finished, never spinning.
@@ -5124,10 +5115,7 @@ async function bpTrack(){
   if(state.sending) return;
   bumpView();
   bubChanged=null;   // the ingest owns these changes now — clear the Bubble-data banner
-  // order matters: setTab()→newChat() (chatView hidden, chatId null) resets state.bp,
-  // so BP mode must be forced AFTER the view swap or follow-ups post bp:false
-  state.chatId=null; setTab('buildprint'); showChat();
-  state.bp=true; reflectMode();
+  state.chatId=null; setTab('chats'); showChat();
   const log=$('chatLog'); log.innerHTML='';
   $('centerTitle').textContent='🔨 Buildprint sync';
   const turn=newTurn(log); turn.appendChild(userMsgEl('Sync changes from Buildprint into the brain.'));

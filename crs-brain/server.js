@@ -80,6 +80,7 @@ const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
 const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
+const BP_GUARD_SETTINGS_UC = path.join(DATA_DIR, 'bp-guard-settings-ultracode.json');   // same guard hooks + ultracode:true
 const BP_LOG_JS = path.join(BRAIN_DIR, 'bp-log.js');               // PostToolUse hook: records every buildprint/git command
 const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');         // agent-captured run-mode screenshots
 const ACTION_LOG_FILE = path.join(DATA_DIR, 'action-log.jsonl');   // append-only activity ledger (one JSON action per line)
@@ -89,14 +90,18 @@ for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs
 // spawn hard-blocks dangerous Buildprint CLI commands (apply-to-live, --force-apply,
 // sync --reset, data delete, …) regardless of what the model tries.
 try {
-  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify({
+  const guard = {
     hooks: {
       // PreToolUse: hard-block dangerous commands. PostToolUse: append every
       // buildprint/git command the agent runs to the action log (audit trail for rollback).
       PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }],
       PostToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_LOG_JS}" "${ACTION_LOG_FILE}"` }] }],
     },
-  }, null, 2));
+  };
+  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify(guard, null, 2));
+  // `claude` takes ONE --settings value, so ultracode has to ride along with the
+  // guard hooks rather than a second flag. Guard rules are identical either way.
+  fs.writeFileSync(BP_GUARD_SETTINGS_UC, JSON.stringify({ ...guard, ultracode: true }, null, 2));
 } catch (e) { console.error('bp-guard settings write failed:', e.message); }
 
 // ---- action log: append-only ledger of everything the user/agent does, so a
@@ -745,7 +750,7 @@ const DEFAULT_SOUND_EVENTS = {
   'process-start': 's12', 'connection-lost': 's22', 'connection-restored': 's07',
 };
 const DEFAULT_SETTINGS = {
-  model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
+  model: 'claude-opus-4-8', effort: 'auto', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
   autoFallback: true,                          // if the chosen model is inaccessible (overload / model-specific limit / unavailable), auto-switch to keep working
   fallbackModels: ['sonnet', 'haiku'],         // ordered chain tried after the primary; aliases survive version bumps. NOTE: the account-wide 5h cap hits every model — fallback only rescues MODEL-specific outages (e.g. Opus limit while the general pool is fine)
   theme: 'dark',                              // 'dark' | 'light'
@@ -1485,7 +1490,7 @@ function classifyTask(text, hint) {
 // settings. When on, the classifier may downgrade; ambiguous tasks fall back to
 // settings. Returns { model, effort, routed, reason }.
 function routeModel(cfg, text, hint) {
-  const base = { model: cfg.model || MODEL_OPUS, effort: cfg.effort || 'high' };
+  const base = { model: cfg.model || MODEL_OPUS, effort: (cfg.effort && cfg.effort !== 'auto') ? cfg.effort : 'high' };
   if (!cfg.autoRoute) return { ...base, routed: false, reason: 'auto-route off' };
   const c = classifyTask(text, hint);
   if (!c) return { ...base, routed: false, reason: 'ambiguous — kept default' };
@@ -1749,11 +1754,9 @@ function loadBpChat() {
 }
 function saveBpChat(c) { fs.writeFileSync(BP_CHAT_FILE, JSON.stringify(c, null, 2)); }
 
-const BP_PROMPT = (ws) => [
-  'You are the CRS Brain BUILDPRINT COPILOT. You operate the CRS Bubble app directly via the Buildprint CLI',
-  `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
-  `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
-  'pages/, option_sets/, styles/, api/, settings/…).',
+// The Buildprint operating manual, minus the identity/cwd header — shared by the
+// legacy BP_PROMPT (bp-only spawns) and the UNIFIED prompt every chat now gets.
+const BP_BODY = (ws) => [
   'THE LOOP (follow it exactly): (0) `buildprint sync` FIRST (pull the latest Bubble snapshot). (1) PLAN the',
   'change as numbered steps and get Vlad\'s go-ahead before any apply. (2) Then execute ONE step at a time —',
   'for EACH step: create a savepoint (`buildprint savepoint`, named for the step) → `buildprint apply` →',
@@ -1811,7 +1814,45 @@ const BP_PROMPT = (ws) => [
   'When you make changes, end with a compact "What changed / Result / Next" summary.',
   'Be concise and direct (CLAUDE.md style). When the user just asks about progress/status, answer from the',
   'workspace + brain/ without running mutating commands.',
+];
+// Legacy bp-only spawns (/api/bp/chat, sync/track) keep the worktree-as-cwd framing.
+const BP_PROMPT = (ws) => [
+  'You are the CRS Brain BUILDPRINT COPILOT. You operate the CRS Bubble app directly via the Buildprint CLI',
+  `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
+  `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
+  'pages/, option_sets/, styles/, api/, settings/…).',
+  ...BP_BODY(ws),
 ].join(' ');
+// ONE CHAT (2026-08-06): there is no Chat-vs-Buildprint mode any more. Every
+// conversation is a Claude Code session rooted in the brain repo that ALSO owns
+// the cloned Bubble worktree (--add-dir) and drives the Buildprint CLI when the
+// task needs it. The CLI resolves its workspace by walking UP from cwd and has
+// no --project flag, so the session `cd`s into the worktree for CLI work — the
+// sandbox permits that because the worktree is an added dir (probed 2026-08-06).
+const BP_CAPABILITY = (ws) => [
+  'BUILDPRINT CAPABILITY — the same session also operates the CRS Bubble app directly via the Buildprint CLI,',
+  'so Vlad never needs the Buildprint website. Use it whenever the task touches the Bubble app (schema, option',
+  'sets, workflows, pages, styles, privacy rules, run-mode screenshots); for repo/brain/strategy work just stay',
+  'where you are — no ceremony, no mode switch, one conversation.',
+  `WORKSPACE: the cloned branch workspace is ${ws.dir} (app "${ws.app}", branch "${ws.branch}") — Bubble`,
+  'structure lives there as editable files (data_types/, pages/, option_sets/, styles/, api/, settings/…).',
+  `CWD RULE (important): your cwd is the brain repo (${REPO_ROOT}); the worktree is added, so both trees are`,
+  'readable and writable. The buildprint CLI finds its workspace by walking UP from cwd and has NO --project',
+  `flag, so before ANY workspace command (sync/apply/check/savepoint/audit/data/screenshot) run \`cd ${ws.dir}\``,
+  `as its OWN Bash call — never chained with && or ; (chaining breaks the command allowlist) — then run the`,
+  `buildprint command; cwd persists across your Bash calls. \`cd ${REPO_ROOT}\` to come back for repo work.`,
+  ...BP_BODY(ws),
+].join(' ');
+// One assembled system prompt per turn: brain identity + (Buildprint capability
+// when a workspace exists) + focus-module grounding. Memory/Playbook are layered
+// on by the caller.
+function unifiedPrompt(ws, focusBrief) {
+  const parts = [SYSTEM_PROMPT];
+  parts.push(ws ? BP_CAPABILITY(ws)
+    : 'BUILDPRINT: no cloned Bubble workspace on this machine (~/projects/crs-bubble/<app>/test is missing), so CLI workspace commands are unavailable here — answer Bubble questions from brain/ and say plainly that applying changes needs the clone.');
+  if (focusBrief) parts.push(focusBrief);
+  return parts.join('\n\n');
+}
 
 // ---- Buildprint → Brain tracking -------------------------------------------
 // Sync the workspace from Bubble, diff the snapshot, and have the brain update
@@ -1950,6 +1991,9 @@ function runBuildprint(args, ws) {
 // asks must not burn Opus+Max. When the composer model is 'auto', route by the
 // message shape; picking a concrete model in the dropdown always overrides.
 // The decision is surfaced as a Brain-lane lifecycle step — never silent.
+// Does this turn look like Bubble/Buildprint work? Only these pay the CLI
+// preflight round-trip; everything else starts talking immediately.
+const BUBBLE_INTENT_RE = /buildprint|bubble|\bapply\b|\bsync\b|savepoint|data.?type|option.?set|privacy rule|workflow|run.?mode|screenshot|\bmodule\b|schema|repeating group|\bpage\b|\bworkspace\b|test branch/i;
 const ROUTE_QUICK_RE = /screenshot|capture|\bsync\b|\bversion\b|status\s*(check)?\b|\blist\b|\bopen\b.+\bpage\b|\bping\b|copy|rename|move\b/i;
 const ROUTE_DEEP_RE = /audit|analy[sz]e|review|investigat|security|design|architect|plan\b|implement|build\b|refactor|migrat|why\b|debug|root cause|compare|verify/i;
 function routeTaskModel(message, cfg) {
@@ -1959,6 +2003,50 @@ function routeTaskModel(message, cfg) {
   if (quick) return { model: 'claude-sonnet-5', effort: 'low', label: 'quick mechanical task → Sonnet 5, low effort' };
   if (deep) return { model: cfg.model || 'claude-opus-4-8', effort: cfg.effort || 'max', label: 'deep task → ' + (cfg.model || 'claude-opus-4-8') + ', ' + (cfg.effort || 'max') + ' effort' };
   return { model: 'claude-sonnet-5', effort: 'medium', label: 'standard task → Sonnet 5, medium effort' };
+}
+
+// ---- effort levels -------------------------------------------------------
+// The CLI's --effort only accepts low|medium|high|xhigh|max. Two extra levels
+// are exposed in the composer and translated here:
+//   ultra     = max + the in-prompt `ultrathink` cue. ultrathink does NOT raise
+//               API effort on its own, so it rides on top of the real ceiling.
+//   ultracode = xhigh + {"ultracode":true} (dynamic workflow orchestration —
+//               more parallel agents, multi-step work). Needs claude >= 2.1.154;
+//               older CLIs ignore the key and simply run xhigh.
+// NOTE ultracode is xhigh, i.e. one notch BELOW max on raw reasoning — it trades
+// depth-per-turn for orchestration. Auto-routing picks between them accordingly.
+const EFFORT_ALIASES = {
+  ultra: { effort: 'max', ultrathink: true, ultracode: false },
+  ultracode: { effort: 'xhigh', ultrathink: false, ultracode: true },
+};
+function resolveEffort(effort) {
+  const key = String(effort || '').toLowerCase();
+  if (key === 'auto') return { effort: '', ultrathink: false, ultracode: false };   // ROUTING token, never a CLI value
+  return EFFORT_ALIASES[key] || { effort: key, ultrathink: false, ultracode: false };
+}
+
+// Multi-step agentic build work — what ultracode's orchestration is actually for.
+// Checked BEFORE ROUTE_DEEP_RE, which overlaps on implement/build/refactor/migrate.
+const ROUTE_ORCHESTRATE_RE = /\b(implement|build|scaffold|wire\s*up|refactor|migrat\w*|end[-\s]?to[-\s]?end|multi[-\s]?step|step[-\s]?by[-\s]?step|build\s*packet|across\s+(?:all|every|the\s+whole)|whole\s+(?:module|app|repo|page)|then\s+(?:also|update|add))\b/i;
+// Pick the EFFORT for a task, independently of which model is pinned (Vlad's
+// 2026-08-06 ask: choosing a model shouldn't force you to also choose effort).
+// xhigh/ultracode are Opus-family levels, so non-Opus deep work lands on max.
+function routeTaskEffort(message, model) {
+  const m = String(message || '');
+  const opus = /opus/i.test(String(model || ''));
+  if (ROUTE_ORCHESTRATE_RE.test(m)) {
+    return opus
+      ? { effort: 'ultracode', label: 'multi-step build → Ultracode (xhigh + orchestration)' }
+      : { effort: 'max', label: 'multi-step build → max effort' };
+  }
+  if (ROUTE_DEEP_RE.test(m)) return { effort: 'max', label: 'deep reasoning task → max effort' };
+  if (m.length < 500 && ROUTE_QUICK_RE.test(m)) return { effort: 'low', label: 'quick mechanical task → low effort' };
+  return { effort: 'medium', label: 'standard task → medium effort' };
+}
+// Expand the 'auto' routing token for callers that don't report a routing label.
+function effortFor(effort, message, model) {
+  const e = String(effort || '');
+  return e === 'auto' ? routeTaskEffort(message, model).effort : (e || undefined);
 }
 
 // Absorb Buildprint self-updates BEFORE a model session depends on the CLI.
@@ -2281,6 +2369,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onLabel = hooks.onLabel || (() => {});    // concise action label once tool inputs are known
   const onUsage = hooks.onUsage || (() => {});    // running token counts { in, out }
   const onToolResult = hooks.onToolResult || (() => {});   // short tool-outcome tail { text, isError }
+  const eff = resolveEffort(opts.effort);
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -2288,8 +2377,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
-      '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'Bash(cd:*)', 'Bash(pwd:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // cd/pwd: the unified chat lives in the brain repo but the buildprint CLI resolves its workspace by walking UP from cwd (no --project flag) — so a session moves into the worktree with its own `cd` call (cwd persists across Bash calls) instead of chaining, which the prefix allowlist forbids. Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
+      '--settings', eff.ultracode ? BP_GUARD_SETTINGS_UC : BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
@@ -2301,7 +2390,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       args.push('--mcp-config', ASK_MCP_CONFIG);
     }
     if (opts.model && opts.model !== 'auto') args.push('--model', opts.model);   // 'auto' is a ROUTING token, never a CLI model id
-    if (opts.effort) args.push('--effort', opts.effort);
+    if (eff.effort) args.push('--effort', eff.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
@@ -2442,7 +2531,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       resolve({ text: finalText, sessionId });
     });
 
-    child.stdin.write(message);
+    child.stdin.write(eff.ultrathink ? message + '\n\nultrathink' : message);
     child.stdin.end();
   });
 }
@@ -3344,53 +3433,60 @@ const server = http.createServer(async (req, res) => {
       const markConnected = () => { if (connectedMark) return; connectedMark = true; lifeStep('Connected — model session live'); };
       try {
         const cfg = loadSettings();
-        // 'auto' = task-routed model+effort (token economy); a concrete model pins both.
-        const routed = String(body.model || cfg.model || '') === 'auto' ? routeTaskModel(message, cfg.model === 'auto' ? { ...cfg, model: '' } : cfg) : null;
+        // Model and effort are routed on separate axes: 'auto' in either dropdown
+        // hands that axis to the task classifier, a concrete pick always wins.
+        const pickedModel = (body.model || cfg.model || '').toString();
+        const pickedEffort = (body.effort || cfg.effort || '').toString();
+        const routed = pickedModel === 'auto'
+          ? routeTaskModel(message, { ...cfg, model: cfg.model === 'auto' ? '' : cfg.model, effort: '' })
+          : null;
+        const finalModel = (routed ? routed.model : pickedModel) || undefined;
+        const routedEffort = (!pickedEffort || pickedEffort === 'auto') ? routeTaskEffort(message, finalModel) : null;
         LIVE_TURNS.set(chat.id, { sse, chat });   // ask cards land in THIS stream + chat object
         const runOpts = {
           askChatId: chat.id,
           idleExempt: () => [...ASKS.values()].some((a) => a.chatId === chat.id && !a.answered),
-          model: routed ? routed.model : (body.model || cfg.model || '').toString() || undefined,
-          effort: routed ? routed.effort : (body.effort || cfg.effort || '').toString() || undefined,
+          model: finalModel,
+          effort: (routedEffort ? routedEffort.effort : pickedEffort) || undefined,
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
           purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
-        if (routed) lifeStep('Auto-routing: ' + routed.label);   // visible, never silent
+        // Every routing decision is surfaced as a lifecycle step — never silent.
+        if (routed) lifeStep('Auto-routing: ' + routed.label);
+        if (routedEffort) lifeStep('Auto-effort: ' + routedEffort.label);
         // Which model is ACTUALLY running — shown live in the meter, stamped on the
         // turn, updated if the fallback chain switches mid-run.
         let liveModel = runOpts.model || '';
         sse({ type: 'model', model: liveModel });
         { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
-        // Buildprint chats run in the cloned Bubble workspace with the guardrailed
-        // BP prompt, and can still read/write the brain repo (--add-dir).
-        if (chat.bp) {
-          const ws = findBpWorkspace();
-          if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
-          runOpts.cwd = ws.dir;
-          runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
-          runOpts.addDirs = [REPO_ROOT];
-          // Brain lane: hand-off is explicit + the CLI is preflighted HERE so any
-          // buildprint self-update finishes inside this server call — the model
-          // session never hits a half-replaced npm shim ("not found" mid-audit).
-          lifeStep('Prompt sent — preparing Buildprint session');
+        // ONE CHAT: every conversation is rooted in the brain repo and ALSO owns
+        // the Bubble worktree (--add-dir) + the Buildprint CLI. No mode branch:
+        // the session decides per task which tree it needs.
+        const ws = findBpWorkspace();   // null on machines without the clone → capability degrades, turn still runs
+        runOpts.cwd = REPO_ROOT;
+        if (ws) runOpts.addDirs = [ws.dir];
+        const focusBrief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
+        runOpts.systemPrompt = withMemory(unifiedPrompt(ws, focusBrief));   // agent always honors persistent memory
+        // The CLI is preflighted server-side so a buildprint self-update finishes
+        // INSIDE this call (never a half-replaced shim mid-task). Only for turns
+        // that look like Bubble work — a brain-only question shouldn't pay for it.
+        if (ws && (BUBBLE_INTENT_RE.test(message) || chat.bp === true)) {
           const pf = await bpPreflight();
-          if (pf.ok && pf.linked) lifeStep(`Buildprint CLI ready — v${pf.version}, linked`);
+          if (pf.ok && pf.linked) lifeStep(`Buildprint ready — CLI v${pf.version}, linked · workspace ${ws.app}/${ws.branch}`);
           else lifeStep('Buildprint CLI problem — ' + (pf.err || 'unknown'), 'The session will fall back to manual paths where possible. Fix, then retry: ' + (pf.err || 'check `buildprint --version` in a terminal.'));
-          // Playbook check — consult-before-acting, VISIBLE, matched subset only.
-          injectedLessons = matchLessons(message + ' ' + (chat.focusModule || '') + ' ' + chat.title);
-          if (injectedLessons.length) {
-            runOpts.systemPrompt += '\n\n' + playbookBlock(injectedLessons);
-            stampLessonHits(injectedLessons.map((l) => l.id));
-            lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
-            learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
-          } else lifeStep('Playbook check — clean');
-          connectedMark = false;   // next stream event stamps "Connected — model session live"
-        } else {
-          const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
-          runOpts.systemPrompt = withMemory(brief ? SYSTEM_PROMPT + '\n\n' + brief : SYSTEM_PROMPT);   // general assistant, optionally grounded on a focus module
         }
+        // Playbook check — consult-before-acting, VISIBLE, matched subset only.
+        // Un-gated: lessons are keyword-matched, so a brain-only turn matches none.
+        injectedLessons = matchLessons(message + ' ' + (chat.focusModule || '') + ' ' + chat.title);
+        if (injectedLessons.length) {
+          runOpts.systemPrompt += '\n\n' + playbookBlock(injectedLessons);
+          stampLessonHits(injectedLessons.map((l) => l.id));
+          lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
+          learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
+        } else lifeStep('Playbook check — clean');
+        connectedMark = false;   // next stream event stamps "Connected — model session live"
         // "Remember this" → compile the message into structured memory in the
         // background; emit a toast when saved. Runs concurrently with the reply,
         // and is awaited before the stream ends so the save is guaranteed.
@@ -3556,7 +3652,7 @@ const server = http.createServer(async (req, res) => {
           onDetail: (t) => sse({ type: 'detail', text: t }),
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
-        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
+        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: effortFor(body.effort || cfg.effort, message, body.model || cfg.model), signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
         chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         chat.sessionId = result.sessionId; saveChat(chat);
         // Advance the baseline ONLY on a completed ingest — an aborted run must stay
@@ -3600,7 +3696,7 @@ const server = http.createServer(async (req, res) => {
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, {
           model: (body.model || cfg.model || '').toString() || undefined,
-          effort: (body.effort || cfg.effort || '').toString() || undefined,
+          effort: effortFor(body.effort || cfg.effort, message, body.model || cfg.model),
           signal: ac.signal,
           cwd: ws.dir,
           systemPrompt: BP_PROMPT(ws),
