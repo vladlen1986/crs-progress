@@ -9,27 +9,43 @@
 <script src="/js/scrollbars.js" defer></script>
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
+  /* Claude Code Desktop spec (brain/design/claude-code-spec.md): two type sizes
+     only (13/20 body, 12/16 meta), radii 4/6/8/10/50%, no shadows outside
+     popovers, no hue in chrome, letter-spacing 0, weight never above 600. */
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:13px;line-height:1.55}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);letter-spacing:0}
   .wrap{max-width:1000px;margin:0 auto;padding:24px 22px 90px}
-  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
-  .sub{color:var(--muted);font-size:12px;font-family:var(--mono);margin-bottom:20px}
-  .est{background:var(--warning-tint);color:var(--warning);border-radius:var(--radius-badge);padding:1px 7px;font-size:10.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;margin-left:8px;vertical-align:middle}
-  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:24px}
-  .tile{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:16px}
-  .tile .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:24px;font-weight:700;color:var(--text-primary);line-height:1}
-  .tile .k{color:var(--text-muted);font-size:11px;margin-top:8px;text-transform:uppercase;letter-spacing:.06em;font-weight:600}
-  h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;margin:26px 0 10px}
-  .chart{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:16px}
-  table{width:100%;border-collapse:collapse;font-size:12.5px}
-  th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:6px 8px;border-bottom:1px solid var(--line)}
-  td{padding:6px 8px;border-bottom:1px solid var(--line);color:var(--secondary)}
+  /* §3 — page title is body scale; the spec has no display sizes in chrome. */
+  h1{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-primary);margin:0 0 4px;font-weight:600;letter-spacing:0}
+  .sub{color:var(--cc-text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:var(--mono);margin-bottom:20px}
+  /* quiet meta pill — no tinted surface, sentence case, no tracking */
+  .est{background:var(--cc-bg-control);color:var(--cc-text-muted);border-radius:var(--radius-pill);padding:1px 7px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;text-transform:none;margin-left:8px;vertical-align:middle;display:inline-block}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px}
+  /* §8 card: surface only — no border, no shadow, r8 */
+  .tile{background:var(--cc-bg-card);border:0;border-radius:var(--radius-card);padding:12px 14px;box-shadow:none}
+  .tile .v{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary)}
+  .tile .k{color:var(--cc-text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);margin-top:4px;text-transform:none;letter-spacing:0;font-weight:400}
+  /* §3 section header: 12px sentence case, no uppercase, no tracking */
+  h2{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);text-transform:none;letter-spacing:0;color:var(--cc-text-muted);font-weight:600;margin:24px 0 8px}
+  .chart{background:var(--cc-bg-card);border:0;border-radius:var(--radius-card);padding:16px;box-shadow:none}
+  table{width:100%;border-collapse:collapse;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  th{text-align:left;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);text-transform:none;letter-spacing:0;color:var(--cc-text-muted);font-weight:600;padding:6px 8px;border-bottom:1px solid var(--cc-border-divider)}
+  td{padding:6px 8px;border-bottom:1px solid var(--cc-border-divider);color:var(--cc-text-body);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
   td.n{font-family:var(--mono);font-variant-numeric:tabular-nums;text-align:right}
-  td.key{color:var(--primary);font-weight:600}
-  .flag{background:var(--warning-tint);border:1px solid var(--line);border-radius:var(--radius-btn);padding:9px 12px;margin-bottom:8px;color:var(--secondary);font-size:12.5px}
-  .flag b{color:var(--warning)}
-  .empty{color:var(--muted);font-style:italic}
-  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+  td.key{color:var(--cc-text-primary);font-weight:600}
+  /* routing flag: neutral surface, hue only on the text inside (§1 semantics) */
+  .flag{background:var(--cc-bg-card);border:0;border-radius:var(--radius-btn);padding:8px 12px;margin-bottom:6px;color:var(--cc-text-body);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);box-shadow:none}
+  .flag b{color:var(--cc-warning);font-weight:600}
+  .empty{color:var(--cc-text-muted);font-style:italic;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  /* §6 button: #313131 → hover #393938 → active #2A2A29, r6, h24, 13px */
+  .hbtn{background:var(--cc-bg-control);border:0;color:var(--cc-text-body);border-radius:var(--radius-btn);height:var(--cc-button-h);padding:0 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;letter-spacing:0;cursor:pointer;box-shadow:none}
+  .hbtn:hover{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .hbtn:active{background:var(--cc-bg-segment-track)}
+  b,strong{font-weight:600} /* §3 — bold runs 600, never 700+ */
+  a{color:var(--cc-link);text-decoration:none}
+  a:hover{text-decoration:underline}
+  /* §2 focus ring is white at 22% — never coloured */
+  :focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:1px}
 </style>
 </head>
 <body>
@@ -49,18 +65,21 @@ function trendChart(byDay){
   const y=v=>H-pad-(v/max)*(H-2*pad);
   const pts=vals.map((v,i)=>x(i)+','+y(v)).join(' ');
   const cs=getComputedStyle(document.documentElement);
-  // Fallbacks are the dark-theme values of the same tokens (tokens.css :root) —
-  // used only if a var() resolves empty; they stay inside the new warm palette.
-  const acc=cs.getPropertyValue('--accent').trim()||'#C86E4E',
-        mut=cs.getPropertyValue('--text-muted').trim()||'#6E6A63',
-        lin=cs.getPropertyValue('--border-default').trim()||'#2C2A26';
+  // Claude Code Desktop spec §1: chrome carries NO hue, and a cost trend is not a
+  // semantic (added/removed/warning) signal — so the series is drawn in the
+  // neutral ink ramp, not the accent. Literals below are the dark-theme values of
+  // these exact tokens (tokens.css :root — secondary #939393, muted #7F7F7F,
+  // divider #343433) and apply only if a var() resolves empty.
+  const ser=cs.getPropertyValue('--cc-text-secondary').trim()||'#939393',
+        mut=cs.getPropertyValue('--cc-text-muted').trim()||'#7F7F7F',
+        lin=cs.getPropertyValue('--cc-border-divider').trim()||'#343433';
   let svg=`<svg viewBox="0 0 ${W} ${H}" width="100%" preserveAspectRatio="xMidYMid meet" style="max-width:${W}px">`;
-  // hairline gridlines + baseline (--border-default), 1px, no fills
+  // hairline gridlines + baseline (--cc-border-divider), 1px, no fills
   [0,.5,1].forEach(f=>{ const gy=y(max*f); svg+=`<line x1="${pad}" y1="${gy}" x2="${W-pad}" y2="${gy}" stroke="${lin}" stroke-width="1"/>`; });
-  svg+=`<polyline fill="none" stroke="${acc}" stroke-width="1.5" points="${pts}"/>`;
-  vals.forEach((v,i)=>{ svg+=`<circle cx="${x(i)}" cy="${y(v)}" r="2.5" fill="${acc}"/>`; });
-  days.forEach((d,i)=>{ svg+=`<text x="${x(i)}" y="${H-6}" font-size="9" fill="${mut}" text-anchor="middle" font-family="monospace">${esc(d.slice(5))}</text>`; });
-  svg+=`<text x="${pad}" y="12" font-size="9" fill="${mut}" font-family="monospace">${fmtUsd(max)}/day peak</text></svg>`;
+  svg+=`<polyline fill="none" stroke="${ser}" stroke-width="1" points="${pts}"/>`;
+  vals.forEach((v,i)=>{ svg+=`<circle cx="${x(i)}" cy="${y(v)}" r="2" fill="${ser}"/>`; });
+  days.forEach((d,i)=>{ svg+=`<text x="${x(i)}" y="${H-6}" font-size="12" fill="${mut}" text-anchor="middle" font-family="monospace">${esc(d.slice(5))}</text>`; });
+  svg+=`<text x="${pad}" y="12" font-size="12" fill="${mut}" font-family="monospace">${fmtUsd(max)}/day peak</text></svg>`;
   return svg;
 }
 async function load(){
@@ -88,7 +107,7 @@ async function load(){
     <table><tr><th>Model</th><th style="text-align:right">Runs</th><th style="text-align:right">Cost</th></tr>${modelRows}</table>
     <h2>Routing audit</h2>
     ${d.routingAudit.length?d.routingAudit.map(s=>`<div class="flag"><b>${esc(s.purpose)}</b> ran on ${esc(s.model)} ×${s.count} — ${esc(s.suggestion)}</div>`).join(''):'<div class="empty">No re-route suggestions — everything ran on an appropriate model.</div>'}
-    <div style="margin-top:18px;color:var(--muted);font-size:11px">${esc(d.note)}</div>
+    <div style="margin-top:18px;color:var(--cc-text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)">${esc(d.note)}</div>
   `;
 }
 load();
