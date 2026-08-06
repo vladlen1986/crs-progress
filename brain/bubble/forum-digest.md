@@ -12,3 +12,6 @@
 ## 2026-08-05 — forum check
 - **2026-08-04** [[PLUGIN SHOWCASE] Create Evidence on Web3: Build Tamper-Proof Audit Trails on Polygon in Minutes. 🎁 Claim Your $25 Launch Credit (50 Free Transactions!)](https://forum.bubble.io/t/plugin-showcase-create-evidence-on-web3-build-tamper-proof-audit-trails-on-polygon-in-minutes-claim-your-25-launch-credit-50-free-transactions/399061) — [PLUGIN SHOWCASE] :backhand_index_pointing_right: Create Evidence on Web3: Build Tamper-Proof Audit Trails on Polygon Testnet in Minutes. :wrapped_gift: Claim Your $25 Launch Credit (50 Free Transactions!) Hey Bubble Bu…
 
+## 2026-08-06 — forum check
+- **2026-08-05** [[New Plugin] For Plugin Developers — Turn Bubble Marketplace Sales Logs into Analytics](https://forum.bubble.io/t/new-plugin-for-plugin-developers-turn-bubble-marketplace-sales-logs-into-analytics/399124) — As a Bubble plugin developer, you can download your marketplace payouts, but they’re just raw logs. This plugin instantly transforms raw transaction logs into a clean, interactive dashboard, making it easy to track total
+
