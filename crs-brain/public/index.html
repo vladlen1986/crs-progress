@@ -1699,6 +1699,15 @@ function mdInline(s){
 }
 // [chat-media + markdown region → js/chat-media.js (Phase-5 module split)]
 
+// Refresh with a chat open and you come back to that chat, at the bottom.
+// Falls back to the dashboard if the chat was deleted or never existed.
+async function restoreLastChat(){
+  let id=null; try{ id=localStorage.getItem('crs-last-chat'); }catch(e){}
+  if(!id) return showDashboard();
+  const known=(state.chatList||[]).some(c=>c.id===id);
+  if(!known){ try{ localStorage.removeItem('crs-last-chat'); }catch(e){} return showDashboard(); }
+  try{ await openChat(id); }catch(e){ showDashboard(); }
+}
 let _toastTimer=null;
 function toast(t,ms){ const el=$('toast'); el.textContent=t; el.classList.add('show'); clearTimeout(_toastTimer); _toastTimer=setTimeout(()=>el.classList.remove('show'),ms||2200); }
 // In-app confirm (§5 modal, danger variant) — replaces native confirm(); resolves boolean.
@@ -1901,7 +1910,7 @@ function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-l
 // meaning "this conversation actually used Buildprint" (server auto-tags it) —
 // it never gates capability, and nothing in the UI sets it any more.
 function reflectMode(){ const inp=$('input'); if(inp) inp.placeholder=normPh; }
-function newChat(){ bumpView(); state.chatId=null; state.bp=false; resetComposerSelectors(); showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
+function newChat(){ bumpView(); state.chatId=null; state.bp=false; try{ localStorage.removeItem('crs-last-chat'); }catch(e){} resetComposerSelectors(); showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
 const newBpChat=newChat;   // legacy entry points (dashboard, plan steps, tree/activity hand-off) → the one chat
 const normPh='Ask anything — the brain, the repo, or your Bubble app…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
@@ -1918,7 +1927,12 @@ async function openChat(id){
   state.chatId=id; showChat(); const chat=await api('/api/chat?id='+id); state.bp=chat.bp===true;
   $('centerTitle').textContent=(state.bp?'🔨 ':'')+(chat.title||'Conversation');
   reflectMode();
-  renderChat(chat.messages); loadChats(); }
+  renderChat(chat.messages); loadChats();
+  try{ localStorage.setItem('crs-last-chat', id); }catch(e){}
+  // land at the newest message — after render AND after layout settles (images,
+  // fonts and work-step blocks all change the scroll height)
+  const _log=$('chatLog'); const _bottom=()=>{ _log.scrollTop=_log.scrollHeight; };
+  _bottom(); requestAnimationFrame(_bottom); setTimeout(_bottom,120); setTimeout(_bottom,400); }
 async function delChat(id){
   const t=(state.chatList||[]).find(c=>c.id===id)?.title||'this chat';
   if(!await crsConfirm({title:'Delete conversation?',body:'“'+t+'” will be deleted. This cannot be undone.'})) return;
@@ -5678,7 +5692,7 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else showDashboard(); })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else { await restoreLastChat(); } })();
 setInterval(loadUsage, 30000);
 </script>
 <script src="js/livemap.js"></script>

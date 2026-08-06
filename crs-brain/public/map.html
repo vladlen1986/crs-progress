@@ -24,15 +24,15 @@
    * warm-grey Routines, steel Applications; the ARMS anchors are also shape-coded
    * star / ring / hex, so hue is never the only cue). */
   :root, [data-theme="dark"]{
-    --c-mem1:#C2B1A8; --c-mem2:#B1AB91; --c-mem3:#B6C1A9; --c-mem4:#8FAE9E; --c-mem5:#A6BBBF;
-    --c-mem6:#919BB1; --c-mem7:#B4A9C1; --c-mem8:#B195A7;
-    --c-skill:#BBB295; --c-routine:#A49D94; --c-app:#8B98A7;
+    --c-mem1:#8B5CF6; --c-mem2:#C084FC; --c-mem3:#A78BFA; --c-mem4:#D8B4FE; --c-mem5:#7C3AED;
+    --c-mem6:#E879F9; --c-mem7:#9333EA; --c-mem8:#C4B5FD;
+    --c-skill:#F97316; --c-routine:#EAB308; --c-app:#60A5FA;
   }
   /* light theme — same quiet hues, driven dark so they read on the warm paper bg */
   [data-theme="light"]{
-    --c-mem1:#92654F; --c-mem2:#6F673E; --c-mem3:#6D874F; --c-mem4:#3C6752; --c-mem5:#4B7981;
-    --c-mem6:#3E4F6F; --c-mem7:#6E538D; --c-mem8:#724662;
-    --c-skill:#71653D; --c-routine:#72685A; --c-app:#485A70;
+    --c-mem1:#7C3AED; --c-mem2:#9333EA; --c-mem3:#7E4BD8; --c-mem4:#A855F7; --c-mem5:#6D28D9;
+    --c-mem6:#C026D3; --c-mem7:#7E22CE; --c-mem8:#8B5CF6;
+    --c-skill:#EA580C; --c-routine:#CA8A04; --c-app:#2563EB;
   }
   :root{
     /* --sans is NOT redefined here: the spec forbids Inter ("a geometric sans reads
@@ -442,9 +442,7 @@ function flash(m){ flashMsg=m; flashT=performance.now(); }
 // canvas follows the active theme (§2, §3.3). COLORS re-reads on data-theme flips
 // (MutationObserver below; the head bootstrap's storage listener flips the attribute).
 const CSSV = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-// '#8A8279' = warm neutral fallback if a token ever resolves empty — sits in the new
-// palette's grey family (between --text-muted and --text-secondary), never a cold #888.
-const hexA = (hex,a) => { let h=(hex||'#8A8279').replace('#','');
+const hexA = (hex,a) => { let h=(hex||'#888888').replace('#','');
   if(h.length===3) h=h.split('').map(c=>c+c).join('');
   const n=parseInt(h,16);
   return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${a})`; };
@@ -455,12 +453,12 @@ function readTokens(){
     borderHover:'--border-hover', borderActive:'--border-active', na:'--na',
     accent:'--accent', accentSoft:'--accent-soft', success:'--success', warning:'--warning',
     error:'--error', purple:'--purple', white:'--white' };
-  for(const k in map) COLORS[k]=CSSV(map[k])||COLORS[k]||'#8A8279';   // same warm-neutral fallback as hexA()
+  for(const k in map) COLORS[k]=CSSV(map[k])||COLORS[k]||'#888888';
   COLORS.light = document.documentElement.getAttribute('data-theme')==='light';
 }
 readTokens();
 // §3.3 judgment: decorative star/glow/nebula art is dimmed on the light bg so it
-// never washes out the light --bg-primary (logged in the judgment-calls table).
+// never washes out #FAFAFA (logged in the judgment-calls table).
 const decoDim = () => COLORS.light ? 0.55 : 1;
 new MutationObserver(()=>{ readTokens(); for(const k in sprites) delete sprites[k]; })
   .observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
@@ -503,7 +501,7 @@ const METEORS=[]; let nextMeteor=0;
 function spawnMeteor(now){
   const a=Math.random()*6.28;
   METEORS.push({x:Math.random()*W,y:Math.random()*H*0.7,dx:Math.cos(a)*7,dy:Math.sin(a)*7,t:0});
-  nextMeteor=now+6000+Math.random()*9000;   // rarer than the old 2.6–7.4s: a quiet diagram, not a meteor shower
+  nextMeteor=now+2600+Math.random()*4800;
 }
 
 function nSize(bytes){ const r=2.2+Math.min(5.5,Math.log10(Math.max(100,bytes||500))-1.6); return r*(0.5+S.size/100); }
@@ -1025,11 +1023,9 @@ const sprites={};
 function glow(color,r){
   const key=color+'|'+Math.round(r);
   if(sprites[key]) return sprites[key];
-  // 2026-08-06 restyle: blur radius 3.4r → 2.4r and the gradient stops cut roughly
-  // in half (CC→70, 55→26) so nodes read as tinted dots with a soft edge, not lamps.
-  const pad=Math.ceil(r*2.4), s=document.createElement('canvas'); s.width=s.height=pad*2;
+  const pad=Math.ceil(r*3.4), s=document.createElement('canvas'); s.width=s.height=pad*2;
   const c=s.getContext('2d'); const g=c.createRadialGradient(pad,pad,0,pad,pad,pad);
-  g.addColorStop(0,color+'70'); g.addColorStop(0.35,color+'26'); g.addColorStop(1,color+'00');
+  g.addColorStop(0,color+'CC'); g.addColorStop(0.35,color+'55'); g.addColorStop(1,color+'00');
   c.fillStyle=g; c.fillRect(0,0,pad*2,pad*2);
   return sprites[key]=s;
 }
@@ -1040,7 +1036,7 @@ function starPath(x,y,r){ ctx.beginPath(); for(let i=0;i<8;i++){ const a=i*Math.
 
 function drawBackdrop(now){
   // faint hex lattice — token-derived so it stays visible-but-subtle on both themes
-  ctx.save(); ctx.strokeStyle=hexA(COLORS.textMuted,0.035*decoDim()); ctx.lineWidth=1;   // 0.06 → 0.035
+  ctx.save(); ctx.strokeStyle=hexA(COLORS.textMuted,0.06*decoDim()); ctx.lineWidth=1;
   const s=46;
   for(let y=-1;y<H/s/0.87+1;y++){ for(let x=-1;x<W/s+1;x++){
     const px=x*s+(y%2?s/2:0), py=y*s*0.87;
@@ -1053,8 +1049,8 @@ function drawBackdrop(now){
     const px=W/2 + (st.x*cam.k + cam.x)*st.z;
     const py=H/2 + (st.y*cam.k + cam.y)*st.z;
     if(px<-8||px>W+8||py<-8||py>H+8) continue;
-    const tw=0.55+0.45*Math.abs(Math.sin(now*0.0008*st.ts*sp+st.tw));   // shallower twinkle (0.35+0.65 → 0.55+0.45)
-    ctx.globalAlpha=tw*0.30*st.z*1.15*decoDim();                        // ~55% of the old star brightness
+    const tw=0.35+0.65*Math.abs(Math.sin(now*0.0008*st.ts*sp+st.tw));
+    ctx.globalAlpha=tw*0.5*st.z*1.4*decoDim();
     ctx.fillStyle= st.z>0.55 ? COLORS.textSecondary : COLORS.textMuted;
     ctx.beginPath(); ctx.arc(px,py,st.r*(0.7+st.z*0.6)*Math.min(1.5,cam.k),0,7); ctx.fill();
   }
@@ -1065,7 +1061,7 @@ function drawBackdrop(now){
     if(m.t>1.4||m.x<-60||m.x>W+60||m.y<-60||m.y>H+60){ METEORS.splice(i,1); continue; }
     const fade=Math.sin(Math.min(1,m.t/1.4)*Math.PI);
     const grad=ctx.createLinearGradient(m.x,m.y,m.x-m.dx*9,m.y-m.dy*9);
-    grad.addColorStop(0,hexA(COLORS.accentSoft,0.20*fade*decoDim())); grad.addColorStop(1,hexA(COLORS.accentSoft,0));   // 0.75 → 0.34 → 0.20
+    grad.addColorStop(0,hexA(COLORS.accentSoft,0.75*fade*decoDim())); grad.addColorStop(1,hexA(COLORS.accentSoft,0));
     ctx.strokeStyle=grad; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(m.x-m.dx*9,m.y-m.dy*9); ctx.stroke();
   }
 }
@@ -1079,16 +1075,13 @@ function draw(){
   ctx.translate(W/2+cam.x, H/2+cam.y); ctx.scale(cam.k,cam.k);
   const dim=(n)=> matches && !matches.has(n.id);
 
-  // nebula fog behind each cluster — slow drift + breathing.
-  // 2026-08-06 restyle: alpha 0.34 → 0.13, footprint 8.5r → 5.2r, breathing swing
-  // halved. Pass 2 (spec §PRIME DIRECTIVE "flat: no glows"): 0.13 → 0.07 and
-  // 5.2r → 4.0r, so the cluster tint is a territory hint, not decoration.
+  // nebula fog behind each cluster — slow drift + breathing
   if(!matches) for(const h of hubs){ if(h.hidden) continue;
-    const b=0.93+0.07*Math.sin(now*0.00035*sp+hash(h.id));
+    const b=0.85+0.15*Math.sin(now*0.00035*sp+hash(h.id));
     const g=glow(h.color, Math.min(20,9+(h.count||4)*.12)*1.7);
     const dx=Math.sin(now*0.00021*sp+hash(h.id))*14, dy=Math.cos(now*0.00017*sp+hash(h.id)*3)*11;
-    ctx.globalAlpha=0.07*b*decoDim();
-    const S8=(h.r||14)*4.0;
+    ctx.globalAlpha=0.34*b*decoDim();
+    const S8=(h.r||14)*8.5;
     ctx.drawImage(g, h.x+dx-S8, h.y+dy-S8, S8*2, S8*2);
   }
   ctx.globalAlpha=1;
@@ -1115,7 +1108,7 @@ function draw(){
   // ring guides for rings layout — constellation colors (judgment-calls.md #6)
   if(S.layout==='rings'){
     ctx.save(); ctx.lineWidth=1/cam.k;
-    for(const [r,c] of [[120,hexA(COL.skill,0.22)],[430,hexA(COL.routine,0.24)],[520,hexA(COL.app,0.22)]]){
+    for(const [r,c] of [[120,hexA(COL.skill,0.28)],[430,hexA(COL.routine,0.30)],[520,hexA(COL.app,0.28)]]){
       ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.stroke(); }
     ctx.textAlign='center';
     ctx.font=`600 ${15/cam.k}px Inter,sans-serif`; ctx.letterSpacing='3px';
@@ -1161,7 +1154,7 @@ function draw(){
   drawBoardLink(now);
 
   // data pulses with comet tails — every connection exchanges light
-  const want=Math.round(28*sp);   // pulse population 44 → 28 (quieter traffic, same system)
+  const want=Math.round(44*sp);
   while(FLOWS.length<want && Math.random()<0.5) spawnFlow();
   for(let i=FLOWS.length-1;i>=0;i--){ const f=FLOWS[i];
     const a=byId[f.a], b=byId[f.b];
@@ -1172,16 +1165,16 @@ function draw(){
     const x=a.x+(b.x-a.x)*e, y=a.y+(b.y-a.y)*e;
     const et=Math.max(0,e-f.tail), tx=a.x+(b.x-a.x)*et, ty=a.y+(b.y-a.y)*et;
     const fade=Math.sin(f.t*Math.PI);
-    const A=(matches?0.05:0.34)*fade*sDim;   // pulses ride structure links → dim with them (0.6 → 0.34)
+    const A=(matches?0.06:0.6)*fade*sDim;   // pulses ride structure links → dim with them
     // tail
     const grad=ctx.createLinearGradient(x,y,tx,ty);
-    grad.addColorStop(0,f.color+'80'); grad.addColorStop(1,f.color+'00');   // B0 → 80
-    ctx.globalAlpha=A; ctx.strokeStyle=grad; ctx.lineWidth=1.3/cam.k;
+    grad.addColorStop(0,f.color+'B0'); grad.addColorStop(1,f.color+'00');
+    ctx.globalAlpha=A; ctx.strokeStyle=grad; ctx.lineWidth=1.6/cam.k;
     ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(tx,ty); ctx.stroke();
     // head
-    const g=glow(f.color,2.2);
+    const g=glow(f.color,3);
     ctx.drawImage(g,x-g.width/2,y-g.height/2);
-    ctx.fillStyle=COLORS.textSecondary; ctx.beginPath(); ctx.arc(x,y,1.05/Math.sqrt(cam.k),0,7); ctx.fill();
+    ctx.fillStyle=COLORS.textPrimary; ctx.beginPath(); ctx.arc(x,y,1.15/Math.sqrt(cam.k),0,7); ctx.fill();
   }
   ctx.globalAlpha=1;
 
@@ -1201,11 +1194,11 @@ function draw(){
     const ox=(z-1)*cam.x*0.06/cam.k, oy=(z-1)*cam.y*0.06/cam.k;
     const nx=n.x+ox, ny=n.y+oy;
     // breathing glow — LOD: skip glow sprite for subpixel file nodes when zoomed out
-    const pulse=1+0.07*Math.sin(now*0.0011*sp+hash(n.id)%628/100);   // breathing 0.16 → 0.07
+    const pulse=1+0.16*Math.sin(now*0.0011*sp+hash(n.id)%628/100);
     const r=n.r*ease*(hover===n?1.28:1);
     if(!(n.kind==='file' && r*cam.k<2.4)){
-      const g=glow(n.color, r*1.12*pulse*z);            // halo radius 1.7r → 1.35r → 1.12r (pass 2)
-      ctx.globalAlpha=alpha*0.32*decoDim();   // dimmed on light bg; 0.55 → 0.32: a soft node edge, not a lamp
+      const g=glow(n.color, r*1.7*pulse*z);
+      ctx.globalAlpha=alpha*decoDim();   // §3.3: glow sprites dimmed on light bg
       ctx.drawImage(g, nx-g.width/2, ny-g.height/2, g.width, g.height);
       ctx.globalAlpha=alpha;
     }
@@ -1213,15 +1206,15 @@ function draw(){
     if(n.kind==='skill'){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00018*sp*(hash(n.id)%2?1:-1));
       starPath(0,0,r*1.5*pulse); ctx.fill(); ctx.restore(); }
     else if(n.kind==='app'){ hexPath(nx,ny,r); ctx.fillStyle=hexA(COLORS.bgTertiary,0.9); ctx.fill(); ctx.strokeStyle=n.color; ctx.lineWidth=1.4/cam.k; hexPath(nx,ny,r); ctx.stroke();
-      ctx.fillStyle=n.color; ctx.font=`700 ${r*0.8}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.glyph||'?',nx,ny+0.5); }   /* glyph was --accent-soft: the one rust accent is reserved for routing edges, not decoration */
-    else if(n.kind==='routine'){ ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.fillStyle=hexA(n.color,0.12); ctx.fill();   /* was a --warning tint under a non-warning stroke */
+      ctx.fillStyle=COLORS.accentSoft; ctx.font=`700 ${r*0.8}px Inter,sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(n.glyph||'?',nx,ny+0.5); }
+    else if(n.kind==='routine'){ ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.fillStyle=hexA(COLORS.warning,0.13); ctx.fill();
       ctx.strokeStyle=n.color; ctx.lineWidth=1.3/cam.k; ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.stroke();
       ctx.beginPath(); ctx.arc(nx,ny,r*0.4,0,7); ctx.fillStyle=n.color; ctx.fill();
       const oa=now*0.001*sp+hash(n.id); ctx.beginPath(); ctx.arc(nx+Math.cos(oa)*r, ny+Math.sin(oa)*r, 1.6/Math.sqrt(cam.k),0,7); ctx.fill(); }
     else { // center / anchor / hub / file
       ctx.beginPath(); ctx.arc(nx,ny,r,0,7); ctx.fill();
       if(n.planet){ ctx.save(); ctx.translate(nx,ny); ctx.rotate(-0.5+(hash(n.id)%10)/10 + Math.sin(now*0.0003*sp+hash(n.id))*0.1);
-        ctx.strokeStyle=n.color+'80'; ctx.lineWidth=1.1/cam.k; ctx.beginPath(); ctx.ellipse(0,0,r*1.9,r*0.62,0,0,7); ctx.stroke(); ctx.restore(); }   /* AA → 80 */
+        ctx.strokeStyle=n.color+'AA'; ctx.lineWidth=1.1/cam.k; ctx.beginPath(); ctx.ellipse(0,0,r*1.9,r*0.62,0,0,7); ctx.stroke(); ctx.restore(); }
       if(n.kind==='hub'&&!dim(n)){ // one tiny moon orbiting each hub
         const ma=now*0.0005*sp+hash(n.id); const mr=r+7/Math.sqrt(cam.k);
         ctx.globalAlpha=alpha*0.85; ctx.beginPath(); ctx.arc(nx+Math.cos(ma)*mr, ny+Math.sin(ma)*mr*0.5, 1.7/Math.sqrt(cam.k),0,7); ctx.fill(); ctx.globalAlpha=alpha; }
@@ -1231,7 +1224,7 @@ function draw(){
         // sub-pixel dashes shimmer/alias, which read as "glitching".
         if(cam.k>0.5){
           ctx.save(); ctx.translate(nx,ny); ctx.rotate(now*0.00028*sp);
-          ctx.strokeStyle=n.color+'4D'; ctx.lineWidth=1.2/cam.k; ctx.setLineDash([5/cam.k,9/cam.k]);   /* 66 → 4D */
+          ctx.strokeStyle=n.color+'66'; ctx.lineWidth=1.2/cam.k; ctx.setLineDash([5/cam.k,9/cam.k]);
           ctx.beginPath(); ctx.arc(0,0,r*1.85,0,7); ctx.stroke();
           ctx.rotate(-now*0.0006*sp); ctx.setLineDash([2/cam.k,14/cam.k]);
           ctx.beginPath(); ctx.arc(0,0,r*2.6,0,7); ctx.stroke();
@@ -1242,7 +1235,7 @@ function draw(){
     }
     // hover ripple
     if(n.rippleT && now-n.rippleT<700){ const rt=(now-n.rippleT)/700;
-      ctx.strokeStyle=n.color; ctx.globalAlpha=alpha*(1-rt)*0.45; ctx.lineWidth=1.2/cam.k;   /* ripple 0.7 → 0.45 */
+      ctx.strokeStyle=n.color; ctx.globalAlpha=alpha*(1-rt)*0.7; ctx.lineWidth=1.4/cam.k;
       ctx.beginPath(); ctx.arc(nx,ny,r+rt*26/Math.sqrt(cam.k),0,7); ctx.stroke(); ctx.globalAlpha=alpha; }
     // labels
     ctx.textAlign='center'; ctx.textBaseline='top';
