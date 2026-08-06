@@ -52,13 +52,24 @@ function cmClassify(rawPath){
 }
 // The block a reference lives in — used to group images that sit together.
 function cmBlock(el,root){ let n=el; while(n&&n!==root){ if(/^(P|LI|TD|TH|BLOCKQUOTE|H1|H2|H3|H4|H5|H6)$/.test(n.tagName)) return n; n=n.parentElement; } return el; }
+const CM_DL_SVG='<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v12m0 0l-4-4m4 4l4-4M5 21h14"/></svg>';
 function cmChipEl(info){
   if(info.kind==='dead'){
     const s=document.createElement('span'); s.className='cm-chip cm-dead'; s.title=info.p+' — not found';
     s.innerHTML=`<span class="cm-nm">${esc(info.name)}</span><span class="cm-dead-tag">not found</span>`; return s;
   }
-  const a=document.createElement('a'); a.className='cm-chip'; a.href='#'; a.dataset.path=info.p; a.title=info.p;
-  a.innerHTML=`<span class="cm-ic">${fileIcon(info.name,16)}</span><span class="cm-nm">${esc(info.name)}</span>`; return a;   // click → smartOpen via global a[data-path] delegation
+  // wrapper is a <span>, not an <a>: the Download anchor lives inside the chip and
+  // anchors cannot nest. Name+icon stay an a[data-path] so the global open
+  // delegation is unchanged; the Download anchor has no data-path, so it falls
+  // through to the browser's native save.
+  const w=document.createElement('span'); w.className='cm-chip'; w.title=info.p;
+  const open=document.createElement('a'); open.className='cm-open'; open.href='#'; open.dataset.path=info.p;
+  open.innerHTML=`<span class="cm-ic">${fileIcon(info.name,16)}</span><span class="cm-nm">${esc(info.name)}</span>`;   // click → smartOpen via global a[data-path] delegation
+  const dl=document.createElement('a'); dl.className='cm-dl';
+  dl.href='/api/raw?path='+encodeURIComponent(info.p)+'&dl=1';
+  dl.setAttribute('download',info.name); dl.title='Save '+info.name+' to disk';
+  dl.innerHTML=CM_DL_SVG;
+  w.append(open,dl); return w;
 }
 function cmTile(path,gi,solo){
   const b=document.createElement('button'); b.type='button'; b.className='cm-shot'+(solo?' cm-solo':'');
