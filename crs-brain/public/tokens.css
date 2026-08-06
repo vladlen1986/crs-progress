@@ -1,61 +1,104 @@
 /* CRS Brain — app design tokens.
  *
- * DIVERGENCE (2026-08-06, Vlad's direct instruction — see decisions.md): this
- * file used to be a verbatim paste of the CRS product design system §2.10. The
- * BRAIN APP now has its own look, modelled on the Claude Code desktop app:
- * warm near-black surfaces, hairline borders, ONE rust accent used sparingly,
- * small radii, almost no shadow. The CRS PRODUCT design system is untouched —
- * design/tokens.css and brain/design/CRS-design-system.md §2.10 remain the
- * source of truth for the Bubble app and every prototype (prototypes embed
- * their own §2.10 block, so nothing here reaches them).
+ * SOURCE OF TRUTH: brain/design/claude-code-spec.md (Claude Code Desktop 1:1
+ * spec, 2026-08-06). Where this file and any other CSS disagree, the spec wins.
  *
- * The token NAMES are unchanged, so every consumer keeps working. Surviving
- * rules from the old system: component CSS references var(--…) only (approved
- * literals carry a citation comment); default body text is --text-secondary,
- * never --text-primary; active states change background + text, never
- * background + border + text; no glows on DOM chrome. */
+ * PRIME DIRECTIVE: the app is NOT orange. It is a warm near-black GREYSCALE UI.
+ * Clay (#D97757) appears ONLY on the Claude spark glyph and the thinking
+ * spinner — never on surfaces, borders, headings, buttons, active states,
+ * focus rings or links. Hue is reserved for semantics at text scale only.
+ *
+ * Every neutral is warm: R >= G >= B with R-B between 0 and 3.
+ *
+ * The CRS PRODUCT design system (design/tokens.css, brain/design/
+ * CRS-design-system.md §2.10) is untouched and still governs the Bubble app
+ * and every prototype — prototypes embed their own token block, so nothing
+ * here reaches them. See decisions.md 2026-08-06. */
 
 :root, [data-theme="dark"] {
-  --bg-primary:#1B1A18; --bg-secondary:#211F1D; --bg-tertiary:#272522; --bg-elevated:#302E2A;
-  --border-default:#2C2A26; --border-hover:#3A3733; --border-active:#4A463F; --input-border:#332F2B;
-  --accent:#C86E4E; --accent-hover:#D9825F; --accent-active:#B25E3F; --accent-text:#D9825F;
-  --accent-soft:#E09A78; --accent-glow:rgba(200,110,78,0.13); --accent-tint:rgba(200,110,78,0.08);
-  --accent-border-active:rgba(200,110,78,0.55);
-  --text-primary:#EAE7E1; --text-secondary:#A6A19A; --text-muted:#6E6A63; --text-disabled:#55524C;
-  --success:#7A9A6B; --success-soft:#93B183; --error:#C1685C; --error-soft:#D08175; --warning:#C29A50;
-  --purple:#8A7FA0; --purple-accent:#9C90B2; --cyan:#6D93A0; --na:#2A2825;
-  --success-tint:rgba(122,154,107,0.13); --warning-tint:rgba(194,154,80,0.13); --error-tint:rgba(193,104,92,0.13);
+  /* ── SURFACES — four levels, ~4% lightness apart ──────────────── */
+  --cc-bg-sidebar:#1D1D1C; --cc-bg-canvas:#20201F; --cc-bg-panel:#262626; --cc-bg-card:#2F2F2F;
+  --cc-bg-composer:#2C2C2A; --cc-bg-subtle:#292928; --cc-bg-control:#313131; --cc-bg-control-strong:#393938;
+  --cc-bg-selected:#343433; --cc-bg-segment-track:#2A2A29; --cc-bg-segment-thumb:#40403F;
+  --cc-bg-hover:#262625; --cc-bg-hover-canvas:#2A2A29;
+  /* ── BORDERS — hairlines only ─────────────────────────────────── */
+  --cc-border:#373737; --cc-border-sidebar:#3B3B39; --cc-border-composer:#3D3D3B;
+  --cc-border-segment:#474746; --cc-border-divider:#343433;
+  --cc-border-soft:rgba(255,255,255,0.06); --cc-border-hairline:rgba(255,255,255,0.10);
+  --cc-focus-ring:rgba(255,255,255,0.22);
+  /* ── INK ──────────────────────────────────────────────────────── */
+  --cc-text-primary:#E8E6E1; --cc-text-body:#C3C2B7; --cc-text-secondary:#939393;
+  --cc-text-muted:#7F7F7F; --cc-text-faint:#5F5F5C; --cc-text-placeholder:#727272;
+  /* ── BRAND — RESTRICTED: spark glyph + thinking spinner ONLY ──── */
+  --cc-clay:#D97757; --cc-clay-shimmer:#EB9F7F;
+  /* ── SEMANTIC — small scale, text level only ──────────────────── */
+  --cc-success:#32D74B; --cc-success-dim:#2FB543; --cc-danger:#FF2C56; --cc-warning:#DB9300;
+  --cc-permission:#E7BD15; --cc-permission-bg:#37321E; --cc-link:#6DA7EC; --cc-link-dim:#5F8CC2;
+  --cc-info:#4782C8; --cc-purple:#AF87FF; --cc-plan:#48968C;
+  --cc-diff-add-fg:#4EBA65; --cc-diff-add-bg:rgba(76,195,138,0.14);
+  --cc-diff-del-fg:#FF6B80; --cc-diff-del-bg:rgba(255,90,90,0.12);
+  --cc-syn-keyword:#FF8D77; --cc-syn-string:#E5B07E; --cc-syn-number:#E3C07B;
+  --cc-syn-function:#C8A6FF; --cc-syn-comment:#8B8B81; --cc-syn-plain:#C3C2B7;
+
+  /* ── APP TOKEN MAPPING ────────────────────────────────────────────
+   * The app's existing token names are re-pointed at the spec ramp, so every
+   * consumer inherits the greyscale UI without a rename. NOTHING here is a hue. */
+  --bg-primary:var(--cc-bg-canvas); --bg-secondary:var(--cc-bg-panel);
+  --bg-tertiary:var(--cc-bg-control); --bg-elevated:var(--cc-bg-selected); --na:var(--cc-bg-card);
+  --border-default:var(--cc-border); --border-hover:var(--cc-border-sidebar);
+  --border-active:var(--cc-border-segment); --input-border:var(--cc-border-composer);
+  --text-primary:var(--cc-text-primary); --text-secondary:var(--cc-text-body);
+  --text-muted:var(--cc-text-secondary); --text-disabled:var(--cc-text-faint);
+  /* "accent" is NEUTRAL now (R2/R3): fills and states are grey surfaces, focus
+   * rings are white at 22%, and the only coloured token is the link blue. */
+  --accent:var(--cc-text-secondary); --accent-hover:var(--cc-text-body); --accent-active:var(--cc-text-muted);
+  --accent-text:var(--cc-link); --accent-soft:var(--cc-text-body);
+  --accent-glow:var(--cc-focus-ring); --accent-tint:var(--cc-border-soft);
+  --accent-border-active:var(--cc-border-hairline);
+  --success:var(--cc-success); --success-soft:var(--cc-success-dim);
+  --error:var(--cc-danger); --error-soft:var(--cc-diff-del-fg); --warning:var(--cc-warning);
+  --purple:var(--cc-purple); --purple-accent:var(--cc-purple); --cyan:var(--cc-info);
+  --success-tint:var(--cc-diff-add-bg); --warning-tint:rgba(219,147,0,0.13); --error-tint:var(--cc-diff-del-bg);
   --white:#FFFFFF; --black:#000000; --transparent:rgba(255,255,255,0);
-  --shadow-modal:0 16px 40px rgba(0,0,0,0.45); --shadow-dropdown:0 8px 22px rgba(0,0,0,0.38);
-  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:10px; --radius-badge:4px; --radius-pill:14px;
+  /* §8 — only menus/popovers carry a shadow; cards and inputs carry none. */
+  --shadow-modal:0 12px 40px rgba(0,0,0,0.45); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.45);
+  --transition:200ms cubic-bezier(.32,.72,0,1); --transition-colors:60ms linear;
+  /* §4 radius discipline — 4 code · 6 chip/row · 8 card/panel · 10 composer */
+  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:8px;
+  --radius-badge:4px; --radius-pill:6px; --radius-code:4px; --radius-composer:10px;
   color-scheme: dark;
 }
 
+/* Light theme: the same greyscale discipline, warm paper ramp. Still no hue in
+ * chrome — semantics keep their meaning, darkened for contrast on light. */
 [data-theme="light"] {
-  --bg-primary:#FAF9F6; --bg-secondary:#FFFFFF; --bg-tertiary:#F2F0EB; --bg-elevated:#FFFFFF;
-  --border-default:#E7E4DC; --border-hover:#D9D5CB; --border-active:#C3BEB2; --input-border:#E2DED5;
-  --accent:#B45B36; --accent-hover:#9E4C2A; --accent-active:#873F20; --accent-text:#A65231;
-  --accent-soft:#C46C46; --accent-glow:rgba(180,91,54,0.13); --accent-tint:rgba(180,91,54,0.07);
-  --accent-border-active:rgba(180,91,54,0.55);
-  --text-primary:#1F1D1A; --text-secondary:#57534C; --text-muted:#8A857B; --text-disabled:#B4AFA4;
-  --success:#5B7A4E; --success-soft:#6E8F60; --error:#A8493D; --error-soft:#B85A4D; --warning:#96702A;
-  --purple:#6E6484; --purple-accent:#7D7194; --cyan:#4E7480; --na:#E6E2DA;
-  --success-tint:rgba(91,122,78,0.10); --warning-tint:rgba(150,112,42,0.10); --error-tint:rgba(168,73,61,0.10);
-  --shadow-modal:0 12px 32px rgba(60,50,40,0.10); --shadow-dropdown:0 6px 18px rgba(60,50,40,0.08);
-  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:10px; --radius-badge:4px; --radius-pill:14px;
+  --cc-bg-sidebar:#F2F1EE; --cc-bg-canvas:#FAF9F7; --cc-bg-panel:#FFFFFF; --cc-bg-card:#FFFFFF;
+  --cc-bg-composer:#FFFFFF; --cc-bg-subtle:#F4F3F0; --cc-bg-control:#EFEEEA; --cc-bg-control-strong:#E5E3DE;
+  --cc-bg-selected:#E8E6E1; --cc-bg-segment-track:#EFEEEA; --cc-bg-segment-thumb:#FFFFFF;
+  --cc-bg-hover:#F0EFEC; --cc-bg-hover-canvas:#F0EFEC;
+  --cc-border:#DEDCD6; --cc-border-sidebar:#D8D6D0; --cc-border-composer:#D2D0C9;
+  --cc-border-segment:#C6C4BC; --cc-border-divider:#E4E2DC;
+  --cc-border-soft:rgba(0,0,0,0.05); --cc-border-hairline:rgba(0,0,0,0.09);
+  --cc-focus-ring:rgba(0,0,0,0.24);
+  --cc-text-primary:#20201F; --cc-text-body:#3B3A35; --cc-text-secondary:#6B6A64;
+  --cc-text-muted:#82817A; --cc-text-faint:#A5A39C; --cc-text-placeholder:#8E8D86;
+  --cc-success:#1E8E36; --cc-success-dim:#1A7A2E; --cc-danger:#C81E3E; --cc-warning:#A06C00;
+  --cc-permission:#7A6100; --cc-permission-bg:#F2EBCF; --cc-link:#2C6CB5; --cc-link-dim:#245A97;
+  --cc-info:#2E6BA8; --cc-purple:#7A4FD0; --cc-plan:#2F6E66;
+  --cc-diff-add-fg:#1E8E36; --cc-diff-add-bg:rgba(30,142,54,0.10);
+  --cc-diff-del-fg:#C81E3E; --cc-diff-del-bg:rgba(200,30,62,0.09);
+  --cc-syn-keyword:#B4402A; --cc-syn-string:#8A5A1F; --cc-syn-number:#8A6A18;
+  --cc-syn-function:#6B3FB0; --cc-syn-comment:#7E7D74; --cc-syn-plain:#3B3A35;
+  --warning-tint:rgba(160,108,0,0.10);
   color-scheme: light;
 }
 
-/* Smooth theme cross-fade — every themed color property transitions. */
+/* §7 motion — hover fills snap, panels ease; nothing bounces or scales. */
 * { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after{ transition-property: opacity !important; animation: none !important; } }
 
 /* ---- Legacy alias layer ------------------------------------------------- */
-/* The app's original short token names, derived from the canonical set.
- * Aliases resolve per-theme automatically (var() substitutes at computed-value
- * time on the themed root). New code uses canonical names; these exist so the
- * whole app inherits light values without a big-bang rename. */
+/* The app's original short names, derived from the mapped set above. */
 :root {
   --bg: var(--bg-primary);
   --panel: var(--bg-secondary);
@@ -71,7 +114,15 @@
   --good: var(--success);
   --warn: var(--warning);
   --danger: var(--error);
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  /* Font stack lives here now — 9 of 12 pages used to inline their own copy. */
-  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  /* §3 — Segoe UI Variable Text is what actually renders on Windows. Never
+   * Inter/Poppins/Montserrat: a geometric sans reads instantly as "not Claude". */
+  --sans: "Anthropic Sans", system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: "Anthropic Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Anthropic Serif", Georgia, "Times New Roman", serif;
+  /* §3 type scale — only two sizes exist in the chrome. */
+  --cc-fs-sm: 13px; --cc-fs-xs: 12px; --cc-lh-sm: 20px; --cc-lh-xs: 16px;
+  /* §4 structural metrics */
+  --cc-titlebar-h:36px; --cc-sidebar-w:370px; --cc-nav-row-h:26px; --cc-nav-row-pitch:28px;
+  --cc-content-max-w:768px; --cc-panel-w:512px; --cc-composer-h:44px; --cc-button-h:24px;
+  --cc-pill-h:20px; --cc-scrollbar-w:6px;
 }
