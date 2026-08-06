@@ -1,45 +1,58 @@
-/* CRS design tokens — brain/design/CRS-design-system.md §2.10, pasted verbatim.
- * Single canonical stylesheet for every CRS Brain page. Component CSS must
- * reference var(--…) only; approved literals carry a citation comment. */
+/* CRS Brain — app design tokens.
+ *
+ * DIVERGENCE (2026-08-06, Vlad's direct instruction — see decisions.md): this
+ * file used to be a verbatim paste of the CRS product design system §2.10. The
+ * BRAIN APP now has its own look, modelled on the Claude Code desktop app:
+ * warm near-black surfaces, hairline borders, ONE rust accent used sparingly,
+ * small radii, almost no shadow. The CRS PRODUCT design system is untouched —
+ * design/tokens.css and brain/design/CRS-design-system.md §2.10 remain the
+ * source of truth for the Bubble app and every prototype (prototypes embed
+ * their own §2.10 block, so nothing here reaches them).
+ *
+ * The token NAMES are unchanged, so every consumer keeps working. Surviving
+ * rules from the old system: component CSS references var(--…) only (approved
+ * literals carry a citation comment); default body text is --text-secondary,
+ * never --text-primary; active states change background + text, never
+ * background + border + text; no glows on DOM chrome. */
 
 :root, [data-theme="dark"] {
-  --bg-primary:#181818; --bg-secondary:#1E1E1E; --bg-tertiary:#242424; --bg-elevated:#2A2A2A;
-  --border-default:#242424; --border-hover:#333333; --border-active:#3D3D3D; --input-border:#2A2A2A;
-  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#3B82F6;
-  --accent-soft:#60A5FA; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
-  --accent-border-active:rgba(59,130,246,0.55);
-  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
-  --success:#22C55E; --success-soft:#4ADE80; --error:#EF4444; --error-soft:#F87171; --warning:#F59E0B;
-  --purple:#8B5CF6; --purple-accent:#A855F7; --cyan:#06B6D4; --na:#2B2B2B;
-  --success-tint:rgba(34,197,94,0.13); --warning-tint:rgba(245,158,11,0.13); --error-tint:rgba(239,68,68,0.13);
+  --bg-primary:#1B1A18; --bg-secondary:#211F1D; --bg-tertiary:#272522; --bg-elevated:#302E2A;
+  --border-default:#2C2A26; --border-hover:#3A3733; --border-active:#4A463F; --input-border:#332F2B;
+  --accent:#C86E4E; --accent-hover:#D9825F; --accent-active:#B25E3F; --accent-text:#D9825F;
+  --accent-soft:#E09A78; --accent-glow:rgba(200,110,78,0.13); --accent-tint:rgba(200,110,78,0.08);
+  --accent-border-active:rgba(200,110,78,0.55);
+  --text-primary:#EAE7E1; --text-secondary:#A6A19A; --text-muted:#6E6A63; --text-disabled:#55524C;
+  --success:#7A9A6B; --success-soft:#93B183; --error:#C1685C; --error-soft:#D08175; --warning:#C29A50;
+  --purple:#8A7FA0; --purple-accent:#9C90B2; --cyan:#6D93A0; --na:#2A2825;
+  --success-tint:rgba(122,154,107,0.13); --warning-tint:rgba(194,154,80,0.13); --error-tint:rgba(193,104,92,0.13);
   --white:#FFFFFF; --black:#000000; --transparent:rgba(255,255,255,0);
-  --shadow-modal:0 24px 60px rgba(0,0,0,0.6); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.55);
+  --shadow-modal:0 16px 40px rgba(0,0,0,0.45); --shadow-dropdown:0 8px 22px rgba(0,0,0,0.38);
   --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:10px; --radius-badge:4px; --radius-pill:14px;
   color-scheme: dark;
 }
 
 [data-theme="light"] {
-  --bg-primary:#FAFAFA; --bg-secondary:#FFFFFF; --bg-tertiary:#F4F4F5; --bg-elevated:#FFFFFF;
-  --border-default:#EAEAEB; --border-hover:#DCDCDE; --border-active:#C8C8CB; --input-border:#E4E4E6;
-  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#1D4ED8;
-  --accent-soft:#2563EB; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
-  --accent-border-active:rgba(59,130,246,0.55);
-  --text-primary:#18181B; --text-secondary:#5F5F66; --text-muted:#8E8E95; --text-disabled:#B6B6BB;
-  --success:#16A34A; --success-soft:#22C55E; --error:#DC2626; --error-soft:#DC2626; --warning:#D97706;
-  --purple:#7C3AED; --purple-accent:#9333EA; --cyan:#0891B2; --na:#E6E6E8;
-  --success-tint:rgba(22,163,74,0.10); --warning-tint:rgba(217,119,6,0.10); --error-tint:rgba(220,38,38,0.10);
-  --shadow-modal:0 16px 40px rgba(0,0,0,0.10); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.08);
+  --bg-primary:#FAF9F6; --bg-secondary:#FFFFFF; --bg-tertiary:#F2F0EB; --bg-elevated:#FFFFFF;
+  --border-default:#E7E4DC; --border-hover:#D9D5CB; --border-active:#C3BEB2; --input-border:#E2DED5;
+  --accent:#B45B36; --accent-hover:#9E4C2A; --accent-active:#873F20; --accent-text:#A65231;
+  --accent-soft:#C46C46; --accent-glow:rgba(180,91,54,0.13); --accent-tint:rgba(180,91,54,0.07);
+  --accent-border-active:rgba(180,91,54,0.55);
+  --text-primary:#1F1D1A; --text-secondary:#57534C; --text-muted:#8A857B; --text-disabled:#B4AFA4;
+  --success:#5B7A4E; --success-soft:#6E8F60; --error:#A8493D; --error-soft:#B85A4D; --warning:#96702A;
+  --purple:#6E6484; --purple-accent:#7D7194; --cyan:#4E7480; --na:#E6E2DA;
+  --success-tint:rgba(91,122,78,0.10); --warning-tint:rgba(150,112,42,0.10); --error-tint:rgba(168,73,61,0.10);
+  --shadow-modal:0 12px 32px rgba(60,50,40,0.10); --shadow-dropdown:0 6px 18px rgba(60,50,40,0.08);
   --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:10px; --radius-badge:4px; --radius-pill:14px;
   color-scheme: light;
 }
 
-/* Smooth theme cross-fade — §2.8: every themed color property transitions. */
+/* Smooth theme cross-fade — every themed color property transitions. */
 * { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
 
 /* ---- Legacy alias layer ------------------------------------------------- */
-/* The app's original short token names, now derived from the canonical set.
+/* The app's original short token names, derived from the canonical set.
  * Aliases resolve per-theme automatically (var() substitutes at computed-value
  * time on the themed root). New code uses canonical names; these exist so the
  * whole app inherits light values without a big-bang rename. */
@@ -59,4 +72,6 @@
   --warn: var(--warning);
   --danger: var(--error);
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* Font stack lives here now — 9 of 12 pages used to inline their own copy. */
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
