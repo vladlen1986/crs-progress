@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\bp-guard.js\""
+            "command": "node \"/Users/vlad/projects/crs-progress/crs-brain/bp-guard.js\""
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\bp-log.js\" \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\action-log.jsonl\""
+            "command": "node \"/Users/vlad/projects/crs-progress/crs-brain/bp-log.js\" \"/Users/vlad/projects/crs-progress/crs-brain/data/action-log.jsonl\""
           }
         ]
       }
