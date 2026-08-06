@@ -9,96 +9,116 @@
 <script src="/js/scrollbars.js" defer></script>
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
-  /* Canonical tokens + legacy aliases from tokens.css (§2.10). Surfaces now use
-   * the canonical palette (the old #0A0A0C off-palette darks were NON-COMPLIANT). */
-  /* Galaxy constellation category colors — data-viz literals, no canonical token
-   * (judgment-calls.md #6). 2026-08-06 restyle: the old saturated purple/magenta/
-   * orange set was a light-show and had no light-theme values at all. Replaced with
-   * a muted earth/stone categorical ramp — 8 memory hues spread evenly around the
-   * wheel at low chroma (clay · sand · olive · sage · aqua · slate · lilac · mauve)
-   * so clusters stay separable on the warm near-black canvas without shouting, plus
-   * 3 node-kind tones (gold for Skills/centre, warm stone for Routines, cool steel
-   * for Applications — the three ARMS anchors are also shape-coded: star / ring / hex). */
+  /* All chrome colour/radius/shadow comes from /tokens.css, which is written to
+   * brain/design/claude-code-spec.md (Claude Code Desktop 1:1). The spec wins.
+   * PRIME DIRECTIVE: warm near-black GREYSCALE chrome — no orange anywhere, no
+   * gradients/glows on DOM, active states = background + text only. */
+  /* Galaxy constellation category colours — the ONE sanctioned exception to the
+   * greyscale rule (judgment-calls.md #6): a galaxy map is data-visualisation, and
+   * the spec allows hue there at small scale. 2026-08-06 pass 2: the earth-tone set
+   * was still a coloured chart, so chroma is pulled right down (S 15-18% dark /
+   * 24-30% light) and separation now comes mostly from LIGHTNESS alternation
+   * (L 62-71 dark / 32-44 light). Result: a technical diagram in greyscale with
+   * faint tinting. 8 memory tints round the wheel — stone · sand · olive · sage ·
+   * aqua · slate · lilac · mauve — plus 3 node-kind tones (brass Skills/centre,
+   * warm-grey Routines, steel Applications; the ARMS anchors are also shape-coded
+   * star / ring / hex, so hue is never the only cue). */
   :root, [data-theme="dark"]{
-    --c-mem1:#BC8A72; --c-mem2:#C0A46C; --c-mem3:#A3AC70; --c-mem4:#7FAC8B; --c-mem5:#74A8A6;
-    --c-mem6:#7FA0C0; --c-mem7:#A294C0; --c-mem8:#BE8FAE;
-    --c-skill:#C89A57; --c-routine:#A79E90; --c-app:#8B98A6;
+    --c-mem1:#C2B1A8; --c-mem2:#B1AB91; --c-mem3:#B6C1A9; --c-mem4:#8FAE9E; --c-mem5:#A6BBBF;
+    --c-mem6:#919BB1; --c-mem7:#B4A9C1; --c-mem8:#B195A7;
+    --c-skill:#BBB295; --c-routine:#A49D94; --c-app:#8B98A7;
   }
-  /* light theme — same hues, driven dark so they read on the #FAF9F6 paper bg */
+  /* light theme — same quiet hues, driven dark so they read on the warm paper bg */
   [data-theme="light"]{
-    --c-mem1:#8E5A44; --c-mem2:#8B6E30; --c-mem3:#5F6B2E; --c-mem4:#3E7050; --c-mem5:#2F6E6C;
-    --c-mem6:#3C6289; --c-mem7:#63558E; --c-mem8:#8A4D6D;
-    --c-skill:#8F6520; --c-routine:#6E655A; --c-app:#4E5C68;
+    --c-mem1:#92654F; --c-mem2:#6F673E; --c-mem3:#6D874F; --c-mem4:#3C6752; --c-mem5:#4B7981;
+    --c-mem6:#3E4F6F; --c-mem7:#6E538D; --c-mem8:#724662;
+    --c-skill:#71653D; --c-routine:#72685A; --c-app:#485A70;
   }
   :root{
-    --sans:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+    /* --sans is NOT redefined here: the spec forbids Inter ("a geometric sans reads
+     * instantly as not-Claude"). Inherit the Segoe UI Variable Text stack from tokens.css. */
     --board-w:400px;  /* right board drawer width (user instruction 2026-07-18: right drawer, supersedes the 07-17 bottom-sheet override) */
   }
   *{box-sizing:border-box} html,body{height:100%;margin:0;overflow:hidden}
   /* scrollbars → shared /scrollbars.css (sidebar3: invisible until hover/scroll) */
-  body{background:var(--bg-primary);font-family:var(--sans);color:var(--text-secondary);font-size:13px;-webkit-font-smoothing:antialiased}
+  body{background:var(--bg-primary);font-family:var(--sans);color:var(--text-secondary);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);letter-spacing:0;-webkit-font-smoothing:antialiased}
   canvas{display:block;cursor:grab;touch-action:none} canvas.dragging{cursor:grabbing} canvas.pointing{cursor:pointer}
 
+  /* wordmark — §3: 13/20, weight 600 max, letter-spacing 0 (the "uppercase +
+     tracking-wider" tell is dead; the caps themselves live in the markup) */
   .brand{position:fixed;top:16px;left:20px;display:flex;align-items:center;gap:10px;z-index:10;pointer-events:none;user-select:none}
-  .brand .mark{width:26px;height:26px;border-radius:var(--radius-btn);background:var(--accent);display:flex;align-items:center;justify-content:center}
-  .brand .mark svg{width:15px;height:15px;fill:none;stroke:var(--white);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-  .brand b{color:var(--text-primary);font-weight:700;letter-spacing:2.5px;font-size:13px}
-  .brand span{color:var(--text-muted);letter-spacing:2.5px;font-size:13px;font-weight:300}
-  .brand .by{position:absolute;top:29px;left:36px;font-size:10px;letter-spacing:1.5px;color:var(--text-muted);opacity:.85}
+  .brand .mark{width:26px;height:26px;border-radius:var(--radius-btn);background:var(--cc-bg-control);display:flex;align-items:center;justify-content:center}
+  .brand .mark svg{width:15px;height:15px;fill:none;stroke:var(--cc-text-primary);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .brand b{color:var(--text-primary);font-weight:600;letter-spacing:0;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  .brand span{color:var(--text-muted);letter-spacing:0;font-size:var(--cc-fs-sm);font-weight:400}
+  .brand .by{position:absolute;top:28px;left:36px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);letter-spacing:0;color:var(--text-muted)}
 
-  .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:7px 14px;font-size:11px;font-weight:700;letter-spacing:1.5px;cursor:pointer;font-family:inherit;transition:transform var(--transition),background-color var(--transition-colors),color var(--transition-colors),border-color var(--transition-colors)}
-  .menu-btn:hover{background:var(--bg-tertiary);color:var(--text-primary);border-color:var(--border-hover)}
-  .menu-btn.on{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-default)}
+  /* toolbar buttons — §STATE MATRIX button: #313131/#C3C2B7 · hover #393938 ·
+     active #2A2A29 · selected #343433 + #E8E6E1. Background + text only. */
+  .menu-btn{position:fixed;top:16px;right:20px;z-index:12;background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 12px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;letter-spacing:0;cursor:pointer;font-family:inherit;transition:transform var(--transition),background-color var(--transition-colors),color var(--transition-colors),border-color var(--transition-colors)}
+  .menu-btn:hover{background:var(--cc-bg-control-strong);color:var(--text-primary)}
+  .menu-btn:active{background:var(--cc-bg-segment-track)}
+  .menu-btn.on{background:var(--bg-elevated);color:var(--text-primary)}
   /* board open → toolbar buttons slide left of the drawer so BOARD stays reachable/toggleable */
   body.board-open .menu-btn{transform:translateX(calc(-1 * var(--board-w)))}
 
-  .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
+  /* the ≡ MENU popover — one of the three surfaces the spec still allows a shadow on */
+  .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
-  .panel input[type=search]{width:100%;height:36px;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:0 10px;font-size:12px;font-family:inherit;outline:none}
-  .panel input[type=search]:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .panel .lbl{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--text-muted);text-transform:uppercase;margin:2px 0 -4px}
-  .seg{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
-  .seg button{flex:1;background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:6px 0;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit}
-  .seg button.on{background:var(--bg-elevated);color:var(--text-primary)}
-  .seg button:hover:not(.on){color:var(--text-primary)}
-  .row{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--text-secondary)}
-  .row .val{margin-left:auto;color:var(--text-secondary);font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;font-size:10.5px}
+  .panel input[type=search]{width:100%;height:36px;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:0 10px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-family:inherit;outline:none}
+  /* focus = white 22% border, never a coloured ring or a glow (§BORDERS) */
+  .panel input[type=search]:focus{border-color:var(--cc-focus-ring)}
+  /* §3: section headers are 12px sentence case — no uppercase, no letter-spacing */
+  .panel .lbl{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;color:var(--text-muted);margin:2px 0 -4px}
+  /* segmented control — track #2A2A29, thumb #40403F + #474746 border + #E8E6E1 ink.
+     Base carries a transparent border so the active thumb never shifts the layout. */
+  .seg{display:flex;gap:2px;background:var(--cc-bg-segment-track);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
+  .seg button{flex:1;background:none;border:1px solid transparent;color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 2px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;cursor:pointer;font-family:inherit}
+  .seg button.on{background:var(--cc-bg-segment-thumb);border-color:var(--cc-border-segment);color:var(--cc-text-primary)}
+  .seg button:hover:not(.on){background:var(--cc-bg-hover-canvas);color:var(--text-primary)}
+  .row{display:flex;align-items:center;gap:8px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--text-secondary)}
+  .row .val{margin-left:auto;color:var(--text-secondary);font-family:var(--mono);font-weight:600;font-variant-numeric:tabular-nums;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
   input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:14px;background:none;accent-color:var(--accent)}
-  input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:var(--bg-tertiary)}
+  /* slider track uses the 4 radius step; the knob is a dot, the one 50% the spec allows */
+  input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:var(--radius-badge);background:var(--cc-bg-segment-track)}
   input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:12px;border-radius:50%;background:var(--accent);border:none;margin-top:-4px}
-  input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--bg-tertiary)}
-  input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+  input[type=range]::-moz-range-track{height:4px;border-radius:var(--radius-badge);background:var(--cc-bg-segment-track)}
+  input[type=range]::-moz-range-progress{height:4px;border-radius:var(--radius-badge);background:var(--accent)}
   input[type=range]::-moz-range-thumb{width:12px;height:12px;border-radius:50%;background:var(--accent);border:none}
-  .chk{display:flex;align-items:center;gap:7px;font-size:11px;cursor:pointer;user-select:none}
+  .chk{display:flex;align-items:center;gap:7px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);cursor:pointer;user-select:none}
   .chk input{accent-color:var(--accent)}
   .btns{display:flex;gap:6px}
-  .btns button{flex:1;background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:7px 0;font-size:10.5px;font-weight:600;cursor:pointer;font-family:inherit}
-  .btns button:hover{color:var(--text-primary);border-color:var(--border-hover)}
-  .bake{background:var(--accent);border:none;color:var(--white);border-radius:var(--radius-btn);padding:7px 0;font-size:10.5px;font-weight:700;cursor:pointer;font-family:inherit}
-  .bake:hover{background:var(--accent-hover)}
-  .bake:active{background:var(--accent-active)}
+  .btns button{flex:1;background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 0;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;font-family:inherit}
+  .btns button:hover{background:var(--cc-bg-control-strong);color:var(--text-primary)}
+  .btns button:active{background:var(--cc-bg-segment-track)}
+  /* no "primary" button exists in the spec — emphasis is ink, not a filled accent */
+  .bake{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--cc-text-primary);border-radius:var(--radius-btn);padding:5px 0;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;font-family:inherit}
+  .bake:hover{background:var(--cc-bg-control-strong)}
+  .bake:active{background:var(--cc-bg-segment-track)}
 
   /* kanban board drawer — right-side panel, full height of the map area; folders/status
      as stacked sections, files as cards. Slides in/out on the 160ms token transition. */
-  .board{position:fixed;top:0;right:0;bottom:0;width:var(--board-w);max-width:100vw;z-index:12;background:var(--bg-secondary);border-left:1px solid var(--border-default);transform:translateX(105%);transition:transform var(--transition);display:flex;flex-direction:column}
+  /* right-side drawer, 400px, panel fill, hairline left border, NO shadow (§SHADOWS) */
+  .board{position:fixed;top:0;right:0;bottom:0;width:var(--board-w);max-width:100vw;z-index:12;background:var(--bg-secondary);border-left:1px solid var(--cc-border-hairline);transform:translateX(105%);transition:transform var(--transition);display:flex;flex-direction:column}
   .board.open{transform:translateX(0)}
-  .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 36px 6px 14px;color:var(--text-primary);font-size:11px}
+  .board .bhead{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:12px 36px 6px 14px;color:var(--text-primary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
   .board .bhead .n{color:var(--text-muted);font-weight:400}
-  .board .bhead .close{position:absolute;top:10px;right:10px;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:15px;font-family:inherit}
-  .board .bhead .close:hover{color:var(--text-primary)}
+  /* icon button — transparent, hover rgba(255,255,255,.06) at r4 (--accent-tint) */
+  .board .bhead .close{position:absolute;top:10px;right:10px;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-badge);color:var(--text-muted);cursor:pointer;font-size:var(--cc-fs-sm);line-height:1;font-family:inherit}
+  .board .bhead .close:hover{background:var(--accent-tint);color:var(--text-primary)}
   /* columns stack vertically — a 420px drawer reads as one clean flow (§20.6) */
   .board .cols{flex:1;display:flex;flex-direction:column;gap:10px;overflow-y:auto;overflow-x:hidden;padding:6px 14px 16px}
   .bcol{flex:0 0 auto;width:100%;display:flex;flex-direction:column;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden}
-  .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border-default);font-size:11px;font-weight:600;color:var(--text-secondary);flex:0 0 auto}
+  .bcol .chead{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--border-default);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;color:var(--text-secondary);flex:0 0 auto}
   .bcol .chead .dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px}
-  .bcol .chead .cnt{margin-left:auto;color:var(--text-muted);font-weight:600;font-size:10px;font-family:var(--mono);background:var(--na);border-radius:var(--radius-pill);padding:1px 7px}
+  .bcol .chead .cnt{margin-left:auto;color:var(--text-muted);font-weight:600;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:var(--mono);background:var(--na);border-radius:var(--radius-pill);padding:0 7px}
   .bcol .cards{flex:none;overflow:visible;padding:7px}
-  /* card anatomy — §20.7: --radius-card surface, neutral 1px border (no colored stripes),
-     folder identity = 6px chip-dot; title Body Strong 13/600, ext = neutral status badge */
-  .bcard{display:flex;align-items:center;gap:7px;padding:8px 10px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);font-size:13px;color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
-  .bcard:hover{border-color:var(--border-hover)}
+  /* card anatomy — 8px surface, neutral 1px border (no coloured stripes), folder
+     identity = 6px chip-dot; title 13/600; ext = neutral badge, sentence case */
+  .bcard{display:flex;align-items:center;gap:7px;padding:8px 10px;margin-bottom:5px;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--text-secondary);cursor:pointer;white-space:nowrap;overflow:hidden}
+  .bcard:hover{background:var(--cc-bg-hover-canvas)}   /* §STATE MATRIX row hover #2A2A29 */
   .bcard .cdot{width:6px;height:6px;border-radius:50%;background:var(--cc,var(--border-hover));flex:0 0 6px}
-  .bcard .ext{margin-left:auto;font-size:10px;font-weight:600;color:var(--text-secondary);background:var(--na);border-radius:var(--radius-badge);padding:1px 6px;text-transform:uppercase;flex:0 0 auto}
+  .bcard .ext{margin-left:auto;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;color:var(--text-secondary);background:var(--na);border-radius:var(--radius-badge);padding:0 6px;flex:0 0 auto}
   .bcard .nm{overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text-primary)}
   /* map-node hover → its board card(s) light up (§20.7 Chip-Active border) */
   .bcard.linked,.tile.linked{border-color:var(--accent-border-active)}
@@ -108,135 +128,159 @@
   body.board-open .panel{right:calc(var(--board-w) + 16px);max-height:calc(100dvh - 70px);overflow-y:auto;z-index:13}
   /* §20.1: ONE segmented-control language for tabs + scope — active = greyscale
      (--bg-elevated + --text-primary), never accent fill (standing user override) */
-  .bhead .bseg,.bhead .btabs{display:flex;gap:2px;background:var(--bg-tertiary);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
-  .bhead .bseg button,.bhead .btabs button{background:none;border:none;color:var(--text-secondary);border-radius:5px;padding:3px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
-  .bhead .bseg button.on,.bhead .btabs button.on{background:var(--bg-elevated);color:var(--text-primary)}
-  .bhead .bseg button:hover:not(.on),.bhead .btabs button:hover:not(.on){color:var(--text-primary)}
-  .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:auto;flex:1 1 120px;min-width:110px}
-  .bhead .bsearch:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .bhead .bseg,.bhead .btabs{display:flex;gap:2px;background:var(--cc-bg-segment-track);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px}
+  .bhead .bseg button,.bhead .btabs button{background:none;border:1px solid transparent;color:var(--text-secondary);border-radius:var(--radius-btn);padding:2px 10px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;cursor:pointer;font-family:inherit}
+  .bhead .bseg button.on,.bhead .btabs button.on{background:var(--cc-bg-segment-thumb);border-color:var(--cc-border-segment);color:var(--cc-text-primary)}
+  .bhead .bseg button:hover:not(.on),.bhead .btabs button:hover:not(.on){background:var(--cc-bg-hover-canvas);color:var(--text-primary)}
+  .bhead .bsearch{background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:3px 11px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:inherit;outline:none;width:auto;flex:1 1 120px;min-width:110px}
+  .bhead .bsearch:focus{border-color:var(--cc-focus-ring)}
   .bfilters{display:flex;gap:5px;align-items:center;padding:0 16px 6px;flex-wrap:wrap;flex:0 0 auto}
-  .bfilters .fc{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-pill);padding:2px 11px;font-size:10px;font-weight:600;cursor:pointer;font-family:inherit;letter-spacing:.4px}
+  .bfilters .fc{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-pill);padding:1px 11px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;cursor:pointer;font-family:inherit}
+  .bfilters .fc:hover:not(.on){background:var(--cc-bg-control-strong);color:var(--text-primary)}
   .bfilters .fc.on{background:var(--bg-elevated);color:var(--text-primary)}   /* active = bg + text only (no border change) */
-  .bfilters .fl{font-size:9px;letter-spacing:1.2px;color:var(--text-muted);text-transform:uppercase;margin-right:2px}
-  /* ideas cards — §20.7: --radius-card, neutral border; priority identity = the .pbadge */
-  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:8px 10px;margin-bottom:6px;font-size:12.5px;color:var(--text-secondary);line-height:1.45;position:relative}
-  .icard:hover{border-color:var(--border-hover)}
+  .bfilters .fl{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);letter-spacing:0;color:var(--text-muted);margin-right:2px}
+  /* ideas cards — 8px surface, neutral border; priority identity = the .pbadge
+     (semantic hue at text scale, which the spec allows) */
+  .icard{background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:8px 10px;margin-bottom:6px;font-size:var(--cc-fs-sm);color:var(--text-secondary);line-height:var(--cc-lh-sm);position:relative}
+  .icard:hover{background:var(--cc-bg-hover-canvas)}
   .icard .tags{margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;align-items:center}
-  .icard .tag{font-size:10px;font-weight:600;color:var(--accent-soft);background:var(--accent-tint);border-radius:var(--radius-badge);padding:1px 7px}
-  /* priority badge — §20.7 status-badge tints (status itself = the column) */
-  .icard .pbadge{font-size:10px;font-weight:600;border-radius:var(--radius-badge);padding:1px 7px;text-transform:uppercase;letter-spacing:.4px}
+  .icard .tag{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;color:var(--accent-soft);background:var(--accent-tint);border-radius:var(--radius-badge);padding:0 7px}
+  .icard .pbadge{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;border-radius:var(--radius-badge);padding:0 7px;letter-spacing:0}
   .icard .pbadge.high{background:var(--error-tint);color:var(--error)}
   .icard .pbadge.med{background:var(--warning-tint);color:var(--warning)}
   .icard .pbadge.low{background:var(--na);color:var(--text-muted)}
   .icard .iact{position:absolute;top:5px;right:6px;display:none;gap:3px}
   .icard:hover .iact{display:flex}
-  .icard .iact button{background:var(--bg-secondary);border:1px solid var(--border-default);color:var(--text-muted);border-radius:var(--radius-badge);width:19px;height:19px;font-size:10px;cursor:pointer;font-family:inherit;line-height:1}
-  .icard .iact button:hover{color:var(--text-primary);border-color:var(--border-hover)}
+  /* icon buttons — r4; opaque fill so they occlude the card text they float over */
+  .icard .iact button{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-muted);border-radius:var(--radius-badge);width:20px;height:20px;font-size:var(--cc-fs-xs);cursor:pointer;font-family:inherit;line-height:1}
+  .icard .iact button:hover{background:var(--cc-bg-control-strong);color:var(--text-primary)}
   .iadd{display:flex;gap:5px;padding:2px}
-  .iadd input{flex:1;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:6px 9px;font-size:11px;font-family:inherit;outline:none;min-width:0}
-  .iadd input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .iadd button{background:var(--accent);border:none;color:var(--white);border-radius:var(--radius-btn);width:26px;font-weight:700;cursor:pointer;font-family:inherit}
-  .iadd button:hover{background:var(--accent-hover)}
+  .iadd input{flex:1;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 9px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-family:inherit;outline:none;min-width:0}
+  .iadd input:focus{border-color:var(--cc-focus-ring)}
+  .iadd button{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--cc-text-primary);border-radius:var(--radius-btn);width:26px;font-size:var(--cc-fs-sm);font-weight:600;cursor:pointer;font-family:inherit}
+  .iadd button:hover{background:var(--cc-bg-control-strong)}
+  .iadd button:active{background:var(--cc-bg-segment-track)}
   /* tile view — sneak-peek thumbnails */
   .bcol.tiles .cards{display:grid;grid-template-columns:1fr 1fr;gap:7px;align-content:start}
   /* LIST layout — same data; the drawer already stacks sections vertically, list mode
      just relaxes the tile grid to auto-fill */
   body.blist .bcol.tiles .cards{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))}
   .tile{position:relative;aspect-ratio:1;border:1px solid var(--border-default);border-radius:var(--radius-card);background:var(--bg-secondary);overflow:hidden;cursor:pointer}
-  .tile:hover{border-color:var(--border-hover)}
+  .tile:hover{border-color:var(--border-hover)}   /* a thumbnail fills its own box — hover has to live on the frame */
   .tile iframe{width:520%;height:520%;transform:scale(.192);transform-origin:0 0;border:none;background:var(--bg-primary);pointer-events:none}
+  /* 6.5/7.5px is NOT chrome type: this is the text stand-in for the scale(.192)
+     iframe thumbnail above it — it has to render at the same miniature scale.
+     Cited exception to §3's two-size rule, same class as canvas map labels. */
   .tile .snip{padding:7px 8px;font-size:6.5px;line-height:1.5;color:var(--text-muted);overflow:hidden;height:100%;word-break:break-word}
   .tile .snip b{color:var(--text-secondary);font-size:7.5px;display:block;margin-bottom:2px}
   .tile img{width:100%;height:100%;object-fit:cover}
-  .tile .cap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-secondary);font-size:9px;padding:3px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--border-default)}
-  /* floating hover focus — big enough to understand, not huge */
-  .hpv{position:fixed;width:360px;height:300px;z-index:30;background:var(--bg-elevated);border:1px solid var(--border-hover);border-radius:var(--radius-card);overflow:hidden;display:none;pointer-events:none;box-shadow:var(--shadow-modal)}
+  .tile .cap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);padding:2px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-top:1px solid var(--border-default)}
+  /* floating hover popover — one of the three surfaces that keeps a shadow */
+  .hpv{position:fixed;width:360px;height:300px;z-index:30;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden;display:none;pointer-events:none;box-shadow:var(--shadow-modal)}
   .hpv.show{display:block}
   .hpv iframe{width:250%;height:250%;transform:scale(.4);transform-origin:0 0;border:none;background:var(--bg-primary)}
-  .hpv .snip{padding:14px 16px;font-size:10.5px;line-height:1.6;color:var(--text-secondary);overflow:hidden;height:100%}
-  .hpv .snip b{color:var(--text-primary);display:block;margin-bottom:6px;font-size:11.5px}
+  .hpv .snip{padding:14px 16px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--text-secondary);overflow:hidden;height:100%}
+  .hpv .snip b{color:var(--text-primary);display:block;margin-bottom:6px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
   .hpv img{width:100%;height:100%;object-fit:contain}
-  .hpv .hcap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-primary);font-size:10px;padding:4px 10px;border-top:1px solid var(--border-default)}
+  .hpv .hcap{position:absolute;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--bg-elevated) 90%,transparent);color:var(--text-primary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);padding:4px 10px;border-top:1px solid var(--border-default)}
 
   /* preview panel — floats left of the board drawer */
-  .pv{position:fixed;left:16px;right:16px;top:64px;bottom:16px;z-index:13;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);box-shadow:var(--shadow-modal);display:none;flex-direction:column;overflow:hidden}
+  /* document reader — a panel, so §SHADOWS gives it none; the border carries it */
+  .pv{position:fixed;left:16px;right:16px;top:64px;bottom:16px;z-index:13;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-modal);display:none;flex-direction:column;overflow:hidden}
   .pv.open{display:flex}
   .pv .pvhead{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border-default);flex:0 0 auto}
-  .pv .pvhead .nm{color:var(--text-primary);font-size:12.5px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .pv .pvhead .nm{color:var(--text-primary);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .pv .pvhead .sp{flex:1}
-  .pv .pvhead button{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
-  .pv .pvhead button:hover{color:var(--text-primary);border-color:var(--border-hover)}
-  .pv .pvhead button.on{background:var(--bg-elevated);color:var(--text-primary);border-color:var(--border-default)}
-  .pv .pvhead .x{border:none;background:none;font-size:15px;color:var(--text-muted)}
-  .pv .pvhead .x:hover{color:var(--text-primary)}
+  .pv .pvhead button{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--text-secondary);border-radius:var(--radius-btn);padding:3px 12px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .pv .pvhead button:hover{background:var(--cc-bg-control-strong);color:var(--text-primary)}
+  .pv .pvhead button:active{background:var(--cc-bg-segment-track)}
+  .pv .pvhead button.on{background:var(--bg-elevated);color:var(--text-primary)}
+  .pv .pvhead .x{border:none;background:none;border-radius:var(--radius-badge);padding:3px 8px;font-size:var(--cc-fs-sm);color:var(--text-muted)}
+  .pv .pvhead .x:hover{background:var(--accent-tint);color:var(--text-primary)}
   .pv iframe{flex:1;border:none;background:var(--white)}
   .pv iframe.dark{background:#1B1A18} /* approved literal: dark-document preview backdrop, must NOT flip with the page theme — kept in sync with the dark --bg-primary (tokens.css) by hand */
   .pv .pvbody{flex:1;overflow:auto;padding:18px 26px;display:none}
   .pv .pvbody.show{display:block}
-  .pv .pvbody pre.raw{white-space:pre-wrap;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--text-secondary);margin:0}
+  /* 12.5px mono = the spec's one code size (§3 "inline code 12.5px mono") */
+  .pv .pvbody pre.raw{white-space:pre-wrap;font-family:var(--mono);font-size:12.5px;line-height:var(--cc-lh-sm);color:var(--text-secondary);margin:0}
   .pv .pvbody img{max-width:100%;border-radius:var(--radius-card);border:1px solid var(--border-default)}
   /* rich md */
   .pv .mdtabs{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border-default);flex:0 0 auto}
   .pv .mdtabs.hide,.pv .pvhead .mdonly.hide{display:none}
-  .pv .mdtabs button{background:var(--bg-tertiary);border:1px solid var(--border-default);border-left:3px solid var(--tc,var(--purple));color:var(--text-secondary);border-radius:var(--radius-btn);padding:5px 12px;font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+  /* --tc is the file's constellation tint (now desaturated); 2px, and the fallback
+     is a neutral border — never the old purple stripe */
+  .pv .mdtabs button{background:var(--bg-tertiary);border:1px solid var(--border-default);border-left:2px solid var(--tc,var(--border-default));color:var(--text-secondary);border-radius:var(--radius-btn);padding:3px 12px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;font-family:inherit}
+  .pv .mdtabs button:hover:not(.on){background:var(--cc-bg-control-strong);color:var(--text-primary)}
   .pv .mdtabs button.on{color:var(--text-primary);background:var(--bg-elevated)}
-  .pv .mdtabs input{margin-left:auto;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:5px 11px;font-size:11px;font-family:inherit;outline:none;width:180px}
-  .pv .mdtabs input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .pv .md{line-height:1.65;font-size:13px;color:var(--text-secondary);max-width:860px}
-  .pv .md h1,.pv .md h2,.pv .md h3{color:var(--text-primary);margin:1.2em 0 .5em;line-height:1.3}
-  .pv .md h1{font-size:20px}.pv .md h2{font-size:16px;padding-left:10px;border-left:4px solid var(--sc,var(--purple))}.pv .md h3{font-size:13.5px}
-  .pv .md p{margin:.5em 0}
-  .pv .md strong{color:var(--text-primary)}
-  .pv .md code{background:var(--bg-tertiary);padding:1px 6px;border-radius:4px;font-family:var(--mono);font-size:11.5px;color:var(--accent-text)}
+  .pv .mdtabs input{margin-left:auto;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:3px 11px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-family:inherit;outline:none;width:180px}
+  .pv .mdtabs input:focus{border-color:var(--cc-focus-ring)}
+  /* §3: "13px body, nav, TITLES". Headings are therefore 13/20 at weight 600 —
+     hierarchy comes from ink, spacing and an h1 rule, not from type size. */
+  .pv .md{line-height:var(--cc-lh-sm);font-size:var(--cc-fs-sm);color:var(--text-secondary);max-width:768px}
+  .pv .md h1,.pv .md h2,.pv .md h3{color:var(--text-primary);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;margin:20px 0 8px}
+  .pv .md h1{padding-bottom:6px;border-bottom:1px solid var(--border-default)}
+  .pv .md h2{padding-left:10px;border-left:2px solid var(--sc,var(--border-default))}
+  .pv .md h3{color:var(--text-secondary)}
+  .pv .md p{margin:0 0 20px}   /* §METRICS paragraph gap 20 */
+  .pv .md strong{color:var(--text-primary);font-weight:600}
+  .pv .md code{background:var(--bg-tertiary);padding:1px 6px;border-radius:var(--radius-code);font-family:var(--mono);font-size:12.5px;color:var(--accent-text)}
   .pv .md pre{background:var(--bg-primary);border:1px solid var(--border-default);border-radius:var(--radius-card);padding:12px 14px;overflow:auto}
   .pv .md pre code{background:none;color:var(--text-primary)}
-  .pv .md table{border-collapse:collapse;margin:.8em 0;font-size:12.5px;width:100%}
+  .pv .md table{border-collapse:collapse;margin:.8em 0;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);width:100%}
   .pv .md th,.pv .md td{border:1px solid var(--border-default);padding:6px 10px;text-align:left}
   .pv .md th{color:var(--text-primary);background:var(--bg-tertiary)}
-  .pv .md blockquote{border-left:3px solid var(--sc,var(--accent));margin:.8em 0;padding:2px 0 2px 12px;color:var(--text-muted)}
+  .pv .md blockquote{border-left:2px solid var(--border-default);margin:.8em 0;padding:2px 0 2px 12px;color:var(--text-muted)}
   .pv .md ul,.pv .md ol{padding-left:20px}
   .pv .md a{color:var(--accent-text);text-decoration:none}
-  .pv .md mark{background:var(--warning-tint);color:var(--text-primary);border-radius:3px;padding:0 2px;box-shadow:inset 0 -1px 0 var(--warning)}
-  .pv .md .secbadge{display:inline-block;font-size:10px;letter-spacing:1.2px;font-weight:700;color:var(--sc);border:1px solid var(--sc);border-radius:var(--radius-pill);padding:1px 9px;margin-bottom:4px;text-transform:uppercase}
+  .pv .md a:hover{text-decoration:underline}   /* §STATE MATRIX link: #6DA7EC, underline on hover */
+  .pv .md mark{background:var(--warning-tint);color:var(--text-primary);border-radius:var(--radius-code);padding:0 2px}
+  .pv .md .secbadge{display:inline-block;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);letter-spacing:0;font-weight:600;color:var(--sc);border:1px solid var(--sc);border-radius:var(--radius-pill);padding:0 9px;margin-bottom:4px}
 
   /* dangling-references panel — cited paths that don't exist = broken brain routing */
-  .refpanel{position:fixed;left:20px;bottom:16px;width:290px;z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);overflow:hidden;display:none}
+  /* docked panel, not a menu → no shadow (§SHADOWS) */
+  .refpanel{position:fixed;left:20px;bottom:16px;width:290px;z-index:11;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);overflow:hidden;display:none}
   body:not(.embed) .refpanel{bottom:110px}   /* clear the Ask-the-Brain dock in standalone mode */
   .refpanel.show{display:block}
-  .refpanel .rhead{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:var(--text-primary);font-family:inherit;font-size:10.5px;font-weight:700;letter-spacing:.1em;padding:9px 12px;cursor:pointer;text-align:left}
+  .refpanel .rhead{display:flex;align-items:center;gap:7px;width:100%;background:none;border:none;color:var(--text-primary);font-family:inherit;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;padding:9px 12px;cursor:pointer;text-align:left}
+  .refpanel .rhead:hover{background:var(--cc-bg-hover-canvas)}
   .refpanel .rdot{width:7px;height:7px;border-radius:50%;background:var(--error);flex:0 0 7px}
   .refpanel .rdot.ok{background:var(--success-soft)}
   .refpanel .rn{color:var(--error);font-family:var(--mono);font-variant-numeric:tabular-nums}
-  .refpanel .rcaret{margin-left:auto;color:var(--text-muted);font-size:11px}
+  .refpanel .rcaret{margin-left:auto;color:var(--text-muted);font-size:var(--cc-fs-xs)}
   .refpanel .rlist{max-height:32vh;overflow-y:auto;padding:0 8px 8px;display:none}
   .refpanel.open .rlist{display:block}
+  /* the red left rule is semantic (broken routing), which the spec keeps at text scale */
   .refpanel .ritem{border:1px solid var(--border-default);border-left:2px solid var(--error);border-radius:var(--radius-btn);padding:6px 9px;margin-bottom:5px;cursor:pointer;background:var(--bg-tertiary)}
-  .refpanel .ritem:hover{border-color:var(--border-hover);border-left-color:var(--error)}
-  .refpanel .rpath{color:var(--error);font-size:11px;font-weight:600;word-break:break-all}
-  .refpanel .rsrc{color:var(--text-secondary);font-size:10px;margin-top:1px}
-  .refpanel .rquote{color:var(--text-muted);font-size:10px;margin-top:3px;line-height:1.45;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .refpanel .rnone{color:var(--text-muted);font-size:11px;padding:2px 4px 6px}
+  .refpanel .ritem:hover{background:var(--cc-bg-hover-canvas)}
+  .refpanel .rpath{color:var(--error);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;word-break:break-all}
+  .refpanel .rsrc{color:var(--text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);margin-top:1px}
+  .refpanel .rquote{color:var(--text-muted);font-size:var(--cc-fs-xs);margin-top:3px;line-height:var(--cc-lh-xs);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .refpanel .rnone{color:var(--text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);padding:2px 4px 6px}
 
-  .tip{position:fixed;pointer-events:none;background:var(--bg-elevated);border:1px solid var(--border-hover);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:7px 11px;font-size:11.5px;color:var(--text-primary);z-index:20;display:none;max-width:300px}
-  .tip .sub{color:var(--text-muted);font-size:10px;margin-top:2px}
-  .hint{position:fixed;bottom:14px;right:20px;color:var(--text-muted);font-size:10.5px;z-index:10;pointer-events:none;letter-spacing:.3px}
+  /* tooltip = popover → keeps its shadow */
+  .tip{position:fixed;pointer-events:none;background:var(--bg-elevated);border:1px solid var(--border-hover);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:7px 11px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--text-primary);z-index:20;display:none;max-width:300px}
+  .tip .sub{color:var(--text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);margin-top:2px}
+  .hint{position:fixed;bottom:14px;right:20px;color:var(--text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);z-index:10;pointer-events:none;letter-spacing:0}
 
   /* chat dock — ask the brain, it lights up the galaxy */
   /* centered chat-style composer at the bottom */
-  .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:min(720px,92vw);z-index:11;background:var(--bg-elevated);border:1px solid var(--border-default);border-radius:var(--radius-modal);overflow:hidden;box-shadow:var(--shadow-modal)}
-  .dock .dhead{display:flex;align-items:center;gap:8px;padding:8px 14px 4px;color:var(--text-muted);font-size:10.5px;font-weight:700;letter-spacing:.1em}
+  /* composer surface: panel fill + composer border, no shadow (§STATE MATRIX composer) */
+  .dock{position:fixed;left:50%;transform:translateX(-50%);bottom:22px;width:min(720px,92vw);z-index:11;background:var(--cc-bg-composer);border:1px solid var(--cc-border-composer);border-radius:var(--radius-card);overflow:hidden}
+  .dock .dhead{display:flex;align-items:center;gap:8px;padding:8px 14px 4px;color:var(--text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0}
   .dock .dhead .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
-  .dock .dhead .fold{margin-left:auto;background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:13px;font-family:inherit}
-  .dock .dbody{max-height:230px;overflow:auto;padding:8px 16px 4px;font-size:13px;line-height:1.6;color:var(--text-secondary);white-space:pre-wrap;word-break:break-word;display:none}
+  .dock .dhead .fold{margin-left:auto;width:20px;height:20px;display:flex;align-items:center;justify-content:center;background:none;border:none;border-radius:var(--radius-badge);color:var(--text-muted);cursor:pointer;font-size:var(--cc-fs-sm);line-height:1;font-family:inherit}
+  .dock .dhead .fold:hover{background:var(--accent-tint);color:var(--text-primary)}
+  .dock .dbody{max-height:230px;overflow:auto;padding:8px 16px 4px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--text-secondary);white-space:pre-wrap;word-break:break-word;display:none}
   .dock .dbody.show{display:block}
-  .dock .dbody b{color:var(--text-primary)}
+  .dock .dbody b{color:var(--text-primary);font-weight:600}
   .dock .dbody .hits{color:var(--accent-text);font-weight:600}
   .dock form{display:flex;gap:8px;padding:8px 10px 11px;align-items:center}
-  .dock input{flex:1;height:44px;background:var(--bg-tertiary);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--text-primary);padding:0 16px;font-size:13px;font-family:inherit;outline:none}
-  .dock input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .dock button.ask{background:var(--accent);border:none;color:var(--white);border-radius:var(--radius-btn);padding:0 24px;height:44px;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;flex:0 0 auto}
-  .dock button.ask:hover{background:var(--accent-hover)}
-  .dock button.ask:active{background:var(--accent-active)}
+  /* the one composer-scale input on this page → the 10 radius step */
+  .dock input{flex:1;height:44px;background:var(--bg-tertiary);border:1px solid var(--cc-border-composer);border-radius:var(--radius-composer);color:var(--text-primary);padding:0 16px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-family:inherit;outline:none}
+  .dock input:focus{border-color:var(--cc-focus-ring)}
+  .dock button.ask{background:var(--bg-tertiary);border:1px solid var(--border-default);color:var(--cc-text-primary);border-radius:var(--radius-btn);padding:0 24px;height:36px;font-weight:600;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);cursor:pointer;font-family:inherit;flex:0 0 auto}
+  .dock button.ask:hover{background:var(--cc-bg-control-strong)}
+  .dock button.ask:active{background:var(--cc-bg-segment-track)}
   .dock button.ask:disabled{opacity:.5}
 
   /* ── mobile / touch ─────────────────────────────────────────────────────── */
@@ -246,9 +290,8 @@
     .refpanel{display:none!important}     /* bottom-left collides with the dock on phones */
     .brand{top:11px;left:13px}
     .brand span,.brand .by{display:none}
-    .brand b{font-size:12px;letter-spacing:1.4px}
     .brand .mark{width:23px;height:23px}
-    .menu-btn{top:11px;padding:6px 11px;font-size:11px;letter-spacing:1px}
+    .menu-btn{top:11px;padding:5px 10px}
     #fsBtn{display:none}                        /* fullscreen is awkward on mobile browsers */
     #boardBtn{right:104px!important}
     .menu-btn:not([id]){right:13px!important}
@@ -1022,7 +1065,7 @@ function drawBackdrop(now){
     if(m.t>1.4||m.x<-60||m.x>W+60||m.y<-60||m.y>H+60){ METEORS.splice(i,1); continue; }
     const fade=Math.sin(Math.min(1,m.t/1.4)*Math.PI);
     const grad=ctx.createLinearGradient(m.x,m.y,m.x-m.dx*9,m.y-m.dy*9);
-    grad.addColorStop(0,hexA(COLORS.accentSoft,0.34*fade*decoDim())); grad.addColorStop(1,hexA(COLORS.accentSoft,0));   // 0.75 → 0.34
+    grad.addColorStop(0,hexA(COLORS.accentSoft,0.20*fade*decoDim())); grad.addColorStop(1,hexA(COLORS.accentSoft,0));   // 0.75 → 0.34 → 0.20
     ctx.strokeStyle=grad; ctx.lineWidth=1.3; ctx.beginPath(); ctx.moveTo(m.x,m.y); ctx.lineTo(m.x-m.dx*9,m.y-m.dy*9); ctx.stroke();
   }
 }
@@ -1038,13 +1081,14 @@ function draw(){
 
   // nebula fog behind each cluster — slow drift + breathing.
   // 2026-08-06 restyle: alpha 0.34 → 0.13, footprint 8.5r → 5.2r, breathing swing
-  // halved — the cluster tint now just hints at territory instead of glowing.
+  // halved. Pass 2 (spec §PRIME DIRECTIVE "flat: no glows"): 0.13 → 0.07 and
+  // 5.2r → 4.0r, so the cluster tint is a territory hint, not decoration.
   if(!matches) for(const h of hubs){ if(h.hidden) continue;
     const b=0.93+0.07*Math.sin(now*0.00035*sp+hash(h.id));
     const g=glow(h.color, Math.min(20,9+(h.count||4)*.12)*1.7);
     const dx=Math.sin(now*0.00021*sp+hash(h.id))*14, dy=Math.cos(now*0.00017*sp+hash(h.id)*3)*11;
-    ctx.globalAlpha=0.13*b*decoDim();
-    const S8=(h.r||14)*5.2;
+    ctx.globalAlpha=0.07*b*decoDim();
+    const S8=(h.r||14)*4.0;
     ctx.drawImage(g, h.x+dx-S8, h.y+dy-S8, S8*2, S8*2);
   }
   ctx.globalAlpha=1;
@@ -1160,8 +1204,8 @@ function draw(){
     const pulse=1+0.07*Math.sin(now*0.0011*sp+hash(n.id)%628/100);   // breathing 0.16 → 0.07
     const r=n.r*ease*(hover===n?1.28:1);
     if(!(n.kind==='file' && r*cam.k<2.4)){
-      const g=glow(n.color, r*1.35*pulse*z);            // halo radius 1.7r → 1.35r
-      ctx.globalAlpha=alpha*0.55*decoDim();   // §3.3: glow sprites dimmed on light bg; 0.55 = restyle knock-down
+      const g=glow(n.color, r*1.12*pulse*z);            // halo radius 1.7r → 1.35r → 1.12r (pass 2)
+      ctx.globalAlpha=alpha*0.32*decoDim();   // dimmed on light bg; 0.55 → 0.32: a soft node edge, not a lamp
       ctx.drawImage(g, nx-g.width/2, ny-g.height/2, g.width, g.height);
       ctx.globalAlpha=alpha;
     }
