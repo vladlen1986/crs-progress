@@ -22,7 +22,9 @@
  * density thins below 360px so 300px never reads as mush. Everything scoped
  * in #lmPanel so closed/pill = zero animations; prefers-reduced-motion kills
  * all motion (static but complete scene: satellites, badges, spokes render).
- * Tokens only; light theme dims deco (--lm-deco). Classic script. */
+ * Tokens only; --lm-deco is the single global decoration dimmer (2026-08-06:
+ * .35 dark / .22 light — the scene now whispers under the Claude Code restyle).
+ * Classic script. */
 
 (function () {
   'use strict';
@@ -106,18 +108,26 @@
   const curH = () => Math.round(curW * SCENE_H / SCENE_W) + TICK_H;
 
   // ---- CSS (tokens only; light theme dims glow like map.html decoDim) -------
+  // 2026-08-06 (Claude Code restyle): the whole galaxy got QUIETER. --lm-deco, the
+  // single multiplier every halo/glow/nebula/star opacity is expressed against,
+  // dropped 1 → .35 (dark) and .6 → .22 (light) — roughly a third of the old
+  // intensity. Glow drop-shadow radii and the nebula color-mix alphas were trimmed
+  // in step so they stay in proportion instead of becoming the loudest thing left.
+  // Nothing was deleted: every animation, keyframe and reduced-motion guard is intact.
   const css = document.createElement('style');
   css.textContent = `
   /* chromeless panel: translucent smoke base by default, solid chrome on hover */
-  #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:1;user-select:none;cursor:grab;transition:background-color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out}
+  #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:.35;user-select:none;cursor:grab;transition:background-color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out}
   #lmPanel.chrome{background:var(--panel);border-color:var(--line2);box-shadow:var(--shadow-dropdown)}
   #lmPanel.dragging{cursor:grabbing}
-  [data-theme="light"] #lmPanel{--lm-deco:.6}
+  [data-theme="light"] #lmPanel{--lm-deco:.22}
   /* hover chrome: floating header line + buttons, hidden until .chrome */
   #lmPanel .lm-head{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;opacity:0;pointer-events:none;transition:opacity .2s ease-in-out}
   #lmPanel.chrome .lm-head{opacity:1;pointer-events:auto}
   #lmPanel .lm-live-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex:0 0 7px}
-  #lmPanel.live .lm-live-dot{background:var(--accent);box-shadow:0 0 8px var(--accent-glow),0 0 4px var(--accent)}
+  /* live dot: one soft 4px halo instead of the old 8px+4px double glow (the new
+     system keeps DOM chrome flat) — the accent fill still carries the signal */
+  #lmPanel.live .lm-live-dot{background:var(--accent);box-shadow:0 0 4px var(--accent-glow)}
   #lmPanel .lm-ttl{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-primary)}
   #lmPanel .lm-sub{font-size:10.5px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
   #lmPanel.live .lm-sub{color:var(--accent-text)}
@@ -130,14 +140,17 @@
   /* nebula idle skin — token hues only, low alpha, slow drift; hover sharpens away */
   #lmPanel .lm-scene{position:relative}
   #lmPanel .lm-scene svg{display:block;width:100%;position:relative;z-index:1}
+  /* the #000 in mask-image is GEOMETRY, not color: a mask reads alpha only, so the
+     literal is the opaque stop of the fade — it never paints and needs no token */
   #lmPanel .lm-neb{position:absolute;inset:0;pointer-events:none;opacity:var(--lm-deco);transition:opacity .2s ease-in-out;-webkit-mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%);mask-image:radial-gradient(130% 130% at 50% 45%,#000 52%,transparent 97%)}
+  /* nebula mixes trimmed ~30% (14/12/9/8 → 10/8/6/6) on top of the --lm-deco cut */
   #lmPanel .lm-neb1{background:
-    radial-gradient(90% 80% at 25% 30%,color-mix(in srgb,var(--accent) 14%,transparent),transparent 65%),
-    radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--purple) 12%,transparent),transparent 62%);
+    radial-gradient(90% 80% at 25% 30%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 65%),
+    radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--purple) 8%,transparent),transparent 62%);
     background-size:165% 165%,175% 175%;background-repeat:no-repeat}
   #lmPanel .lm-neb2{background:
-    radial-gradient(80% 70% at 72% 18%,color-mix(in srgb,var(--cyan) 9%,transparent),transparent 60%),
-    radial-gradient(95% 90% at 28% 88%,color-mix(in srgb,var(--accent-soft) 8%,transparent),transparent 66%);
+    radial-gradient(80% 70% at 72% 18%,color-mix(in srgb,var(--cyan) 6%,transparent),transparent 60%),
+    radial-gradient(95% 90% at 28% 88%,color-mix(in srgb,var(--accent-soft) 6%,transparent),transparent 66%);
     background-size:185% 185%,155% 155%;background-repeat:no-repeat}
   #lmPanel.chrome .lm-neb{opacity:0;animation-play-state:paused}
   /* typewriter ticker — one mono line at the bottom */
@@ -161,7 +174,7 @@
   /* count badge pill — map.html recipe: --na fill, --border-active stroke, 600-weight number */
   .lm-badge{transform-box:fill-box;transform-origin:center}
   .lm-badge rect{fill:var(--na);stroke:var(--line3);stroke-width:.7}
-  .lm-badge text{fill:var(--text-primary);font-weight:600;font-family:Inter,-apple-system,sans-serif;text-anchor:middle;letter-spacing:0}
+  .lm-badge text{fill:var(--text-primary);font-weight:600;font-family:var(--sans);text-anchor:middle;letter-spacing:0}
   /* YOU stays a single bright star (the prompter) — no swarm, brighter halo */
   .lm-node[data-n="you"] .lm-halo{opacity:calc(.3*var(--lm-deco))}
   /* nodes — glow halo (radial gradient on token color) + flat token core */
@@ -170,7 +183,7 @@
   .lm-node .lm-core{opacity:.5;transition:opacity var(--transition-colors)}
   .lm-node .lm-ic{color:var(--white);opacity:.55;transition:opacity var(--transition-colors)}
   [data-theme="light"] .lm-node .lm-ic{opacity:.8}
-  .lm-node text{fill:var(--text-muted);font:600 7.5px Inter,-apple-system,sans-serif;letter-spacing:.09em;text-anchor:middle;transition:fill var(--transition-colors)}
+  .lm-node text{fill:var(--text-muted);font:600 7.5px var(--sans);letter-spacing:.09em;text-anchor:middle;transition:fill var(--transition-colors)}
   .lm-node .lm-mlbl{fill:var(--text-secondary);font:600 7px var(--mono);letter-spacing:.02em;text-transform:none}
   .lm-node.recent .lm-halo{opacity:calc(.4*var(--lm-deco))}
   .lm-node.recent .lm-core{opacity:.82}.lm-node.recent .lm-ic{opacity:.85}
@@ -184,16 +197,16 @@
   .lm-kid{offset-rotate:0deg;transition:opacity 2.4s linear}
   .lm-kid.dying{opacity:0}
   .lm-kid .lm-kid-in{transform-box:fill-box;transform-origin:center}
-  .lm-kid circle{fill:var(--ec);opacity:.92;filter:drop-shadow(0 0 2.5px var(--ec))}
+  .lm-kid circle{fill:var(--ec);opacity:.88;filter:drop-shadow(0 0 1.5px var(--ec))}   /* glow 2.5→1.5px */
   .lm-kid text{fill:var(--text-secondary);font:600 5.5px var(--mono);letter-spacing:.06em;text-anchor:middle}
   .lm-kid.mote circle{opacity:.85}
   .lm-kid.mote text{font:600 5px var(--mono);letter-spacing:.02em;fill:var(--text-muted)}
-  .lm-mote-travel{fill:var(--purple);r:2.2;filter:drop-shadow(0 0 3px var(--purple));offset-rotate:0deg;opacity:0}
+  .lm-mote-travel{fill:var(--purple);r:2.2;filter:drop-shadow(0 0 1.8px var(--purple));offset-rotate:0deg;opacity:0}   /* glow 3→1.8px */
   /* brain core life — faint orbital ring (always-on idle) + electrons + 2nd halo layer (turn only) */
   .lm-orbit{fill:none;stroke:var(--accent);stroke-width:.7;opacity:calc(.18*var(--lm-deco));transform-box:fill-box;transform-origin:center}
   .lm-halo2{opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
   .lm-node.on .lm-halo2{opacity:calc(.55*var(--lm-deco))}
-  .lm-elec{fill:var(--accent);r:1.4;opacity:0;offset-rotate:0deg;filter:drop-shadow(0 0 2.5px var(--accent));transition:opacity var(--transition-colors)}
+  .lm-elec{fill:var(--accent);r:1.4;opacity:0;offset-rotate:0deg;filter:drop-shadow(0 0 1.5px var(--accent));transition:opacity var(--transition-colors)}   /* glow 2.5→1.5px */
   /* model thinking spinner — partial arc, only while a turn is live */
   .lm-spin{fill:none;stroke:var(--accent);stroke-width:1.2;stroke-dasharray:30 90;stroke-linecap:round;opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
   /* event ripples — spawned by JS on pings/clicks, self-remove on animationend */
@@ -209,7 +222,7 @@
   .lm-edge.on .lm-eglow{opacity:calc(.6*var(--lm-deco))}
   .lm-edge.on .lm-ebase{stroke:var(--ec);opacity:1;stroke-width:1.3}
   /* traveling comet pulses — CSS motion path; killed entirely under reduced motion */
-  .lm-dot{fill:var(--ec);r:2.1;filter:drop-shadow(0 0 3px var(--ec));offset-rotate:0deg}
+  .lm-dot{fill:var(--ec);r:2.1;filter:drop-shadow(0 0 1.8px var(--ec));offset-rotate:0deg}   /* glow 3→1.8px */
   @media (prefers-reduced-motion: no-preference){
     .lm-dot{animation:lmTravel 1.6s cubic-bezier(.4,0,.2,1) infinite}
     .lm-edge.on .lm-eflow{opacity:calc(.85*var(--lm-deco));animation:lmFlow .8s linear infinite}
@@ -260,7 +273,7 @@
   #lmPill:hover{border-color:var(--line3);color:var(--text-primary)}
   #lmPill svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   #lmPill .lm-pdot{width:7px;height:7px;border-radius:50%;background:var(--text-muted)}
-  #lmPill.live .lm-pdot{background:var(--accent);box-shadow:0 0 7px var(--accent-glow),0 0 4px var(--accent)}
+  #lmPill.live .lm-pdot{background:var(--accent);box-shadow:0 0 4px var(--accent-glow)}  /* matches .lm-live-dot */
   @media (max-width:900px){#lmPanel,#lmPill,#livemapBtn{display:none!important}}`;
   document.head.appendChild(css);
 

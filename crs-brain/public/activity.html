@@ -10,7 +10,7 @@
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
+  body{margin:0;background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:13px;line-height:1.5}
   a{color:var(--accent-text);text-decoration:none}
   .wrap{max-width:960px;margin:0 auto;padding:26px 22px 80px}
   header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
@@ -39,27 +39,27 @@
   .row{display:grid;grid-template-columns:64px 22px 1fr;gap:12px;align-items:start;padding:9px 10px;border-radius:var(--radius-btn)}
   .row:hover{background:var(--panel)}
   .row .time{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;padding-top:1px;text-align:right;white-space:nowrap}
-  .row .dot{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin-top:-1px;flex:0 0 auto}
+  .row .dot{width:22px;height:22px;border-radius:var(--radius-btn);display:flex;align-items:center;justify-content:center;margin-top:-1px;flex:0 0 auto}
   .row .dot svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
   .row .main{min-width:0}
   .row .line1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
   .badge{font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;font-weight:600;padding:2px 7px;border-radius:var(--radius-badge);white-space:nowrap}
   .src{font-size:10.5px;color:var(--muted);border:1px solid var(--line);border-radius:var(--radius-badge);padding:1px 6px}
   .summary{color:var(--primary);font-size:13.5px;line-height:1.5;margin-top:3px;word-break:break-word;white-space:pre-wrap}
-  .summary.cmd{font-family:var(--mono);font-size:12.5px;color:var(--text-primary);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 9px;display:inline-block;max-width:100%;overflow-x:auto}
+  .summary.cmd{font-family:var(--mono);font-size:12.5px;color:var(--text-primary);background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-btn);padding:6px 9px;display:inline-block;max-width:100%;overflow-x:auto}
   .metaline{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px;align-items:center}
   .tag{font-size:11px;color:var(--secondary);background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-badge);padding:1px 7px;display:inline-flex;align-items:center;gap:4px}
-  .tag.sp{color:var(--success);background:var(--success-tint);border-color:var(--border-default)}
-  .tag.br{color:var(--accent-text);background:var(--accent-tint);border-color:var(--border-default)}
-  .tag.fail{color:var(--error-soft);background:var(--error-tint);border-color:var(--border-default)}
+  .tag.sp{color:var(--success);background:var(--success-tint)}
+  .tag.br{color:var(--accent-text);background:var(--accent-tint)}
+  .tag.fail{color:var(--error);background:var(--error-tint)}
   .rollback{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:0 9px;height:28px;font:inherit;font-size:11px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
-  .rollback:hover{border-color:var(--danger);color:var(--danger);background:var(--error-tint)}
+  .rollback:hover{color:var(--danger);background:var(--error-tint)}
   .rollback svg{width:11px;height:11px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
   .empty{text-align:center;color:var(--muted);padding:60px 20px;font-size:13px}
   .empty b{color:var(--secondary);display:block;margin-bottom:6px;font-size:14px}
   .count{color:var(--muted);font-size:12px;margin-left:2px}
-  .note{margin-top:26px;padding:13px 15px;background:var(--panel);border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:var(--radius-card);font-size:12.5px;color:var(--secondary);line-height:1.6}
+  .note{margin-top:26px;padding:13px 15px;background:var(--panel);border:1px solid var(--line);border-left:2px solid var(--accent);border-radius:var(--radius-card);font-size:12.5px;color:var(--secondary);line-height:1.6}
   .note b{color:var(--primary)}
 </style>
 </head>

@@ -11,7 +11,7 @@
 <style>
   *{box-sizing:border-box}
   html,body{height:100%;margin:0}
-  body{background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5;display:flex;flex-direction:column}
+  body{background:var(--bg);color:var(--secondary);font-family:var(--sans);font-size:13px;line-height:1.5;display:flex;flex-direction:column}
 
   header.top{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex:none}
   header.top .t{flex:1;min-width:0}
@@ -27,7 +27,7 @@
   .sec-h{padding:9px 16px 6px;font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;position:sticky;top:0;background:var(--bg)}
   .mod{display:flex;align-items:center;gap:9px;padding:7px 16px;cursor:pointer;color:var(--secondary);font-size:12.5px;border-left:2px solid transparent}
   .mod:hover{background:var(--panel2);color:var(--primary)}
-  .mod.active{background:var(--accent-tint);color:var(--primary);border-left-color:var(--accent)}
+  .mod.active{background:var(--bg-elevated);color:var(--text-primary)}
   .mod .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .dot{width:6px;height:6px;border-radius:50%;flex:none}
   .dot.has{background:var(--success)}
@@ -39,12 +39,12 @@
   .panebar .pm{color:var(--primary);font-weight:700;font-size:13px}
   .panebar .ps{color:var(--muted);font-size:11px;font-family:var(--mono)}
   .stchip{font-size:10px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
-  .st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
-  .st-settled{background:var(--accent-tint);color:var(--accent-soft);border:1px solid var(--accent-border-active)}
-  .st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
+  .st-draft{background:var(--panel2);color:var(--secondary)}
+  .st-settled{background:var(--accent-tint);color:var(--accent-text)}
+  .st-built{background:var(--success-tint);color:var(--success)}
   .tabs{display:flex;gap:5px;margin-left:auto}
   .tabbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:4px 10px;font:inherit;font-size:11.5px;cursor:pointer}
-  .tabbtn.active{background:var(--accent);border-color:var(--accent);color:var(--white)}
+  .tabbtn.active{background:var(--bg-elevated);color:var(--text-primary)}
   .frame-wrap{flex:1;min-height:0;position:relative}
   iframe{width:100%;height:100%;border:0;background:var(--bg)}
   .empty{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--muted)}
@@ -135,7 +135,7 @@ function renderPane(){
     $('frameWrap').innerHTML=`<div class="empty">
       <div class="big">◇</div>
       <span class="tag">Coming soon</span>
-      <div class="d">No design prototype registered yet for <b style="color:var(--secondary)">${esc(mod.name)}</b>. Register one from the <a href="#" onclick="event.preventDefault();openProtos()" style="color:var(--accent-soft)">Prototypes</a> page.</div>
+      <div class="d">No design prototype registered yet for <b style="color:var(--secondary)">${esc(mod.name)}</b>. Register one from the <a href="#" onclick="event.preventDefault();openProtos()" style="color:var(--accent-text)">Prototypes</a> page.</div>
     </div>`;
     return;
   }
