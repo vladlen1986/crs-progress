@@ -4,7 +4,7 @@
   "sessionId": "604e2ce8-9948-4487-83ec-6cdbd3492001",
   "bp": true,
   "created": "2026-08-06T15:29:15.225Z",
-  "updated": "2026-08-06T16:32:10.631Z",
+  "updated": "2026-08-06T16:34:47.695Z",
   "messages": [
     {
       "role": "user",
@@ -2976,6 +2976,288 @@
           "label": "Confirm test DOM cleared",
           "body": "description: Confirm test DOM cleared\ncommand: agent-browser eval \"document.querySelectorAll('.turn.cmtest').length\"\n⇒ 0",
           "actor": "buildprint"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "continue",
+      "ts": "2026-08-06T16:32:10.843Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Verified end-to-end on a real stored message, not just injected DOM.\n\n## Proof from the live conversation\n\nReopened the conversation after a full reload — the chips render through the normal pipeline:\n\n![Real assistant message with a downloadable CSV chip](crs-brain/data/screenshots/adhoc/chip-real-dark.png)\n\n| Check | Result |\n|---|---|\n| Chips in conversation | **6** |\n| With download button | **2** (both the real CSV) |\n| `DW.allPaths` index | **1,279** paths, CSV present |\n| Dead chips | correctly **no** button |\n\n## One thing worth knowing\n\nFour chips in my previous reply showed **\"not found\"** — that was **my mistake, not a bug**. I wrote `public/js/chat-media.js` when the index is repo-rooted as `crs-brain/public/js/chat-media.js`. The feature behaved correctly by refusing to offer a download for a path it can't resolve.\n\n## Ledger updated\n\nAdded a `2026-08-06` entry to `brain/changelog.md` capturing both work items, including the six non-obvious data traps found during the export — most importantly that **financials must come from the report, never the link** (only 369 of 9,986 links carry amounts), and that **row-wise summing double-counts** the 3,204 co-initiator rows.\n\n## Next\n\nNothing pending. Your CSV downloads from the chip in the message above.",
+      "ts": "2026-08-06T16:34:47.695Z",
+      "startedAt": "2026-08-06T16:32:10.843Z",
+      "completedAt": "2026-08-06T16:34:47.695Z",
+      "model": "claude-opus-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Prompt sent — preparing Buildprint session",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Buildprint CLI ready — v4.3.0, linked",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Let me verify it end-to-end on a real stored message rather than injected DOM — my last reply referenced the CSV path, so it should render a live chip.",
+          "body": "Let me verify it end-to-end on a real stored message rather than injected DOM — my last reply referenced the CSV path, so it should render a live chip.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check chips in the live conversation",
+          "body": "description: Check chips in the live conversation\ncommand: agent-browser eval \"const c=document.querySelectorAll('#chatLog .cm-chip'); const d=document.querySelectorAll('#chatLog a.cm-dl'); JSON.stringify({chips:c.length,dl:d.length,last:[...c].slice(-3).map(x=>x.title)})\"\n⇒ \"{\\\"chips\\\":0,\\\"dl\\\":0,\\\"last\\\":[]}\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Inspect loaded conversation state",
+          "body": "description: Inspect loaded conversation state\ncommand: agent-browser eval \"JSON.stringify({turns:document.querySelectorAll('#chatLog .turn').length, title:(document.querySelector('.hf-title,.htitle')||{}).textContent||document.title, mdlinks:document.querySelectorAll('#chatLog .md a[data-path]').length})\"\n⇒ \"{\\\"turns\\\":0,\\\"title\\\":\\\"CRS Brain\\\",\\\"mdlinks\\\":0}\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Find conversation rows in sidebar",
+          "body": "description: Find conversation rows in sidebar\ncommand: agent-browser eval \"const r=[...document.querySelectorAll('.crow,.conv,[onclick*=openConv],.sb-row')].slice(0,6).map(x=>x.className+' :: '+x.textContent.trim().slice(0,40)); JSON.stringify(r)\"\n⇒ \"[]\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Snapshot interactive elements",
+          "body": "description: Snapshot interactive elements\ncommand: agent-browser snapshot -i\n⇒ - generic [ref=e16] clickable [cursor:pointer, onclick] - button \"Collapse sidebar\" [ref=e17] - textbox \"Search conversations…\" [ref=e18] - button \"New conversa",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Open the active conversation",
+          "body": "description: Open the active conversation\ncommand: agent-browser click e21\n⇒ ✓ Done",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check real chips in reopened conversation",
+          "body": "description: Check real chips in reopened conversation\ncommand: agent-browser eval \"const c=document.querySelectorAll('#chatLog .cm-chip'); JSON.stringify({turns:document.querySelectorAll('#chatLog .turn').length,chips:c.length,dl:document.querySelectorAll('#chatLog a.cm-dl').length,titles:[...c].map(x=>x.title).slice(0,8)})\"\n⇒ ✗ Exit code 1 ✗ Evaluation error: SyntaxError: Identifier 'c' has already been declared",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check real chips in reopened conversation",
+          "body": "description: Check real chips in reopened conversation\ncommand: agent-browser eval \"(()=>{const q=document.querySelectorAll('#chatLog .cm-chip'); return JSON.stringify({turns:document.querySelectorAll('#chatLog .turn').length,chips:q.length,dl:document.querySelectorAll('#chatLog a.cm-dl').length,titles:[...q].map(x=>x.title).slice(0,8)});})()\"\n⇒ \"{\\\"turns\\\":4,\\\"chips\\\":6,\\\"dl\\\":2,\\\"titles\\\":[\\\"crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv\\\",\\\"public/js/chat-media.js — not foun",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Check file index for those paths",
+          "body": "description: Check file index for those paths\ncommand: agent-browser eval \"(()=>{const p=(window.DW&&DW.allPaths)||[]; return JSON.stringify({total:p.length, shots:p.filter(x=>x.includes('chip-download')), media:p.filter(x=>x.includes('chat-media')), idx:p.filter(x=>x.endsWith('public/index.html')).slice(0,3)});})()\"\n⇒ \"{\\\"total\\\":0,\\\"shots\\\":[],\\\"media\\\":[],\\\"idx\\\":[]}\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Re-check file index after load",
+          "body": "description: Re-check file index after load\ncommand: agent-browser eval \"(()=>{const p=(window.DW&&DW.allPaths)||[]; return JSON.stringify({total:p.length, shots:p.filter(x=>x.includes('chip-download')).slice(0,4), media:p.filter(x=>x.includes('chat-media'))});})()\"\n⇒ \"{\\\"total\\\":0,\\\"shots\\\":[],\\\"media\\\":[]}\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Grep",
+          "label": "Grep dead|allPaths|FILE_INDEX|fileExists in chat-media.js",
+          "body": "path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\public\\js\\chat-media.js\npattern: dead|allPaths|FILE_INDEX|fileExists\noutput_mode: content\nhead_limit: 40\n⇒ 36:// chips for other known types, and muted \"not found\" chips for dead refs. Reuses 47: if(cmOutsideRepo(p)) return {p,name,ext,kind:'dead'}; // never fetch ou",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Correctly probe the allPaths Set",
+          "body": "description: Correctly probe the allPaths Set\ncommand: agent-browser eval \"(()=>{const s=DW.allPaths; return JSON.stringify({size:s.size, media:s.has('crs-brain/public/js/chat-media.js'), shot:s.has('crs-brain/data/screenshots/adhoc/chip-download-light-zoom.png'), csv:s.has('crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv')});})()\"\n⇒ \"{\\\"size\\\":1279,\\\"media\\\":true,\\\"shot\\\":true,\\\"csv\\\":true}\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Confirmed end-to-end on a **real stored message** — the CSV chip renders live with its download button. Let me capture that.",
+          "body": "Confirmed end-to-end on a **real stored message** — the CSV chip renders live with its download button. Let me capture that.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Zoom and scroll to real CSV chip",
+          "body": "description: Zoom and scroll to real CSV chip\ncommand: agent-browser eval \"(()=>{const q=[...document.querySelectorAll('#chatLog .cm-chip')].find(x=>x.querySelector('a.cm-dl')); q.closest('.turn').style.zoom='2.4'; q.scrollIntoView({block:'center'}); return 'ok';})()\"\n⇒ \"ok\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Capture real message dark theme",
+          "body": "description: Capture real message dark theme\ncommand: agent-browser screenshot \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-real-dark.png\"\n⇒ ✓ Screenshot saved to C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-real-dark.png",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read chip-real-dark.png",
+          "body": "file_path: C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\screenshots\\adhoc\\chip-real-dark.png",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Reset zoom",
+          "body": "description: Reset zoom\ncommand: agent-browser eval \"(()=>{document.querySelectorAll('#chatLog .turn').forEach(t=>t.style.zoom=''); return 'reset';})()\"\n⇒ \"reset\"",
+          "actor": "buildprint"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Now the ledger entry.",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Read tail of changelog",
+          "body": "description: Read tail of changelog\ncommand: tail -n 25 \"C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md\"\n⇒ - **design.md** — as-built pointers (design_system sandbox page with 209 demo WFs, UI-kit option sets); pending: audit Bubble styles/ vs tokens.css. - **option-",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Read head of changelog",
+          "body": "description: Read head of changelog\ncommand: head -n 12 \"C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md\"\n⇒ # Brain Changelog Append-only. One entry per ingest or manual brain update. Newest at top. --- ## 2026-07-17 — CLI self-inventory: as-shipped help reference cap",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit changelog.md",
+          "body": "file_path: C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md\nold_string: ---\n\n## 2026-07-17 — CLI self-inventory\nnew_string: ---\n\n## 2026-08-06 — LG initiator export (live, read-only) + chat file-download button\n\nTwo pieces of work. **No Bubble changes** — no savepoint/apply was needed for either.\n\n- **Export** — `crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv`: 9,865 link-level rows (one row per report-employee link), Live Game dept · Active employees · Initiator=Yes · event date ≤ 2026-07-31. Read-only against `--version live`. Data caveats worth remembering: (1) financials live on **11 Report**, not on the link — the link's own amount fields are populated on only 369 of 9,986 rows, so never source money from the link; (2) the report **currency** field was abandoned mid-2025, so blank = USD by Vlad's ruling, and the handful of GEL-tagged rows are left unconverted; (3) 3,204 rows share …\n⇒ ✗ <tool_use_error>File has not been read yet. Read it first before writing to it.</tool_use_error>",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read changelog.md",
+          "body": "file_path: C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md\nlimit: 8\n⇒ 1 # Brain Changelog 2 3 Append-only. One entry per ingest or manual brain update. Newest at top. 4 5 --- 6 7 ## 2026-07-17 — CLI self-inventory: as-shipped help",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Edit",
+          "label": "Edit changelog.md",
+          "body": "file_path: C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md\nold_string: ---\n\n## 2026-07-17 — CLI self-inventory\nnew_string: ---\n\n## 2026-08-06 — LG initiator export (live, read-only) + chat file-download button\n\nTwo pieces of work. **No Bubble changes** — no savepoint/apply was needed for either.\n\n- **Export** — `crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv`: 9,865 link-level rows (one row per report-employee link), Live Game dept · Active employees · Initiator=Yes · event date ≤ 2026-07-31. Read-only against `--version live`. Data caveats worth remembering: (1) financials live on **11 Report**, not on the link — the link's own amount fields are populated on only 369 of 9,986 rows, so never source money from the link; (2) the report **currency** field was abandoned mid-2025, so blank = USD by Vlad's ruling, and the few GEL-tagged rows are left unconverted; (3) 3,204 rows share a repo …\nreplace_all: false\n⇒ The file C:/Users/CCTV Mgr/Projects/crs-progress/brain/changelog.md has been updated successfully.",
+          "actor": "brain"
         }
       ]
     }

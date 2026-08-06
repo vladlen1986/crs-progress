@@ -292,5 +292,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T16:11:03.915Z"
+  },
+  {
+    "id": "cc4edf27",
+    "category": "design-pattern",
+    "trigger": "file chips, dual affordances, open and download UI",
+    "rule": "HTML forbids nested anchors; clickable file chips with separate open and download actions need distinct internal elements.",
+    "fix": "Wrap chip in `<div class='cm-chip'>`, add child `<a class='cm-dl download>` pointing to `/api/raw?path=FILE&dl=1`, add separate `<button>` for open-on-click; never nest `<a>` tags.",
+    "errorSig": "",
+    "source": "chat 55701032 · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T16:32:54.336Z"
   }
 ]

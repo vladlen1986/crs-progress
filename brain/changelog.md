@@ -4,6 +4,15 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-08-06 — LG initiator export (live, read-only) + chat file-download button
+
+Two pieces of work. **No Bubble changes** — no savepoint/apply was needed for either.
+
+- **Export** — `crs-brain/data/exports/LG_active_employee_report_links_to_2026-07-31.csv`: 9,865 link-level rows (one row per report-employee link), Live Game dept · Active employees · Initiator=Yes · event date ≤ 2026-07-31. Read-only against `--version live`. Data caveats worth remembering: (1) financials live on **11 Report**, not on the link — the link's own amount fields are populated on only 369 of 9,986 rows, so never source money from the link; (2) the report **currency** field was abandoned mid-2025, so blank = USD by Vlad's ruling, and the few GEL-tagged rows are left unconverted; (3) 3,204 rows share a report with a co-initiator, so summing `Amount Total` row-wise double-counts (2,372,330.50 row-level vs 1,502,171.50 de-duplicated by report); (4) live uses `report_type_custom_report_group` where the test branch has `report_type1_...` — **test/live schema drift**; (5) `report_currency` is not queryable by slug on live, IDs must be resolved via `data fetch`; (6) Asia/Tbilisi is UTC+4 with no DST, confirmed empirically twice.
+- **Brain app** — file chips in chat responses now carry a save-to-disk button. Frontend-only: `crs-brain/public/js/chat-media.js` (`cmChipEl` splits the chip into `a.cm-open` + `a.cm-dl`) and `crs-brain/public/index.html` (CSS). `server.js` untouched — `/api/raw?dl=1` already emitted `Content-Disposition: attachment` behind `safeRepoPath()`. Chips whose path is absent from the file index still render as "not found" with no button.
+
+---
+
 ## 2026-07-17 — CLI self-inventory: as-shipped help reference captured; `data` WRITE capability confirmed
 
 Interrogated the linked Buildprint CLI (now v4.2.6, was v4.1.6 on 2026-07-14) for everything it can provide beyond the docs site and the 29 guidelines.
