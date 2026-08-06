@@ -136,3 +136,4 @@
 {"ts":"2026-08-01T21:01:50.554Z","purpose":"bp-chat","model":"claude-sonnet-5","in":0,"out":0,"ms":3399,"costUsd":0,"estimated":true}
 {"ts":"2026-08-01T21:01:59.270Z","purpose":"bp-chat","model":"claude-sonnet-5","in":31740,"out":254,"ms":8715,"costUsd":0.09903,"estimated":true}
 {"ts":"2026-08-01T21:03:10.421Z","purpose":"bp-chat","model":"claude-sonnet-5","in":32012,"out":4636,"ms":46654,"costUsd":0.165576,"estimated":true}
+{"ts":"2026-08-06T10:00:25.889Z","purpose":"chat","model":"claude-opus-4-8","in":98225,"out":6860,"ms":1580158,"costUsd":1.987875,"estimated":true}
