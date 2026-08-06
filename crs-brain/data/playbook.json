@@ -306,5 +306,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T16:32:54.336Z"
+  },
+  {
+    "id": "f1f472af",
+    "category": "platform-gotcha",
+    "trigger": "cd commands, directory navigation, worktree operations, file operations",
+    "rule": "The Buildprint session sandbox locks the working directory to a fixed path and blocks cd into other directories.",
+    "fix": "Work within the sandbox-allowed working directory; use absolute paths within the allowed scope instead of attempting to cd elsewhere.",
+    "errorSig": "cd in was blocked",
+    "source": "chat d160abe1 · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T17:44:16.082Z"
   }
 ]
