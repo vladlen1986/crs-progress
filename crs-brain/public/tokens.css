@@ -112,6 +112,21 @@
  * is the one place a 700 still reaches the screen; cap it here for all pages. */
 b, strong { font-weight: 600; }
 
+/* ---- Dashboard hero ------------------------------------------------------ */
+/* A calm empty state: one large mark, one real sentence. The mark breathes
+ * (opacity only — §7 forbids scaling/bouncing) and stops entirely under
+ * prefers-reduced-motion. Monochrome: the mark is ink, not brand — a filled
+ * clay glyph this size would blow the §10 orange budget on its own. */
+.dash-hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:64px 24px;text-align:center}
+.dash-hero .dh-mark{width:72px;height:72px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
+.dash-hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
+.dash-hero .dh-title{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary);margin-top:6px}
+.dash-hero .dh-line{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-body);max-width:560px}
+.dash-hero .dh-line b{color:var(--cc-text-primary);font-weight:600}
+.dash-hero .dh-hint{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);margin-top:2px}
+@keyframes dhBreathe{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){ .dash-hero .dh-mark{animation:none;opacity:.9} }
+
 /* §7 motion — hover fills snap, panels ease; nothing bounces or scales. */
 * { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after{ transition-property: opacity !important; animation: none !important; } }

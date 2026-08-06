@@ -755,6 +755,8 @@
   .brand-home:hover{opacity:.85}
   /* 2026-08-06 visual-weight pass: dense + quiet. Content starts near the top, chrome recedes. */
   .dash{flex:1;overflow:auto;padding:18px 28px 36px;font-size:12px}
+  /* hero mode fills the column so the mark sits optically centred */
+  .dash:has(.dash-hero){display:flex;padding:0}
   .dash-inner{max-width:1120px;margin:0 auto}
   .dash-head{margin-bottom:14px}
   /* greeting is a modest line, not a hero headline */
@@ -2502,6 +2504,37 @@ function dashChip(link){
     wishlist:`openTarget('/wishlist.html',{title:'Wishlist'})`}[k]||'';
   return `<button class="tchip" onclick="${open}" title="${esc(k)}: ${r}">${esc(k)}: ${r.length>28?esc(link.ref.slice(0,28))+'…':r}</button>`;
 }
+// The dashboard renders as a calm hero by default (Vlad 2026-08-06: "make
+// dashboard page clean … only crs brain icon that animates in the middle and
+// some smart text"). NOTHING below is deleted — the full panel build still
+// exists and returns the moment this flag flips, or via `dashFull(true)` in the
+// console. Everything it showed is reachable from the header menus.
+let DASH_HERO = true;
+function dashFull(on){ DASH_HERO = on === false; renderDashboard(); }
+// One real sentence about where the project stands — assembled from live state,
+// never filler. Falls back gracefully when a store is empty.
+function dashHeroLine(dash, chats){
+  const bits = [];
+  const focus = dash && dash.modules && dash.modules.focus;
+  if (focus) bits.push('Building <b>' + esc(focus.name) + '</b>');
+  const done = dash && dash.modules && (dash.modules.counts||{})['done'] || 0;
+  const total = dash && dash.modules && dash.modules.total || 0;
+  if (total) bits.push(done + ' of ' + total + ' modules done');
+  const open = (dash && dash.tasks || []).filter(t => t.status !== 'done').length;
+  if (open) bits.push(open + ' open todo' + (open > 1 ? 's' : ''));
+  const decisions = (dash && dash.decisionsOpen || []).length;
+  if (decisions) bits.push(decisions + ' decision' + (decisions > 1 ? 's' : '') + ' waiting on you');
+  if (!bits.length) bits.push('Everything is quiet');
+  return bits.join(' · ');
+}
+function dashHeroHtml(dash, chats, greet){
+  return `<div class="dash-hero">
+    <div class="dh-mark">${svg('i-brain')}</div>
+    <div class="dh-title">${esc(greet)}, Vlad</div>
+    <div class="dh-line">${dashHeroLine(dash, chats)}</div>
+    <div class="dh-hint">Ask below · tools live in the header · ⌘K searches everything</div>
+  </div>`;
+}
 async function renderDashboard(){
   const box=$('dashView');
   const [dash,chatsR,plansD]=await Promise.all([
@@ -2511,6 +2544,11 @@ async function renderDashboard(){
   ]);
   if(plansD) plansCache=plansD;
   if(!dash){ box.innerHTML='<div class="dash-inner"><div class="dempty">Dashboard data unavailable — is the server up?</div></div>'; return; }
+  if(DASH_HERO){
+    const hr0=new Date().getHours();
+    box.innerHTML=dashHeroHtml(dash, chatsR.chats||[], hr0<12?'Good morning':hr0<18?'Good afternoon':'Good evening');
+    return;
+  }
   const chats=chatsR.chats||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
   // (c / tint / T deleted with the Tools strip — the tools are header menus now)
