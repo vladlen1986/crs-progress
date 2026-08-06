@@ -1614,6 +1614,54 @@ function disableUsage() {
   }
 }
 
+// ---- per-model weekly windows (Fable) -------------------------------------
+// Claude Code's statusline payload carries ONLY `five_hour` and `seven_day`
+// (measured on CLI 2.1.120 and again on 2.1.223 — upgrading does NOT add them).
+// The per-model weekly bucket that the Desktop UI shows is rendered exclusively
+// on the interactive `/usage` screen, e.g.
+//     Current week (all models)  ███ 62% used   Resets Aug 8 at 3am (…)
+//     Current week (Fable)       ███ 79% used   Resets Aug 8 at 2:59am (…)
+// so we scrape that screen and merge the extra rows into usage.json under
+// `seven_day_<model>` — the key shape usagewin.js's windowLabel() already turns
+// into "Weekly · Fable" with no UI change.
+function stripAnsi(s) {
+  return String(s).replace(/\x1b\[[0-9;?]*[a-zA-Z]/g, '').replace(/\x1b\][^\x07]*(\x07|\x1b\\)/g, '').replace(/\x1b[()][A-Za-z0-9]/g, '');
+}
+// Returns { seven_day_fable: {used_percentage, resets_at}, … } — "all models" is
+// skipped (the statusline already reports it as seven_day, authoritatively).
+function parseUsageScreen(raw, fallbackResetAt) {
+  const txt = stripAnsi(raw).replace(/[▏▎▍▌▋▊▉█▐▔▁─│┌┐└┘]/g, ' ').replace(/\s+/g, ' ');
+  const out = {};
+  const re = /Current week \(([^)]{1,40}?)\)\s*([\d.]{1,5})\s*% used/gi;
+  let m;
+  while ((m = re.exec(txt))) {
+    const name = m[1].trim();
+    const pct = Math.round(parseFloat(m[2]));
+    if (!isFinite(pct) || pct < 0 || pct > 100) continue;
+    if (/^all models$/i.test(name)) continue;                 // == seven_day
+    const key = 'seven_day_' + name.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_|_$/g, '');
+    // The per-model week runs on the same cycle as the account week (observed
+    // 2:59am vs 3am), and parsing "Resets Aug 8 at 2:59am (Asia/Tbilisi)" into an
+    // epoch across timezones is far more fragile than reusing the value the
+    // statusline already gave us in epoch form.
+    out[key] = { used_percentage: pct, resets_at: fallbackResetAt || undefined, source: 'usage-screen' };
+  }
+  return out;
+}
+function mergeScreenWindows(raw) {
+  const u = loadUsage(); if (!u || !u.rate_limits) return;
+  const extra = parseUsageScreen(raw, u.rate_limits.seven_day && u.rate_limits.seven_day.resets_at);
+  const keys = Object.keys(extra);
+  // Drop stale per-model keys when the screen no longer reports them (promo ended).
+  for (const k of Object.keys(u.rate_limits)) {
+    if (/^seven_day_/.test(k) && !extra[k]) delete u.rate_limits[k];
+  }
+  if (!keys.length) { try { fs.writeFileSync(USAGE_FILE, JSON.stringify(u, null, 2)); } catch {} return; }
+  Object.assign(u.rate_limits, extra);
+  u.rate_limits_at = Date.now();
+  try { fs.writeFileSync(USAGE_FILE, JSON.stringify(u, null, 2)); } catch {}
+}
+
 // Fetch a fresh reading: the statusline only runs in an INTERACTIVE claude
 // session, so we briefly drive one in a pseudo-terminal (node-pty), send one
 // cheap Haiku turn to force an API response (which triggers the statusline →
@@ -1623,6 +1671,15 @@ function populateUsage() {
   return new Promise((resolve) => {
     if (!usageEnabled()) return resolve({ ok: false, error: 'tracking not enabled' });
     let pty;
+    // node-pty's POSIX path execs a bundled `spawn-helper`; npm on macOS routinely
+    // drops its executable bit, and the only symptom is `posix_spawnp failed.` on
+    // EVERY spawn (even /bin/echo). Self-heal instead of failing forever. (2026-08-07)
+    try {
+      for (const arch of ['darwin-arm64', 'darwin-x64']) {
+        const h = path.join(BRAIN_DIR, 'node_modules', 'node-pty', 'prebuilds', arch, 'spawn-helper');
+        if (fs.existsSync(h) && !(fs.statSync(h).mode & 0o111)) fs.chmodSync(h, 0o755);
+      }
+    } catch {}
     try { pty = require('node-pty'); }
     catch { return resolve({ ok: false, error: 'node-pty not installed (run npm install in crs-brain)' }); }
 
@@ -1648,7 +1705,9 @@ function populateUsage() {
       term = pty.spawn(file, args, { name: 'xterm-256color', cols: 100, rows: 30, cwd: REPO_ROOT, env: process.env });
     } catch (e) { return resolve({ ok: false, error: e.message }); }
 
-    term.onData(() => {});
+    // Capture the TUI stream so the /usage screen can be scraped (see scrapeUsageScreen).
+    let screen = '';
+    term.onData((d) => { screen += d; if (screen.length > 400000) screen = screen.slice(-200000); });
     let done = false;
     // Send a cheap turn to force an API response; the statusline only emits
     // rate_limits AFTER that response. Resend a couple times in case the TUI
@@ -1670,14 +1729,24 @@ function populateUsage() {
     // session's startup render, which arrives before the first API response and so
     // carries no fresh limits. If the account never returns rate_limits (e.g. API-key
     // users), the grace fallback below still accepts the newer model/context/cost.
-    let sawWrite = false;
+    let sawWrite = false, askedScreen = false;
     const poll = setInterval(() => {
       const u = loadUsage();
       if (!u || !u.at || u.at <= before) return;
       sawWrite = true;  // we captured *a* newer render
       const freshRL = u.rate_limits && (u.rate_limits.five_hour || u.rate_limits.seven_day)
         && (u.rate_limits_at || 0) > beforeRLAt;
-      if (freshRL) finish(true);
+      // The statusline payload carries ONLY five_hour + seven_day — verified on CLI
+      // 2.1.223 (2026-08-07). Per-model weekly windows (Fable) exist only on the
+      // interactive /usage screen, so once the limits land, open it in this same
+      // session and scrape the extra rows before killing the pty.
+      if (freshRL && !askedScreen) {
+        askedScreen = true;
+        try { term.write('/usage\r'); } catch {}
+        setTimeout(() => { try { term.write('\r'); } catch {} }, 900);
+        setTimeout(() => { try { mergeScreenWindows(screen); } catch {} finish(true); }, 6500);
+        return;
+      }
     }, 700);
     // Grace fallback: if we saw a render but no fresh rate_limits within the window,
     // accept the latest reading rather than reporting failure.
