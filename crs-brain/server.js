@@ -80,6 +80,7 @@ const IDEAS_FILE = path.join(DATA_DIR, 'ideas.json');
 const SETTINGS_FILE = path.join(DATA_DIR, 'settings.json');
 const BP_GUARD_JS = path.join(BRAIN_DIR, 'bp-guard.js');            // PreToolUse deny-hook script
 const BP_GUARD_SETTINGS = path.join(DATA_DIR, 'bp-guard-settings.json');
+const BP_GUARD_SETTINGS_UC = path.join(DATA_DIR, 'bp-guard-settings-ultracode.json');   // same guard hooks + ultracode:true
 const BP_LOG_JS = path.join(BRAIN_DIR, 'bp-log.js');               // PostToolUse hook: records every buildprint/git command
 const SCREENSHOTS_DIR = path.join(DATA_DIR, 'screenshots');         // agent-captured run-mode screenshots
 const ACTION_LOG_FILE = path.join(DATA_DIR, 'action-log.jsonl');   // append-only activity ledger (one JSON action per line)
@@ -89,14 +90,18 @@ for (const d of [DATA_DIR, CHATS_DIR, ATTACH_DIR, DOCS_DIR, SCREENSHOTS_DIR]) fs
 // spawn hard-blocks dangerous Buildprint CLI commands (apply-to-live, --force-apply,
 // sync --reset, data delete, …) regardless of what the model tries.
 try {
-  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify({
+  const guard = {
     hooks: {
       // PreToolUse: hard-block dangerous commands. PostToolUse: append every
       // buildprint/git command the agent runs to the action log (audit trail for rollback).
       PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_GUARD_JS}"` }] }],
       PostToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: `node "${BP_LOG_JS}" "${ACTION_LOG_FILE}"` }] }],
     },
-  }, null, 2));
+  };
+  fs.writeFileSync(BP_GUARD_SETTINGS, JSON.stringify(guard, null, 2));
+  // `claude` takes ONE --settings value, so ultracode has to ride along with the
+  // guard hooks rather than a second flag. Guard rules are identical either way.
+  fs.writeFileSync(BP_GUARD_SETTINGS_UC, JSON.stringify({ ...guard, ultracode: true }, null, 2));
 } catch (e) { console.error('bp-guard settings write failed:', e.message); }
 
 // ---- action log: append-only ledger of everything the user/agent does, so a
@@ -584,22 +589,32 @@ function openDecisionTriggers() {
   return out;
 }
 // Create an ask. Returns {id} (pending), {answer} (Playbook auto), or {error} (boundary).
-function createAsk(chatId, question, context, options) {
+function createAsk(chatId, question, context, options, kind, meta) {
+  kind = kind === 'decision' ? 'decision' : 'ask';
   question = String(question || '').trim().slice(0, 500);
   options = (Array.isArray(options) ? options : []).slice(0, 6)
     .map((o) => ({ label: String((o && o.label) || '').trim().slice(0, 120), hint: String((o && o.hint) || '').trim().slice(0, 200) }))
     .filter((o) => o.label);
   if (!question || options.length < 2) return { error: 'ask needs a question and 2-6 options' };
-  // T5 boundary: operational asks only — [OPEN] decisions go through the guard flow.
-  const hay = (question + ' ' + (context || '') + ' ' + options.map((o) => o.label + ' ' + o.hint).join(' ')).toLowerCase();
-  for (const d of openDecisionTriggers()) {
-    const hit = d.kws.find((k) => hay.includes(k));
-    if (hit) return { error: `This touches the OPEN decision "${d.title}" (trigger: "${hit}"). Locked decisions are never born from a popover — stop and emit DECISION-NEEDED for it instead, per the guard flow.` };
+  // T5 boundary (2026-08-07): still enforced, but its OUTPUT changed. It used to
+  // reject the ask, which left the session with prose as its only route — the
+  // exact behaviour Vlad wants gone. Now it UPGRADES the ask to a decision card:
+  // same blocking contract, clickable options, but decision semantics (no
+  // recommend shortcut, no standing answer, lands in decisions.md as a
+  // candidate). A locked decision still can never be born from a Playbook
+  // auto-answer, which is what the boundary actually protects.
+  if (kind !== 'decision') {
+    const hay = (question + ' ' + (context || '') + ' ' + options.map((o) => o.label + ' ' + o.hint).join(' ')).toLowerCase();
+    for (const d of openDecisionTriggers()) {
+      const hit = d.kws.find((k) => hay.includes(k));
+      if (hit) return createAsk(chatId, question, context, options, 'decision', { openTitle: d.title, trigger: hit });
+    }
   }
   const sig = askSignature(question, options);
   try { fs.appendFileSync(ASK_LOG_FILE, JSON.stringify({ ts: nowIso(), sig, chatId, question }) + '\n'); } catch {}
   // T4: an ACTIVE standing answer wins — no card, no sound, turn shows the receipt.
-  const standing = loadStanding().find((s) => s.sig === sig && s.active !== false);
+  // NEVER for a decision: a locked decision must not be born from a Playbook rule.
+  const standing = kind === 'decision' ? null : loadStanding().find((s) => s.sig === sig && s.active !== false);
   const live = LIVE_TURNS.get(chatId);
   const persistMsg = (msg) => {
     if (live && live.chat) { live.chat.messages.push(msg); try { saveChat(live.chat); } catch {} }
@@ -613,12 +628,12 @@ function createAsk(chatId, question, context, options) {
     return { answer: standing.answer };
   }
   const id = crypto.randomUUID().slice(0, 8);
-  const ask = { id, chatId, question, context: String(context || '').slice(0, 1000), options, sig, ts: Date.now(), answered: false, answer: null, waiters: [], renotified: false, askedCount: askLogCount(sig) };
+  const ask = { id, chatId, question, context: String(context || '').slice(0, 1000), options, sig, kind, meta: meta || null, ts: Date.now(), answered: false, answer: null, waiters: [], renotified: false, askedCount: askLogCount(sig) };
   ASKS.set(id, ask);
-  persistMsg({ role: 'ask', status: 'pending', id, question, context: ask.context, options, sig, askedCount: ask.askedCount, ts: nowIso() });
-  if (live) live.sse({ type: 'question', status: 'pending', id, question, context: ask.context, options, askedCount: ask.askedCount });
-  addNotification({ type: 'question-pending', level: 'warning', title: 'A session needs you', body: question.slice(0, 140), target: 'chat:' + chatId });
-  return { id };
+  persistMsg({ role: 'ask', status: 'pending', id, question, context: ask.context, options, sig, kind, meta: ask.meta, askedCount: ask.askedCount, ts: nowIso() });
+  if (live) { live.raised = (live.raised || 0) + 1; live.sse({ type: 'question', status: 'pending', id, question, context: ask.context, options, kind, meta: ask.meta, askedCount: ask.askedCount }); }
+  addNotification({ type: 'question-pending', level: 'warning', title: kind === 'decision' ? 'A decision needs you' : 'A session needs you', body: question.slice(0, 140), target: 'chat:' + chatId });
+  return { id, kind };
 }
 function answerAsk(id, answer, opts) {
   const ask = ASKS.get(id);
@@ -629,7 +644,10 @@ function answerAsk(id, answer, opts) {
   const mark = (c) => { const m = (c.messages || []).find((x) => x.role === 'ask' && x.id === id); if (m) { m.status = 'answered'; m.answer = ask.answer; m.answeredAt = nowIso(); } };
   if (live && live.chat) { mark(live.chat); try { saveChat(live.chat); } catch {} }
   else { const c = loadChat(ask.chatId); if (c) { mark(c); try { saveChat(c); } catch {} } }
-  if ((opts || {}).standing) {
+  // A decision NEVER becomes a standing answer — that is the whole point of the
+  // T5 boundary. It is recorded in decisions.md as a candidate for Vlad to ratify.
+  if (ask.kind === 'decision') appendDecisionCandidate(ask);
+  else if ((opts || {}).standing) {
     const arr = loadStanding().filter((s) => s.sig !== ask.sig);
     arr.push({ sig: ask.sig, question: ask.question, options: ask.options.map((o) => o.label), answer: ask.answer, active: true, hits: 0, created: nowIso() });
     saveStanding(arr);
@@ -637,13 +655,86 @@ function answerAsk(id, answer, opts) {
   logAudit({ action: 'ask-answered', target: id, via: (opts || {}).via || 'desktop', meta: { question: ask.question.slice(0, 120), answer: ask.answer.slice(0, 120), standing: !!(opts || {}).standing } });
   const resumed = ask.waiters.length > 0;
   for (const w of ask.waiters.splice(0)) { try { w({ answered: true, answer: ask.answer }); } catch {} }
-  if (live) live.sse({ type: 'question-answered', id, answer: ask.answer });
+  if (live) live.sse({ type: 'question-answered', id, answer: ask.answer, kind: ask.kind || 'ask' });
   // keep the answered ask around briefly — a shim re-poll racing the answer must
   // still be able to fetch it (long-poll gap), then GC
   setTimeout(() => ASKS.delete(id), 10 * 60 * 1000).unref();
   return { ok: true, resumed };
 }
-function pendingAsks() { return [...ASKS.values()].filter((a) => !a.answered).map((a) => ({ id: a.id, chatId: a.chatId, question: a.question, context: a.context, options: a.options, askedCount: a.askedCount, ts: a.ts })); }
+// A decision card's answer is recorded in decisions.md as a CANDIDATE — newest at
+// top, append-only, matching the file's existing entry shape. It is deliberately
+// not written as a locked ruling: Vlad clicked an option, he did not author the
+// rationale, so the entry says so and asks to be ratified.
+function appendDecisionCandidate(ask) {
+  try {
+    const decPath = path.join(REPO_ROOT, 'decisions.md');
+    let md = fs.readFileSync(decPath, 'utf8');
+    const title = (ask.meta && ask.meta.openTitle) ? ask.meta.openTitle : ask.question.replace(/\s+/g, ' ').slice(0, 90);
+    const entry = '## ' + nowIso().slice(0, 10) + ' — [CANDIDATE] ' + title + '\n'
+      + '**Decision:** ' + ask.answer + '\n'
+      + '**Asked:** ' + ask.question + '\n'
+      + '**Options offered:** ' + ask.options.map((o) => o.label).join(' · ') + '\n'
+      + (ask.meta && ask.meta.trigger ? '**Matched OPEN trigger:** "' + ask.meta.trigger + '"\n' : '')
+      + '**Status:** CANDIDATE — chosen from a decision card, not yet ratified. Review the reasoning,' + '\n'
+      + 'then rewrite this as a proper locked entry (and delete the [OPEN] stub), or remove it.' + '\n'
+      + '**Artifacts:** raised in chat ' + ask.chatId + ', ask ' + ask.id + '.' + '\n\n---\n\n';
+    const at = md.indexOf('\n## ');
+    md = at > 0 ? md.slice(0, at + 1) + entry + md.slice(at + 1) : md + '\n' + entry;
+    fs.writeFileSync(decPath, md);
+    logAudit({ action: 'decision-candidate', target: title, meta: { answer: ask.answer.slice(0, 120) } });
+    addNotification({ type: 'info', level: 'info', title: 'Decision candidate recorded', body: title.slice(0, 140), target: 'decisions.md' });
+  } catch (e) { try { logAudit({ action: 'decision-candidate-failed', target: ask.id, meta: { err: e.message } }); } catch {} }
+}
+// ---- prose-question backstop ------------------------------------------------
+// The guarantee is not 'sessions are told not to ask in prose' — it is that a
+// prose question CANNOT reach Vlad as prose. When a turn ends, if its final
+// message reads as a question to him and no card was raised during the turn, we
+// parse the options out of the text and raise a card ourselves. Logged to
+// ask-log.jsonl with source:'backstop' so how often sessions try this is visible.
+const PROSE_Q_RE = /(which (one |option )?do you (want|prefer)|would you like me to|do you want me to|should i\b|let me know|shall i\b|your call\b|prefer(ence)?\?|say the word|tell me which|A or B\b|option [ab]\b)/i;
+function looksLikeProseQuestion(text) {
+  const t = String(text || '').trim();
+  if (!t) return false;
+  const tail = t.slice(-400);
+  if (PROSE_Q_RE.test(tail)) return true;
+  // a turn whose LAST non-empty line ends in a question mark is asking him something
+  const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const last = lines[lines.length - 1] || '';
+  return /\?\s*$/.test(last) && last.length < 300;
+}
+// Pull candidate options out of prose: numbered/lettered/bulleted lists first,
+// then a bare 'X or Y' in the closing question. Falls back to a generic pair —
+// the free-text field on every card is always the real escape hatch.
+function parseProseOptions(text) {
+  const t = String(text || '');
+  const out = [];
+  const push = (v) => {
+    const label = String(v || '').replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim().replace(/[.,;:]$/, '').slice(0, 90);
+    if (label && label.length > 1 && !out.some((o) => o.label.toLowerCase() === label.toLowerCase())) out.push({ label, hint: '' });
+  };
+  const listRe = /^\s*(?:[-*\u2022]|\(?[a-dA-D][).]|[1-6][).])\s+(.{2,90})$/gm;
+  let m;
+  while ((m = listRe.exec(t)) && out.length < 6) push(m[1]);
+  if (out.length < 2) {
+    out.length = 0;
+    const tail = t.slice(-300);
+    const or = tail.match(/([A-Za-z][\w '\-]{2,40})\s+or\s+([A-Za-z][\w '\-]{2,40})\s*\?/);
+    if (or) { push(or[1]); push(or[2]); }
+  }
+  if (out.length < 2) { out.length = 0; push('Go ahead'); push('Stop — I will explain'); }
+  return out.slice(0, 6);
+}
+// The question shown on the card: the last interrogative line, else the tail.
+function proseQuestionText(text) {
+  const lines = String(text || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0 && i > lines.length - 8; i--) {
+    const l = lines[i].replace(/^[-*\u2022]\s*/, '');
+    if (/\?\s*$/.test(l) && l.length < 300) return l;
+  }
+  const t = String(text || '').trim();
+  return (t.slice(-240) || 'This turn ended with a question.').trim();
+}
+function pendingAsks() { return [...ASKS.values()].filter((a) => !a.answered).map((a) => ({ id: a.id, chatId: a.chatId, question: a.question, context: a.context, options: a.options, kind: a.kind || 'ask', meta: a.meta || null, askedCount: a.askedCount, ts: a.ts })); }
 // Re-notify once after N minutes (configurable), checked every 60s.
 setInterval(() => {
   try {
@@ -666,7 +757,7 @@ try {
     if (fs.statSync(path.join(CHATS_DIR, f)).mtimeMs < cutoff) continue;
     const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
     for (const m of c.messages || []) {
-      if (m.role === 'ask' && m.status === 'pending' && m.id) ASKS.set(m.id, { id: m.id, chatId: c.id, question: m.question, context: m.context || '', options: m.options || [], sig: m.sig, ts: Date.parse(m.ts) || Date.now(), answered: false, answer: null, waiters: [], renotified: true, askedCount: m.askedCount || 0 });
+      if (m.role === 'ask' && m.status === 'pending' && m.id) ASKS.set(m.id, { id: m.id, chatId: c.id, question: m.question, context: m.context || '', options: m.options || [], sig: m.sig, kind: m.kind || 'ask', meta: m.meta || null, ts: Date.parse(m.ts) || Date.now(), answered: false, answer: null, waiters: [], renotified: true, askedCount: m.askedCount || 0 });
     }
   }
 } catch {}
@@ -745,7 +836,7 @@ const DEFAULT_SOUND_EVENTS = {
   'process-start': 's12', 'connection-lost': 's22', 'connection-restored': 's07',
 };
 const DEFAULT_SETTINGS = {
-  model: 'claude-opus-4-8', effort: 'high', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
+  model: 'claude-opus-4-8', effort: 'auto', manualsCheckedAt: 0, autoRoute: false, bubbleWatch: false, bubbleCheckedAt: 0,
   autoFallback: true,                          // if the chosen model is inaccessible (overload / model-specific limit / unavailable), auto-switch to keep working
   fallbackModels: ['sonnet', 'haiku'],         // ordered chain tried after the primary; aliases survive version bumps. NOTE: the account-wide 5h cap hits every model — fallback only rescues MODEL-specific outages (e.g. Opus limit while the general pool is fine)
   theme: 'dark',                              // 'dark' | 'light'
@@ -1485,7 +1576,7 @@ function classifyTask(text, hint) {
 // settings. When on, the classifier may downgrade; ambiguous tasks fall back to
 // settings. Returns { model, effort, routed, reason }.
 function routeModel(cfg, text, hint) {
-  const base = { model: cfg.model || MODEL_OPUS, effort: cfg.effort || 'high' };
+  const base = { model: cfg.model || MODEL_OPUS, effort: (cfg.effort && cfg.effort !== 'auto') ? cfg.effort : 'high' };
   if (!cfg.autoRoute) return { ...base, routed: false, reason: 'auto-route off' };
   const c = classifyTask(text, hint);
   if (!c) return { ...base, routed: false, reason: 'ambiguous — kept default' };
@@ -1542,11 +1633,15 @@ function populateUsage() {
     // node-pty's posix_spawnp doesn't reliably resolve 'claude' via PATH — use the
     // full binary path (found via extended PATH) so the pty can exec it.
     const file = isWin ? 'cmd.exe' : (resolveBin('claude') || 'claude');
-    // Use the user's DEFAULT model — don't force Haiku. Forcing a model made the
-    // usage panel report that model (e.g. "Haiku 4.5") instead of what the user
-    // actually runs. rate_limits are subscription-wide, so the probe model doesn't
-    // change the numbers; the honest thing is to reflect their real default.
-    const args = (isWin ? ['/c', 'claude'] : []);
+    // Probe on the CHEAPEST model (2026-08-07). The old comment here said not to
+    // force one, because forcing Haiku made the panel report "Haiku 4.5" as the
+    // model. That was a DISPLAY bug, now fixed at the source: the window shows the
+    // model the BRAIN is running, never the probe's. rate_limits are
+    // subscription-wide, so the probe model does not change the numbers — and a
+    // Haiku probe is cheap enough to run on a timer, which is what makes the
+    // reading actually stay fresh.
+    const probeModel = 'claude-haiku-4-5-20251001';
+    const args = (isWin ? ['/c', 'claude', '--model', probeModel] : ['--model', probeModel]);
 
     let term;
     try {
@@ -1678,7 +1773,7 @@ const SYSTEM_PROMPT = [
   'You are "CRS Brain", the persistent assistant for Vlad\'s CRS (Casino Reporting Suite) project.',
   'You run inside a local second-brain app. The project root is this working directory.',
   'Your job: help track progress, remember decisions, and answer "what is next / what is missing".',
-  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, scope, naming — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "let me know" question — that is a contract violation. If he answers "recommend", present YOUR recommendation with one-line tradeoffs as a NEW ask_vlad call (recommended option first) — do not just proceed. If the tool rejects the ask because it touches an [OPEN] decision, stop and report DECISION-NEEDED instead. Operational choices only — architectural decisions are never made through an ask.',
+  'ASK PROTOCOL (hard contract): NEVER ask Vlad anything in prose. A question written as a paragraph - "which do you want?", "let me know", "A or B?", or a turn ending in a question mark - is a contract violation, and the server catches it and converts it into a card anyway. Every question goes through a tool and BLOCKS on his answer. OPERATIONAL choices (fix path, proceed/park, scope, naming) -> ask_vlad with 2-6 concrete options. ARCHITECTURAL choices, or anything touching an [OPEN] decision in decisions.md -> decide_with_vlad with 2-6 options, which records his choice in decisions.md as a candidate. An ask_vlad that touches an [OPEN] decision is upgraded to a decision card by the server automatically - you do not need to handle that. If he answers "recommend", present YOUR recommendation with one-line tradeoffs as a NEW ask_vlad call (recommended option first) - do not just proceed.',
   'RETRIEVAL: the knowledge base lives in brain/. ALWAYS read brain/INDEX.md first — it maps every',
   'domain (database, option-sets, security, workflows, migrations, design) to its file and its',
   'authoritative sources. Jump straight to the mapped file/section instead of grepping the repo.',
@@ -1749,11 +1844,9 @@ function loadBpChat() {
 }
 function saveBpChat(c) { fs.writeFileSync(BP_CHAT_FILE, JSON.stringify(c, null, 2)); }
 
-const BP_PROMPT = (ws) => [
-  'You are the CRS Brain BUILDPRINT COPILOT. You operate the CRS Bubble app directly via the Buildprint CLI',
-  `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
-  `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
-  'pages/, option_sets/, styles/, api/, settings/…).',
+// The Buildprint operating manual, minus the identity/cwd header — shared by the
+// legacy BP_PROMPT (bp-only spawns) and the UNIFIED prompt every chat now gets.
+const BP_BODY = (ws) => [
   'THE LOOP (follow it exactly): (0) `buildprint sync` FIRST (pull the latest Bubble snapshot). (1) PLAN the',
   'change as numbered steps and get Vlad\'s go-ahead before any apply. (2) Then execute ONE step at a time —',
   'for EACH step: create a savepoint (`buildprint savepoint`, named for the step) → `buildprint apply` →',
@@ -1790,7 +1883,7 @@ const BP_PROMPT = (ws) => [
   '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
-  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, which page, naming, scope trims — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "say the word" question — that is a contract violation. "recommend" answer → present YOUR recommendation + one-line tradeoffs as a NEW ask_vlad call (recommended option first). Tool rejected (touches an [OPEN] decision) → stop and emit DECISION-NEEDED per the guard flow. Operational choices only.',
+  'ASK PROTOCOL (hard contract): NEVER ask in prose - no "which do you want?", no "say the word", no turn ending in a question. Operational choices (fix path, proceed/park, which page, naming, scope trims) -> ask_vlad with 2-6 options, BLOCKS on his answer. Architectural choices or anything touching an [OPEN] decision -> decide_with_vlad with 2-6 options, which records the choice in decisions.md as a candidate. An ask_vlad that touches an [OPEN] decision is upgraded to a decision card by the server automatically.',
   'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task. Pages that require login are captured through the authenticated path (.bp-test-user form sign-in); pages reachable logged-out ALSO get the logged-out capture (that state is part of the truth). A visual task reported done without BOTH theme images embedded is a CONTRACT VIOLATION the verifier flags.',
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
@@ -1811,7 +1904,45 @@ const BP_PROMPT = (ws) => [
   'When you make changes, end with a compact "What changed / Result / Next" summary.',
   'Be concise and direct (CLAUDE.md style). When the user just asks about progress/status, answer from the',
   'workspace + brain/ without running mutating commands.',
+];
+// Legacy bp-only spawns (/api/bp/chat, sync/track) keep the worktree-as-cwd framing.
+const BP_PROMPT = (ws) => [
+  'You are the CRS Brain BUILDPRINT COPILOT. You operate the CRS Bubble app directly via the Buildprint CLI',
+  `so Vlad never needs the Buildprint website. Your working directory IS the cloned branch workspace: ${ws.dir}`,
+  `(app "${ws.app}", branch "${ws.branch}"). Bubble structure lives here as editable files (data_types/,`,
+  'pages/, option_sets/, styles/, api/, settings/…).',
+  ...BP_BODY(ws),
 ].join(' ');
+// ONE CHAT (2026-08-06): there is no Chat-vs-Buildprint mode any more. Every
+// conversation is a Claude Code session rooted in the brain repo that ALSO owns
+// the cloned Bubble worktree (--add-dir) and drives the Buildprint CLI when the
+// task needs it. The CLI resolves its workspace by walking UP from cwd and has
+// no --project flag, so the session `cd`s into the worktree for CLI work — the
+// sandbox permits that because the worktree is an added dir (probed 2026-08-06).
+const BP_CAPABILITY = (ws) => [
+  'BUILDPRINT CAPABILITY — the same session also operates the CRS Bubble app directly via the Buildprint CLI,',
+  'so Vlad never needs the Buildprint website. Use it whenever the task touches the Bubble app (schema, option',
+  'sets, workflows, pages, styles, privacy rules, run-mode screenshots); for repo/brain/strategy work just stay',
+  'where you are — no ceremony, no mode switch, one conversation.',
+  `WORKSPACE: the cloned branch workspace is ${ws.dir} (app "${ws.app}", branch "${ws.branch}") — Bubble`,
+  'structure lives there as editable files (data_types/, pages/, option_sets/, styles/, api/, settings/…).',
+  `CWD RULE (important): your cwd is the brain repo (${REPO_ROOT}); the worktree is added, so both trees are`,
+  'readable and writable. The buildprint CLI finds its workspace by walking UP from cwd and has NO --project',
+  `flag, so before ANY workspace command (sync/apply/check/savepoint/audit/data/screenshot) run \`cd ${ws.dir}\``,
+  `as its OWN Bash call — never chained with && or ; (chaining breaks the command allowlist) — then run the`,
+  `buildprint command; cwd persists across your Bash calls. \`cd ${REPO_ROOT}\` to come back for repo work.`,
+  ...BP_BODY(ws),
+].join(' ');
+// One assembled system prompt per turn: brain identity + (Buildprint capability
+// when a workspace exists) + focus-module grounding. Memory/Playbook are layered
+// on by the caller.
+function unifiedPrompt(ws, focusBrief) {
+  const parts = [SYSTEM_PROMPT];
+  parts.push(ws ? BP_CAPABILITY(ws)
+    : 'BUILDPRINT: no cloned Bubble workspace on this machine (~/projects/crs-bubble/<app>/test is missing), so CLI workspace commands are unavailable here — answer Bubble questions from brain/ and say plainly that applying changes needs the clone.');
+  if (focusBrief) parts.push(focusBrief);
+  return parts.join('\n\n');
+}
 
 // ---- Buildprint → Brain tracking -------------------------------------------
 // Sync the workspace from Bubble, diff the snapshot, and have the brain update
@@ -1950,15 +2081,138 @@ function runBuildprint(args, ws) {
 // asks must not burn Opus+Max. When the composer model is 'auto', route by the
 // message shape; picking a concrete model in the dropdown always overrides.
 // The decision is surfaced as a Brain-lane lifecycle step — never silent.
+// Does this turn look like Bubble/Buildprint work? Only these pay the CLI
+// preflight round-trip; everything else starts talking immediately.
+// Deliberately narrow: generic words (module/schema/workflow/page/apply/sync)
+// appear constantly in brain-only questions, and a false positive costs a CLI
+// round-trip on a turn that never touches Bubble.
+const BUBBLE_INTENT_RE = /buildprint|bubble|savepoint|option.?set|privacy rule|repeating group|test branch|run.?mode|data.?type|\bapply\b.{0,20}\b(change|step|it|them)\b|screenshot/i;
 const ROUTE_QUICK_RE = /screenshot|capture|\bsync\b|\bversion\b|status\s*(check)?\b|\blist\b|\bopen\b.+\bpage\b|\bping\b|copy|rename|move\b/i;
 const ROUTE_DEEP_RE = /audit|analy[sz]e|review|investigat|security|design|architect|plan\b|implement|build\b|refactor|migrat|why\b|debug|root cause|compare|verify/i;
-function routeTaskModel(message, cfg) {
+// (routeTaskModel removed 2026-08-07 — deliberateRoute() below replaced it. It
+// resolved its 'deep' branch to cfg.model, so once any concrete model had been
+// picked in the composer it silently became the target of every future auto
+// route, in every chat. That is what made auto feel like a one-time decision.)
+
+// ---- effort levels -------------------------------------------------------
+// The CLI's --effort only accepts low|medium|high|xhigh|max. Two extra levels
+// are exposed in the composer and translated here:
+//   ultra     = max + the in-prompt `ultrathink` cue. ultrathink does NOT raise
+//               API effort on its own, so it rides on top of the real ceiling.
+//   ultracode = xhigh + {"ultracode":true} (dynamic workflow orchestration —
+//               more parallel agents, multi-step work). Needs claude >= 2.1.154;
+//               older CLIs ignore the key and simply run xhigh.
+// NOTE ultracode is xhigh, i.e. one notch BELOW max on raw reasoning — it trades
+// depth-per-turn for orchestration. Auto-routing picks between them accordingly.
+const EFFORT_ALIASES = {
+  ultra: { effort: 'max', ultrathink: true, ultracode: false },
+  ultracode: { effort: 'xhigh', ultrathink: false, ultracode: true },
+};
+function resolveEffort(effort) {
+  const key = String(effort || '').toLowerCase();
+  if (key === 'auto') return { effort: '', ultrathink: false, ultracode: false };   // ROUTING token, never a CLI value
+  return EFFORT_ALIASES[key] || { effort: key, ultrathink: false, ultracode: false };
+}
+
+// Multi-step agentic build work — what ultracode's orchestration is actually for.
+// Checked BEFORE ROUTE_DEEP_RE, which overlaps on implement/build/refactor/migrate.
+const ROUTE_ORCHESTRATE_RE = /\b(implement|build|scaffold|wire\s*up|refactor|migrat\w*|end[-\s]?to[-\s]?end|multi[-\s]?step|step[-\s]?by[-\s]?step|build\s*packet|across\s+(?:all|every|the\s+whole)|whole\s+(?:module|app|repo|page)|then\s+(?:also|update|add))\b/i;
+// Pick the EFFORT for a task, independently of which model is pinned (Vlad's
+// 2026-08-06 ask: choosing a model shouldn't force you to also choose effort).
+// xhigh/ultracode are Opus-family levels, so non-Opus deep work lands on max.
+function routeTaskEffort(message, model) {
   const m = String(message || '');
-  const deep = ROUTE_DEEP_RE.test(m);
-  const quick = !deep && m.length < 500 && ROUTE_QUICK_RE.test(m);
-  if (quick) return { model: 'claude-sonnet-5', effort: 'low', label: 'quick mechanical task → Sonnet 5, low effort' };
-  if (deep) return { model: cfg.model || 'claude-opus-4-8', effort: cfg.effort || 'max', label: 'deep task → ' + (cfg.model || 'claude-opus-4-8') + ', ' + (cfg.effort || 'max') + ' effort' };
-  return { model: 'claude-sonnet-5', effort: 'medium', label: 'standard task → Sonnet 5, medium effort' };
+  const opus = /opus/i.test(String(model || ''));
+  if (ROUTE_ORCHESTRATE_RE.test(m)) {
+    return opus
+      ? { effort: 'ultracode', label: 'multi-step build → Ultracode (xhigh + orchestration)' }
+      : { effort: 'max', label: 'multi-step build → max effort' };
+  }
+  if (ROUTE_DEEP_RE.test(m)) return { effort: 'max', label: 'deep reasoning task → max effort' };
+  if (m.length < 500 && ROUTE_QUICK_RE.test(m)) return { effort: 'low', label: 'quick mechanical task → low effort' };
+  return { effort: 'medium', label: 'standard task → medium effort' };
+}
+// ---------- deliberated routing (2026-08-07) ----------------------------------
+// Vlad: the brain must re-pick model AND effort on EVERY message, and think
+// harder about it before applying. The old one-shot did a keyword test on the
+// raw message only; this weighs the whole turn — conversation history, the
+// attachments, file paths and code in the message, Bubble/Buildprint intent,
+// the playbook lessons that matched, and whether the user is repeating
+// themselves because the last answer missed. It runs AFTER the playbook check
+// so those lessons are an input, and it reports its reasoning as a step.
+// No extra model call: this is deeper ANALYSIS, not a second round-trip.
+const ROUTE_ESCALATE_RE = /\b(still|again|did ?n'?t work|does ?n'?t work|not working|no luck|broken|wrong|terrible|awful|same (error|issue|problem|thing)|you (missed|forgot|ignored)|try again|retry|failed|nope)\b/i;
+const ROUTE_MULTI_RE = /\b(and then|after that|also,|finally|next,|step \d|firstly|secondly)\b/i;
+const ROUTE_RISK_RE = /\b(delete|drop|destroy|purge|production|\blive\b|privacy rule|permission|migrat\w*|irreversible|force|overwrite|credential|secret|token)\b/i;
+const ROUTE_MODEL_FAST = 'claude-sonnet-5';
+const ROUTE_MODEL_DEEP = 'claude-opus-5';
+function countMatches(re, s) { const m = String(s).match(new RegExp(re.source, 'gi')); return m ? m.length : 0; }
+function deliberateRoute(ctx) {
+  const msg = String(ctx.message || '');
+  const why = [];
+  const add = (cond, pts, reason) => { if (cond) { why.push(reason); return pts; } return 0; };
+
+  const deepHits = countMatches(ROUTE_DEEP_RE, msg);
+  const quick = msg.length < 500 && ROUTE_QUICK_RE.test(msg) && deepHits === 0;
+  const orchestrate = ROUTE_ORCHESTRATE_RE.test(msg);
+  const code = countMatches(/```/, msg) >= 2;
+  const paths = countMatches(/[\w./-]+\.(?:js|ts|tsx|css|html|md|json|py|yml|yaml)\b/, msg);
+  const questions = countMatches(/\?/, msg);
+  const atts = (ctx.attachments || []).length;
+  const priorTurns = (ctx.history || []).filter((m) => m.role === 'user').length;
+  // "still broken", "again", "terrible" AFTER we already answered once = the
+  // previous rung was not enough. This is the cross-turn signal the old router
+  // had no way to see, because it only ever looked at one message in isolation.
+  const escalating = priorTurns > 1 && ROUTE_ESCALATE_RE.test(msg);
+  const lastModel = [...(ctx.history || [])].reverse().find((m) => m.role === 'assistant' && m.model)?.model || '';
+
+  let depth = 0.3;
+  depth += add(deepHits > 0, Math.min(deepHits, 3) * 0.12, deepHits + ' deep-work cue' + (deepHits > 1 ? 's' : ''));
+  depth += add(orchestrate, 0.2, 'multi-step build');
+  depth += add(code, 0.08, 'code block pasted');
+  depth += add(paths >= 3, 0.08, paths + ' file paths') || add(paths > 0 && paths < 3, 0.04, paths + ' file path' + (paths > 1 ? 's' : ''));
+  depth += add(msg.length > 1200, 0.12, 'long brief') || add(msg.length > 500, 0.06, 'detailed brief');
+  depth += add(questions >= 3, 0.06, questions + ' questions');
+  depth += add(ROUTE_MULTI_RE.test(msg), 0.06, 'several asks in one message');
+  depth += add(ctx.bubbleIntent, 0.08, 'touches the Bubble app');
+  depth += add(atts > 0, atts > 2 ? 0.1 : 0.05, atts + ' attachment' + (atts > 1 ? 's' : ''));
+  depth += add((ctx.lessons || []).length > 0, 0.06, (ctx.lessons || []).length + ' playbook lesson(s) in play');
+  depth += add(escalating, 0.18, 'follow-up after a miss — escalating');
+  depth -= add(quick, 0.3, 'mechanical one-liner');
+  depth = Math.max(0, Math.min(1, depth));
+
+  let risk = 0;
+  risk += add(ctx.bubbleIntent, 0.35, '');
+  risk += add(ROUTE_RISK_RE.test(msg), 0.35, 'destructive/irreversible vocabulary');
+  risk += add((ctx.lessons || []).length > 0, 0.2, '');
+  risk = Math.min(1, risk);
+
+  let model, effort;
+  if (depth < 0.25) { model = ROUTE_MODEL_FAST; effort = 'low'; }
+  else if (depth < 0.5) { model = ROUTE_MODEL_FAST; effort = 'medium'; }
+  else if (depth < 0.7) { model = ROUTE_MODEL_DEEP; effort = 'high'; }
+  else if (depth < 0.88) { model = ROUTE_MODEL_DEEP; effort = 'max'; }
+  else { model = ROUTE_MODEL_DEEP; effort = 'max'; }
+  // A real multi-step build wants orchestration, not just more thinking — and it
+  // should not have to also clear the top depth rung to get it.
+  if (orchestrate && depth >= 0.7) { model = ROUTE_MODEL_DEEP; effort = 'ultracode'; why.push('orchestration warranted'); }
+  // risky work never runs cheap, however casually it was phrased
+  if (risk >= 0.5 && (effort === 'low' || effort === 'medium')) { model = ROUTE_MODEL_DEEP; effort = 'high'; why.push('risky change — floored at Opus/high'); }
+  // if the last turn already ran on the deep model and the user says it missed,
+  // there is no rung left except staying there and spending more thinking time
+  if (escalating && /opus/i.test(lastModel) && effort !== 'ultracode') {
+    model = ROUTE_MODEL_DEEP; effort = 'max';
+    why.push('last turn was already Opus — staying there and spending more thinking');
+  }
+
+  const label = modelShort(model) + ' · ' + effort + ' effort  (depth ' + depth.toFixed(2) + ' · risk ' + risk.toFixed(2) + ')';
+  return { model, effort, label, depth, risk, why: why.filter(Boolean) };
+}
+function modelShort(id) { return /opus-5/.test(id) ? 'Opus 5' : /opus/.test(id) ? 'Opus' : /sonnet-5/.test(id) ? 'Sonnet 5' : /haiku/.test(id) ? 'Haiku' : id; }
+// Expand the 'auto' routing token for callers that don't report a routing label.
+function effortFor(effort, message, model) {
+  const e = String(effort || '');
+  return e === 'auto' ? routeTaskEffort(message, model).effort : (e || undefined);
 }
 
 // Absorb Buildprint self-updates BEFORE a model session depends on the CLI.
@@ -2281,6 +2535,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
   const onLabel = hooks.onLabel || (() => {});    // concise action label once tool inputs are known
   const onUsage = hooks.onUsage || (() => {});    // running token counts { in, out }
   const onToolResult = hooks.onToolResult || (() => {});   // short tool-outcome tail { text, isError }
+  const eff = resolveEffort(opts.effort);
   return new Promise((resolve, reject) => {
     const args = [
       '-p',
@@ -2288,8 +2543,8 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       '--include-partial-messages',
       '--verbose',                 // required for stream-json in print mode
       '--permission-mode', 'acceptEdits',
-      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
-      '--settings', BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
+      '--allowedTools', 'WebFetch', 'WebSearch', 'Bash(buildprint:*)', 'Bash(MSYS_NO_PATHCONV=1 buildprint:*)', 'Bash(agent-browser:*)', 'Bash(MSYS_NO_PATHCONV=1 agent-browser:*)', 'Bash(node:*)', 'Bash(python:*)', 'Bash(python3:*)', 'Bash(cd:*)', 'Bash(pwd:*)', 'mcp__buildprint', 'ToolSearch', 'mcp__claude_ai_Gmail',   // cd/pwd: the unified chat lives in the brain repo but the buildprint CLI resolves its workspace by walking UP from cwd (no --project flag) — so a session moves into the worktree with its own `cd` call (cwd persists across Bash calls) instead of chaining, which the prefix allowlist forbids. Buildprint CLI + Agent Browser (screenshots/interactive checks; MSYS_NO_PATHCONV=1 variants = Windows git-bash path-mangling escape, same guard hook applies) + local scripting + MCP + web. claude.ai Gmail connector: read/label/draft only — the connector exposes NO send tool, so the worst a session can do is file a draft; ToolSearch is required because connector tools are deferred in headless spawns.
+      '--settings', eff.ultracode ? BP_GUARD_SETTINGS_UC : BP_GUARD_SETTINGS,   // PreToolUse hook: hard-blocks dangerous buildprint commands
       '--append-system-prompt', opts.systemPrompt || SYSTEM_PROMPT,
     ];
     for (const d of (opts.addDirs || [])) args.push('--add-dir', d);
@@ -2297,11 +2552,11 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     // question cards). Pipeline spawns (gen/memory/lesson) never get it — a
     // blocking ask inside an unattended pipeline would hang it.
     if (opts.askChatId) {
-      args.splice(args.indexOf('mcp__buildprint') + 1, 0, 'mcp__crsask__ask_vlad');
+      args.splice(args.indexOf('mcp__buildprint') + 1, 0, 'mcp__crsask__ask_vlad', 'mcp__crsask__decide_with_vlad');
       args.push('--mcp-config', ASK_MCP_CONFIG);
     }
     if (opts.model && opts.model !== 'auto') args.push('--model', opts.model);   // 'auto' is a ROUTING token, never a CLI model id
-    if (opts.effort) args.push('--effort', opts.effort);
+    if (eff.effort) args.push('--effort', eff.effort);
     if (sessionId) args.push('--resume', sessionId);
     else { sessionId = crypto.randomUUID(); args.push('--session-id', sessionId); }
 
@@ -2442,7 +2697,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
       resolve({ text: finalText, sessionId });
     });
 
-    child.stdin.write(message);
+    child.stdin.write(eff.ultrathink ? message + '\n\nultrathink' : message);
     child.stdin.end();
   });
 }
@@ -2469,6 +2724,11 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
   // ever when NOTHING was streamed yet: same model+session once more → then a
   // fresh session (drops CLI-side memory of the chat — say so via onRetry).
   const isTransientExec = (e) => e && e.stage === 'pre' && !e.retryable && /error_during_execution/i.test(e.message || '');
+  // Claude Code stores sessions per WORKING DIRECTORY. The one-chat merge moved
+  // every chat to the repo root, so sessions recorded while a chat ran in the
+  // Bubble worktree can't be found any more (and old sessions expire anyway).
+  // That must degrade to a fresh session, not kill the turn.
+  const isLostSession = (e) => e && e.stage === 'pre' && /No conversation found with session ID/i.test(e.message || '');
 
   let lastErr;
   for (let i = 0; i < models.length; i++) {
@@ -2482,7 +2742,8 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
         return { ...r, model: model || r.model || null, freshSession: at.sid === null && sessionId != null };
       } catch (e) {
         lastErr = e;
-        if (!isTransientExec(e) || a === attempts.length - 1) break;   // only the transient class walks the ladder
+        if ((!isTransientExec(e) && !isLostSession(e)) || a === attempts.length - 1) break;   // transient + lost-session walk the ladder
+        if (isLostSession(e)) { a = attempts.length - 2; continue; }   // skip the pointless same-session retry → go straight to a fresh session
       }
     }
     const e = lastErr, next = models[i + 1];
@@ -3344,53 +3605,86 @@ const server = http.createServer(async (req, res) => {
       const markConnected = () => { if (connectedMark) return; connectedMark = true; lifeStep('Connected — model session live'); };
       try {
         const cfg = loadSettings();
-        // 'auto' = task-routed model+effort (token economy); a concrete model pins both.
-        const routed = String(body.model || cfg.model || '') === 'auto' ? routeTaskModel(message, cfg.model === 'auto' ? { ...cfg, model: '' } : cfg) : null;
+        // Model and effort are routed on separate axes: 'auto' in either dropdown
+        // hands that axis to the task classifier, a concrete pick always wins.
+        const pickedModel = (body.model || cfg.model || '').toString();
+        const pickedEffort = (body.effort || cfg.effort || '').toString();
+        // Routing is DEFERRED to after the playbook check so the matched lessons,
+        // the Bubble-intent verdict and the conversation history are all inputs.
+        // A concrete pick in either dropdown still wins that axis outright.
+        const autoModel = pickedModel === 'auto' || !pickedModel;
+        const autoEffort = pickedEffort === 'auto' || !pickedEffort;
         LIVE_TURNS.set(chat.id, { sse, chat });   // ask cards land in THIS stream + chat object
         const runOpts = {
           askChatId: chat.id,
           idleExempt: () => [...ASKS.values()].some((a) => a.chatId === chat.id && !a.answered),
-          model: routed ? routed.model : (body.model || cfg.model || '').toString() || undefined,
-          effort: routed ? routed.effort : (body.effort || cfg.effort || '').toString() || undefined,
+          model: autoModel ? undefined : pickedModel,
+          effort: autoEffort ? undefined : pickedEffort,
           autoFallback: cfg.autoFallback !== false,
           fallbackModels: Array.isArray(cfg.fallbackModels) ? cfg.fallbackModels : [],
           signal: ac.signal,
           purpose: body.ingest === true ? 'ingest' : (chat.bp ? 'bp-chat' : 'chat'),
         };
-        if (routed) lifeStep('Auto-routing: ' + routed.label);   // visible, never silent
         // Which model is ACTUALLY running — shown live in the meter, stamped on the
-        // turn, updated if the fallback chain switches mid-run.
-        let liveModel = runOpts.model || '';
-        sse({ type: 'model', model: liveModel });
-        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
-        // Buildprint chats run in the cloned Bubble workspace with the guardrailed
-        // BP prompt, and can still read/write the brain repo (--add-dir).
-        if (chat.bp) {
-          const ws = findBpWorkspace();
-          if (!ws) { sse({ type: 'error', error: 'Buildprint workspace not found. Link the CLI and clone the Test branch into ~/projects/crs-bubble/ first.' }); return res.end(); }
-          runOpts.cwd = ws.dir;
-          runOpts.systemPrompt = withMemory(BP_PROMPT(ws));   // agent always honors persistent memory
-          runOpts.addDirs = [REPO_ROOT];
-          // Brain lane: hand-off is explicit + the CLI is preflighted HERE so any
-          // buildprint self-update finishes inside this server call — the model
-          // session never hits a half-replaced npm shim ("not found" mid-audit).
-          lifeStep('Prompt sent — preparing Buildprint session');
+        // turn, updated if the fallback chain switches mid-run. Assigned below,
+        // once the deliberation has run.
+        let liveModel = '';
+        // ONE CHAT: every conversation is rooted in the brain repo and ALSO owns
+        // the Bubble worktree (--add-dir) + the Buildprint CLI. No mode branch:
+        // the session decides per task which tree it needs.
+        const ws = findBpWorkspace();   // null on machines without the clone → capability degrades, turn still runs
+        runOpts.cwd = REPO_ROOT;
+        if (ws) runOpts.addDirs = [ws.dir];
+        const focusBrief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
+        runOpts.systemPrompt = withMemory(unifiedPrompt(ws, focusBrief));   // agent always honors persistent memory
+        // The CLI is preflighted server-side so a buildprint self-update finishes
+        // INSIDE this call (never a half-replaced shim mid-task). Only for turns
+        // that look like Bubble work — a brain-only question shouldn't pay for it.
+        if (ws && (BUBBLE_INTENT_RE.test(message) || chat.bp === true)) {
           const pf = await bpPreflight();
-          if (pf.ok && pf.linked) lifeStep(`Buildprint CLI ready — v${pf.version}, linked`);
+          if (pf.ok && pf.linked) lifeStep(`Buildprint ready — CLI v${pf.version}, linked · workspace ${ws.app}/${ws.branch}`);
           else lifeStep('Buildprint CLI problem — ' + (pf.err || 'unknown'), 'The session will fall back to manual paths where possible. Fix, then retry: ' + (pf.err || 'check `buildprint --version` in a terminal.'));
-          // Playbook check — consult-before-acting, VISIBLE, matched subset only.
-          injectedLessons = matchLessons(message + ' ' + (chat.focusModule || '') + ' ' + chat.title);
-          if (injectedLessons.length) {
-            runOpts.systemPrompt += '\n\n' + playbookBlock(injectedLessons);
-            stampLessonHits(injectedLessons.map((l) => l.id));
-            lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
-            learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
-          } else lifeStep('Playbook check — clean');
-          connectedMark = false;   // next stream event stamps "Connected — model session live"
-        } else {
-          const brief = chat.focusModule ? focusModuleBrief(chat.focusModule) : '';
-          runOpts.systemPrompt = withMemory(brief ? SYSTEM_PROMPT + '\n\n' + brief : SYSTEM_PROMPT);   // general assistant, optionally grounded on a focus module
         }
+        // Playbook check — consult-before-acting, VISIBLE, matched subset only.
+        // Un-gated: lessons are keyword-matched, so a brain-only turn matches none.
+        injectedLessons = matchLessons(message + ' ' + (chat.focusModule || '') + ' ' + chat.title);
+        if (injectedLessons.length) {
+          runOpts.systemPrompt += '\n\n' + playbookBlock(injectedLessons);
+          stampLessonHits(injectedLessons.map((l) => l.id));
+          lifeStep('Playbook check — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : '') + ' loaded', injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule).join('\n'));
+          learnEvent('playbook-applied', 'Playbook applied — ' + injectedLessons.length + ' lesson' + (injectedLessons.length > 1 ? 's' : ''), injectedLessons.map((l) => '• [' + l.category + '] ' + l.rule + (l.fix ? '\n  FIX: ' + l.fix : '')).join('\n'), chat.id);
+        } else lifeStep('Playbook check — clean');
+        // ---- ROUTING, deliberated, EVERY message -------------------------------
+        // Runs here (not at the top of the turn) so it can weigh the playbook
+        // lessons and the Bubble-intent verdict alongside the message itself and
+        // the conversation so far. Re-decided on every single user message: there
+        // is no per-chat sticky value, and 'auto' never inherits a previously
+        // pinned model.
+        if (autoModel || autoEffort) {
+          const dec = deliberateRoute({
+            message,
+            history: chat.messages.slice(0, -1),
+            attachments: body.attachments || [],
+            lessons: injectedLessons,
+            bubbleIntent: BUBBLE_INTENT_RE.test(message) || chat.bp === true,
+          });
+          if (autoModel) runOpts.model = dec.model;
+          if (autoEffort) runOpts.effort = dec.effort;
+          lifeStep(
+            'Routing — ' + (autoModel && autoEffort ? dec.label
+              : autoModel ? modelShort(dec.model) + ' (effort pinned to ' + pickedEffort + ')'
+              : dec.effort + ' effort (model pinned to ' + modelShort(pickedModel) + ')'),
+            (dec.why.length ? 'Weighed: ' + dec.why.join(' · ') : 'Nothing unusual in this message — standard handling.')
+            + '\nDepth ' + dec.depth.toFixed(2) + ' · risk ' + dec.risk.toFixed(2)
+            + '\nRe-decided from scratch for this message.'
+          );
+        } else lifeStep('Routing — pinned by you: ' + modelShort(pickedModel) + ' · ' + pickedEffort + ' effort');
+        liveModel = runOpts.model || '';
+        // The composer selectors mirror what is ACTUALLY running, so 'Auto' can
+        // show the resolved pick without pinning it for the next turn.
+        sse({ type: 'model', model: liveModel, effort: runOpts.effort || '', routed: autoModel, routedEffort: autoEffort });
+        { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
+        connectedMark = false;   // next stream event stamps "Connected — model session live"
         // "Remember this" → compile the message into structured memory in the
         // background; emit a toast when saved. Runs concurrently with the reply,
         // and is awaited before the stream ends so the save is guaranteed.
@@ -3449,7 +3743,7 @@ const server = http.createServer(async (req, res) => {
             sse({ type: 'detail', text: line });
           },
           onStatus: (s) => sse({ type: 'status', text: s }),
-          onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
+          onUsage: (u) => { turnIn = u.in; turnOut = u.out; sse({ type: 'usage', in: u.in, out: u.out }); },
           onModelSwitch: (m) => { liveModel = m.to || liveModel; const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
           onRetry: (r) => {
             // Transient CLI death recovered pre-output — show it instead of dying silently.
@@ -3467,17 +3761,32 @@ const server = http.createServer(async (req, res) => {
         chat.updated = completedAt;
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
-        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(liveModel ? { model: liveModel } : {}), ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
+        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(liveModel ? { model: liveModel } : {}), ...(turnIn ? { tokensIn: turnIn, tokensOut: turnOut } : {}), ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
         if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
+        // BACKSTOP: a question must never reach Vlad as prose. If the turn ended
+        // asking him something and no card was raised during it, raise one now.
+        // The session is already gone, so answering resumes it as a new turn
+        // (the client's existing !resumed path) — the guarantee is about the UI
+        // contract, not about blocking a session that has already finished.
+        try {
+          const lt = LIVE_TURNS.get(chat.id);
+          if (!result.aborted && !(lt && lt.raised) && looksLikeProseQuestion(finalText)) {
+            const q = proseQuestionText(finalText);
+            const r = createAsk(chat.id, q, 'Raised by the backstop: this turn ended with a question in prose instead of a card.', parseProseOptions(finalText), 'ask', { source: 'backstop' });
+            if (r && r.id) lifeStep('Prose question intercepted', 'The turn ended with a question written as text. It has been raised as a card above the composer instead.');
+          }
+        } catch {}
         // Self-learning: distill lessons from this BP session in the background
         // (only when the turn carries learnable signal — zero spend otherwise).
         if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
           distillLessons(message, steps, finalText, chat.id, chat.title).catch(() => {});
         }
         await memPromise;   // ensure the memory save + toast land before we close the stream
-        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
+        // bp rides the done event: the client only learns a chat actually used
+        // Buildprint AFTER the turn (auto-tag), and it drives the file-tree refresh.
+        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt, bp: chat.bp === true });
       } catch (e) {
         // Persist the chat anyway — otherwise the user's message (and a brand-new
         // chat entirely) vanishes on a claude error, with no retry possible.
@@ -3556,7 +3865,7 @@ const server = http.createServer(async (req, res) => {
           onDetail: (t) => sse({ type: 'detail', text: t }),
           onLabel: (t) => sse({ type: 'label', text: t }),
           onStatus: (s) => sse({ type: 'status', text: s }),
-        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: (body.effort || cfg.effort || '').toString() || undefined, signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
+        }, { model: (body.model || cfg.model || '').toString() || undefined, effort: effortFor(body.effort || cfg.effort, message, body.model || cfg.model), signal: ac.signal, cwd: r.ws.dir, systemPrompt: BP_TRACK_PROMPT, addDirs: [REPO_ROOT], purpose: 'sync' });
         chat.messages.push({ role: 'assistant', content: result.text || streamed, ts: nowIso(), ...(result.aborted ? { partial: true } : {}) });
         chat.sessionId = result.sessionId; saveChat(chat);
         // Advance the baseline ONLY on a completed ingest — an aborted run must stay
@@ -3600,7 +3909,7 @@ const server = http.createServer(async (req, res) => {
           onStatus: (s) => sse({ type: 'status', text: s }),
         }, {
           model: (body.model || cfg.model || '').toString() || undefined,
-          effort: (body.effort || cfg.effort || '').toString() || undefined,
+          effort: effortFor(body.effort || cfg.effort, message, body.model || cfg.model),
           signal: ac.signal,
           cwd: ws.dir,
           systemPrompt: BP_PROMPT(ws),
@@ -3618,6 +3927,31 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
+    // Context actually in play for ONE chat: the newest turn's input tokens (which
+    // include the whole replayed conversation plus cache reads) against that
+    // model's window. usage.json's context_window belongs to whatever interactive
+    // session last rendered a statusline — a different conversation entirely.
+    if (p === '/api/usage/chat' && req.method === 'GET') {
+      const c = loadChat((u.searchParams.get('id') || '').toString());
+      if (!c) return send(res, 200, { ok: false });
+      let last = null, lastModel = '';
+      for (const m of c.messages || []) {
+        if (m.role !== 'assistant') continue;
+        if (m.model) lastModel = m.model;
+        if (m.tokensIn) last = m;
+      }
+      const size = /opus-4-8|1m|sonnet-5|opus-5/i.test(lastModel) ? 1000000 : 200000;
+      // tokensIn is only recorded from 2026-08-07 onward, so older chats have no
+      // measured figure. Rather than show an empty bar, estimate from the
+      // transcript (~4 chars per token) and SAY it is an estimate.
+      let used = last ? last.tokensIn : 0, estimated = false;
+      if (!used) {
+        const chars = (c.messages || []).reduce((n, m) => n + String(m.content || '').length, 0);
+        used = Math.round(chars / 4);
+        estimated = used > 0;
+      }
+      return send(res, 200, { ok: true, model: lastModel, used, out: last ? last.tokensOut : 0, size, estimated, at: last ? last.completedAt : null, turns: (c.messages || []).filter((m) => m.role === 'user').length });
+    }
     if (p === '/api/usage' && req.method === 'GET') {
       return send(res, 200, { enabled: usageEnabled(), data: loadUsage() });
     }
@@ -3908,7 +4242,7 @@ const server = http.createServer(async (req, res) => {
     // ---- Ask Protocol endpoints ----
     if (p === '/api/ask' && req.method === 'POST') {   // called by the ask-mcp shim
       const b = await readJsonBody(req) || {};
-      return send(res, 200, createAsk((b.chatId || '').toString(), b.question, b.context, b.options));
+      return send(res, 200, createAsk((b.chatId || '').toString(), b.question, b.context, b.options, b.kind === 'decision' ? 'decision' : 'ask'));
     }
     if (p === '/api/ask/wait' && req.method === 'GET') {   // shim long-poll
       const id = u.searchParams.get('id');
@@ -4300,6 +4634,20 @@ const server = http.createServer(async (req, res) => {
     // ---- Dashboard aggregate: EVERYTHING the board renders, from state files
     // only (tasks, decisions.md, modules.json, build plans, master-checklist,
     // sync stamps, wishlist). No file-tree introspection, no file counts.
+    // What WOULD this message route to? Same deliberation the turn runs, with no
+    // turn — so the router can be tested and inspected without spending a call.
+    if (p === '/api/route-preview' && req.method === 'GET') {
+      const m = u.searchParams.get('m') || '';
+      const turns = Number(u.searchParams.get('turns') || 0);
+      const history = Array.from({ length: turns }, (_, i) => (i % 2 ? { role: 'assistant', model: u.searchParams.get('last') || '' } : { role: 'user', content: 'x' }));
+      return send(res, 200, deliberateRoute({
+        message: m,
+        history,
+        attachments: Array.from({ length: Number(u.searchParams.get('atts') || 0) }, () => ({})),
+        lessons: Array.from({ length: Number(u.searchParams.get('lessons') || 0) }, () => ({})),
+        bubbleIntent: BUBBLE_INTENT_RE.test(m),
+      }));
+    }
     if (p === '/api/dash' && req.method === 'GET') {
       const tasks = reconcileAutoTasks();
       const modsDoc = loadModulesDoc();

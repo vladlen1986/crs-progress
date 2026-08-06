@@ -10,74 +10,103 @@
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
-  .wrap{max-width:980px;margin:0 auto;padding:26px 22px 90px}
-  header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+  /* §3 TYPE — only two sizes exist: 13/20 body and 12/16 meta. Letter-spacing 0
+     everywhere, bold runs 600 and never higher. */
+  body{margin:0;background:var(--cc-bg-canvas);color:var(--cc-text-body);font-family:var(--sans);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);letter-spacing:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 20px 88px}
+  header.top{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
   header.top .t{flex:1;min-width:0}
-  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
-  .sub{color:var(--secondary);font-size:12.5px;line-height:1.55}
-  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
-  .hbtn:disabled{opacity:.5;cursor:not-allowed}
-  .hbtn.acc{background:var(--accent);border-color:var(--accent);color:var(--white) /* approved literal — on-accent text */}
-  .hbtn.acc:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-  .hbtn.danger:hover{color:var(--danger);border-color:var(--danger)}
+  h1{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-primary);margin:0 0 2px;font-weight:600;letter-spacing:0}
+  .sub{color:var(--cc-text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
+  /* §6 button state matrix: control → control-strong (hover) → segment-track
+     (active), body ink, no border, focus = the white 22% ring. */
+  .hbtn{background:var(--cc-bg-control);border:1px solid transparent;color:var(--cc-text-body);border-radius:var(--radius-btn);padding:1px 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .hbtn:hover{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .hbtn:active{background:var(--cc-bg-segment-track)}
+  .hbtn:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:0}
+  .hbtn:disabled{background:var(--cc-bg-control);color:var(--cc-text-faint);cursor:not-allowed}
+  .hbtn.acc{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .hbtn.acc:hover{background:var(--cc-bg-segment-thumb)}
+  .hbtn.acc:active{background:var(--cc-bg-control)}
+  .hbtn.danger:hover{background:var(--cc-bg-control-strong);color:var(--cc-danger)}
   .hbtn.busy{pointer-events:none;opacity:.7}
 
-  .reg{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 10px;align-items:stretch}
-  .reg input,.reg select{background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:13px;outline:none}
-  .reg input:focus,.reg select:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .reg{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 8px;align-items:stretch}
+  /* §4 RADII — inputs/composer take 10; they keep their border (§5.4). */
+  .reg input,.reg select{background:var(--cc-bg-composer);border:1px solid var(--cc-border-composer);color:var(--cc-text-primary);border-radius:var(--radius-composer);padding:8px 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);outline:none}
+  .reg input::placeholder{color:var(--cc-text-placeholder)}
+  .reg input:focus,.reg select:focus{border-color:var(--cc-focus-ring)}
   .reg .path{flex:1;min-width:220px}
 
-  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:10px}
-  .card:hover{border-color:var(--line2)}
-  .chead{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;flex-wrap:wrap}
-  .cname{color:var(--primary);font-weight:700;font-size:14.5px}
-  .cmod{font-size:11px;color:var(--muted);font-family:var(--mono)}
-  .stchip{font-size:10.5px;font-weight:700;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-pill);text-transform:uppercase}
-  .st-draft{background:var(--panel2);color:var(--secondary);border:1px solid var(--line)}
-  .st-settled{background:var(--accent-tint);color:var(--accent-soft);border:1px solid var(--accent-border-active)}
-  .st-built{background:var(--success-tint);color:var(--success);border:1px solid var(--success)}
-  .prog{display:flex;align-items:center;gap:7px;margin-left:auto}
-  .prog .n{font-family:var(--mono);font-size:11.5px;color:var(--secondary)}
-  .pbar{width:110px;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden}
-  .pbar i{display:block;height:100%;background:var(--accent)}
-  .cbody{border-top:1px solid var(--line);padding:12px 14px;display:none}
+  /* §5.4 CARDS — filled with --cc-bg-card and NO border (only panels and the
+     composer carry one) and no shadow. Hover is a background step, never a hue. */
+  .card{background:var(--cc-bg-card);border:none;border-radius:var(--radius-card);margin-bottom:8px}
+  .card:not(.open):hover{background:var(--cc-bg-selected)}
+  .chead{display:flex;align-items:center;gap:10px;padding:12px;cursor:pointer;flex-wrap:wrap}
+  .cname{color:var(--cc-text-primary);font-weight:600;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  .cmod{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-secondary);font-family:var(--mono)}
+  /* §6 STATUS CHIPS — 12px/600/r6 and quiet: neutral states are grey on grey;
+     only genuine semantics carry hue at text scale, on their tint, never a fill. */
+  .stchip{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;padding:2px 8px;border-radius:var(--radius-pill)}
+  .st-draft{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .st-settled{background:var(--cc-bg-control);color:var(--cc-text-body)}
+  .st-built{background:var(--success-tint);color:var(--cc-success)}
+  .prog{display:flex;align-items:center;gap:8px;margin-left:auto}
+  .prog .n{font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-secondary)}
+  /* 4px literals: §4 radii — 4 is the smallest permitted step, matched to the
+     4px track height so the meter reads as a rounded bar, not a pill. */
+  .pbar{width:110px;height:4px;border-radius:4px;background:var(--cc-bg-control);overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--cc-text-secondary)}
+  .cbody{border-top:1px solid var(--cc-border-divider);padding:12px;display:none}
   .card.open .cbody{display:block}
   .acts{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
-  .note{color:var(--muted);font-size:11.5px;font-family:var(--mono);margin:6px 0}
+  .note{color:var(--cc-text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:var(--mono);margin:6px 0}
 
-  h3{font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin:16px 0 8px}
-  table{width:100%;border-collapse:collapse;font-size:12px}
-  th{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:left;padding:5px 8px;border-bottom:1px solid var(--line)}
-  td{padding:6px 8px;border-bottom:1px solid var(--line);vertical-align:top;color:var(--secondary)}
-  td code,.mono{font-family:var(--mono);font-size:11.5px}
-  .fl-unresolved td:first-child{color:var(--warning);font-weight:700}
-  .fl-res td:first-child{color:var(--success)}
-  .rbtns{display:flex;gap:5px;flex-wrap:wrap}
-  .rbtns .hbtn{padding:3px 8px;font-size:11px}
-  .rbtns input{width:150px;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-badge);padding:3px 7px;font:inherit;font-size:11px;outline:none}
+  /* §3 SECTION HEADERS — 12px sentence case: no uppercase, no tracking. */
+  h3{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);text-transform:none;letter-spacing:0;color:var(--cc-text-secondary);font-weight:600;margin:16px 0 8px}
+  /* the renderer emits two inline font-sizes inside <h3>; the markup/JS is out of
+     scope for this pass, so they are normalised here to the 12px meta step. */
+  h3 span{font-size:var(--cc-fs-xs)!important;line-height:var(--cc-lh-xs);font-weight:400}
+  h3 .hbtn{font-size:var(--cc-fs-xs)!important;line-height:var(--cc-lh-xs)}
+  table{width:100%;border-collapse:collapse;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
+  th{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);text-transform:none;letter-spacing:0;color:var(--cc-text-secondary);font-weight:600;text-align:left;padding:4px 8px;border-bottom:1px solid var(--cc-border-divider)}
+  /* 4px padding + 16px line = a 24px row, the list pitch from §4. */
+  td{padding:4px 8px;border-bottom:1px solid var(--cc-border-divider);vertical-align:top;color:var(--cc-text-body)}
+  td code,.mono{font-family:var(--mono);font-size:var(--cc-fs-xs)}
+  td code{background:var(--cc-bg-subtle);border-radius:var(--radius-code);padding:0 4px}
+  .fl-unresolved td:first-child{color:var(--cc-warning);font-weight:600}
+  .fl-res td:first-child{color:var(--cc-success)}
+  .rbtns{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
+  .rbtns .hbtn{padding:1px 8px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
+  .rbtns input{width:150px;background:var(--cc-bg-composer);border:1px solid var(--cc-border-composer);color:var(--cc-text-primary);border-radius:var(--radius-btn);padding:1px 8px;font:inherit;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);outline:none}
+  .rbtns input:focus{border-color:var(--cc-focus-ring)}
 
-  .chunk{border:1px solid var(--line);border-radius:var(--radius-btn);padding:9px 11px;margin-bottom:7px;background:var(--bg)}
-  .chrow{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
-  .chid{font-family:var(--mono);font-size:11px;color:var(--muted)}
-  .chtitle{color:var(--primary);font-weight:600;font-size:12.5px;flex:1;min-width:160px}
-  .chst{font-size:10px;font-weight:700;letter-spacing:.4px;padding:1px 7px;border-radius:var(--radius-pill);text-transform:uppercase}
-  .chst-pending{background:var(--panel2);color:var(--muted)}
-  .chst-sent{background:var(--accent-tint);color:var(--accent-soft)}
-  .chst-reported{background:var(--purple);color:var(--white) /* approved literal — on-fill text */}
-  .chst-verified{background:var(--success-tint);color:var(--success)}
-  .chst-failed{background:var(--error-tint);color:var(--error-soft)}
-  .chacts{display:flex;gap:5px;flex-wrap:wrap}
-  .chacts .hbtn{padding:4px 9px;font-size:11px}
+  /* list rows: r6, no border, nav-row rhythm (h26 / pitch 28). */
+  .chunk{border:none;border-radius:var(--radius-btn);padding:4px 8px;margin-bottom:2px;background:var(--cc-bg-subtle)}
+  .chrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:var(--cc-nav-row-h)}
+  .chid{font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-secondary)}
+  .chtitle{color:var(--cc-text-primary);font-weight:600;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);flex:1;min-width:160px}
+  .chst{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;padding:2px 8px;border-radius:var(--radius-pill)}
+  /* pending/sent/reported are workflow states, not semantics — they separate by
+     ink weight on the same neutral chip. Only verified/failed earn a hue. */
+  .chst-pending{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .chst-sent{background:var(--cc-bg-control);color:var(--cc-text-body)}
+  .chst-reported{background:var(--cc-bg-control);color:var(--cc-text-primary)}
+  .chst-verified{background:var(--success-tint);color:var(--cc-success)}
+  .chst-failed{background:var(--error-tint);color:var(--cc-danger)}
+  .chacts{display:flex;gap:4px;flex-wrap:wrap}
+  .chacts .hbtn{padding:1px 8px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
   .chx{margin-top:8px;display:none}
   .chunk.open .chx{display:block}
-  .chx textarea{width:100%;min-height:110px;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font-family:var(--mono);font-size:11.5px;outline:none;resize:vertical}
-  .chx textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .chx textarea{width:100%;min-height:112px;background:var(--cc-bg-composer);border:1px solid var(--cc-border-composer);color:var(--cc-text-primary);border-radius:var(--radius-composer);padding:8px 10px;font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);outline:none;resize:vertical}
+  .chx textarea::placeholder{color:var(--cc-text-placeholder)}
+  .chx textarea:focus{border-color:var(--cc-focus-ring)}
 
-  .empty{text-align:center;color:var(--muted);padding:46px 20px;font-size:13px}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-secondary);border:1px solid var(--border-active);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity 420ms cubic-bezier(.16,1,.3,1),transform 420ms cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .empty{text-align:center;color:var(--cc-text-secondary);padding:44px 20px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  /* §8 SHADOWS — the toast is a genuine floating layer, so it alone keeps
+     --shadow-dropdown (and its hairline border). §7 motion: it fades, never lifts. */
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--cc-bg-panel);border:1px solid var(--cc-border);color:var(--cc-text-primary);padding:8px 16px;border-radius:var(--radius-card);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);opacity:0;transition:opacity var(--transition);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
+  .toast.show{opacity:1}
 </style>
 </head>
 <body>

@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>User Management — Full Spec (v17)</title>
+<style>
+  :root {
+    --bg: #181818; --surface-1: #1E1E1E; --surface-2: #242424; --surface-3: #2A2A2A;
+    --border: #242424; --border-hover: #333333; --border-active: #3D3D3D;
+    --accent: #3B82F6; --accent-soft: #60A5FA; --accent-tint: rgba(59,130,246,0.08); --accent-glow: rgba(59,130,246,0.13);
+    --text-primary: #E0E0E0; --text-secondary: #A6A6A6; --text-muted: #6B6B6B; --text-disabled: #565656;
+    --success: #22C55E; --success-soft: #4ADE80; --error: #EF4444; --warning: #F59E0B; --purple: #8B5CF6; --cyan: #06B6D4;
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    --r-card: 10px; --r-badge: 4px; --r-pill: 999px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg); color: var(--text-primary); font-family: var(--font-sans);
+    max-width: 980px; margin: 0 auto; padding: 40px 28px 100px; line-height: 1.6;
+  }
+  h1 { font-size: 26px; margin: 0 0 4px; }
+  .eyebrow { color: var(--accent-soft); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; font-weight: 600; margin-bottom: 6px; }
+  .subtitle { color: var(--text-secondary); font-size: 14px; margin-bottom: 24px; }
+  .status-pill { display: inline-flex; align-items: center; gap: 6px; background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.35); color: var(--success-soft); padding: 4px 10px; border-radius: var(--r-pill); font-size: 12px; font-weight: 600; }
+  .status-pill.warn { background: rgba(245,158,11,0.1); border-color: rgba(245,158,11,0.35); color: var(--warning); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+
+  .banner { display:flex; align-items:center; gap:14px; background: var(--surface-1); border:1px solid var(--border); border-radius: var(--r-card); padding: 16px 18px; margin: 20px 0 28px; }
+  .banner .stat { text-align:center; }
+  .banner .stat-value { font-size: 20px; font-weight: 700; color: var(--accent-soft); }
+  .banner .stat-label { font-size: 11px; color: var(--text-muted); }
+
+  .card { background: var(--surface-1); border: 1px solid var(--border); border-radius: var(--r-card); padding: 16px 18px; margin: 12px 0; }
+  .card.accent { border-color: rgba(59,130,246,0.35); background: var(--accent-tint); }
+  .card.warn { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
+  .card.err { border-color: rgba(239,68,68,0.35); background: rgba(239,68,68,0.06); }
+  .card-title { font-weight: 600; font-size: 13px; margin-bottom: 6px; color: var(--text-primary); }
+  .card p, .card div.body { font-size: 13px; color: var(--text-secondary); margin: 0; }
+
+  section { margin-top: 40px; }
+  h2 { font-size: 18px; border-bottom: 1px solid var(--border); padding-bottom: 10px; margin-bottom: 16px; display:flex; align-items:center; gap:8px; }
+  h2 .num { color: var(--accent-soft); font-family: var(--font-mono); font-size: 14px; }
+  h3 { font-size: 14px; color: var(--text-primary); margin: 22px 0 8px; }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0; font-size: 12.5px; }
+  th { text-align: left; color: var(--text-muted); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; padding: 8px 10px; border-bottom: 1px solid var(--border-hover); }
+  td { padding: 8px 10px; border-bottom: 1px solid var(--border); color: var(--text-secondary); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  code { font-family: var(--font-mono); background: var(--surface-2); color: var(--accent-soft); padding: 1px 5px; border-radius: 4px; font-size: 11.5px; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr; gap: 4px; margin: 10px 0; }
+  .field { display: grid; grid-template-columns: 170px 130px 1fr; gap: 10px; padding: 6px 10px; border-radius: 6px; font-size: 12px; align-items: baseline; }
+  .field:nth-child(odd) { background: var(--surface-2); }
+  .field-name { font-family: var(--font-mono); color: var(--text-primary); font-weight: 600; }
+  .field-type { color: var(--accent-soft); font-family: var(--font-mono); font-size: 11px; }
+  .field-note { color: var(--text-muted); }
+
+  .dt-header { display:flex; align-items:center; gap:8px; font-family: var(--font-mono); font-size: 14px; color: var(--text-primary); font-weight:700; margin-top: 20px; }
+  .dt-desc { font-size: 12.5px; color: var(--text-secondary); margin: 4px 0 10px; }
+
+  .tag { display:inline-block; padding: 2px 8px; border-radius: var(--r-badge); font-size: 10.5px; font-weight: 600; }
+  .tag-blue { background: rgba(59,130,246,0.12); color: var(--accent-soft); border:1px solid rgba(59,130,246,0.3); }
+  .tag-red { background: rgba(239,68,68,0.12); color: var(--error); border:1px solid rgba(239,68,68,0.3); }
+  .tag-grey { background: var(--surface-2); color: var(--text-muted); border:1px solid var(--border-hover); }
+
+  ul.spec-list { list-style: none; padding: 0; margin: 8px 0; }
+  ul.spec-list li { position: relative; padding-left: 16px; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 6px; }
+  ul.spec-list li::before { content: ''; position: absolute; left: 0; top: 7px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+  .steps { display: flex; flex-direction: column; gap: 8px; margin: 10px 0; }
+  .step { display: flex; gap: 12px; padding: 10px; background: var(--surface-2); border-radius: 8px; }
+  .step-num { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--accent-tint); color: var(--accent-soft); font-size: 11px; font-weight: 700; display:flex; align-items:center; justify-content:center; }
+  .step-title { font-size: 12.5px; font-weight: 600; color: var(--text-primary); }
+  .step-desc { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+
+  .gap-note { margin-top: 40px; padding: 16px 18px; border-radius: var(--r-card); background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.3); }
+  .gap-note h2 { border: none; padding: 0; margin-bottom: 8px; color: var(--warning); }
+  footer { margin-top: 50px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Admin · Core Module — specs/CRS_Blueprint.html</div>
+<h1>User Management</h1>
+<div class="subtitle">Identity layer for CRS — login accounts, authentication, sessions, and the full lifecycle from creation to GDPR anonymization.</div>
+<span class="status-pill"><span class="status-dot"></span>Spec Complete · v17</span>
+<span class="status-pill warn"><span class="status-dot"></span>Build: UI done, security pass pending</span>
+
+<div class="banner">
+  <div class="stat"><div class="stat-value">3</div><div class="stat-label">New Data Types</div></div>
+  <div class="stat"><div class="stat-value">4</div><div class="stat-label">Option Sets</div></div>
+  <div class="stat"><div class="stat-value">10</div><div class="stat-label">Permissions</div></div>
+  <div class="stat"><div class="stat-value">5</div><div class="stat-label">Privacy Rules</div></div>
+  <div class="stat"><div class="stat-value">14</div><div class="stat-label">Components</div></div>
+  <div class="stat"><div class="stat-value">19</div><div class="stat-label">Features</div></div>
+</div>
+
+<div class="card accent">
+  <div class="card-title">Core architectural principle — User is login identity only</div>
+  <p>All PII (name, phone, avatar, emergency contact, home address) lives on <strong>Employee</strong>. User holds only login credentials, role/permissions, and preferences. A User cannot exist without an <code>employee</code> FK — enforced via required field. Display name everywhere = <code>User's employee's first_name + last_name</code>.</p>
+</div>
+
+<table>
+  <thead><tr><th>Locked Decision</th><th>Applied as</th></tr></thead>
+  <tbody>
+    <tr><td>#1 Tenancy (Company + Property)</td><td>User carries both <code>company</code> and <code>property</code> FKs. Every privacy rule filters on these.</td></tr>
+    <tr><td>#2 Custom Role + fixed Permission OS</td><td><code>User.role</code> (FK) + <code>User.extra_permissions</code> (list of OS - Permission). No permissions stored directly.</td></tr>
+    <tr><td>#3 GDPR Hybrid</td><td>Two-step: deactivate (soft, reversible) → anonymize (hard, irreversible). Email stub preserves uniqueness.</td></tr>
+    <tr><td>#4 Subscription tiers</td><td>Core module — always active regardless of tier.</td></tr>
+    <tr><td>#5 Search</td><td>Bubble native &lt;500 users, Typesense for larger companies.</td></tr>
+  </tbody>
+</table>
+
+<!-- ============ 1. DATA MODEL ============ -->
+<section>
+<h2><span class="num">01</span> Data Model</h2>
+
+<div class="dt-header">User <span class="tag tag-blue">25 fields</span></div>
+<div class="dt-desc">Bubble built-in User extended with CRS fields. NO PII — all display data flows from <code>employee</code>.</div>
+<div class="field-grid">
+  <div class="field"><span class="field-name">email</span><span class="field-type">text</span><span class="field-note">Unique globally. Anonymized → <code>anonymized-{id}@deleted.crs.app</code></span></div>
+  <div class="field"><span class="field-name">company / property</span><span class="field-type">FK</span><span class="field-note">Tenant. Critical for privacy rules.</span></div>
+  <div class="field"><span class="field-name">employee</span><span class="field-type">FK, required</span><span class="field-note">Holds all PII. User cannot exist without it.</span></div>
+  <div class="field"><span class="field-name">role</span><span class="field-type">FK, required</span><span class="field-note">Custom Role — cannot log in without one.</span></div>
+  <div class="field"><span class="field-name">extra_permissions</span><span class="field-type">list of OS-Permission</span><span class="field-note">Exceptions beyond role. Permanent.</span></div>
+  <div class="field"><span class="field-name">is_active</span><span class="field-type">yes/no</span><span class="field-note">Soft-disable. Login blocked when false.</span></div>
+  <div class="field"><span class="field-name">last_login / created_by</span><span class="field-type">date / FK</span><span class="field-note"></span></div>
+  <div class="field"><span class="field-name">must_change_password</span><span class="field-type">yes/no</span><span class="field-note">Default yes on new users. Forces reset on first login.</span></div>
+  <div class="field"><span class="field-name">is_anonymized + metadata</span><span class="field-type">yes/no, date, FK, text</span><span class="field-note">GDPR erasure flag + audit trail.</span></div>
+  <div class="field"><span class="field-name">two_fa_enabled</span><span class="field-type">yes/no</span><span class="field-note">Default no.</span></div>
+  <div class="field"><span class="field-name">two_fa_secret</span><span class="field-type">text</span><span class="field-note"><span class="tag tag-red">NEVER client-visible</span> — blocked in every privacy rule incl. self.</span></div>
+  <div class="field"><span class="field-name">two_fa_backup_codes</span><span class="field-type">list of text</span><span class="field-note">10 codes, shown once, consumed on use.</span></div>
+  <div class="field"><span class="field-name">presence_status</span><span class="field-type">OS-Presence</span><span class="field-note">Online/Away/Busy/Offline — auto-computed, manual override.</span></div>
+  <div class="field"><span class="field-name">presence_override_until</span><span class="field-type">date</span><span class="field-note">Nullable. Auto-clears at this time.</span></div>
+</div>
+
+<div class="card warn">
+  <div class="card-title">Fields NOT on User — common mistakes to avoid</div>
+  <p><strong>No PII</strong> (name/phone/avatar/emergency contact — all on Employee) · <strong>no department</strong> (via <code>User's employee's department</code>) · <strong>no username</strong> (email is identity) · <strong>no direct permissions</strong> (role + extra_permissions only) · <strong>no invited_date</strong> (Bubble Created Date, no invite model in v1).</p>
+</div>
+
+<div class="dt-header">UserPreferences <span class="tag tag-grey">1-to-1</span></div>
+<div class="dt-desc">UI preferences per user, auto-created with User. Kept separate to keep User lean — privacy rules hit User on every page load.</div>
+<div class="field-grid">
+  <div class="field"><span class="field-name">user</span><span class="field-type">FK, unique</span><span class="field-note">1-to-1 back-reference.</span></div>
+  <div class="field"><span class="field-name">dark_mode</span><span class="field-type">yes/no</span><span class="field-note">Default yes.</span></div>
+  <div class="field"><span class="field-name">user_directory_view</span><span class="field-type">OS-Directory View</span><span class="field-note">Default Table.</span></div>
+</div>
+
+<div class="dt-header">Session <span class="tag tag-grey">write-once + lifecycle</span></div>
+<div class="dt-desc">One record per login. Needed for "log out all devices," admin force-logout, suspicious login detection, compliance trails.</div>
+<div class="field-grid">
+  <div class="field"><span class="field-name">session_token</span><span class="field-type">text</span><span class="field-note"><span class="tag tag-red">NEVER client-visible</span> — backend workflows only.</span></div>
+  <div class="field"><span class="field-name">ip_address / user_agent</span><span class="field-type">text</span><span class="field-note">From User Info Tool plugin.</span></div>
+  <div class="field"><span class="field-name">device_type</span><span class="field-type">OS-Device Type</span><span class="field-note">Desktop / Mobile / Tablet / API.</span></div>
+  <div class="field"><span class="field-name">expires_date</span><span class="field-type">date</span><span class="field-note">Default: login_date + 30 days.</span></div>
+  <div class="field"><span class="field-name">status</span><span class="field-type">OS-Session Status</span><span class="field-note">Active / Expired / Revoked / Logged Out.</span></div>
+</div>
+
+<h3>Option Sets</h3>
+<table>
+  <thead><tr><th>Set</th><th>Values</th></tr></thead>
+  <tbody>
+    <tr><td><strong>OS - Device Type</strong></td><td>Desktop, Mobile, Tablet, API</td></tr>
+    <tr><td><strong>OS - Session Status</strong></td><td>Active, Expired, Revoked, Logged Out</td></tr>
+    <tr><td><strong>OS - Directory View</strong></td><td>Table, Card</td></tr>
+    <tr><td><strong>OS - Presence Status</strong> <span class="tag tag-blue">v17.1</span></td><td>Online <code>#6DD5A1</code>, Away <code>#DFBE6C</code>, Busy <code>#F07D7D</code>, Offline <code>#565656</code></td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ============ 2. WORKFLOWS ============ -->
+<section>
+<h2><span class="num">02</span> Workflows</h2>
+
+<h3>User Creation — no email invites</h3>
+<p style="font-size:12.5px;color:var(--text-secondary);">Casino staff are vetted by HR before system access; IT creates accounts after hiring. No self-service sign-up.</p>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div><div class="step-title">Admin opens Create User form</div><div class="step-desc">Employee (required), Email, Role, Property. Picker searches only unlinked Employees.</div></div></div>
+  <div class="step"><div class="step-num">2</div><div><div class="step-title">Sign the user up (Bubble action)</div><div class="step-desc">Temp password via "Assign a temporary password."</div></div></div>
+  <div class="step"><div class="step-num">3</div><div><div class="step-title">Set employee, role, company, property</div><div class="step-desc">is_active=yes, must_change_password=yes, created_by=Current User.</div></div></div>
+  <div class="step"><div class="step-num">4</div><div><div class="step-title">Auto-create NotificationPreferences + UserPreferences</div><div class="step-desc">Backend workflow, defaults.</div></div></div>
+  <div class="step"><div class="step-num">5</div><div><div class="step-title">Show temp password once</div><div class="step-desc">Admin shares out-of-band (Slack, verbal, handoff).</div></div></div>
+  <div class="step"><div class="step-num">6</div><div><div class="step-title">Write ActivityLog</div><div class="step-desc"><code>user_created</code></div></div></div>
+</div>
+
+<h3>Authentication &amp; 2FA</h3>
+<ul class="spec-list">
+  <li>Bubble native email+password, hashed+salted. <code>/login</code> route, "remember me" extends session to 30d.</li>
+  <li>5 consecutive failed logins → 15 min lockout. Logged as <code>login_failed</code>.</li>
+  <li><strong>2FA optional per user</strong> — TOTP, compatible with Google Authenticator / Authy / 1Password. Plugin: Zeroqode TOTP (~$10-15).</li>
+  <li>Activation: Enable → QR code → verify 6-digit code → 10 backup codes shown once.</li>
+  <li>Enabling/disabling 2FA revokes all other sessions (forces re-auth).</li>
+  <li>Lost device recovery via backup code → forced 2FA reset. Admin rescue via <code>admin.edit_user</code>.</li>
+  <li><span class="tag tag-grey">v1.1 parked</span> Mandatory 2FA by Role — ships when Enterprise demands it.</li>
+</ul>
+
+<h3>Password Management — fully Bubble-native</h3>
+<table>
+  <thead><tr><th>Action</th><th>Purpose</th><th>Used where</th></tr></thead>
+  <tbody>
+    <tr><td><code>Sign the user up</code></td><td>Create User + hash password</td><td>Admin "Create User" form</td></tr>
+    <tr><td><code>Send password reset email</code></td><td>Bubble's <code>/reset_pw</code> link, built-in token/expiry</td><td>Forgot password + admin "send reset"</td></tr>
+    <tr><td><code>Update the user's credentials</code></td><td>Change email or password</td><td>Profile page</td></tr>
+    <tr><td><code>Assign a temporary password</code></td><td>Admin generates temp password</td><td>Create new user</td></tr>
+    <tr><td><code>Log out other user's sessions</code></td><td>Kill all sessions but current</td><td>Password change, 2FA toggle, explicit logout-all</td></tr>
+  </tbody>
+</table>
+<p style="font-size:12.5px;color:var(--text-secondary);">Policy: min 10 chars, 1 uppercase, 1 number, 1 special char. <strong>No forced periodic expiry</strong> — NIST guidance against it (leads to weaker passwords).</p>
+
+<h3>Deactivation → Anonymization (strict 2-step GDPR)</h3>
+<div class="card warn">
+  <div class="card-title">Anonymize button disabled while is_active = yes</div>
+  <p>Tooltip: "Deactivate user first." Prevents accidental GDPR erasure of active users.</p>
+</div>
+<table>
+  <thead><tr><th>Step</th><th>Detail</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Deactivate</strong></td><td>Permission <code>admin.deactivate_user</code>. Confirmation popup + optional reason. Sets <code>is_active=no</code>, revokes active sessions, writes <code>user_deactivated</code>, emails user. Reversible.</td></tr>
+    <tr><td><strong>Anonymize</strong></td><td>Permission <code>admin.anonymize_user</code> (destructive). Precondition: deactivated. Type <code>ANONYMIZE</code> + reason to confirm.</td></tr>
+  </tbody>
+</table>
+<div class="steps">
+  <div class="step"><div class="step-num">1</div><div><div class="step-title">Precondition check</div><div class="step-desc">is_active=no AND confirmation text exact match "ANONYMIZE." Abort otherwise.</div></div></div>
+  <div class="step"><div class="step-num">2</div><div><div class="step-title">Scrub Employee PII</div><div class="step-desc">Clear name, phone, personal_email, avatar, emergency_contact, doc_id, address.</div></div></div>
+  <div class="step"><div class="step-num">3</div><div><div class="step-title">Rewrite User.email</div><div class="step-desc"><code>anonymized-{id}@deleted.crs.app</code> — keeps uniqueness constraint valid.</div></div></div>
+  <div class="step"><div class="step-num">4</div><div><div class="step-title">Set User flags</div><div class="step-desc">is_anonymized=yes, anonymized_date/by/reason.</div></div></div>
+  <div class="step"><div class="step-num">5</div><div><div class="step-title">Write ActivityLog</div><div class="step-desc"><code>user_anonymized</code> — preserved forever.</div></div></div>
+  <div class="step"><div class="step-num">6</div><div><div class="step-title">No notifications</div><div class="step-desc">Silent — no valid email left to reach.</div></div></div>
+</div>
+<p style="font-size:12.5px;color:var(--text-secondary);"><strong>Preserved for compliance:</strong> report/task authorship (shows "Anonymized User"), ActivityLog, Session history, audit + financial records.</p>
+
+<h3>Role Assignment</h3>
+<ul class="spec-list">
+  <li>Single dropdown, sorted by <code>role_level</code> then alphabetically. Shows role icon + name + permission count.</li>
+  <li><strong>Hard safeguards:</strong> admin cannot change own role · cannot assign the seeded Admin role unless already Admin · cannot strip Admin from the sole Admin user.</li>
+  <li>Save writes <code>role_assigned</code> to ActivityLog + notifies the affected user in-app. Optional session revocation (default no; recommended yes on downgrade).</li>
+</ul>
+
+<h3>Presence System <span class="tag tag-blue">v17.1</span></h3>
+<div class="card accent">
+  <div class="card-title">Distinct from Account Status</div>
+  <p><strong>Account status</strong> (Active/Inactive/Anonymized) controls login. <strong>Presence</strong> (Online/Away/Busy/Offline) signals current availability — computed from Session activity + manual override.</p>
+</div>
+<ul class="spec-list">
+  <li>Active Session &lt;5min → Online · 5–30min → Away · else Offline. Manual override lasts 8h (or "end of shift").</li>
+  <li>Stored on User (not Session) so privacy rules stay simple.</li>
+  <li><strong>WU-critical:</strong> writes throttled — <code>User.presence_status</code> written only when the computed value actually changes (staying Online all day = 1 write, not 96).</li>
+  <li>Presence changes NOT logged in ActivityLog (high-volume, low audit value).</li>
+</ul>
+</section>
+
+<!-- ============ 3. PRIVACY ============ -->
+<section>
+<h2><span class="num">03</span> Privacy Rules</h2>
+<h3>User — 5 rules, in priority order</h3>
+<table>
+  <thead><tr><th>#</th><th>Rule</th><th>Condition</th><th>Visible fields</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Self</td><td><code>This User is Current User</code></td><td>All except <code>two_fa_secret</code> (always blocked)</td></tr>
+    <tr><td>2</td><td>Admin</td><td><code>admin.view_users</code> AND same company</td><td>All except 2FA secret + backup codes</td></tr>
+    <tr><td>3</td><td>Same Company</td><td>Same company AND <code>is_active=yes</code></td><td>id, employee, role, is_active, is_anonymized only</td></tr>
+    <tr><td>4</td><td>Anonymized</td><td><code>is_anonymized=yes</code></td><td>Non-admin: id/is_anonymized/is_active only ("Anonymized User"). Admin: all fields for audit.</td></tr>
+    <tr><td>5</td><td>Cross-Company</td><td>Different company</td><td>Zero access</td></tr>
+  </tbody>
+</table>
+<h3>Session &amp; UserPreferences</h3>
+<table>
+  <thead><tr><th>DT</th><th>Rule</th><th>Condition</th><th>Access</th></tr></thead>
+  <tbody>
+    <tr><td>Session</td><td>Self</td><td>owns session</td><td>All except <code>session_token</code></td></tr>
+    <tr><td>Session</td><td>Admin</td><td><code>admin.view_sessions</code>, same company</td><td>All except <code>session_token</code></td></tr>
+    <tr><td>Session</td><td>Cross-company</td><td>—</td><td>No access</td></tr>
+    <tr><td>UserPreferences</td><td>Self only</td><td>owns record</td><td>Full read+write; no one else has access</td></tr>
+  </tbody>
+</table>
+<div class="card err">
+  <div class="card-title">Never client-visible, in any rule, including "self"</div>
+  <p><code>User.two_fa_secret</code> · <code>User.two_fa_backup_codes</code> (except at generation) · <code>Session.session_token</code> — backend workflows only.</p>
+</div>
+</section>
+
+<!-- ============ 4. PERMISSIONS ============ -->
+<section>
+<h2><span class="num">04</span> Permissions Catalog</h2>
+<p style="font-size:12.5px;color:var(--text-secondary);">10 permissions, all under <strong>Admin → User Management</strong>. Dependency chains auto-check in the R&amp;P picker.</p>
+<table>
+  <thead><tr><th>Code</th><th>Display</th><th>Destructive</th><th>Requires</th></tr></thead>
+  <tbody>
+    <tr><td><code>admin.view_users</code></td><td>View users</td><td>—</td><td>—</td></tr>
+    <tr><td><code>admin.create_user</code></td><td>Create user</td><td>—</td><td>view_users</td></tr>
+    <tr><td><code>admin.edit_user</code></td><td>Edit user</td><td>—</td><td>view_users</td></tr>
+    <tr><td><code>admin.change_user_role</code></td><td>Change user role</td><td>—</td><td>edit_user</td></tr>
+    <tr><td><code>admin.deactivate_user</code></td><td>Deactivate user</td><td>—</td><td>edit_user</td></tr>
+    <tr><td><code>admin.reactivate_user</code></td><td>Reactivate user</td><td>—</td><td>edit_user</td></tr>
+    <tr><td><code>admin.anonymize_user</code></td><td>Anonymize user</td><td><span class="tag tag-red">Yes</span></td><td>deactivate_user</td></tr>
+    <tr><td><code>admin.send_password_reset</code></td><td>Send password reset</td><td>—</td><td>edit_user</td></tr>
+    <tr><td><code>admin.view_sessions</code></td><td>View user sessions</td><td>—</td><td>view_users</td></tr>
+    <tr><td><code>admin.revoke_sessions</code></td><td>Revoke user sessions</td><td>—</td><td>view_sessions</td></tr>
+  </tbody>
+</table>
+<h3>Default role assignments (seed data)</h3>
+<table>
+  <thead><tr><th>Role</th><th>Grants</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Admin</strong></td><td>All 10 (fixed)</td></tr>
+    <tr><td>HR Manager</td><td>view / create / edit / deactivate / reactivate / send_password_reset</td></tr>
+    <tr><td>Surveillance Manager / Supervisor</td><td>view_users only</td></tr>
+    <tr><td>Operator</td><td>none</td></tr>
+  </tbody>
+</table>
+</section>
+
+<!-- ============ 5. UI ============ -->
+<section>
+<h2><span class="num">05</span> UI — Profile Page (<code>/profile</code>)</h2>
+<table>
+  <thead><tr><th>Section</th><th>Fields</th><th>Editable?</th></tr></thead>
+  <tbody>
+    <tr><td>Identity</td><td>Name, avatar, phone, role, department</td><td>No — pulled from Employee</td></tr>
+    <tr><td>Email</td><td>Login email</td><td>Yes — Update Credentials, requires current password</td></tr>
+    <tr><td>Password</td><td>Current / new / confirm</td><td>Yes — revokes other sessions on success</td></tr>
+    <tr><td>2FA</td><td>Toggle + backup codes</td><td>Yes</td></tr>
+    <tr><td>Preferences</td><td>Dark mode, directory view</td><td>Yes — writes UserPreferences</td></tr>
+    <tr><td>Notifications</td><td>Per-event prefs</td><td>Yes</td></tr>
+    <tr><td>Active Sessions</td><td>IP, device, location, last activity</td><td>Revoke per-device; "log out all other devices"</td></tr>
+    <tr><td>Danger Zone</td><td>—</td><td>Empty in MVP — self-delete is admin-only per GDPR spec</td></tr>
+  </tbody>
+</table>
+
+<h2 style="margin-top:32px;"><span class="num">·</span> User Directory (Admin → Users)</h2>
+<ul class="spec-list">
+  <li>Hybrid table/card view, toggle persisted in UserPreferences.</li>
+  <li>Filters: role, department, status, last-login. Search on email/first/last name.</li>
+  <li>Table columns: Avatar+Name, Email, Role, Department, Status, Last login, Created, Actions.</li>
+  <li>Row actions gated by permission: view / edit / send reset / deactivate-reactivate / anonymize (only if deactivated).</li>
+  <li><strong>WU notes:</strong> use cached <code>Company.user_count</code> (never <code>:count</code> on Users) · Typesense above 500 users · filters must be server-side constraints, never <code>:filtered</code> · 25/page pagination.</li>
+</ul>
+</section>
+
+<div class="gap-note">
+  <h2>⚠ Gaps in the written spec itself</h2>
+  <ul class="spec-list">
+    <li><strong>Dependencies tab is empty</strong> — cross-module mapping not yet filled in.</li>
+    <li>All <strong>14 UI Components</strong> and <strong>19 Features</strong> in the component inventory are marked "Planned" — spec text is done, component-level build tracking hasn't started.</li>
+  </ul>
+</div>
+
+<div class="gap-note" style="background:rgba(239,68,68,0.06); border-color:rgba(239,68,68,0.3);">
+  <h2 style="color:var(--error);">⚠ Spec vs. actual Bubble build (brain/STATUS.md)</h2>
+  <p style="font-size:12.5px;color:var(--text-secondary);">UI is built and data-wired, but <strong>security Pass-2 is not done</strong>. The 5 privacy rules above are <em>designed</em>, not yet enforced live — the live User DT is property-only with no company check. 22 demo records are still present and the mobile "Filters" button is non-functional.</p>
+</div>
+
+<footer>Source: <code>specs/CRS_Blueprint.html</code> (lines 5818–6812) · Build status: <code>brain/STATUS.md</code> §3 · Generated for Vlad, CRS Brain.</footer>
+</body>
+</html>

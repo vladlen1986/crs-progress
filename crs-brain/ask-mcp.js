@@ -13,7 +13,7 @@ const BASE = 'http://127.0.0.1:' + PORT;
 
 const TOOL = {
   name: 'ask_vlad',
-  description: 'Ask Vlad a question with clickable options and BLOCK until he answers. Use this — never end your turn with free-text "which do you want?" questions. For OPERATIONAL choices only (fix path, proceed/park, scope, naming); architectural [OPEN] decisions must emit DECISION-NEEDED instead. The return value is his answer: one of your option labels, "recommend" (present your recommendation + one-line tradeoffs as a NEW ask_vlad call with that option first — do not just proceed), or free text he typed.',
+  description: 'Ask Vlad an OPERATIONAL question with clickable options and BLOCK until he answers (fix path, proceed/park, scope, naming). NEVER ask in prose — a question written as a paragraph is a contract violation, and the server will intercept it and raise a card anyway. For ARCHITECTURAL choices, or anything touching an [OPEN] decision in decisions.md, use decide_with_vlad instead; if you use this tool for one by mistake the server upgrades it to a decision card automatically. The return value is his answer: one of your option labels, "recommend" (present your recommendation + one-line tradeoffs as a NEW ask_vlad call with that option first — do not just proceed), or free text he typed.',
   inputSchema: {
     type: 'object',
     properties: {
@@ -25,19 +25,40 @@ const TOOL = {
   },
 };
 
-async function relayAsk(args) {
+// The decision card: same blocking contract, different semantics. No "recommend"
+// shortcut and no standing-answer path — Vlad makes an architectural call
+// himself — and his choice is written to decisions.md as a candidate to ratify.
+const TOOL_DECISION = {
+  name: 'decide_with_vlad',
+  description: 'Put an ARCHITECTURAL choice to Vlad as a decision card with clickable options and BLOCK until he answers. Use this for anything that would become a locked ruling, and for anything touching an [OPEN] decision in decisions.md — instead of writing DECISION-NEEDED or a prose paragraph. His answer is recorded in decisions.md as a CANDIDATE entry for him to ratify. There is no "recommend" shortcut and no standing-answer path here: he must make the call himself. The return value is his chosen option label, or free text he typed.',
+  inputSchema: {
+    type: 'object',
+    properties: {
+      question: { type: 'string', description: 'The decision, one sentence, specific' },
+      context: { type: 'string', description: 'The trade-offs, 1-5 lines, shown collapsed on the card' },
+      options: { type: 'array', minItems: 2, maxItems: 6, items: { type: 'object', properties: { label: { type: 'string' }, hint: { type: 'string' } }, required: ['label'] } },
+    },
+    required: ['question', 'options'],
+  },
+};
+
+async function relayAsk(args, kind) {
   const r = await fetch(BASE + '/api/ask', {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ chatId: CHAT, question: args.question || '', context: args.context || '', options: args.options || [] }),
+    body: JSON.stringify({ chatId: CHAT, question: args.question || '', context: args.context || '', options: args.options || [], kind: kind === 'decision' ? 'decision' : 'ask' }),
   });
   const j = await r.json();
-  if (j.error) return 'ASK REJECTED: ' + j.error;                       // e.g. the [OPEN]-decision boundary
+  if (j.error) return 'ASK REJECTED: ' + j.error;                       // validation only — the [OPEN] boundary now upgrades instead of rejecting
   if (j.answer !== undefined) return 'Vlad answered (standing Playbook rule, auto): ' + j.answer;
+  // The server may have UPGRADED an operational ask to a decision card because it
+  // touched an [OPEN] decision. Say so, so the session knows the answer will be
+  // recorded in decisions.md rather than treated as a throwaway operational pick.
+  const upgraded = kind !== 'decision' && j.kind === 'decision';
   // long-poll until answered — the server exempts the session from idle-kill meanwhile
   for (;;) {
     const w = await fetch(BASE + '/api/ask/wait?id=' + encodeURIComponent(j.id) + '&t=25000');
     const a = await w.json();
-    if (a.answered) return 'Vlad answered: ' + a.answer;
+    if (a.answered) return (upgraded ? 'This touched an [OPEN] decision, so it was raised as a DECISION card and his answer is recorded in decisions.md as a candidate. Vlad decided: ' : (kind === 'decision' ? 'Vlad decided (recorded in decisions.md as a candidate): ' : 'Vlad answered: ')) + a.answer;
   }
 }
 
@@ -59,11 +80,12 @@ async function handle(msg) {
   const { id, method, params } = msg;
   if (method === 'initialize') return reply(id, { protocolVersion: params && params.protocolVersion || '2024-11-05', capabilities: { tools: {} }, serverInfo: { name: 'crs-ask', version: '1.0.0' } });
   if (method === 'notifications/initialized') return;   // notification, no reply
-  if (method === 'tools/list') return reply(id, { tools: [TOOL] });
+  if (method === 'tools/list') return reply(id, { tools: [TOOL, TOOL_DECISION] });
   if (method === 'tools/call') {
-    if (!params || !params.name || params.name !== 'ask_vlad') return replyErr(id, 'unknown tool');
+    const name = params && params.name;
+    if (name !== 'ask_vlad' && name !== 'decide_with_vlad') return replyErr(id, 'unknown tool');
     try {
-      const text = await relayAsk(params.arguments || {});
+      const text = await relayAsk(params.arguments || {}, name === 'decide_with_vlad' ? 'decision' : 'ask');
       return reply(id, { content: [{ type: 'text', text }] });
     } catch (e) { return replyErr(id, 'ask relay failed: ' + e.message); }
   }

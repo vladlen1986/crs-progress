@@ -10,53 +10,72 @@
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
-  .wrap{max-width:920px;margin:0 auto;padding:26px 22px 90px}
-  header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
+  /* §3 TYPE — only two sizes exist: 13/20 body and 12/16 meta. Letter-spacing 0
+     everywhere, bold runs 600 and never higher. */
+  body{margin:0;background:var(--cc-bg-canvas);color:var(--cc-text-body);font-family:var(--sans);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);letter-spacing:0;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:920px;margin:0 auto;padding:24px 20px 88px}
+  header.top{display:flex;align-items:flex-start;gap:12px;margin-bottom:8px}
   header.top .t{flex:1;min-width:0}
-  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
-  .sub{color:var(--secondary);font-size:12.5px;line-height:1.55}
+  h1{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-primary);margin:0 0 2px;font-weight:600;letter-spacing:0}
+  .sub{color:var(--cc-text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
   .hbtns{display:flex;gap:8px;flex:0 0 auto;align-items:center}
-  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
-  .hbtn.primary{background:var(--accent);border-color:var(--accent);color:var(--white) /* approved literal — on-accent text */;font-weight:600}
-  .hbtn.primary:hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover)}
-  .hbtn.primary:active:not(:disabled){background:var(--accent-active);border-color:var(--accent-active)}
-  .hbtn.primary:disabled{opacity:.5;cursor:default}
-  .banner{margin:14px 0 4px;padding:10px 13px;border-radius:var(--radius-card);border:1px solid var(--line);background:var(--panel);font-size:12.8px;display:none}
+  /* §6 button state matrix: control → control-strong (hover) → segment-track
+     (active), body ink, no border, focus = the white 22% ring. */
+  .hbtn{background:var(--cc-bg-control);border:1px solid transparent;color:var(--cc-text-body);border-radius:var(--radius-btn);padding:1px 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .hbtn:hover{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .hbtn:active{background:var(--cc-bg-segment-track)}
+  .hbtn:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:0}
+  .hbtn.primary{background:var(--cc-bg-control-strong);color:var(--cc-text-primary);font-weight:600}
+  .hbtn.primary:hover:not(:disabled){background:var(--cc-bg-segment-thumb)}
+  .hbtn.primary:active:not(:disabled){background:var(--cc-bg-control)}
+  .hbtn.primary:disabled{background:var(--cc-bg-control);color:var(--cc-text-faint);cursor:default}
+  /* §5.4 the banner is a panel, so it keeps its border; hue only when the state
+     is genuinely semantic (usage limit = warning), otherwise a neutral surface. */
+  .banner{margin:12px 0 4px;padding:8px 12px;border-radius:var(--radius-card);border:1px solid var(--cc-border);background:var(--cc-bg-panel);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);display:none}
   .banner.show{display:block}
-  .banner.limit{border-color:var(--border-default);background:var(--warning-tint);color:var(--warning)}
-  .banner.running{border-color:var(--border-default);background:var(--accent-tint);color:var(--accent-text)}
-  .add{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px}
-  .add input,.add textarea{background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:13px;outline:none}
-  .add input:focus,.add textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  .banner.limit{background:var(--warning-tint);border-color:transparent;color:var(--cc-warning)}
+  .banner.running{background:var(--cc-bg-control);border-color:transparent;color:var(--cc-text-body)}
+  .add{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
+  /* §4 RADII — inputs/composer take 10; focus is the white ring, never a glow. */
+  .add input,.add textarea{background:var(--cc-bg-composer);border:1px solid var(--cc-border-composer);color:var(--cc-text-primary);border-radius:var(--radius-composer);padding:8px 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);outline:none}
+  .add input:focus,.add textarea:focus{border-color:var(--cc-focus-ring)}
+  .add input::placeholder,.add textarea::placeholder{color:var(--cc-text-placeholder)}
   .add .title{flex:1;min-width:200px}
-  .add textarea{flex-basis:100%;min-height:74px;resize:vertical;font-family:var(--mono);font-size:12.5px}
-  .add button{background:var(--accent);border:1px solid var(--accent);color:var(--white) /* approved literal — on-accent text */;border-radius:var(--radius-btn);padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-  .add button:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-  .add button:active{background:var(--accent-active);border-color:var(--accent-active)}
-  .sec{margin-top:22px}
-  .sechead{display:flex;align-items:center;gap:9px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:10px}
-  .sechead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:1px 8px;font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:0}
-  .sechead .bar{flex:1;height:1px;background:var(--line)}
-  .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:8px}
-  .item:hover{border-color:var(--line2)}
-  .irow{display:flex;align-items:flex-start;gap:11px;padding:11px 13px}
-  .st{font-size:10.5px;font-weight:600;letter-spacing:.4px;padding:2px 8px;border-radius:var(--radius-badge);white-space:nowrap;margin-top:2px}
-  .st-queued{background:var(--bg-tertiary);color:var(--text-secondary)}
-  .st-running{background:var(--accent-tint);color:var(--accent-text)}
-  .st-blocked-limit{background:var(--warning-tint);color:var(--warning)}
-  .st-done{background:var(--success-tint);color:var(--success)}
-  .st-failed{background:var(--error-tint);color:var(--error-soft)}
+  .add textarea{flex-basis:100%;min-height:72px;resize:vertical;font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
+  .add button{background:var(--cc-bg-control-strong);border:1px solid transparent;color:var(--cc-text-primary);border-radius:var(--radius-btn);padding:8px 16px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer}
+  .add button:hover{background:var(--cc-bg-segment-thumb)}
+  .add button:active{background:var(--cc-bg-control)}
+  .add button:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:0}
+  .sec{margin-top:20px}
+  /* §3 SECTION HEADERS — 12px sentence case: no uppercase, no tracking. */
+  .sechead{display:flex;align-items:center;gap:8px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);text-transform:none;letter-spacing:0;color:var(--cc-text-secondary);font-weight:600;margin-bottom:8px}
+  .sechead .cnt{color:var(--cc-text-secondary);background:var(--cc-bg-control);border:none;border-radius:var(--radius-pill);padding:2px 8px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:var(--mono);font-weight:600;letter-spacing:0}
+  .sechead .bar{flex:1;height:1px;background:var(--cc-border-divider)}
+  /* §5.4 CARDS — filled with --cc-bg-card and NO border, no shadow. Hover is a
+     background step, never a hue or an outline. */
+  .item{background:var(--cc-bg-card);border:none;border-radius:var(--radius-card);margin-bottom:4px}
+  .item:not(.open):hover{background:var(--cc-bg-selected)}
+  .irow{display:flex;align-items:flex-start;gap:10px;padding:12px}
+  /* §6 STATUS CHIPS — 12px/600/r6 and quiet. The status word is upper-cased by
+     the renderer, which this pass may not touch, so the tracking-wider look is
+     undone in CSS to match the sentence-case chips elsewhere in the app. */
+  .st{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;text-transform:lowercase;padding:2px 8px;border-radius:var(--radius-pill);white-space:nowrap;margin-top:0}
+  .st-queued{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .st-running{background:var(--cc-bg-control);color:var(--cc-text-body)}
+  .st-blocked-limit{background:var(--warning-tint);color:var(--cc-warning)}
+  .st-done{background:var(--success-tint);color:var(--cc-success)}
+  .st-failed{background:var(--error-tint);color:var(--cc-danger)}
   .ibody{flex:1;min-width:0}
-  .ititle{color:var(--primary);font-weight:600;font-size:14px}
-  .imeta{color:var(--muted);font-size:11.5px;font-weight:600;margin-top:2px;font-family:var(--mono)}
-  .ilog{margin-top:7px;border-top:1px solid var(--line);padding-top:7px;font-family:var(--mono);font-size:11.5px;color:var(--muted);white-space:pre-wrap;word-break:break-word;display:none}
+  .ititle{color:var(--cc-text-primary);font-weight:600;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  .imeta{color:var(--cc-text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:400;margin-top:2px;font-family:var(--mono)}
+  .ilog{margin-top:8px;border-top:1px solid var(--cc-border-divider);padding-top:8px;font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-secondary);white-space:pre-wrap;word-break:break-word;display:none}
   .item.open .ilog{display:block}
-  .iacts{display:flex;flex-direction:column;gap:3px;flex:0 0 auto}
-  .iacts button{width:28px;height:28px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:var(--radius-btn);font-size:12px}
-  .iacts button:hover{color:var(--primary);background:var(--panel2)}
-  .empty{color:var(--muted);font-style:italic;font-size:12.5px;padding:8px 2px}
+  .iacts{display:flex;flex-direction:column;gap:2px;flex:0 0 auto}
+  /* §6 icon buttons: transparent → 6% white on hover, radius 4, 24px box. */
+  .iacts button{width:var(--cc-button-h);height:var(--cc-button-h);border:none;background:none;color:var(--cc-text-muted);cursor:pointer;border-radius:var(--radius-code);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);display:flex;align-items:center;justify-content:center}
+  .iacts button:hover{color:var(--cc-text-primary);background:var(--cc-border-soft)}
+  .iacts button:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:0}
+  .empty{color:var(--cc-text-secondary);font-style:normal;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);padding:8px 2px}
 </style>
 </head>
 <body>

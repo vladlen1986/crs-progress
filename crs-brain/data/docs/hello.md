@@ -1,1 +1,1 @@
-Hello. What are you working on today?
+Hello. What do you need — status check, brain lookup, or Bubble work on the test branch?

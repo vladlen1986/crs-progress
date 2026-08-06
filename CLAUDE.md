@@ -100,27 +100,38 @@ Use `design/tokens.css` — never hard-code colors. Source of truth.
 
 ## Tooling & workflow
 
-### Bubble work via Buildprint (added 2026-05-01; CLI flow since 2026-07-14)
+### Bubble work via Buildprint (added 2026-05-01; CLI flow since 2026-07-14; one chat since 2026-08-06)
 
-For schema changes, Option Sets, and workflow edits in Bubble:
-- Operated through the **Buildprint CLI** from CRS Brain's Buildprint chat mode
-  (bp:true chats) against the cloned **TEST branch worktree**
-  (`~/projects/crs-bubble/<app>/test`) — no website paste needed.
+**One chat, no modes.** Every CRS Brain conversation is a Claude Code session whose
+working directory is this repo, with the cloned Bubble **TEST branch worktree**
+(`~/projects/crs-bubble/<app>/test`) attached via `--add-dir`. The same session
+drives the **Buildprint CLI** whenever the task needs it — schema changes, Option
+Sets, workflow edits — and does repo work (decisions.md, CLAUDE.md, audits) and
+strategy / design / UX discussion in the same thread. No website paste needed.
+
+- **No `bp:true` mode at creation.** `chat.bp` is now only an after-the-fact TAG
+  meaning "this conversation actually used Buildprint"; the server sets it when
+  Buildprint tools fire. The sidebar **BP** chip means exactly that.
+- **Workspace resolution:** the CLI walks UP from cwd and has no `--project` flag,
+  so a session `cd`s into `~/projects/crs-bubble/<app>/test` as its **own** Bash
+  call (chaining breaks the command allowlist) and `cd`s back to the repo for
+  brain work. The sandbox permits `cd` into `--add-dir`'d trees only.
+- **Preflight is lazy:** the CLI preflight (and its "Buildprint ready — CLI vX,
+  linked · workspace app/branch" step) runs only on turns that look like Bubble
+  work, so brain-only questions start instantly.
+- **No clone on this machine:** the chat still works; Buildprint capability just
+  degrades with an honest note (it is no longer a hard error).
 - The loop is always `buildprint sync` → edit files → `buildprint check` (must
-  pass) → `buildprint apply`. Plan-before-first-apply: the copilot states its
-  exact plan and waits for approval. Never `--force-apply` / `--no-check` /
-  `sync --reset` without explicit approval. TEST branch only — never live.
+  pass) → `buildprint apply`. Savepoint before every apply, check after, one step
+  per apply. Plan-before-first-apply: the copilot states its exact plan and waits
+  for approval. Never `--force-apply` / `--no-check` / `sync --reset` without
+  explicit approval in that chat. TEST branch only — never live. Pattern A holds
+  (company + property + privacy rules checking both). Stop and surface anything odd.
 - Build packets (crs-brain/data/plans.json, managed in the app's Build plan
   panel) break a module into one-session steps; each step expands into a
   guardrail-hardened Buildprint prompt.
 - After each session, changes are ingested back into `brain/` (auto-tracking
   or the Ingest button).
-
-For repo work (decisions.md, CLAUDE.md, audits):
-- Claude Code as before, PERMISSION MODE pattern
-
-For strategy / design / UX decisions:
-- Direct chat with Claude
 
 See `decisions.md` 2026-05-01 for the original rule set and
 `brain/buildprint/crs-brain-operations.md` for the operational guardrails.

@@ -57,6 +57,45 @@ Triggers: soft-deleted, deleted data types, deleted DTs, restore or purge
 
 ---
 
+## 2026-08-07 — The AI/thinking layer is the ONE colour carve-out in the brain app
+**Decision:** the gradient/glow/orbiting-molecule layer is restored and is explicitly
+exempt from the brain app's greyscale rule — but only on the **AI thinking layer**:
+the in-chat thinking indicator (`.chat-brain`), the running Thinking step
+(`.wstep.run`), and the hero brain mark **on hover**. Palette: the `#g-ai` gradient
+(`#EC4899 → #A855F7 → #6366F1`) for the glyph stroke, a `rgba(168,85,247,.45)` radial
+halo, and molecules in `#EC4899 / #22D3EE / #A855F7 / #6366F1 / #F59E0B / #34D399`,
+with `aihue` / `dhcHue` hue-rotation.
+
+**Why:** the 2026-08-06 entry below stripped this layer as part of "flat surfaces, no
+glow on chrome". Vlad rejected the greyscale result outright — *"colorful animation when
+in chat mode the brain is thinking its awesome and yours no colors and stupid circle
+around, its not something cool"*. The carve-out reasoning: this layer is **not chrome**,
+it is the product's one moment of personality, and it only exists while the system is
+actually thinking or while the user is deliberately hovering the mark.
+
+**Scope limits (all enforced by rigs):** everything else stays flat ink. The sidebar
+brand badge stays grey and static. Clay `#D97757` remains reserved for the spark glyph.
+The colour never appears at rest — the §10 acceptance screenshot is taken idle and still
+passes 13/13, so the orange budget is untouched. The whole layer is `aria-hidden`, never
+hit-tested, and removed under `prefers-reduced-motion`.
+
+**Supersedes:** the "no decorative gradient/glow/hue-rotate layer" clause of the
+2026-08-06 entry below. Every other clause of that entry stands.
+
+**Artifacts:** `crs-brain/public/index.html` (`#g-ai` / `#g-ai-lg` defs, `.brainwrap`
+block, `cosmosHtml()`), `crs-brain/public/tokens.css` (`.dh-cosmos`),
+`brain/qa/rig-scripts/probe-thinking-brain.js`, `brain/qa/rig-scripts/shoot-cosmos.js`.
+
+---
+
+## 2026-08-06 — CRS Brain app gets its own look (Claude Code style); product design system unchanged
+**Decision:** the BRAIN APP's UI diverges from the CRS product design system. `crs-brain/public/tokens.css` is no longer a verbatim paste of §2.10 — it is now the brain app's own token set, modelled on the Claude Code desktop app: warm near-black surfaces (`#1B1A18/#211F1D/#272522`), hairline borders, a single rust accent (`#C86E4E` dark / `#B45B36` light) used sparingly, small radii (card 8 / btn 6 / input 6 / modal 10 / badge 4), near-flat shadows, desaturated status colours, and no decorative gradient/glow/hue-rotate layer.
+**Why:** Vlad's direct instruction (2026-08-06): "change design of the entire brain app to look like claude code, colors border icons everything simplistic." A newer direct instruction supersedes an older standing one — same precedent as judgment call #56 superseding #35.
+**Supersedes:** the 2026-07-16 entry below (accent stays `#3B82F6`) **for the brain app only**, and the matching "Locked decisions" line in `crs-brain/BRAIN_APP_PROGRESS.md` §6 (flat `#3B82F6` accent, `#181818/#1E1E1E` surfaces, radii 6/10/12/16).
+**Explicitly NOT changed:** `design/tokens.css`, `design/design.md` and `brain/design/CRS-design-system.md` §2.10 remain the authority for the CRS **product** (the Bubble app) and for every prototype. Prototypes embed their own §2.10 block, so the app restyle cannot leak into product designs (verified — no prototype links the app stylesheet). The prototype scaffold still injects §2.10 verbatim, so checklist row STUDIO.1 is unaffected.
+**Rules that SURVIVE the restyle** (they were never about the palette): tokens-only in component CSS with citation comments for approved literals; default body text `--text-secondary`, never `--text-primary`; active states change background + text only, never background + border + text; segmented controls/toggle chips stay greyscale when active (judgment call #36); no `line-through` on completed items; cards border-only; no glow on DOM chrome; both themes must render.
+**Consequence:** checklist rows asserting the old palette (notably `P7-icons.7`'s pixel-identical dark icon sheet) need re-baselining, and the app's audits under `crs-brain/audits/ui/` describe the previous look.
+
 ## 2026-07-19 — Sign-in (index) page: anonymous visitors always see DARK
 **Decision:** the pre-login index page renders dark for logged-out visitors — by design, not a bug. Per-element `bptheme` light-mode states (applied 2026-07-19) activate only for logged-in users with `dark_theme` = no; anonymous temp users have empty theme fields, so the dark defaults stand.
 **Why:** logged-out browsers have no user to carry a theme preference; options considered were always-light (inverts ~15 elements' defaults), OS `prefers-color-scheme` via HTML element (index `page.json` is un-editable — reserved-name check trap), and localStorage carry-over. Vlad ruled: keep dark, zero extra moving parts.

@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-08-02**.
+Last updated: **2026-08-06**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
@@ -18,20 +18,303 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 ```
 
 - `crs-brain/node_modules` is **gitignored** (as of 2026-07-16) — native binaries are per-OS, so each machine builds its own with `npm install`. Do **not** commit node_modules. `npm install` needs Xcode Command Line Tools on Mac (for node-pty's native build); if it fails, the app still runs, just without live usage.
-- To operate Buildprint from the Mac you also need the **Buildprint CLI linked + the Test branch cloned** on that machine — see `brain/buildprint/CLI-MCP-PLAYBOOK.md §5` (`npm i -g buildprint` → `buildprint link <token>` → `buildprint project clone <appId> --branch test` into `~/projects/crs-bubble/`). The workspace path is per-machine; the app finds it automatically.
+- To operate Buildprint from the Mac you also need the **Buildprint CLI linked + the Test branch cloned** on that machine — see `brain/buildprint/CLI-MCP-PLAYBOOK.md §5` (`npm i -g buildprint` → `buildprint link <token>` → `buildprint project clone <appId> --branch test` into `~/projects/crs-bubble/`). The workspace path is per-machine; the app finds it automatically. Without the clone the chat still works — Buildprint capability just degrades with an honest note (not a hard error).
 - Optional: `npm install -g agent-browser` for screenshots/visual verification.
 
 ---
 
 ## Current feature set (snapshot 2026-07-16 — read this instead of all the logs)
 
-- **Chat + Buildprint copilot** (`index.html`): Claude-style chat, grouped "Worked for Xs" activity blocks, mode switch, persistent **memory** ("remember this…" → compiled + injected into every prompt; `memory.html`), **action log** with savepoint-aware rollback (`activity.html`), hard safety gate (`bp-guard.js`) + auto command logging (`bp-log.js`), guardrailed prompt generation (PROMPT-STANDARD + templates).
+- **Chat + Buildprint copilot** (`index.html`): Claude-style chat, grouped "Worked for Xs" activity blocks, ONE chat (no mode switch — every session also drives Buildprint; see the 2026-08-06 merge log), persistent **memory** ("remember this…" → compiled + injected into every prompt; `memory.html`), **action log** with savepoint-aware rollback (`activity.html`), hard safety gate (`bp-guard.js`) + auto command logging (`bp-log.js`), guardrailed prompt generation (PROMPT-STANDARD + templates).
 - **OS-style file explorer** (in `index.html`): windowed (drag/resize/snap/maximize/fullscreen/minimize-chips), list+grid views, marquee/kb selection, context menus with typed New-file submenu, inline extension-masked rename, cut/copy/paste, drag-drop moves with spring-loaded folders, 6s **Undo**, favorites + collapsible sidebar, recursive search, item-anchored hover previews (files AND folders), **document popup** (md rendered / code highlighted / csv table / pdf embed / html sandbox), **OS interop** (drag in from Explorer incl. folders, Ctrl+V OS files/screenshots, drag OUT via DownloadURL, Download / ZIP / Copy-content menu). Explorer always shows the FULL repo tree; server ops all `safeRepoPath`-guarded (`/api/fs/*`, `/api/upload`, `/api/zip`).
 - **Icons**: approved two-tier generator `icons.js` (badge tier ≥40px / glyph tier <40px), used at every render site.
 - **Other pages**: `map.html` galaxy map + kanban (dept hubs all linked to the CLAUDE.MD center; promoted subfolder clusters are namespaced — a `#data` id collision used to leave one hub floating), `tree.html` Progress Tree (46 modules), `wishlist.html` (app todos + Claude-Code prompt generator per item).
 - **Cross-platform**: zero-dep server, node_modules gitignored (per-OS builds), `.gitattributes` line-ending lock, `doctor.js` health check, `start.bat` / `start.command` launchers.
 
 ---
+
+## HANDOFF 2026-08-07 → Mac
+
+`crs-brain/HANDOFF.md` is the pick-up point: how to start the app on the Mac, the QA rig
+inventory and how to repoint the Chrome path, what shipped this stretch, and the OPEN
+items. Two of those are live decisions Vlad already made that are NOT yet implemented:
+
+1. **Upgrade the Claude Code CLI (2.1.120 → 2.1.223).** Approved, attempted, and it did
+   NOT happen — the `winget upgrade` call errored and the CLI is unchanged at 2.1.120.
+   This is what blocks the "Weekly · Fable" bar: measured, that build's statusline payload
+   carries only `five_hour` and `seven_day`.
+2. **Usage window title should show the ROUTED model**, not the model this chat last ran
+   on. Decided; `brainModel()` in `usagewin.js` still does the latter.
+
+## Session 2026-08-07 (Windows) — the missing Fable weekly bar: measured, not argued
+
+Vlad kept reporting the per-model weekly limit was missing; I kept asserting the payload
+did not carry it. Settled it with evidence instead: `statusline.js` now writes the last
+raw payload that actually carried `rate_limits` to `data/statusline-raw.json` (gitignored),
+and a Haiku probe was run to force a render.
+
+**Result — Claude Code CLI 2.1.120 emits exactly two windows:**
+`rate_limits = { five_hour: {used_percentage, resets_at}, seven_day: {used_percentage, resets_at} }`.
+No per-model bucket, no overage field. The desktop app's "Weekly · Fable" row comes from
+somewhere the statusline hook does not expose.
+
+**The likely fix is a CLI update: 2.1.120 → 2.1.223 is available** (`winget upgrade
+Anthropic.ClaudeCode`). Not run unattended — upgrading the CLI mid-session would disrupt
+running sessions, including the one doing the work.
+
+The window is already ready for it: rows are generated from every key in `rate_limits`, so
+if a newer build emits `seven_day_<model>` the bar appears with no further code change.
+Re-check after updating by deleting `crs-brain/data/statusline-raw.json`, pressing Refresh,
+and reading the file — the capture is self-verifying.
+
+## Session 2026-08-07 (Windows) — usage window: four real fixes
+
+All four complaints were valid; the first version shipped with them.
+- **The header said "Opus 4.7 (1M context)"** because it printed `usage.json`'s `model`,
+  which is whatever INTERACTIVE Claude Code session last rendered a statusline — a
+  different session on a different model. It now shows the model the BRAIN is running
+  (live routed model → this chat's last model → the composer pick).
+- **Per-model weekly buckets** are no longer dropped: the rows are generated from
+  every key in `rate_limits`, with `seven_day_<model>` rendered as "Weekly · <Model>".
+  Standing fact: this Claude Code build emits exactly `five_hour` and `seven_day`, so
+  a Fable row only appears if/when the payload carries one. Nothing is invented.
+- **The context row is now THIS CHAT's** (`GET /api/usage/chat`): the newest turn's
+  input tokens — whole replayed conversation plus cache reads — against that model's
+  window, live from the stream while a turn runs. `tokensIn/tokensOut` are persisted on
+  each assistant message from now on; older chats fall back to a transcript estimate,
+  labelled "estimated from the transcript" rather than shown as measured.
+- **"Limits read 9m ago"**: the poll was already 10s (now 4s) — the SOURCE was stale.
+  Claude Code has no usage command and headless `claude -p` never fires the statusline
+  hook, so the only way to force a fresh reading is an interactive session. The probe now
+  runs on **Haiku** instead of the user's default model (the old comment forbade this
+  because forcing a model made the panel report it — that was a display bug, fixed above),
+  which makes it cheap enough to offer an opt-in **auto-refresh every 3 minutes**. Off by
+  default, paused on a hidden tab, never mid-turn.
+- **Gotcha worth remembering:** `index.html` declares `state` with `let` at the top level
+  of its inline script, so it is a LEXICAL global and `window.state` is `undefined`. The
+  window read `window.state.chatId` and silently got nothing. Bare identifier, guarded.
+
+## Session 2026-08-07 (Windows) — Ask Protocol v2: no question can reach Vlad as prose
+
+Goal, verbatim: *"I never want to receive a question as a plain-text paragraph in a chat
+response again."* Three separate causes, all fixed, plus a backstop that makes it a
+guarantee rather than an instruction. Verified 24/24 by `probe-askpin.js` against the
+real server and a real browser (no model calls — asks are created through `/api/ask`
+exactly as the MCP shim does).
+
+**LOCKED RULES (new)**
+1. **A pending question is NEVER rendered inside the message stream.** It is pinned in
+   `#askPin`, a direct child of `.composer-wrap` above the composer, at the composer's
+   768px width. `renderChat()` wipes `#chatLog`, so the pin deliberately lives outside it.
+2. **The T5 [OPEN]-decision boundary is still enforced, but it UPGRADES instead of
+   rejecting.** `createAsk` used to return an error telling the session to emit
+   DECISION-NEEDED, which left prose as the only route — the exact behaviour being killed.
+   It now re-enters itself as `kind:'decision'`. What the boundary actually protects is
+   unchanged: a decision still cannot be auto-answered by a Playbook standing rule.
+3. **A decision card never writes a standing answer.** It appends a `[CANDIDATE]` entry to
+   `decisions.md` (newest at top, append-only) via `appendDecisionCandidate()`. It is
+   written as a candidate, not a locked ruling, because Vlad clicked an option — he did not
+   author the rationale. Ratifying it by hand is still a separate act.
+4. **The free-text answer is always visible on every card.** It used to hide behind an
+   "Other…" button, which made typing read as a fallback.
+5. **A question that ends a turn in prose is intercepted server-side.** `looksLikeProseQuestion()`
+   + `parseProseOptions()` run after `finalText`; if no card was raised during the turn
+   (`LIVE_TURNS[chat].raised`), one is raised with the options parsed out of the text.
+   Logged to `ask-log.jsonl` with `source:'backstop'`, so how often sessions try it is visible.
+
+**Also in this pass**
+- `decide_with_vlad` added to `ask-mcp.js` (tools list + dispatch) and to `--allowedTools`;
+  the shim tells the session when its ask was upgraded so it knows the answer is going into
+  decisions.md. The long-poll blocking contract is untouched.
+- Both ASK PROTOCOL clauses in the injected prompt rewritten: never ask in prose, operational
+  → `ask_vlad`, architectural/[OPEN] → `decide_with_vlad`, both block.
+- **An answered question stays in the transcript as a Q&A block** (question + answer +
+  who answered), not a one-line receipt — Vlad: *"when i answer questions this kind of
+  messages shall be in the chat"*.
+- **Nothing polled `/api/ask/pending` before**, so a card could only ever appear via a live
+  SSE turn. Added `restorePendingAsk()` on boot / chat open / turn end, plus a 12s poll when
+  nothing is pinned — a backstop ask outlives its turn, and asks survive a server restart.
+  The pin shows the NEWEST pending ask; picking the oldest showed a stale question.
+- Sidebar: search is full width with a search icon, New chat is its own full-width row below it.
+
+## Session 2026-08-07 (Windows) — the colourful AI brain is back
+
+Vlad: *"colorful animation when in chat mode the brain is thinking its awesome and
+yours no colors and stupid circle around"*. **Correction worth remembering: it was NOT
+still working in chat** — the 08-06 redesign had killed it (`.brainwrap .mol{display:none}`,
+flat `--accent` stroke, halo and hue-rotate deleted, and the `#g-ai` gradient removed from
+the defs). It was recovered from `f609abb` and restored, then scaled up for the hero.
+
+- **Restored in chat**, verbatim from history: `#g-ai` gradient stroke, pulsing
+  `rgba(168,85,247,.45)` halo, `aihue` hue-rotation, five glowing molecules on
+  counter-rotating orbits. Scoped to `.chat-brain` and `.wstep.run` only — **the sidebar
+  brand badge stays flat grey and static** (rig-asserted).
+- **The hero hover is the same language, multiplied**: five tilted orbital planes,
+  counter-rotating at five different speeds (two reversed), fifteen glowing molecules in
+  the AI palette, twelve twinkling motes drifting the other way for parallax, a breathing
+  purple halo, the glyph on the gradient, and `dhcHue` shifting the whole field.
+- **The "stupid circle" was a CSS inheritance bug**, not a design choice: `.dash-hero
+  .dh-mark svg{stroke:currentColor}` inherits into every child, so the soft radial halo
+  circle got a hard 1.1px outline and read as a bubble drawn through the greeting.
+  `.dh-cosmos circle{stroke:none}` fixed it — only the orbit ellipses are stroked.
+- Recorded as a **decision**, not a drive-by: see `decisions.md` 2026-08-07 — the AI
+  thinking layer is the one colour carve-out, and it supersedes exactly one clause of the
+  08-06 entry. Colour never shows at rest, so §10 acceptance still passes 13/13.
+- Rigs: `probe-thinking-brain.js` (8 checks, builds the indicator by injecting
+  `brainHtml()` so **no model call is spent**) and `shoot-atom.js` (14 checks).
+
+**Hover choreography is now ONE gesture.** Vlad: *"animation timing of cards appearing
+and the brain shrinking and galaxy around must be flawlessly synced"*. They were three
+separate transitions — 0.6s cubic-bezier on the shrink, 0.38s ease +0.04s delay on the
+atom, 0.16s ease +0.28s delay on the cards — and worse, two different triggers
+(`.dh-stack:hover` for the atom, `.dh-id:hover ~` for the cards). Now:
+- Three vars on `.dash-hero` — `--dh-open:520ms`, `--dh-close:360ms`, `--dh-ease` — drive
+  all three. Change them in one place and everything still moves together.
+- **One trigger for all three: `.dh-stack:hover` / `:focus-within`.** The stack contains
+  both the mark and the cards, so travelling between them can never drop the state, and
+  the old exit-delay hack that existed to survive that travel is gone.
+- `probe-sync.js` samples the shrink (from the transform matrix), the atom opacity and the
+  card opacity *together* mid-flight and asserts their progress spread stays ≤0.1 — it
+  measures 0.000 on both open and close.
+
+**Third cut — the atom, rebuilt from web research.** Two rejections first:
+dashed rings ("dashed and static") and a 7-dot follower trail ("looks like a snake
+game / terrible"). The trail failed for a measurable reason: on a 223-unit orbit the
+dot spacing was 4.7 units against a 4.8-unit head diameter, i.e. exactly one diameter
+apart, which can only ever render as beads. Researched how the good ones are built and
+replaced the ARCHITECTURE, not the parameters:
+
+- **Each plane is a CIRCLE squashed by `scale(1,k)`, not an ellipse path.** That gives
+  correct non-uniform orbital speed for free — fast across the middle, slow at the
+  turnarounds. `offset-path` moves at constant ARC length and physically cannot do this;
+  constant-speed travel round an ellipse is the classic tell of a fake 3-D orbit.
+- **The tail is ONE gradient stroke**, split into three arc chunks whose stop opacities
+  match at the seams so it reads as a single continuous fade, stroke-width tapering
+  2.6 → 1.9 → 1.1 and ending at opacity 0. A gradient tail *is* the motion blur. (A
+  `linearGradient` can't follow a curve; matching seam opacities across short chunks is
+  the standard workaround.)
+- **The head is baked radial paint** — a 4-stop `radialGradient` glow plus a near-white
+  2.1px core — never an SVG filter. A filter on a moving element re-renders every frame;
+  baked paint is just a texture the compositor translates.
+- **`dhcDepth`** brightens and grows the head crossing the near side and dims it away at
+  the back, locked to the orbit period. Biggest single 3-D cue after the squash.
+- **Durations must share no factors** — 34/26/48 all divide by 2 and the system visibly
+  re-syncs into a beat. Now 33.7 / 26.3 / 47.9 / 41.3 / 55.1s.
+- **A whisper-faint SOLID track** (stroke-opacity .05) sits behind each comet. Below
+  conscious perception, but without it the comet reads as drifting rather than orbiting.
+  Never dashed.
+- **Opacity budget:** outer haze .04–.08, mid .12–.20, and the only thing near 1.0 is the
+  2px head. That contrast is the premium look; the earlier version had 120 objects all
+  competing with it.
+- **120 animated nodes → 30.** Rig asserts ≤30, zero dashed strokes, zero filters on
+  moving strokes, linear easing on every orbit, and that the glyph shrinks 72px → 29px.
+- Also this pass: the glyph eases down into a nucleus on hover, every mote pulses, and
+  the background glow came down (it read as a lit disc).
+
+**Follow-up the same day — "everything must animate".** Vlad: *"links in animation are
+kinda plain not animated and i want them to be fading not fixed … super futuristic every
+element mast be animating everything"*. The orbits were static dashed ellipses being
+rotated rigidly by their parent; nothing else about them moved. Now:
+- Every orbit runs **two** animations at once — `dhcFlow` slides the dash pattern along
+  the path (charge moving through the link) and `dhcFade` breathes its opacity on a
+  longer, offset cycle, so no ring is ever at constant strength. The `flow` distance per
+  orbit **must** be a whole multiple of (dash + gap) or the pattern jumps on loop.
+- **`dhcTip`** squashes each orbital plane through edge-on and back on its own cycle
+  (11 / 7.5 / 14 / 9 / 17s) — that, not the spin, is what makes it read as a 3-D atom.
+- A short bright **`dhc-arc`** races the full circuit of every ring; molecules throb
+  (`dhcThrob`) while they travel; motes swell (`dhcSwell`) as well as twinkle; a nucleus
+  glow pulses behind the glyph. The rig asserts **every** element type has a non-`none`
+  animation.
+- Motes need `transform-box:fill-box;transform-origin:center` — SVG's default origin is
+  0,0, so scaling would swing them toward the nucleus instead of swelling in place.
+- **Deliberately NOT added: expanding ripple rings.** They animate, but every individual
+  frame of one reads as a circle drawn around the mark — the exact thing Vlad rejected.
+  Same reason the earlier `.dhc-shell` is gone. The rig now asserts zero of them.
+
+## Session 2026-08-07 (Windows) — ONE screen, Map-only header, in-map view selector
+
+Vlad: *"i clicked chat on the header and got this screen … i dont need two separate
+screens no point"*. Verified 23/23 by `probe-one-screen.js`; acceptance still 13/13.
+
+- **Home IS the chat.** There is no dashboard screen. `showDashboard()` survives as the
+  name every entry point already calls (rail Home, brand, ⌘K, `#view=`, `surfaceBack`,
+  the QA rigs) but now just opens a fresh conversation. `#dashView` stays in the DOM,
+  permanently hidden, so the display guards that read it and the `dashFull(true)`
+  escape hatch (old panel dashboard, via `showDashboardLegacy()`) keep working.
+- **One hero, defined once** (`heroHtml()`): breathing 72px `i-brain` mark + a
+  time-of-day greeting ("Good morning/afternoon/evening/night, Vlad"). The live status
+  line and the hint row are **gone** — Vlad: *"remove this no need"*.
+- **Quick actions hide until you hover the mark.** `.dh-cards` is absolutely positioned
+  (out of flow → revealing it never shifts the greeting; rig asserts 0px shift) and lays
+  out 5-across so its two rows clear the composer. Hover is on `.dh-id` (mark + greeting)
+  with a 0.28s close delay so travelling to the cards doesn't dismiss them; `:focus-visible`
+  on the same element makes it keyboard-reachable.
+- **Header: Map only.** Chat is gone (home is the chat) and Kanban/List moved into the
+  map. A lone `.viewseg.solo` drops the segment track and renders as a plain button.
+- **Kanban/List/Ideas now live ON the map** (`#mapViewSeg`, top-centre, the one empty lane
+  in that chrome). It replaces the old `▦ Board` button. `currentMapView()` derives the
+  marked view from state (boardOpen / boardTab / `body.blist`) rather than from what was
+  clicked, so the hash, the app's Map button and the drawer can't drift. It stays visible
+  on a phone when the board goes full-screen — otherwise there'd be no way back to the galaxy.
+- **Header is taller: 44px**, driven by `--cc-titlebar-h` (previously declared but unused,
+  with 36px hardcoded twice). `.upop`/`.ninbox` now anchor to the token, and `.hgroup`
+  stretches to full header height so its popover drops clear of the taller bar.
+- Two acceptance instruments were corrected (not the app): **A2** asserted "top 4 pixel
+  colours are spec surfaces", but a correct home screen now shows only THREE surfaces —
+  4th place is glyph antialiasing at 0.2%. It now asserts top-3 are surfaces AND the ramp
+  covers ≥90% (97.36% actual). **A9b** measured the composer border as "before" while home
+  had already autofocused it; it now blurs first.
+
+## Session 2026-08-06/07 (Windows) — Claude-Code 1:1 redesign
+
+The whole app was restyled to Vlad's measured Claude Code Desktop spec, saved verbatim as
+`brain/design/claude-code-spec.md` (source of truth; `decisions.md` 2026-08-06 records why the
+brain app diverges from the CRS product design system). Acceptance = `verify-spec-acceptance.js`
+(§10, 13 checks) — currently 13/13.
+
+- **Not orange.** Warm near-black greyscale ramp; Clay `#D97757` appears ONLY on the Claude spark
+  glyph / thinking spinner. Applying Clay as a theme colour was the single biggest earlier error.
+- **Surfaces are exactly three**: sidebar + header `#1D1D1C`, chat/working area `#20201F`,
+  inputs and secondary `#262626`. `--cc-bg-header` is an alias of `--cc-bg-sidebar` by design.
+- **No double focus ring.** `--accent-glow` is `transparent` (kills every legacy `0 0 0 3px` ring);
+  focus is a ~10%-brighter border edge only (`--cc-focus-ring`).
+- **Header carries all tools** as hover-revealed groups (Build / Knowledge / Ops + a View segment,
+  spec in `brain/design/header-tools.md`) and shows **no page title** — buttons and indicators only.
+- **Main screen = calm hero + starter prompts.** `DASH_HERO` gates it; the old dashboard panels are
+  preserved behind the flag (`dashFull()`), not deleted. The hero is the 72px breathing `i-brain`
+  mark + greeting + one real status sentence + the 10 starter prompt cards, and the chat empty state
+  now uses the **same** mark (`heroHtml()` no longer uses the old `.hero-mark`/`#i-logo`).
+- **Auto by default.** A new chat / app reopen resets the model to Auto and clears effort; the
+  composer selectors then report what the brain actually routed to (`reflectRunSelection`).
+- **Refresh reopens the last chat at the very bottom** (`localStorage['crs-last-chat']`, multi-stage
+  scroll); a new chat clears that memory.
+- **Galaxy colours are the originals.** `map.html`'s renderer script was restored wholesale from
+  `d0e61a0~1` and the vivid palette re-asserted (with a darkened twin for light theme); only the
+  panels/chrome around it are restyled. `restore-galaxy.js` in the rig does this reproducibly.
+- Rig scripts mirrored to `brain/qa/rig-scripts/` (`probe-main-hero.js` is the hero check).
+  Reminder: `public/` is served fresh per request but **`server.js` edits need a restart**.
+
+## Session 2026-08-06 (Windows) — Chat ⇄ Buildprint modes merged into ONE chat
+
+The Chat vs Buildprint mode toggle is gone. **Every conversation is a Claude Code session with the repo as cwd and the cloned Bubble TEST worktree attached via `--add-dir`**, and it drives the Buildprint CLI whenever the task needs it. Verified 13/13 by the rig.
+
+- **`bp:true` is no longer a creation-time mode.** `chat.bp` is now an after-the-fact **TAG** — the server auto-sets it when a conversation actually uses Buildprint tools. The sidebar **BP** chip means "this chat used Buildprint", not "this chat is a bp chat".
+- **`cd` instead of a flag.** The Buildprint CLI resolves its workspace by walking UP from cwd and has **no `--project` flag**, so a session `cd`s into `~/projects/crs-bubble/<app>/test` in its **own Bash call** (chaining breaks the command allowlist) and `cd`s back to the repo for brain work. Verified: the spawn sandbox permits `cd` into `--add-dir`'d trees only.
+- **Lazy preflight.** The CLI preflight (and its "Buildprint ready — CLI vX, linked · workspace app/branch" step) now runs only on turns that look like Bubble work — brain-only questions start instantly.
+- **Missing clone degrades honestly.** On a machine without the test clone the chat still works; Buildprint capability is reported as degraded with a note (previously a hard error).
+- **All locked guardrails survive verbatim** in the unified prompt: TEST branch only / never live, sync first, savepoint before every apply + check after, one step per apply, no `--force-apply` / `--no-check` / `sync --reset` without approval in that chat, plan-before-first-apply, Pattern A (company + property + privacy rules checking both), stop-and-surface on anything odd.
+
+## Session 2026-08-06 (Windows) — Ultra / Ultracode effort levels + auto-effort routing
+
+Composer effort dropdown gained **Auto (by task)**, **Ultra** and **Ultracode**; `data/settings.json` default flipped to `effort: "auto"`.
+
+- **What the CLI actually supports** (verified against `claude --help`, v2.1.120): `--effort` takes `low|medium|high|xhigh|max` only. There is no `ultra` level, and `ultrathink` is an in-prompt cue that does **not** raise API effort. Both new levels are therefore app-side aliases translated in `resolveEffort()` (server.js):
+  - `ultra` → `--effort max` + `ultrathink` appended to the stdin prompt.
+  - `ultracode` → `--effort xhigh` + `{"ultracode":true}` in the settings file (dynamic workflow orchestration). **Needs claude ≥ 2.1.154**; older CLIs ignore the key and just run xhigh.
+- **Ultracode is xhigh, i.e. one notch BELOW max on raw reasoning** — it trades depth-per-turn for orchestration. Don't present it as "above Max".
+- `claude` accepts only ONE `--settings` value and it already carries the bp-guard hooks, so ultracode rides in a second generated file `data/bp-guard-settings-ultracode.json` (same hooks + the flag). **The guard hooks must never be dropped to enable ultracode** — verified identical.
+- **Auto-effort**: `routeTaskEffort(message, model)` picks effort independently of the model dropdown (Vlad's ask: choosing a model shouldn't force choosing effort). Multi-step build → Ultracode on Opus / max elsewhere; deep reasoning → max; quick mechanical → low; otherwise medium. Surfaced as an "Auto-effort: …" lifecycle step, never silent.
+- `'auto'` is a ROUTING token and never reaches the CLI — `resolveEffort()` drops it, mirroring the existing `model === 'auto'` guard.
 
 ## Session 2026-08-02 (Windows) — chat-first dashboard rebuild
 
@@ -225,7 +508,7 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 - **brain/ = one fact one file**; INDEX.md read first; brain/ links to authoritative sources (decisions.md, design/, specs/), never duplicates. Manuals: `brain/bubble` (Bubble), `brain/buildprint` (Buildprint), `brain/bubble-forum` (community, manual overrides).
 - **Project-only file view** = default: hide `crs-brain/`, `scripts/`, `README.md`, `CLAUDE.md`, and `brain/{bubble,buildprint,bubble-forum}`. `CRS_DIRS`/`CRS_ROOT_FILES`/`MANUAL_DIRS` in index.html; server mirror in `/api/recent-edited`.
 - **Mobile PIN** persists to `crs-brain/.pin` (gitignored, generated once, stable across relaunch).
-- Chat identity: Buildprint tasks are normal chats with `bp:true` (reuse the whole chat engine).
+- Chat identity: **one chat, no modes** (2026-08-06). Every conversation is a Claude Code session with the repo as cwd + the TEST worktree via `--add-dir`, and drives the Buildprint CLI when the task needs it. `chat.bp` is an after-the-fact TAG (server-set when Buildprint tools are used) that drives the sidebar BP chip — never a creation-time mode.
 
 ## 7. Gotchas
 - **node-pty `spawn-helper` needs `chmod +x`** on this Mac (was `-rw-r--r--` → `posix_spawnp failed`). After any `npm install`/rebuild in `crs-brain/`, re-run `chmod +x node_modules/node-pty/prebuilds/darwin-*/spawn-helper`. NOT committed (would churn/break Windows).

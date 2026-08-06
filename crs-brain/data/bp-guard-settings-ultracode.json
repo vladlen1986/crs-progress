@@ -1,0 +1,27 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\bp-guard.js\""
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\bp-log.js\" \"C:\\Users\\CCTV Mgr\\Projects\\crs-progress\\crs-brain\\data\\action-log.jsonl\""
+          }
+        ]
+      }
+    ]
+  },
+  "ultracode": true
+}

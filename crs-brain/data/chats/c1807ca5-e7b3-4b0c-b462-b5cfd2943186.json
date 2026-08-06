@@ -1,0 +1,40 @@
+{
+  "id": "c1807ca5-e7b3-4b0c-b462-b5cfd2943186",
+  "title": "Hello",
+  "sessionId": "a9c01fcc-4d69-47b2-afa1-265fdfe53912",
+  "bp": false,
+  "created": "2026-08-06T19:21:42.779Z",
+  "updated": "2026-08-06T19:21:48.850Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "Hello",
+      "ts": "2026-08-06T19:21:42.779Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Hello. What do you need — status check, brain lookup, or Bubble work on the test branch?",
+      "ts": "2026-08-06T19:21:48.850Z",
+      "startedAt": "2026-08-06T19:21:42.781Z",
+      "completedAt": "2026-08-06T19:21:48.850Z",
+      "model": "claude-opus-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}

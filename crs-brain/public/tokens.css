@@ -1,48 +1,249 @@
-/* CRS design tokens — brain/design/CRS-design-system.md §2.10, pasted verbatim.
- * Single canonical stylesheet for every CRS Brain page. Component CSS must
- * reference var(--…) only; approved literals carry a citation comment. */
+/* CRS Brain — app design tokens.
+ *
+ * SOURCE OF TRUTH: brain/design/claude-code-spec.md (Claude Code Desktop 1:1
+ * spec, 2026-08-06). Where this file and any other CSS disagree, the spec wins.
+ *
+ * PRIME DIRECTIVE: the app is NOT orange. It is a warm near-black GREYSCALE UI.
+ * Clay (#D97757) appears ONLY on the Claude spark glyph and the thinking
+ * spinner — never on surfaces, borders, headings, buttons, active states,
+ * focus rings or links. Hue is reserved for semantics at text scale only.
+ *
+ * Every neutral is warm: R >= G >= B with R-B between 0 and 3.
+ *
+ * The CRS PRODUCT design system (design/tokens.css, brain/design/
+ * CRS-design-system.md §2.10) is untouched and still governs the Bubble app
+ * and every prototype — prototypes embed their own token block, so nothing
+ * here reaches them. See decisions.md 2026-08-06. */
 
 :root, [data-theme="dark"] {
-  --bg-primary:#181818; --bg-secondary:#1E1E1E; --bg-tertiary:#242424; --bg-elevated:#2A2A2A;
-  --border-default:#242424; --border-hover:#333333; --border-active:#3D3D3D; --input-border:#2A2A2A;
-  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#3B82F6;
-  --accent-soft:#60A5FA; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
-  --accent-border-active:rgba(59,130,246,0.55);
-  --text-primary:#E0E0E0; --text-secondary:#A6A6A6; --text-muted:#6B6B6B; --text-disabled:#565656;
-  --success:#22C55E; --success-soft:#4ADE80; --error:#EF4444; --error-soft:#F87171; --warning:#F59E0B;
-  --purple:#8B5CF6; --purple-accent:#A855F7; --cyan:#06B6D4; --na:#2B2B2B;
-  --success-tint:rgba(34,197,94,0.13); --warning-tint:rgba(245,158,11,0.13); --error-tint:rgba(239,68,68,0.13);
+  /* ── SURFACES — four levels, ~4% lightness apart ──────────────── */
+  /* Vlad 2026-08-06, explicit: sidebar AND header #1D1D1C · chat/working area
+   * #20201F · inputs and secondary surfaces #262626. Buttons/chips stay one
+   * step up (#313131) so they still read against a #262626 field. */
+  --cc-bg-sidebar:#1D1D1C; --cc-bg-canvas:#20201F; --cc-bg-panel:#262626; --cc-bg-card:#262626;
+  --cc-bg-composer:#262626; --cc-bg-subtle:#262626; --cc-bg-control:#313131; --cc-bg-control-strong:#393938;
+  --cc-bg-selected:#343433; --cc-bg-segment-track:#2A2A29; --cc-bg-segment-thumb:#40403F;
+  --cc-bg-hover:#262625; --cc-bg-hover-canvas:#2A2A29;
+  /* ── BORDERS — hairlines only ─────────────────────────────────── */
+  --cc-border:#373737; --cc-border-sidebar:#3B3B39; --cc-border-composer:#3D3D3B;
+  --cc-border-segment:#474746; --cc-border-divider:#343433;
+  --cc-border-soft:rgba(255,255,255,0.06); --cc-border-hairline:rgba(255,255,255,0.10);
+  /* FOCUS (Vlad 2026-08-06): no double border — focus brightens the element's
+   * OWN edge ~10% and nothing else. Two separate tokens do this:
+   *   --accent-glow  = transparent → every legacy `box-shadow:0 0 0 3px` ring
+   *                    in the app renders as nothing (the fat second outline).
+   *   --cc-focus-ring = the slightly brighter edge used by 1px focus outlines
+   *                    and focused input borders. Never a halo, never a hue. */
+  --cc-focus-ring:#4A4A48; --cc-border-focus:#4A4A48;
+  /* the header shares the sidebar fill — one continuous chrome surface */
+  --cc-bg-header:var(--cc-bg-sidebar);
+  /* ── INK ──────────────────────────────────────────────────────── */
+  --cc-text-primary:#E8E6E1; --cc-text-body:#C3C2B7; --cc-text-secondary:#939393;
+  --cc-text-muted:#7F7F7F; --cc-text-faint:#5F5F5C; --cc-text-placeholder:#727272;
+  /* ── BRAND — RESTRICTED: spark glyph + thinking spinner ONLY ──── */
+  --cc-clay:#D97757; --cc-clay-shimmer:#EB9F7F;
+  /* ── SEMANTIC — small scale, text level only ──────────────────── */
+  --cc-success:#32D74B; --cc-success-dim:#2FB543; --cc-danger:#FF2C56; --cc-warning:#DB9300;
+  --cc-permission:#E7BD15; --cc-permission-bg:#37321E; --cc-link:#6DA7EC; --cc-link-dim:#5F8CC2;
+  --cc-info:#4782C8; --cc-purple:#AF87FF; --cc-plan:#48968C;
+  --cc-diff-add-fg:#4EBA65; --cc-diff-add-bg:rgba(76,195,138,0.14);
+  --cc-diff-del-fg:#FF6B80; --cc-diff-del-bg:rgba(255,90,90,0.12);
+  --cc-syn-keyword:#FF8D77; --cc-syn-string:#E5B07E; --cc-syn-number:#E3C07B;
+  --cc-syn-function:#C8A6FF; --cc-syn-comment:#8B8B81; --cc-syn-plain:#C3C2B7;
+
+  /* ── APP TOKEN MAPPING ────────────────────────────────────────────
+   * The app's existing token names are re-pointed at the spec ramp, so every
+   * consumer inherits the greyscale UI without a rename. NOTHING here is a hue. */
+  --bg-primary:var(--cc-bg-canvas); --bg-secondary:var(--cc-bg-panel);
+  /* --bg-tertiary is the app's "input / secondary surface" alias → #262626 */
+  --bg-tertiary:var(--cc-bg-panel); --bg-elevated:var(--cc-bg-selected); --na:var(--cc-bg-card);
+  --border-default:var(--cc-border); --border-hover:var(--cc-border-sidebar);
+  --border-active:var(--cc-border-segment); --input-border:var(--cc-border-composer);
+  --text-primary:var(--cc-text-primary); --text-secondary:var(--cc-text-body);
+  --text-muted:var(--cc-text-secondary); --text-disabled:var(--cc-text-faint);
+  /* "accent" is NEUTRAL now (R2/R3): fills and states are grey surfaces, focus
+   * rings are white at 22%, and the only coloured token is the link blue. */
+  --accent:var(--cc-text-secondary); --accent-hover:var(--cc-text-body); --accent-active:var(--cc-text-muted);
+  --accent-text:var(--cc-link); --accent-soft:var(--cc-text-body);
+  --accent-glow:transparent; --accent-tint:var(--cc-border-soft);
+  --accent-border-active:var(--cc-border-hairline);
+  --success:var(--cc-success); --success-soft:var(--cc-success-dim);
+  --error:var(--cc-danger); --error-soft:var(--cc-diff-del-fg); --warning:var(--cc-warning);
+  --purple:var(--cc-purple); --purple-accent:var(--cc-purple); --cyan:var(--cc-info);
+  --success-tint:var(--cc-diff-add-bg); --warning-tint:rgba(219,147,0,0.13); --error-tint:var(--cc-diff-del-bg);
   --white:#FFFFFF; --black:#000000; --transparent:rgba(255,255,255,0);
-  --shadow-modal:0 24px 60px rgba(0,0,0,0.6); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.55);
-  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  /* §8 — only menus/popovers carry a shadow; cards and inputs carry none. */
+  --shadow-modal:0 12px 40px rgba(0,0,0,0.45); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.45);
+  --transition:200ms cubic-bezier(.32,.72,0,1); --transition-colors:60ms linear;
+  /* §4 radius discipline — 4 code · 6 chip/row · 8 card/panel · 10 composer */
+  --radius-card:8px; --radius-btn:6px; --radius-input:6px; --radius-modal:8px;
+  --radius-badge:4px; --radius-pill:6px; --radius-code:4px; --radius-composer:10px;
   color-scheme: dark;
 }
 
+/* Light theme: the same greyscale discipline, warm paper ramp. Still no hue in
+ * chrome — semantics keep their meaning, darkened for contrast on light. */
 [data-theme="light"] {
-  --bg-primary:#FAFAFA; --bg-secondary:#FFFFFF; --bg-tertiary:#F4F4F5; --bg-elevated:#FFFFFF;
-  --border-default:#EAEAEB; --border-hover:#DCDCDE; --border-active:#C8C8CB; --input-border:#E4E4E6;
-  --accent:#3B82F6; --accent-hover:#2563EB; --accent-active:#1D4ED8; --accent-text:#1D4ED8;
-  --accent-soft:#2563EB; --accent-glow:rgba(59,130,246,0.13); --accent-tint:rgba(59,130,246,0.08);
-  --accent-border-active:rgba(59,130,246,0.55);
-  --text-primary:#18181B; --text-secondary:#5F5F66; --text-muted:#8E8E95; --text-disabled:#B6B6BB;
-  --success:#16A34A; --success-soft:#22C55E; --error:#DC2626; --error-soft:#DC2626; --warning:#D97706;
-  --purple:#7C3AED; --purple-accent:#9333EA; --cyan:#0891B2; --na:#E6E6E8;
-  --success-tint:rgba(22,163,74,0.10); --warning-tint:rgba(217,119,6,0.10); --error-tint:rgba(220,38,38,0.10);
-  --shadow-modal:0 16px 40px rgba(0,0,0,0.10); --shadow-dropdown:0 12px 40px rgba(0,0,0,0.08);
-  --transition:160ms cubic-bezier(.4,0,.2,1); --transition-colors:200ms ease-in;
-  --radius-card:10px; --radius-btn:7px; --radius-input:7px; --radius-modal:12px; --radius-badge:5px; --radius-pill:20px;
+  /* light mirror of the same three-surface rule: sidebar+header, canvas, then
+   * one shared secondary surface for panels/cards/inputs */
+  --cc-bg-sidebar:#F2F1EE; --cc-bg-canvas:#FAF9F7; --cc-bg-panel:#FFFFFF; --cc-bg-card:#FFFFFF;
+  --cc-bg-composer:#FFFFFF; --cc-bg-subtle:#FFFFFF; --cc-bg-control:#EFEEEA; --cc-bg-control-strong:#E5E3DE;
+  --cc-bg-selected:#E8E6E1; --cc-bg-segment-track:#EFEEEA; --cc-bg-segment-thumb:#FFFFFF;
+  --cc-bg-hover:#F0EFEC; --cc-bg-hover-canvas:#F0EFEC;
+  --cc-border:#DEDCD6; --cc-border-sidebar:#D8D6D0; --cc-border-composer:#D2D0C9;
+  --cc-border-segment:#C6C4BC; --cc-border-divider:#E4E2DC;
+  --cc-border-soft:rgba(0,0,0,0.05); --cc-border-hairline:rgba(0,0,0,0.09);
+  --cc-focus-ring:#B8B5AD; --cc-border-focus:#B8B5AD;
+  --cc-bg-header:var(--cc-bg-sidebar);
+  --cc-text-primary:#20201F; --cc-text-body:#3B3A35; --cc-text-secondary:#6B6A64;
+  --cc-text-muted:#82817A; --cc-text-faint:#A5A39C; --cc-text-placeholder:#8E8D86;
+  --cc-success:#1E8E36; --cc-success-dim:#1A7A2E; --cc-danger:#C81E3E; --cc-warning:#A06C00;
+  --cc-permission:#7A6100; --cc-permission-bg:#F2EBCF; --cc-link:#2C6CB5; --cc-link-dim:#245A97;
+  --cc-info:#2E6BA8; --cc-purple:#7A4FD0; --cc-plan:#2F6E66;
+  --cc-diff-add-fg:#1E8E36; --cc-diff-add-bg:rgba(30,142,54,0.10);
+  --cc-diff-del-fg:#C81E3E; --cc-diff-del-bg:rgba(200,30,62,0.09);
+  --cc-syn-keyword:#B4402A; --cc-syn-string:#8A5A1F; --cc-syn-number:#8A6A18;
+  --cc-syn-function:#6B3FB0; --cc-syn-comment:#7E7D74; --cc-syn-plain:#3B3A35;
+  --warning-tint:rgba(160,108,0,0.10);
   color-scheme: light;
 }
 
-/* Smooth theme cross-fade — §2.8: every themed color property transitions. */
+/* §3 — max weight is 600. <b>/<strong> default to 700 in every browser, which
+ * is the one place a 700 still reaches the screen; cap it here for all pages. */
+b, strong { font-weight: 600; }
+
+/* §0 R1 — the ONE sanctioned use of Clay in the whole interface: the spark
+ * glyph that opens a turn footer. A handful of pixels, nothing else. */
+.cc-spark{color:var(--cc-clay);font-size:11px;line-height:1}
+
+/* Kept for assistive tech, removed from the visual flow. */
+.vis-hidden{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
+
+/* ---- Home hero ----------------------------------------------------------- */
+/* ONE screen (Vlad 2026-08-07): home IS the empty conversation. The hero is a
+ * greeting and nothing else — no status line, no hint row. The mark breathes
+ * (opacity only — §7 forbids scaling/bouncing) and stops entirely under
+ * prefers-reduced-motion. Monochrome: the mark is ink, not brand — a filled
+ * clay glyph this size would blow the §10 orange budget on its own.
+ * The starter prompts are HIDDEN until the mark (or its greeting) is hovered
+ * or focused; they are absolutely positioned so revealing them never shifts
+ * the greeting off centre. */
+/* ONE CHOREOGRAPHY (Vlad 2026-08-07: "must be flawlessly synced"). The nucleus
+ * shrinking, the atom fading up and the cards arriving are one gesture, so they
+ * share a single trigger (.dh-stack:hover / :focus-within), a single easing and
+ * a single pair of durations. Change these three vars and all three move together. */
+.dash-hero{--dh-open:520ms;--dh-close:360ms;--dh-ease:cubic-bezier(.32,.72,0,1);
+  min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
+.dash-hero .dh-stack{position:relative;display:flex;flex-direction:column;align-items:center}
+.dash-hero .dh-id{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 18px 14px;border-radius:8px;cursor:default;transition:var(--transition)}
+.dash-hero .dh-id:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}
+.dash-hero .dh-mark{position:relative;width:72px;height:72px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
+.dash-hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
+
+/* ---- the hover cosmos ---------------------------------------------------- */
+/* Hovering the mark takes the chat's thinking language (brain + molecules) much
+ * further: three tilted, counter-rotating dashed orbits with electrons running
+ * them, and motes drifting behind. Decorative, so: never hit-tested, monochrome
+ * ink only (Clay stays reserved for the spark glyph), and gone entirely under
+ * prefers-reduced-motion. It overflows the 72px mark on purpose. */
+.dash-hero .dh-mark .dh-cosmos{position:absolute;left:50%;top:50%;width:210px;height:210px;margin:0;
+  transform:translate(-50%,-50%);pointer-events:none;overflow:visible;opacity:0;
+  transition:opacity var(--dh-close) var(--dh-ease)}
+.dash-hero .dh-stack:hover .dh-cosmos,
+.dash-hero .dh-stack:focus-within .dh-cosmos{opacity:1;transition:opacity var(--dh-open) var(--dh-ease)}
+/* the mark itself goes gradient and hue-shifts, exactly like the chat thinking brain */
+.dash-hero .dh-stack:hover .dh-mark,
+.dash-hero .dh-stack:focus-within .dh-mark{animation:dhThink 3.6s ease-in-out infinite}
+/* on hover the glyph eases DOWN into a small nucleus and everything floats
+   around it (Vlad 2026-08-07) — transform needs its own transition, the global
+   one only covers colours */
+.dash-hero .dh-mark svg:not(.dh-cosmos){transform-origin:50% 50%;transition:transform var(--dh-close) var(--dh-ease)}
+.dash-hero .dh-stack:hover .dh-mark svg:not(.dh-cosmos),
+.dash-hero .dh-stack:focus-within .dh-mark svg:not(.dh-cosmos){transform:scale(.4);stroke:url(#g-ai);
+  transition:transform var(--dh-open) var(--dh-ease);animation:aihue 14s linear infinite}
+/* the whole field drifts through the spectrum, exactly like the chat brain's aihue */
+.dash-hero .dh-stack:hover .dh-cosmos,
+.dash-hero .dh-stack:focus-within .dh-cosmos{animation:dhcHue 28s linear infinite}
+/* .dash-hero .dh-mark svg sets stroke:currentColor and it INHERITS into every
+   child — which drew a hard outline around the soft halo and made it read as a
+   bubble. Only the paths that should carry a line are stroked. */
+.dh-cosmos circle:not(.dhc-track){stroke:none}
+
+/* --- the atom -----------------------------------------------------------
+   No dashed rings (they read as static geometry) and no train of follower dots
+   (that reads as a snake). Each plane is a circle squashed by scale(1,k), spun
+   linearly; the tail is one gradient stroke tapering to nothing, and the head is
+   baked radial paint rather than a filter — a filter on a moving element
+   re-renders every frame. */
+.dh-cosmos .dhc-tail{fill:none;stroke-linejoin:round}
+/* a whisper-faint SOLID track: below conscious perception, but without it the
+   comet looks like it is drifting rather than orbiting. Never dashed. */
+.dh-cosmos .dhc-track{fill:none;stroke-width:.6;stroke-opacity:.05}
+.dh-cosmos .dhc-spin{animation:dhcSpin linear infinite;transform-origin:0 0}
+/* the ONE thing on screen allowed near full opacity: a 2px head */
+.dh-cosmos .dhc-core-dot{fill:#F4FBFF;filter:drop-shadow(0 0 3px currentColor)}
+/* near/far depth: the head brightens and grows crossing the front of the orbit
+   and dims away at the back. One animation, locked to the orbit period — this
+   does more for the 3-D read than everything else combined. */
+.dh-cosmos .dhc-depth{animation:dhcDepth linear infinite;transform-box:fill-box;transform-origin:center}
+.dh-cosmos .dhc-halo{animation:dhcHalo 8s ease-in-out infinite;transform-origin:0 0}
+.dh-cosmos .dhc-core{animation:dhcCore 6s ease-in-out infinite;transform-origin:0 0}
+/* the mote field drifts the opposite way to the orbits — parallax, so the thing
+   reads as depth rather than as one flat rotating decal */
+.dh-cosmos .dhc-field{animation:dhcSpin 170s linear infinite reverse;transform-origin:0 0}
+/* transform-box/origin so a mote swells in place — SVG's default origin is 0,0,
+   which would swing it toward the nucleus instead */
+.dh-cosmos .dhc-mote{r:1;fill:currentColor;filter:drop-shadow(0 0 2px currentColor);transform-box:fill-box;transform-origin:center;
+  animation:dhcTwinkle 9s ease-in-out infinite, dhcSwell 14s ease-in-out infinite}
+.dh-cosmos .dhc-mote.big{r:1.6}
+@keyframes dhcSpin{to{transform:rotate(360deg)}}
+@keyframes dhcDepth{0%,100%{opacity:.8;transform:scale(1)}25%{opacity:1;transform:scale(1.18)}50%{opacity:.8;transform:scale(1)}75%{opacity:.3;transform:scale(.68)}}
+@keyframes dhcTwinkle{0%,100%{opacity:.05}50%{opacity:.3}}
+@keyframes dhcSwell{0%,100%{transform:scale(.7)}50%{transform:scale(1.35)}}
+/* the background glow reads as atmosphere, never as a lit disc behind the mark */
+@keyframes dhcHalo{0%,100%{opacity:.3}50%{opacity:.62}}
+@keyframes dhcCore{0%,100%{opacity:.18;transform:scale(.85)}50%{opacity:.46;transform:scale(1.1)}}
+@keyframes dhcHue{to{filter:hue-rotate(360deg)}}
+@keyframes dhThink{0%,100%{opacity:.7}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+  .dash-hero .dh-cosmos{display:none}
+  .dash-hero .dh-stack:hover .dh-mark,.dash-hero .dh-stack:focus-within .dh-mark{animation:none;opacity:1}
+}
+.dash-hero .dh-title{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary)}
+/* hover-revealed starter prompts — out of flow, so the greeting never moves */
+/* out of flow → it must carry its own width, and it lays out WIDE (5 across) so
+   two short rows clear the composer instead of five tall ones running under it */
+/* Hit-testing is governed by `visibility` ALONE — never pointer-events. A
+   pointer-events toggle keyed on :hover reverts the instant the pointer leaves
+   the mark, so the cards could never receive the hover that keeps them open.
+   The cards sit flush under .dh-id (top:100% of a stack whose height IS .dh-id)
+   with padding-top as the bridge, so there is no dead strip to cross.
+   TRIGGER: .dh-stack:hover — the SAME condition that drives the nucleus and the
+   atom, so all three start on the identical event with identical timing. The
+   stack contains both the mark and the cards, so travelling between them never
+   drops the state. */
+.dash-hero .dh-cards{position:absolute;top:100%;left:50%;padding-top:12px;width:min(1060px,calc(100vw - 120px));opacity:0;visibility:hidden;
+  transform:translateX(-50%) translateY(-4px);
+  transition:opacity var(--dh-close) var(--dh-ease), transform var(--dh-close) var(--dh-ease), visibility 0s linear var(--dh-close)}
+.dash-hero .dh-stack:hover .dh-cards,
+.dash-hero .dh-stack:focus-within .dh-cards{opacity:1;visibility:visible;
+  transform:translateX(-50%) translateY(0);
+  transition:opacity var(--dh-open) var(--dh-ease), transform var(--dh-open) var(--dh-ease), visibility 0s}
+.dash-hero .dh-cards .tcards{margin:0;max-width:none;grid-template-columns:repeat(5,1fr);gap:8px}
+.dash-hero .dh-cards .tcard{padding:11px 13px}
+@media (max-width:1180px){
+  .dash-hero .dh-cards{width:min(780px,calc(100vw - 80px))}
+  .dash-hero .dh-cards .tcards{grid-template-columns:repeat(3,1fr)}
+}
+@keyframes dhBreathe{0%,100%{opacity:.55}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){ .dash-hero .dh-mark{animation:none;opacity:.9} }
+
+/* §7 motion — hover fills snap, panels ease; nothing bounces or scales. */
 * { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after{ transition-property: opacity !important; animation: none !important; } }
 
 /* ---- Legacy alias layer ------------------------------------------------- */
-/* The app's original short token names, now derived from the canonical set.
- * Aliases resolve per-theme automatically (var() substitutes at computed-value
- * time on the themed root). New code uses canonical names; these exist so the
- * whole app inherits light values without a big-bang rename. */
+/* The app's original short names, derived from the mapped set above. */
 :root {
   --bg: var(--bg-primary);
   --panel: var(--bg-secondary);
@@ -58,5 +259,15 @@
   --good: var(--success);
   --warn: var(--warning);
   --danger: var(--error);
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* §3 — Segoe UI Variable Text is what actually renders on Windows. Never
+   * Inter/Poppins/Montserrat: a geometric sans reads instantly as "not Claude". */
+  --sans: "Anthropic Sans", system-ui, -apple-system, "Segoe UI Variable Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --mono: "Anthropic Mono", ui-monospace, "Cascadia Code", "JetBrains Mono", "SF Mono", Menlo, Consolas, monospace;
+  --serif: "Anthropic Serif", Georgia, "Times New Roman", serif;
+  /* §3 type scale — only two sizes exist in the chrome. */
+  --cc-fs-sm: 13px; --cc-fs-xs: 12px; --cc-lh-sm: 20px; --cc-lh-xs: 16px;
+  /* §4 structural metrics */
+  --cc-titlebar-h:44px; --cc-sidebar-w:370px; --cc-nav-row-h:26px; --cc-nav-row-pitch:28px;
+  --cc-content-max-w:768px; --cc-panel-w:512px; --cc-composer-h:44px; --cc-button-h:24px;
+  --cc-pill-h:20px; --cc-scrollbar-w:6px;
 }

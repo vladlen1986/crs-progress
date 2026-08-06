@@ -9,88 +9,111 @@
 <script src="/js/scrollbars.js" defer></script>
 <script>document.documentElement.setAttribute("data-theme",new URLSearchParams(location.search).get("theme")||localStorage.getItem("crs-theme")||"dark");addEventListener("storage",e=>{if(e.key==="crs-theme"&&e.newValue)document.documentElement.setAttribute("data-theme",e.newValue)});</script>
 <style>
+  /* Claude Code Desktop spec (brain/design/claude-code-spec.md) governs this file.
+   * Warm greyscale only — no hue in chrome. Two type sizes: 13/20 body, 12/16 meta.
+   * Radii 4/6/8/10 via tokens. Only the modal and the toast carry a shadow. */
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--secondary);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.5}
+  body{margin:0;background:var(--bg);color:var(--cc-text-secondary);font-family:var(--sans);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
   .wrap{max-width:920px;margin:0 auto;padding:26px 22px 90px}
   header.top{display:flex;align-items:flex-start;gap:14px;margin-bottom:6px}
   header.top .t{flex:1;min-width:0}
-  h1{font-size:22px;color:var(--primary);margin:0 0 3px;font-weight:700;letter-spacing:-.03em}
-  .sub{color:var(--secondary);font-size:12.5px;line-height:1.55}
+  h1{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-primary);margin:0 0 2px;font-weight:600;letter-spacing:0}
+  .sub{color:var(--cc-text-secondary);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
   .hbtns{display:flex;gap:8px;flex:0 0 auto;align-items:center}
-  .saved{font-size:11.5px;color:var(--muted);min-width:56px;text-align:right}
-  .saved.ok{color:var(--good)} .saved.saving{color:var(--warn)} .saved.err{color:var(--danger)}
-  .hbtn{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
-  .hbtn:hover{color:var(--primary);border-color:var(--line2)}
+  /* Save state: semantics at text scale only, on no surface. */
+  .saved{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);min-width:56px;text-align:right}
+  .saved.ok{color:var(--cc-success)} .saved.saving{color:var(--cc-warning)} .saved.err{color:var(--cc-danger)}
+  /* §STATE — button: control surface / body ink · hover control-strong · active
+   * segment-track · disabled faint. No border, no shadow, no lift. */
+  .hbtn{background:var(--cc-bg-control);border:none;color:var(--cc-text-body);border-radius:var(--radius-btn);height:var(--cc-button-h);padding:0 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+  .hbtn:hover{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .hbtn:active{background:var(--cc-bg-segment-track)}
+  .hbtn:disabled{color:var(--cc-text-faint);cursor:default}
+  .hbtn:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
   .hbtn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
   .add{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0 6px;align-items:stretch}
-  .add select,.add input{background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:9px 11px;font:inherit;font-size:13px;outline:none}
-  .add select:focus,.add input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
+  /* §STATE — input: control surface + composer hairline; focus = white 22% inset ring, never a glow. */
+  .add select,.add input{background:var(--cc-bg-control);border:1px solid var(--cc-border-composer);color:var(--cc-text-primary);border-radius:var(--radius-input);padding:6px 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);outline:none}
+  .add input::placeholder{color:var(--cc-text-placeholder)}
+  .add select:focus,.add input:focus{border-color:var(--cc-border-hairline);outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
   .add .title{flex:1;min-width:200px}
   .add .prio{flex:0 0 auto}
-  .add button{background:var(--accent);border:1px solid var(--accent);color:var(--white) /* approved literal — on-accent text */;border-radius:var(--radius-btn);padding:9px 16px;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-  .add button:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-  .add button:active{background:var(--accent-active);border-color:var(--accent-active)}
+  .add button{background:var(--cc-bg-control-strong);border:none;color:var(--cc-text-primary);border-radius:var(--radius-btn);padding:0 14px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer}
+  .add button:hover{background:var(--cc-bg-selected)}
+  .add button:active{background:var(--cc-bg-segment-track)}
+  .add button:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
 
   .sec{margin-top:24px}
-  .sechead{display:flex;align-items:center;gap:9px;font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;margin-bottom:10px}
-  .sechead.done{color:var(--success)}
-  .sechead .cnt{color:var(--secondary);background:var(--panel2);border:1px solid var(--line);border-radius:var(--radius-pill);padding:1px 8px;font-size:11px;font-family:var(--mono);font-weight:600;letter-spacing:0}
-  .sechead .bar{flex:1;height:1px;background:var(--line)}
+  /* §TYPE — section headers: 12px sentence case, no uppercase, no tracking. */
+  .sechead{display:flex;align-items:center;gap:9px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);letter-spacing:0;color:var(--cc-text-muted);font-weight:600;margin-bottom:8px}
+  .sechead.done{color:var(--cc-text-muted)}
+  .sechead .cnt{color:var(--cc-text-secondary);background:var(--cc-bg-control);border-radius:var(--radius-pill);padding:1px 7px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-family:var(--mono);font-weight:600;letter-spacing:0}
+  .sechead .bar{flex:1;height:1px;background:var(--cc-border-divider)}
   .sec.empty .sechead{opacity:.6}
-  .secempty{color:var(--muted);font-size:12.5px;padding:2px 2px 6px 34px;font-style:italic}
+  .secempty{color:var(--cc-text-muted);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);padding:2px 2px 6px 34px}
 
-  .item{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);margin-bottom:8px}
-  .item:hover{border-color:var(--line2)}
+  /* §STATE — card: card surface, NO border, no shadow; hover is a 2% lightness step. */
+  .item{background:var(--cc-bg-card);border:none;border-radius:var(--radius-card);margin-bottom:6px}
+  .item:hover{background:var(--cc-bg-selected)}
   .item.done{opacity:.72}
-  .irow{display:flex;align-items:flex-start;gap:11px;padding:11px 13px}
-  .chk{width:20px;height:20px;flex:0 0 auto;border-radius:6px;border:1.6px solid var(--input-border);background:none;cursor:pointer;margin-top:1px;display:flex;align-items:center;justify-content:center;color:var(--transparent)}
-  .chk:hover{border-color:var(--line3)}
+  .irow{display:flex;align-items:flex-start;gap:11px;padding:9px 11px}
+  /* Checkbox: neutral surface in every state; the TICK carries the semantic. */
+  .chk{width:20px;height:20px;flex:0 0 auto;border-radius:var(--radius-btn);border:1px solid var(--cc-border-composer);background:var(--cc-bg-control);cursor:pointer;margin-top:0;display:flex;align-items:center;justify-content:center;color:var(--transparent)}
+  .chk:hover{border-color:var(--cc-border-hairline)}
+  .chk:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
   .chk svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
-  .item.st-in-progress .chk{border-color:var(--warning);color:var(--warning);background:var(--warning-tint)}
-  .item.st-in-progress .chk svg{opacity:.9}
-  .item.st-done .chk{border-color:var(--success);background:var(--success);color:var(--white) /* approved literal — check on --success fill */}
+  .item.st-in-progress .chk{color:var(--cc-warning);background:var(--cc-bg-control)}
+  .item.st-in-progress .chk svg{opacity:.7}
+  .item.st-done .chk{background:var(--cc-bg-control);color:var(--cc-success)}
   .ibody{flex:1;min-width:0}
-  .ihead{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-  .prio-badge{font-size:10.5px;font-weight:600;letter-spacing:.4px;padding:2px 7px;border-radius:var(--radius-badge);cursor:pointer;border:1px solid var(--transparent);white-space:nowrap;user-select:none}
-  .prio-P1{background:var(--error-tint);color:var(--error-soft)}
-  .prio-P2{background:var(--warning-tint);color:var(--warning)}
-  .prio-P3{background:var(--panel2);color:var(--secondary);border-color:var(--line)}
-  .prio-none{background:none;color:var(--muted);border:1px dashed var(--line)}
-  .ititle{color:var(--primary);font-weight:600;font-size:14px;outline:none;border-radius:4px;padding:1px 3px;flex:1;min-width:120px}
-  .ititle:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--accent),0 0 0 3px var(--accent-glow)}
-  .item.done .ititle{color:var(--secondary)}   /* dim, but NEVER strikethrough (project rule) */
-  .idetail{color:var(--secondary);font-size:12.8px;line-height:1.6;white-space:pre-wrap;margin-top:5px;outline:none;border-radius:6px;padding:3px 5px;cursor:text;word-break:break-word}
-  .idetail:empty::before{content:'Add detail…';color:var(--muted)}
-  .idetail:focus{background:var(--panel2);box-shadow:0 0 0 1px var(--accent),0 0 0 3px var(--accent-glow);white-space:pre-wrap}
-  .iacts{display:flex;flex-direction:column;gap:3px;flex:0 0 auto;opacity:0;transition:opacity var(--transition)}
+  .ihead{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:var(--cc-lh-sm)}
+  /* Quiet chips — one neutral surface for every priority; the label carries the meaning. */
+  .prio-badge{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);font-weight:600;letter-spacing:0;padding:1px 7px;border-radius:var(--radius-pill);cursor:pointer;border:none;white-space:nowrap;user-select:none;background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .prio-P1{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .prio-P2{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .prio-P3{background:var(--cc-bg-control);color:var(--cc-text-secondary)}
+  .prio-none{background:var(--cc-bg-control);color:var(--cc-text-muted)}
+  .ititle{color:var(--cc-text-primary);font-weight:600;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);outline:none;border-radius:var(--radius-code);padding:0 3px;flex:1;min-width:120px}
+  .ititle:focus{background:var(--cc-bg-control);outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
+  .item.done .ititle{color:var(--cc-text-secondary)}   /* dim, but NEVER strikethrough (project rule) */
+  .idetail{color:var(--cc-text-secondary);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);white-space:pre-wrap;margin-top:2px;outline:none;border-radius:var(--radius-btn);padding:1px 4px;cursor:text;word-break:break-word}
+  .idetail:empty::before{content:'Add detail…';color:var(--cc-text-placeholder)}
+  .idetail:focus{background:var(--cc-bg-control);outline:1px solid var(--cc-focus-ring);outline-offset:-1px;white-space:pre-wrap}
+  .iacts{display:flex;flex-direction:column;gap:2px;flex:0 0 auto;opacity:0;transition:opacity var(--transition)}
   .item:hover .iacts{opacity:1}
-  .iacts button{width:28px;height:28px;border:none;background:none;color:var(--muted);cursor:pointer;border-radius:var(--radius-btn);display:flex;align-items:center;justify-content:center}
-  .iacts button:hover{background:var(--panel2);color:var(--primary)}
-  .iacts button.del:hover{color:var(--danger)}
-  .iacts button.cc:hover{color:var(--accent)}
-  .iacts button.cc.busy{color:var(--accent);pointer-events:none}
+  /* §STATE — icon button: transparent / muted ink · hover soft white 6% at radius 4. */
+  .iacts button{width:var(--cc-button-h);height:var(--cc-button-h);border:none;background:none;color:var(--cc-text-muted);cursor:pointer;border-radius:var(--radius-code);display:flex;align-items:center;justify-content:center}
+  .iacts button:hover{background:var(--cc-border-soft);color:var(--cc-text-primary)}
+  .iacts button:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
+  .iacts button.del:hover{color:var(--cc-danger)}
+  .iacts button.cc:hover{color:var(--cc-text-primary)}
+  .iacts button.cc.busy{color:var(--cc-text-primary);pointer-events:none}
   .iacts button.cc.busy svg{animation:spin 1s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   .iacts svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
-  /* Claude Code prompt preview modal */
-  .pm{position:fixed;inset:0;background:rgba(0,0,0,.55) /* approved literal — modal scrim, no token defined */;display:none;align-items:center;justify-content:center;z-index:60;padding:24px}
+  /* Claude Code prompt preview modal — §SHADOWS: menus/popovers are the exception that keeps one. */
+  /* Scrim derived from the --black token (no scrim token exists); color-mix keeps it token-driven. */
+  .pm{position:fixed;inset:0;background:color-mix(in srgb, var(--black) 50%, transparent);display:none;align-items:center;justify-content:center;z-index:60;padding:24px}
   .pm.show{display:flex}
-  .pm .box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-modal);max-width:820px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--shadow-modal)}
-  .pm .bh{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
-  .pm .bh h3{margin:0;font-size:17px;color:var(--primary);font-weight:700;flex:1}
-  .pm .bh .mtag{font-size:10.5px;color:var(--muted);border:1px solid var(--line2);border-radius:var(--radius-badge);padding:2px 7px}
-  .pm .bh button{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 11px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
-  .pm .bh button:hover{color:var(--primary);border-color:var(--line2)}
-  .pm .bh button.primary{background:var(--accent);border-color:var(--accent);color:var(--white) /* approved literal — on-accent text */;font-weight:600}
-  .pm .bh button.primary:hover{background:var(--accent-hover);border-color:var(--accent-hover)}
-  .pm pre{margin:0;padding:16px;overflow:auto;font-family:var(--mono);font-size:12px;line-height:1.6;color:var(--secondary);white-space:pre-wrap;word-break:break-word}
+  .pm .box{background:var(--cc-bg-panel);border:1px solid var(--cc-border);border-radius:var(--radius-modal);max-width:820px;width:100%;max-height:82vh;display:flex;flex-direction:column;box-shadow:var(--shadow-modal)}
+  .pm .bh{display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--cc-border-divider)}
+  .pm .bh h3{margin:0;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-primary);font-weight:600;flex:1}
+  .pm .bh .mtag{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);background:var(--cc-bg-control);border-radius:var(--radius-pill);padding:1px 7px}
+  .pm .bh button{background:var(--cc-bg-control);border:none;color:var(--cc-text-body);border-radius:var(--radius-btn);height:var(--cc-button-h);padding:0 10px;font:inherit;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;cursor:pointer}
+  .pm .bh button:hover{background:var(--cc-bg-control-strong);color:var(--cc-text-primary)}
+  .pm .bh button:active{background:var(--cc-bg-segment-track)}
+  .pm .bh button:focus-visible{outline:1px solid var(--cc-focus-ring);outline-offset:-1px}
+  .pm .bh button.primary{background:var(--cc-bg-control-strong);color:var(--cc-text-primary);font-weight:600}
+  .pm .bh button.primary:hover{background:var(--cc-bg-selected)}
+  .pm pre{margin:0;padding:14px;overflow:auto;font-family:var(--mono);font-size:var(--cc-fs-xs);line-height:var(--cc-lh-sm);color:var(--cc-text-secondary);white-space:pre-wrap;word-break:break-word}
 
   .donesec{margin-top:26px}
-  .empty{text-align:center;color:var(--muted);padding:40px 20px;font-size:13px}
-  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--bg-secondary);border:1px solid var(--border-active);color:var(--primary);padding:10px 18px;border-radius:var(--radius-card);font-size:13px;opacity:0;transition:opacity 420ms cubic-bezier(.16,1,.3,1),transform 420ms cubic-bezier(.16,1,.3,1);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
-  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  .empty{text-align:center;color:var(--cc-text-muted);padding:40px 20px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm)}
+  /* Toast keeps its shadow (popover class); it fades only — nothing lifts (§MOTION). */
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%);background:var(--cc-bg-panel);border:1px solid var(--cc-border);color:var(--cc-text-primary);padding:8px 14px;border-radius:var(--radius-card);font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);opacity:0;transition:opacity var(--transition);pointer-events:none;z-index:50;box-shadow:var(--shadow-dropdown)}
+  .toast.show{opacity:1;transform:translateX(-50%)}
 </style>
 </head>
 <body>
