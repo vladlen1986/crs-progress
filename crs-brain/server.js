@@ -3468,7 +3468,9 @@ const server = http.createServer(async (req, res) => {
         // Which model is ACTUALLY running — shown live in the meter, stamped on the
         // turn, updated if the fallback chain switches mid-run.
         let liveModel = runOpts.model || '';
-        sse({ type: 'model', model: liveModel });
+        // The composer selectors mirror what is ACTUALLY running, so 'Auto' can
+        // show the resolved pick without pinning it for the next turn.
+        sse({ type: 'model', model: liveModel, effort: runOpts.effort || '', routed: !!routed, routedEffort: !!routedEffort });
         { const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; }   // /api/livemap reads the live model
         // ONE CHAT: every conversation is rooted in the brain repo and ALSO owns
         // the Bubble worktree (--add-dir) + the Buildprint CLI. No mode branch:

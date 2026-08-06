@@ -348,7 +348,10 @@
   .content{min-width:0}
   /* user turn = subtle rounded bubble, right-aligned, content-width */
   .msg.user .content{display:flex;justify-content:flex-end}
-  .msg.user .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 15px;color:var(--primary);display:inline-block;max-width:88%;font-size:15px;line-height:1.6;text-align:left}
+  /* user prompts are right-aligned bubbles; assistant replies are plain prose */
+  .msg.user{justify-content:flex-end}
+  .msg.user .content{display:flex;justify-content:flex-end;width:100%}
+  .msg.user .bubble{background:var(--cc-bg-control);border:none;border-radius:10px;padding:9px 13px;color:var(--cc-text-body);display:inline-block;max-width:76%;font-size:13px;line-height:20px;text-align:left}
   /* assistant turn = clean bright prose, no bubble */
   .body{color:var(--secondary)}
   .msg.assistant .body{color:var(--prose);font-size:15px;line-height:1.72}
@@ -603,10 +606,11 @@
   .turn{max-width:768px;margin:0 auto 36px;animation:msgIn .42s cubic-bezier(.2,.7,.2,1) both}
   .turn>.msg{max-width:none;margin:0;animation:none}
   .turn>.msg.assistant{margin-top:15px}
-  .turn .msg.user .content{justify-content:flex-start}
+  /* user prompts sit on the RIGHT inside the 768 column (Vlad 2026-08-06) */
+  .turn .msg.user .content{display:flex;justify-content:flex-end;width:100%}
   /* the prompt reads as a quiet panel, not an accent-tinted card — the accent is
      reserved for genuine signal (Claude-Code restyle 2026-08-06) */
-  .turn .msg.user .bubble{background:var(--panel2);border:1px solid var(--line);border-radius:8px;max-width:100%;color:var(--primary);font-size:15px;line-height:1.6}
+  .turn .msg.user .bubble{background:var(--cc-bg-control);border:none;border-radius:10px;max-width:76%;color:var(--cc-text-body);font-size:13px;line-height:20px}
   /* timestamps — Started (top-left) · Completed (bottom-left) · 24h · no icon · no line */
   .turn-time{font-family:var(--mono);font-size:12px;color:var(--muted);display:flex;align-items:baseline;gap:8px;user-select:none}
   .turn-start{margin-bottom:14px}
@@ -1465,13 +1469,11 @@
     <button class="expand-handle left" title="Show chats & files" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-chevron"/></svg></button>
     <div class="center-head">
       <button class="mbtn" title="Chats & files" onclick="mob('left')">☰</button>
-      <span class="title" id="centerTitle">New conversation</span>
-      <span class="spacer"></span>
-      <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
-      <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
-      <button class="hicon" id="livemapBtn" onclick="window.LIVEMAP&&LIVEMAP.toggle()" title="Live system map — what's working now"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><circle cx="5" cy="6" r="1.7"/><circle cx="19" cy="6" r="1.7"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="18.5" cy="18.5" r="1.7"/><path d="M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1"/></svg></button>
-      <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
-      <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
+      <!-- No page title in the header (Vlad 2026-08-06): buttons first, then
+           indicators, left to right. #centerTitle stays in the DOM but visually
+           hidden — dozens of call sites set it, and it still names the view for
+           screen readers. -->
+      <span class="title vis-hidden" id="centerTitle">New conversation</span>
       <!-- header tool groups — every action relocated from the old dashboard "Tools" strip.
            Handlers are the originals, verbatim. Hover (150ms intent) or click/Enter/Space. -->
       <nav class="hgroups" id="hgroups" aria-label="Tools">
@@ -1519,6 +1521,13 @@
         <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
         <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
       </div>
+      <!-- indicators sit after the buttons, pushed right -->
+      <span class="spacer"></span>
+      <button class="hicon" id="livemapBtn" onclick="window.LIVEMAP&&LIVEMAP.toggle()" title="Live system map — what's working now"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><circle cx="5" cy="6" r="1.7"/><circle cx="19" cy="6" r="1.7"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="18.5" cy="18.5" r="1.7"/><path d="M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1"/></svg></button>
+      <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
+      <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
+      <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
+      <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
     </div>
     <!-- account · usage · connection popover (opened from the header chip) -->
     <div class="upop apop" id="usagePop">
@@ -1892,7 +1901,7 @@ function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-l
 // meaning "this conversation actually used Buildprint" (server auto-tags it) —
 // it never gates capability, and nothing in the UI sets it any more.
 function reflectMode(){ const inp=$('input'); if(inp) inp.placeholder=normPh; }
-function newChat(){ bumpView(); state.chatId=null; state.bp=false; showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
+function newChat(){ bumpView(); state.chatId=null; state.bp=false; resetComposerSelectors(); showChat(); $('chatLog').innerHTML=heroHtml(); $('centerTitle').textContent='New conversation'; reflectMode(); loadChats(); $('input').focus(); }
 const newBpChat=newChat;   // legacy entry points (dashboard, plan steps, tree/activity hand-off) → the one chat
 const normPh='Ask anything — the brain, the repo, or your Bubble app…  (Enter to send · Shift+Enter for newline)';
 async function openChat(id){
@@ -2175,7 +2184,7 @@ function setTurnEnd(turnEl, completedAt, startedAt, model){
   let meta=el.querySelector(':scope > .turn-meta');
   if(!meta){ meta=document.createElement('span'); meta.className='turn-meta'; el.insertBefore(meta, el.firstChild); }
   const dur=sOk?fmtSecs((c-s)/1000):'';
-  meta.innerHTML='<span class="k">Completed</span><span>'+esc(sameDay?fmtClock(completedAt):fmtDateClock(completedAt))+'</span>'+(dur?'<span class="dur">· '+esc(dur)+'</span>':'')
+  meta.innerHTML='<span class="cc-spark" aria-hidden="true">✻</span><span class="k">Completed</span><span>'+esc(sameDay?fmtClock(completedAt):fmtDateClock(completedAt))+'</span>'+(dur?'<span class="dur">· '+esc(dur)+'</span>':'')
     +(model?'<span class="dur">· '+esc(modelNice(model))+'</span>':'');
 }
 function userMsgEl(content, atts){
@@ -3292,9 +3301,9 @@ async function streamChat(text, opts={}){
           const el=document.querySelector('.askcard[data-ask-id="'+ev.id+'"]');
           if(el){ el.replaceWith(askReceiptEl({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString()})); if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m.id===ev.id) ASK_LIVE_CARD=null; }
         }
-        else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); window.LIVEMAP&&LIVEMAP.ping('model', genModel); }
+        else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); reflectRunSelection(ev.model, ev.effort); window.LIVEMAP&&LIVEMAP.ping('model', genModel); }
         else if(ev.type==='model-switch'){
-          genModel=ev.to||genModel; paintMeter(); window.LIVEMAP&&LIVEMAP.ping('model', genModel);
+          genModel=ev.to||genModel; paintMeter(); reflectRunSelection(ev.to, null); window.LIVEMAP&&LIVEMAP.ping('model', genModel);
           const note=document.createElement('div'); note.className='switch-note';
           note.innerHTML='<span class="sw-bolt">⚡</span><span>'+esc(modelNice(ev.from))+' unavailable — switched to <b>'+esc(modelNice(ev.to))+'</b> to keep going</span>';
           body.insertBefore(note, blocksEl);
@@ -4999,10 +5008,28 @@ async function logoutClaude(){
 }
 
 // ---------- model / effort ----------
+// Every session starts on Auto (Vlad 2026-08-06): the app opens and each new
+// chat begins with model+effort handed back to the router, whatever the last
+// turn happened to resolve to.
+function resetComposerSelectors(){
+  const m=$('modelSel'), e=$('effortSel');
+  if(m){ m.value='auto'; const o=m.querySelector('option[value=auto]'); if(o) o.textContent='Auto (by task)'; }
+  if(e){ e.value='auto'; const o=e.querySelector('option[value=auto]'); if(o) o.textContent='Auto (by task)'; }
+}
+// Show what the brain ACTUALLY picked without pinning it: the select stays on
+// 'auto' (so the next turn routes again) while the option's label reports the
+// resolved choice. A concrete user pick is left alone.
+function reflectRunSelection(model, effort){
+  const m=$('modelSel'), e=$('effortSel');
+  const nice=(v)=>modelNice(v);
+  if(m && m.value==='auto' && model){ const o=m.querySelector('option[value=auto]'); if(o) o.textContent='Auto · '+nice(model); }
+  if(e && e.value==='auto' && effort){ const o=e.querySelector('option[value=auto]'); if(o) o.textContent='Auto · '+effort.charAt(0).toUpperCase()+effort.slice(1); }
+}
 async function loadModelSettings(){
   try{ const s=await api('/api/settings');
     if($('modelSel')&&[...$('modelSel').options].some(o=>o.value===s.model)) $('modelSel').value=s.model;
     if($('effortSel')&&s.effort) $('effortSel').value=s.effort;
+    resetComposerSelectors();   // boot always lands on Auto, regardless of the stored value
   }catch{}
 }
 async function applyModelSettings(){
