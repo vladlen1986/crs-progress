@@ -120,15 +120,16 @@
   /* bottom-pinned settings entry (visually separated from primary nav) */
   .side-foot{flex:0 0 auto;padding:10px 12px 12px;border-top:1px solid var(--line);margin-top:6px}
   .surface-bar{flex:0 0 auto;display:flex;align-items:center;gap:12px;padding:8px 14px;border-bottom:1px solid var(--line);background:var(--panel)}
-  .surface-back{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 12px;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
-  .surface-back:hover{color:var(--primary);border-color:var(--line2)}
+  .surface-back{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:5px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition)}
+  .surface-back:hover{color:var(--primary);background:var(--bg-tertiary)}
   .surface-title{color:var(--primary);font-size:13.5px;font-weight:600}
   /* sidebar3 density: overline caps get generous top rhythm (§15); first cap stays close to search */
-  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);font-weight:700;padding:18px 12px 6px}
+  .pane-cap{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;padding:14px 12px 5px}
   .pane-cap:first-child{padding-top:6px}
   .item .chi{width:16px;height:16px;flex:0 0 auto;color:var(--muted)}   /* 16px leading conversation type icon */
-  /* sidebar3: Buildprint rows carry a mono "BP" wordmark chip (accent tint) instead of a glyph */
-  .item .bpchip{font:600 9px/16px var(--mono);letter-spacing:.04em;color:var(--accent-soft);background:var(--accent-tint);border-radius:4px;height:16px;padding:0 4px;flex:0 0 auto}
+  /* sidebar3: Buildprint rows carry a mono "BP" wordmark marker instead of a glyph —
+     muted on transparent, so it reads as a marker rather than a coloured pill */
+  .item .bpchip{font:600 9px/16px var(--mono);letter-spacing:.04em;color:var(--muted);background:none;border-radius:var(--radius-badge);height:16px;padding:0 2px;flex:0 0 auto}
   /* sidebar3: live-turn signal — the leading icon/chip pulses while that chat's turn streams */
   @keyframes sb-live{0%,100%{opacity:1}50%{opacity:.35}}
   .item.live .chi,.item.live .bpchip{animation:sb-live 1.6s ease-in-out infinite}
@@ -146,12 +147,13 @@
   .side-set svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;color:var(--muted);flex:0 0 17px}
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
 
-  .item{position:relative;padding:6px 11px;border-radius:9px;color:var(--secondary);font-size:13px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
-  .item:hover{background:var(--panel2)}
-  /* sidebar3: selected = accent wash + 2px accent bar (design-system selected-row language, §Tables) */
-  .item.on{background:var(--accent-glow);color:var(--primary);box-shadow:inset 2px 0 0 var(--accent)}
+  /* sidebar3 rows: quiet + compact (~30px) */
+  .item{position:relative;padding:5px 10px;border-radius:var(--radius-btn);color:var(--secondary);font-size:12.5px;line-height:1.5;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
+  .item:hover{background:var(--bg-tertiary)}
+  /* selected = background + text only (no accent bar — bg+border+text is banned) */
+  .item.on{background:var(--accent-glow);color:var(--primary)}
 
-  .tree .node{padding:4px 7px;border-radius:7px;font-size:13px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;transition:.1s}
+  .tree .node{padding:4px 7px;border-radius:var(--radius-btn);font-size:12.5px;white-space:nowrap;cursor:pointer;display:flex;gap:6px;align-items:center;transition:.1s}
   .tree .node:hover{background:var(--panel2)}
   .tree .node.file.on{background:var(--accent-glow);color:var(--primary)}
   .tree .dir{color:var(--primary);font-weight:600}
@@ -171,8 +173,9 @@
   .viewseg button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
   .viewseg button:hover{color:var(--secondary)}
   .viewseg button.on{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale toggle rule — no accent fill on view/mode toggles */
-  .ghost{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 13px;font-size:12px;transition:var(--transition)}
-  .ghost:hover{border-color:var(--line3);color:var(--primary)}
+  /* default button = ghost: transparent, hairline --line, --text-secondary; hover raises to --bg-tertiary */
+  .ghost{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:5px 11px;font-size:12px;transition:var(--transition)}
+  .ghost:hover{background:var(--bg-tertiary);color:var(--primary)}
   .ghost.on{color:var(--primary);background:var(--accent-glow)} /* active = bg+text only (CRS rule) */
   .sel{background:var(--panel2) url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="%236E6A63" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>') no-repeat right 9px center;border:1px solid var(--input-border);color:var(--secondary);border-radius:var(--radius-input);padding:6px 26px 6px 10px;font-size:12px;font-family:inherit;font-weight:500;cursor:pointer;transition:var(--transition);-webkit-appearance:none;appearance:none}
   [data-theme="light"] .sel{background-image:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 10 10"><path d="M2 3.5L5 6.5L8 3.5" stroke="%238A857B" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>')} /* chevron = --text-muted per theme (§16) */
@@ -181,8 +184,8 @@
   .sel option{background:var(--panel2);color:var(--primary)}
 
   /* header usage chip + popover (moved out of the old right rail) */
-  .uchip{display:inline-flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:9px;padding:6px 11px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:var(--transition);flex:0 0 auto;white-space:nowrap}
-  .uchip:hover{border-color:var(--line3);color:var(--primary)}
+  .uchip{display:inline-flex;align-items:center;gap:8px;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:5px 10px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:var(--transition);flex:0 0 auto;white-space:nowrap}
+  .uchip:hover{background:var(--bg-tertiary);color:var(--primary)}
   .uchip .ic{width:14px;height:14px;color:var(--muted);flex:0 0 auto}
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
   /* polish: chip stays neutral in every state — severity lives in the dot + popover
@@ -211,8 +214,8 @@
   .col.center.no-composer .composer-wrap{display:none}
 
   /* header icon buttons (bell, settings) + notification badge */
-  .hicon{position:relative;background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex:0 0 auto}
-  .hicon:hover{border-color:var(--line3);color:var(--primary)}
+  .hicon{position:relative;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);width:30px;height:30px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer;transition:var(--transition);flex:0 0 auto}
+  .hicon:hover{background:var(--bg-tertiary);color:var(--primary)}
   .hicon svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   .nbadge{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:9px;background:var(--danger);color:var(--white);font-size:10px;font-weight:700;display:none;align-items:center;justify-content:center;font-family:var(--mono);border:2px solid var(--panel)}
   .nbadge.show{display:inline-flex}
@@ -299,8 +302,8 @@
   .seg button.on{background:var(--elev);color:var(--primary)}   /* greyscale toggle rule; flat — no elevation shadow on a control */
   .tinput{background:var(--panel2);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:8px 11px;font:inherit;font-size:12.5px;outline:none;min-width:210px}
   .tinput:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .mbtn2{background:var(--panel2);border:1px solid var(--line2);color:var(--secondary);border-radius:var(--radius-btn);padding:8px 13px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap}
-  .mbtn2:hover{border-color:var(--line3);color:var(--primary)}
+  .mbtn2{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:7px 12px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition);white-space:nowrap}
+  .mbtn2:hover{background:var(--bg-tertiary);color:var(--primary)}
   .mbtn2.primary{background:var(--accent);border-color:var(--accent);color:var(--white)}
   .mbtn2.primary:hover{background:var(--accent-hover)}
   .mstat{font-size:11.5px;font-weight:600}
@@ -719,27 +722,31 @@
   /* ───── dashboard (home) ───── */
   .brand-home{display:flex;align-items:center;justify-content:center;gap:11px;cursor:pointer;flex:0 1 auto;min-width:0;border-radius:8px;transition:var(--transition)}
   .brand-home:hover{opacity:.85}
-  .dash{flex:1;overflow:auto;padding:32px 40px 48px}
+  /* 2026-08-06 visual-weight pass: dense + quiet. Content starts near the top, chrome recedes. */
+  .dash{flex:1;overflow:auto;padding:18px 28px 36px;font-size:12.5px}
   .dash-inner{max-width:1120px;margin:0 auto}
-  .dash-head{margin-bottom:30px}
-  .dash h2{color:var(--primary);font-size:24px;font-weight:680;letter-spacing:-.02em;margin:0 0 4px}
-  .dash .subline{color:var(--muted);font-size:13px}
-  .dash section{margin-bottom:30px}
-  .dash .lbl{font-size:10.5px;letter-spacing:1.3px;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 0 13px}
-  /* KPI row — even grid, calm monochrome numbers, thin accent bar per metric */
+  .dash-head{margin-bottom:14px}
+  /* greeting is a modest line, not a hero headline */
+  .dash h2{color:var(--primary);font-size:15.5px;font-weight:600;letter-spacing:0;margin:0 0 2px}
+  .dash .subline{color:var(--muted);font-size:12px}
+  .dash section{margin-bottom:18px}
+  /* section-label family — 10px / 600 / .08em / --text-muted, never accent-coloured */
+  .dash .lbl{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:0 0 8px}
   /* Chief-of-staff board (P2) */
-  .rowlbl{font-size:11px;text-transform:uppercase;letter-spacing:.11em;color:var(--muted);font-weight:700;margin:4px 0 10px;display:flex;align-items:center;gap:8px}
+  .rowlbl{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:2px 0 7px;display:flex;align-items:center;gap:8px}
   .rowlbl::after{content:'';flex:1;height:1px;background:var(--line)}
-  .rowlbl.warn{color:var(--warn)} .rowlbl.danger{color:var(--danger)}
+  /* severity never colours a section label — it lives in the rows themselves */
+  .rowlbl.warn,.rowlbl.danger{color:var(--muted)}
+  .rowlbl .cnt{color:var(--secondary);font-family:var(--mono);font-weight:600;letter-spacing:0;font-size:10.5px}
   .dnum{font-family:var(--mono);font-variant-numeric:tabular-nums;color:var(--primary);font-weight:600}
   .pmini{display:inline-block;width:64px;height:4px;border-radius:2px;background:var(--panel2);overflow:hidden;vertical-align:middle;margin-right:6px}
   .pmini i{display:block;height:100%;background:var(--accent)}
   .tadd{display:flex;gap:6px;margin-bottom:8px}
   .tadd input{flex:1;background:var(--bg-tertiary);border:1px solid var(--input-border);color:var(--primary);border-radius:var(--radius-input);padding:7px 10px;font:inherit;font-size:12.5px;outline:none}
   .tadd input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}
-  .hbtn-sm{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:6px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
-  .hbtn-sm:hover{color:var(--primary);border-color:var(--line2)}
-  .trow{display:flex;align-items:center;gap:7px;padding:6px 4px;border-bottom:1px solid var(--line);font-size:12.5px}
+  .hbtn-sm{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:5px 10px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:var(--transition)}
+  .hbtn-sm:hover{color:var(--primary);background:var(--bg-tertiary)}
+  .trow{display:flex;align-items:center;gap:7px;padding:5px 4px;border-bottom:1px solid var(--line);font-size:12.5px;line-height:1.5}
   .trow:last-child{border-bottom:none}
   .trow.overdue{background:var(--warning-tint);border-radius:var(--radius-btn);padding-left:7px}
   .trow.overdue .ttitle{color:var(--warning)}
@@ -748,12 +755,13 @@
   .tchk.on{border-color:var(--success);background:var(--success);color:var(--white) /* approved literal — check on --success fill */}
   .tchk svg{width:11px;height:11px}
   .ttitle{flex:1;min-width:70px;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .tover{font-size:9.5px;font-weight:700;letter-spacing:.5px;color:var(--warning);text-transform:uppercase}
-  .tchip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 8px;font:inherit;font-size:10.5px;font-family:var(--mono);cursor:pointer;white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1}
-  .tchip:hover{color:var(--primary);border-color:var(--line2);background:var(--elev)}
-  .tst{border:1px solid var(--line);background:var(--panel2);color:var(--secondary);border-radius:var(--radius-badge);padding:1px 7px;font:inherit;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer}
+  /* quiet label, not a chip — --warning as TEXT only */
+  .tover{font-size:10px;font-weight:600;letter-spacing:.04em;color:var(--warning);text-transform:uppercase}
+  .tchip{background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-badge);padding:1px 7px;font:inherit;font-size:10.5px;font-family:var(--mono);cursor:pointer;white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;transition:var(--transition)}
+  .tchip:hover{color:var(--primary);background:var(--bg-tertiary)}
+  .tst{border:none;background:var(--bg-tertiary);color:var(--text-muted);border-radius:var(--radius-badge);padding:1px 6px;font:inherit;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;cursor:pointer}
   .tst.st-doing{background:var(--bg-elevated);color:var(--text-primary)}   /* greyscale active per override #36 */
-  .tst.st-blocked{color:var(--warning);border-color:var(--warning)}
+  .tst.st-blocked{background:var(--warning-tint);color:var(--warning)}
   .tdel{border:none;background:none;color:var(--muted);cursor:pointer;font-size:11px;padding:2px 4px;border-radius:4px;opacity:0}
   .trow:hover .tdel{opacity:1}
   .tdel:hover{color:var(--danger);background:var(--panel2)}
@@ -781,47 +789,52 @@
   .mpo .mpo-acts button.ok{background:var(--good);border-color:var(--good);color:var(--white) /* approved literal — on-fill text */}
   .mpo .mpo-acts button.bad{background:var(--danger);border-color:var(--danger);color:var(--white) /* approved literal — on-fill text */}
   /* status pills — the old four card-rows compressed to one glanceable strip */
-  .dstrip{display:flex;flex-wrap:wrap;gap:9px}
-  .dpill{display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-pill);padding:8px 14px;color:var(--secondary);font-size:12px;font-family:inherit;cursor:pointer;transition:var(--transition)}
-  .dpill:hover{border-color:var(--line2);background:var(--elev);color:var(--primary)}
-  .dpill .ic{width:14px;height:14px;color:var(--muted)}
+  /* stat strip: plain text separated by hairlines — no pill chrome, no tint */
+  .dstrip{display:flex;flex-wrap:wrap;gap:4px 0;align-items:center}
+  .dpill{display:inline-flex;align-items:center;gap:7px;background:none;border:none;border-radius:var(--radius-btn);padding:3px 13px;color:var(--secondary);font-size:12px;font-family:inherit;cursor:pointer;transition:var(--transition)}
+  .dpill+.dpill{border-left:1px solid var(--line)}
+  .dpill:first-child{padding-left:0}
+  .dpill:hover{background:var(--bg-tertiary);color:var(--primary)}
+  .dpill .ic{width:13px;height:13px;color:var(--muted)}
   .dpill .psep{color:var(--muted);margin:0 1px}
-  .dpill .pfocus{color:var(--accent2);font-weight:600}
-  .dpill .pbad{color:var(--danger);font-weight:600;font-family:var(--mono)}
+  .dpill .pfocus{color:var(--primary);font-weight:600}
+  .dpill .pbad{color:var(--error);font-weight:600;font-family:var(--mono)}
   /* two-column body: continue (chats) + todos */
-  .dash-two{display:grid;grid-template-columns:3fr 2fr;gap:16px}
-  .chatnew{display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+  .dash-two{display:grid;grid-template-columns:3fr 2fr;gap:12px}
+  .chatnew{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}
   .chatnew .np-draft{margin-top:0}
-  /* attention tags — text+border only (no fill: not an active state) */
-  .atag{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:2px 8px;border-radius:var(--radius-badge);border:1px solid var(--line);color:var(--secondary);flex:0 0 auto}
-  .atag.ask,.atag.decide{color:var(--accent2);border-color:var(--accent-border-active)}
-  .atag.over{color:var(--warning);border-color:var(--warning)}
-  .atag.fail{color:var(--danger);border-color:var(--danger)}
-  .atag.verify{color:var(--purple);border-color:var(--purple)}
-  /* Secondary tools — compact pills, distinct icon tint */
-  .tools{display:flex;flex-wrap:wrap;gap:9px}
-  .tool{display:inline-flex;align-items:center;gap:9px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:9px 14px 9px 11px;color:var(--secondary);font-size:12.5px;font-weight:500;font-family:inherit;cursor:pointer;transition:var(--transition)}
-  .tool:hover{border-color:var(--line3);color:var(--primary);background:var(--elev)}
-  .tool .ti{width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;background:var(--qc-bg,var(--accent-tint));color:var(--qc,var(--accent2));flex:0 0 26px}
-  .tool .ti .ic{width:15px;height:15px}
-  .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}
+  /* attention tags — tiny quiet labels: text colour on a subtle tint, never a bordered chip */
+  .atag{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;line-height:1.5;padding:1px 6px;border-radius:var(--radius-badge);border:none;background:var(--bg-tertiary);color:var(--text-muted);flex:0 0 auto}
+  .atag.ask,.atag.decide,.atag.verify{background:var(--bg-tertiary);color:var(--text-muted)}
+  .atag.over{background:var(--warning-tint);color:var(--warning)}
+  .atag.fail{background:var(--error-tint);color:var(--error)}
+  /* Secondary tools — ghost rows, monochrome glyphs (the per-tool colour tint is gone) */
+  .tools{display:flex;flex-wrap:wrap;gap:6px}
+  .tool{display:inline-flex;align-items:center;gap:7px;background:none;border:1px solid var(--line);border-radius:var(--radius-btn);padding:5px 11px;color:var(--secondary);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:var(--transition)}
+  .tool:hover{color:var(--primary);background:var(--bg-tertiary)}
+  .tool .ti{width:16px;height:16px;border-radius:0;display:flex;align-items:center;justify-content:center;background:none;color:var(--muted);flex:0 0 16px}
+  .tool:hover .ti{color:var(--secondary)}
+  .tool .ti .ic{width:14px;height:14px}
+  .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
   /* min-width:0 lets grid items shrink below their nowrap content (long chat titles) */
-  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);padding:16px 18px;min-width:0}
+  .dcard{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-card);padding:12px 14px;min-width:0}
   .drow .rt{min-width:0}
-  .dcard h3{color:var(--primary);font-size:12.5px;font-weight:600;margin:0 0 6px;display:flex;align-items:center;gap:8px}
+  .dcard h3{color:var(--primary);font-size:12px;font-weight:600;margin:0 0 4px;display:flex;align-items:center;gap:7px}
   .dcard h3 .ic{color:var(--muted)}
-  .dcard h3 .cnt{margin-left:auto;color:var(--muted);font-size:11px;font-weight:500;font-family:var(--mono)}
-  .drow{display:flex;align-items:center;gap:9px;padding:8px 0;border-top:1px solid var(--line);font-size:12.5px;color:var(--secondary);cursor:pointer}
+  .dcard h3 .cnt{margin-left:auto;color:var(--secondary);font-size:10.5px;font-weight:600;font-family:var(--mono)}
+  /* rows land ~30px tall */
+  .drow{display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid var(--line);font-size:12.5px;line-height:1.5;color:var(--secondary);cursor:pointer}
   .drow.static{cursor:default}
-  .drow:hover:not(.static){background:var(--panel2)}
-  .drow .pill{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+  .drow:hover:not(.static){background:var(--bg-tertiary)}
+  .drow .pill{width:6px;height:6px;border-radius:50%;flex:0 0 6px}
   .drow .rt{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .drow .rmeta{margin-left:auto;color:var(--muted);font-size:11px;flex:0 0 auto;font-family:var(--mono)}
-  .np-mod{color:var(--accent2);font-size:11px;font-weight:600;margin:2px 0 3px}
+  .drow .rmeta{margin-left:auto;color:var(--muted);font-size:10.5px;flex:0 0 auto;font-family:var(--mono)}
+  .np-mod{color:var(--secondary);font-size:11px;font-weight:600;margin:2px 0 3px}
   .np-title{color:var(--primary);font-size:13px;font-weight:600;line-height:1.4}
-  .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:11px;background:var(--accent-tint);border:1px solid var(--accent-border-active);color:var(--accent2);border-radius:var(--radius-btn);padding:7px 13px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);height:32px}
-  .np-draft:hover{background:var(--accent-glow);color:var(--accent2)}
-  .dempty{color:var(--muted);font-size:12px;padding:9px 0;font-style:italic}
+  /* ghost, like every other default button — the one filled accent action is the composer send */
+  .np-draft{display:inline-flex;align-items:center;gap:7px;margin-top:9px;background:none;border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-btn);padding:5px 11px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;transition:var(--transition);height:28px}
+  .np-draft:hover{background:var(--bg-tertiary);color:var(--primary)}
+  .dempty{color:var(--muted);font-size:12px;padding:7px 0;font-style:italic}
   @media (max-width:900px){.dash-two{grid-template-columns:1fr}}
   @media (max-width:760px){.dash{padding:22px 16px}.dash-cols{grid-template-columns:1fr}}
 
