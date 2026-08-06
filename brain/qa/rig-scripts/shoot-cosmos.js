@@ -32,6 +32,13 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
       motes: c.querySelectorAll('.dhc-mote').length,
       spins: [...c.querySelectorAll('.dhc-spin')].map((g) => getComputedStyle(g).animationDuration + ':' + getComputedStyle(g).animationDirection),
       colours: [...new Set([...c.querySelectorAll('.dhc-el')].map((e) => getComputedStyle(e).fill))],
+      arcs: c.querySelectorAll('.dhc-arc').length,
+      ripples: c.querySelectorAll('.dhc-ripple').length,
+      // every element type must carry an animation — nothing static
+      anims: ['.dhc-ring', '.dhc-arc', '.dhc-el', '.dhc-mote', '.dhc-plane', '.dhc-spin', '.dhc-halo', '.dhc-core', '.dhc-field']
+        .map((s) => { const e = c.querySelector(s); return s + '=' + (e ? getComputedStyle(e).animationName : 'MISSING'); }),
+      ringFlow: (() => { const e = c.querySelector('.dhc-ring'); const cs = getComputedStyle(e); return { name: cs.animationName, dur: cs.animationDuration, offset: cs.strokeDashoffset }; })(),
+      tips: [...new Set([...c.querySelectorAll('.dhc-plane')].map((g) => getComputedStyle(g).animationDuration))],
       hue: getComputedStyle(c).animationName,
       markAnim: getComputedStyle(document.querySelector('#chatLog .dh-mark')).animationName,
       markStroke: getComputedStyle(document.querySelector('#chatLog .dh-mark svg:not(.dh-cosmos)')).stroke,
@@ -43,6 +50,10 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   check('orbits counter-rotate at different speeds', shown.spins.length === 5 && new Set(shown.spins).size === 5 && shown.spins.filter((s) => /reverse/.test(s)).length === 2, JSON.stringify(shown.spins));
   check('molecules are the AI palette, not grey', shown.colours.length >= 6 && !shown.colours.some((c) => /rgb\((\d+), \1, \1\)/.test(c)), JSON.stringify(shown.colours));
   check('whole field hue-shifts', shown.hue === 'dhcHue', shown.hue);
+  check('every element type is animated — nothing static', shown.anims.every((a) => !/=(none|MISSING)$/.test(a)), shown.anims.join(' '));
+  check('links flow AND fade (two animations, not a fixed dash)', /dhcFlow/.test(shown.ringFlow.name) && /dhcFade/.test(shown.ringFlow.name) && shown.ringFlow.dur.split(',').length === 2, JSON.stringify(shown.ringFlow));
+  check('each orbital plane tips on its own cycle', shown.tips.length === 5, JSON.stringify(shown.tips));
+  check('5 racing arcs, and NO ring drawn around the mark', shown.arcs === 5 && shown.ripples === 0, JSON.stringify({ arcs: shown.arcs, ripples: shown.ripples }));
   check('mark switches to the thinking pulse', shown.markAnim === 'dhThink', shown.markAnim);
   check('mark strokes the AI gradient', /g-ai/.test(shown.markStroke), shown.markStroke);
   check('cosmos never eats a click', shown.hits !== 'cosmos', shown.hits);

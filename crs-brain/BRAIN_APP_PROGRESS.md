@@ -57,7 +57,27 @@ the defs). It was recovered from `f609abb` and restored, then scaled up for the 
   thinking layer is the one colour carve-out, and it supersedes exactly one clause of the
   08-06 entry. Colour never shows at rest, so §10 acceptance still passes 13/13.
 - Rigs: `probe-thinking-brain.js` (8 checks, builds the indicator by injecting
-  `brainHtml()` so **no model call is spent**) and `shoot-cosmos.js` (11 checks).
+  `brainHtml()` so **no model call is spent**) and `shoot-cosmos.js` (14 checks).
+
+**Follow-up the same day — "everything must animate".** Vlad: *"links in animation are
+kinda plain not animated and i want them to be fading not fixed … super futuristic every
+element mast be animating everything"*. The orbits were static dashed ellipses being
+rotated rigidly by their parent; nothing else about them moved. Now:
+- Every orbit runs **two** animations at once — `dhcFlow` slides the dash pattern along
+  the path (charge moving through the link) and `dhcFade` breathes its opacity on a
+  longer, offset cycle, so no ring is ever at constant strength. The `flow` distance per
+  orbit **must** be a whole multiple of (dash + gap) or the pattern jumps on loop.
+- **`dhcTip`** squashes each orbital plane through edge-on and back on its own cycle
+  (11 / 7.5 / 14 / 9 / 17s) — that, not the spin, is what makes it read as a 3-D atom.
+- A short bright **`dhc-arc`** races the full circuit of every ring; molecules throb
+  (`dhcThrob`) while they travel; motes swell (`dhcSwell`) as well as twinkle; a nucleus
+  glow pulses behind the glyph. The rig asserts **every** element type has a non-`none`
+  animation.
+- Motes need `transform-box:fill-box;transform-origin:center` — SVG's default origin is
+  0,0, so scaling would swing them toward the nucleus instead of swelling in place.
+- **Deliberately NOT added: expanding ripple rings.** They animate, but every individual
+  frame of one reads as a circle drawn around the mark — the exact thing Vlad rejected.
+  Same reason the earlier `.dhc-shell` is gone. The rig now asserts zero of them.
 
 ## Session 2026-08-07 (Windows) — ONE screen, Map-only header, in-map view selector
 
