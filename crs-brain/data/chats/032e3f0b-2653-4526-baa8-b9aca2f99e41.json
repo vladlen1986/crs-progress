@@ -4,7 +4,7 @@
   "sessionId": "d30fa174-36b8-4e14-b3a3-8d8908bfa573",
   "bp": false,
   "created": "2026-08-06T21:40:34.551Z",
-  "updated": "2026-08-06T22:07:23.782Z",
+  "updated": "2026-08-06T22:33:11.629Z",
   "messages": [
     {
       "role": "user",
@@ -544,6 +544,566 @@
           "actor": "brain"
         }
       ]
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "62769ec0",
+      "question": "Which fix path should I take for the header overflow?",
+      "context": "Two viable routes.",
+      "options": [
+        {
+          "label": "Clamp the label",
+          "hint": "fastest"
+        },
+        {
+          "label": "Re-flow the row",
+          "hint": ""
+        },
+        {
+          "label": "Leave it",
+          "hint": ""
+        }
+      ],
+      "sig": "5865465826cf",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 1,
+      "ts": "2026-08-06T22:28:05.583Z",
+      "answer": "Clamp the label",
+      "answeredAt": "2026-08-06T22:28:39.825Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "3859cb1b",
+      "question": "Which fix path should I take for the header overflow?",
+      "context": "Two viable routes.",
+      "options": [
+        {
+          "label": "Clamp the label",
+          "hint": "fastest"
+        },
+        {
+          "label": "Re-flow the row",
+          "hint": ""
+        },
+        {
+          "label": "Leave it",
+          "hint": ""
+        }
+      ],
+      "sig": "5865465826cf",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 2,
+      "ts": "2026-08-06T22:28:38.044Z",
+      "answer": "call it lifecycle_state",
+      "answeredAt": "2026-08-06T22:29:01.088Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "65a1a793",
+      "question": "What should I name the new column?",
+      "context": "",
+      "options": [
+        {
+          "label": "status",
+          "hint": ""
+        },
+        {
+          "label": "state",
+          "hint": ""
+        }
+      ],
+      "sig": "0403ea691c2b",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 1,
+      "ts": "2026-08-06T22:29:00.120Z",
+      "answer": "status",
+      "answeredAt": "2026-08-06T22:29:22.314Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "54e5c158",
+      "question": "How should we handle 01 Company going forward?",
+      "context": "Trade-offs either way.",
+      "options": [
+        {
+          "label": "Keep it as is",
+          "hint": ""
+        },
+        {
+          "label": "Split the table",
+          "hint": ""
+        }
+      ],
+      "sig": "820b0ac654e0",
+      "kind": "decision",
+      "meta": {
+        "openTitle": "Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+        "trigger": "01 company"
+      },
+      "askedCount": 1,
+      "ts": "2026-08-06T22:29:21.069Z",
+      "answer": "Alpha",
+      "answeredAt": "2026-08-06T22:30:46.228Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "0b5703d5",
+      "question": "Proceed with the migration now?",
+      "context": "",
+      "options": [
+        {
+          "label": "Yes, run it",
+          "hint": ""
+        },
+        {
+          "label": "Park it",
+          "hint": ""
+        }
+      ],
+      "sig": "c2d0e5ad0427",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 1,
+      "ts": "2026-08-06T22:29:43.015Z",
+      "answer": "Park it",
+      "answeredAt": "2026-08-06T22:29:44.691Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "4478883a",
+      "question": "Keep the old export path?",
+      "context": "",
+      "options": [
+        {
+          "label": "Keep",
+          "hint": ""
+        },
+        {
+          "label": "Drop",
+          "hint": ""
+        }
+      ],
+      "sig": "29c3366aa93c",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 1,
+      "ts": "2026-08-06T22:29:44.709Z",
+      "answer": "Keep",
+      "answeredAt": "2026-08-06T22:29:48.952Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "a0ccffbc",
+      "question": "DBG pick one",
+      "context": "",
+      "options": [
+        {
+          "label": "Alpha",
+          "hint": ""
+        },
+        {
+          "label": "Beta",
+          "hint": ""
+        }
+      ],
+      "sig": "1eada1eba548",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 1,
+      "ts": "2026-08-06T22:30:45.306Z",
+      "answer": "rig cleanup",
+      "answeredAt": "2026-08-06T22:31:22.971Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "88bbf464",
+      "question": "Which fix path should I take for the header overflow?",
+      "context": "Two viable routes.",
+      "options": [
+        {
+          "label": "Clamp the label",
+          "hint": "fastest"
+        },
+        {
+          "label": "Re-flow the row",
+          "hint": ""
+        },
+        {
+          "label": "Leave it",
+          "hint": ""
+        }
+      ],
+      "sig": "5865465826cf",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 3,
+      "ts": "2026-08-06T22:31:29.676Z",
+      "answer": "Clamp the label",
+      "answeredAt": "2026-08-06T22:31:31.483Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "d9353ad3",
+      "question": "What should I name the new column?",
+      "context": "",
+      "options": [
+        {
+          "label": "status",
+          "hint": ""
+        },
+        {
+          "label": "state",
+          "hint": ""
+        }
+      ],
+      "sig": "0403ea691c2b",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 2,
+      "ts": "2026-08-06T22:31:32.092Z",
+      "answer": "call it lifecycle_state",
+      "answeredAt": "2026-08-06T22:31:33.031Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "410329d4",
+      "question": "How should we handle 01 Company going forward?",
+      "context": "Trade-offs either way.",
+      "options": [
+        {
+          "label": "Keep it as is",
+          "hint": ""
+        },
+        {
+          "label": "Split the table",
+          "hint": ""
+        }
+      ],
+      "sig": "820b0ac654e0",
+      "kind": "decision",
+      "meta": {
+        "openTitle": "Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+        "trigger": "01 company"
+      },
+      "askedCount": 2,
+      "ts": "2026-08-06T22:31:33.042Z",
+      "answer": "Keep it as is",
+      "answeredAt": "2026-08-06T22:31:34.340Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "08d666e6",
+      "question": "Proceed with the migration now?",
+      "context": "",
+      "options": [
+        {
+          "label": "Yes, run it",
+          "hint": ""
+        },
+        {
+          "label": "Park it",
+          "hint": ""
+        }
+      ],
+      "sig": "c2d0e5ad0427",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 2,
+      "ts": "2026-08-06T22:31:35.257Z",
+      "answer": "Park it",
+      "answeredAt": "2026-08-06T22:31:36.807Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "b597d826",
+      "question": "Keep the old export path?",
+      "context": "",
+      "options": [
+        {
+          "label": "Keep",
+          "hint": ""
+        },
+        {
+          "label": "Drop",
+          "hint": ""
+        }
+      ],
+      "sig": "29c3366aa93c",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 2,
+      "ts": "2026-08-06T22:31:36.820Z",
+      "answer": "Keep",
+      "answeredAt": "2026-08-06T22:31:41.084Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "9cdaaa22",
+      "question": "Which fix path should I take for the header overflow?",
+      "context": "Two viable routes.",
+      "options": [
+        {
+          "label": "Clamp the label",
+          "hint": "fastest"
+        },
+        {
+          "label": "Re-flow the row",
+          "hint": ""
+        },
+        {
+          "label": "Leave it",
+          "hint": ""
+        }
+      ],
+      "sig": "5865465826cf",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 4,
+      "ts": "2026-08-06T22:32:36.806Z",
+      "answer": "Clamp the label",
+      "answeredAt": "2026-08-06T22:32:38.647Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "b0941e8d",
+      "question": "What should I name the new column?",
+      "context": "",
+      "options": [
+        {
+          "label": "status",
+          "hint": ""
+        },
+        {
+          "label": "state",
+          "hint": ""
+        }
+      ],
+      "sig": "0403ea691c2b",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 3,
+      "ts": "2026-08-06T22:32:39.272Z",
+      "answer": "call it lifecycle_state",
+      "answeredAt": "2026-08-06T22:32:40.202Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "96723e72",
+      "question": "How should we handle 01 Company going forward?",
+      "context": "Trade-offs either way.",
+      "options": [
+        {
+          "label": "Keep it as is",
+          "hint": ""
+        },
+        {
+          "label": "Split the table",
+          "hint": ""
+        }
+      ],
+      "sig": "820b0ac654e0",
+      "kind": "decision",
+      "meta": {
+        "openTitle": "Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+        "trigger": "01 company"
+      },
+      "askedCount": 3,
+      "ts": "2026-08-06T22:32:40.207Z",
+      "answer": "Keep it as is",
+      "answeredAt": "2026-08-06T22:32:41.481Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "3636ffd5",
+      "question": "Proceed with the migration now?",
+      "context": "",
+      "options": [
+        {
+          "label": "Yes, run it",
+          "hint": ""
+        },
+        {
+          "label": "Park it",
+          "hint": ""
+        }
+      ],
+      "sig": "c2d0e5ad0427",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 3,
+      "ts": "2026-08-06T22:32:42.397Z",
+      "answer": "Park it",
+      "answeredAt": "2026-08-06T22:32:44.047Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "bcbd34cc",
+      "question": "Keep the old export path?",
+      "context": "",
+      "options": [
+        {
+          "label": "Keep",
+          "hint": ""
+        },
+        {
+          "label": "Drop",
+          "hint": ""
+        }
+      ],
+      "sig": "29c3366aa93c",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 3,
+      "ts": "2026-08-06T22:32:44.070Z",
+      "answer": "Keep",
+      "answeredAt": "2026-08-06T22:32:48.362Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "eb42cb07",
+      "question": "Which fix path should I take for the header overflow?",
+      "context": "Two viable routes.",
+      "options": [
+        {
+          "label": "Clamp the label",
+          "hint": "fastest"
+        },
+        {
+          "label": "Re-flow the row",
+          "hint": ""
+        },
+        {
+          "label": "Leave it",
+          "hint": ""
+        }
+      ],
+      "sig": "5865465826cf",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 5,
+      "ts": "2026-08-06T22:33:04.487Z",
+      "answer": "Clamp the label",
+      "answeredAt": "2026-08-06T22:33:06.281Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "8e258622",
+      "question": "What should I name the new column?",
+      "context": "",
+      "options": [
+        {
+          "label": "status",
+          "hint": ""
+        },
+        {
+          "label": "state",
+          "hint": ""
+        }
+      ],
+      "sig": "0403ea691c2b",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 4,
+      "ts": "2026-08-06T22:33:06.891Z",
+      "answer": "call it lifecycle_state",
+      "answeredAt": "2026-08-06T22:33:07.811Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "2f00d7ed",
+      "question": "How should we handle 01 Company going forward?",
+      "context": "Trade-offs either way.",
+      "options": [
+        {
+          "label": "Keep it as is",
+          "hint": ""
+        },
+        {
+          "label": "Split the table",
+          "hint": ""
+        }
+      ],
+      "sig": "820b0ac654e0",
+      "kind": "decision",
+      "meta": {
+        "openTitle": "Company/Property own-table privacy-rule shape (Pattern A exceptions)",
+        "trigger": "01 company"
+      },
+      "askedCount": 4,
+      "ts": "2026-08-06T22:33:07.815Z",
+      "answer": "Keep it as is",
+      "answeredAt": "2026-08-06T22:33:09.078Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "d9c34a7e",
+      "question": "Proceed with the migration now?",
+      "context": "",
+      "options": [
+        {
+          "label": "Yes, run it",
+          "hint": ""
+        },
+        {
+          "label": "Park it",
+          "hint": ""
+        }
+      ],
+      "sig": "c2d0e5ad0427",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 4,
+      "ts": "2026-08-06T22:33:10.009Z",
+      "answer": "Park it",
+      "answeredAt": "2026-08-06T22:33:11.611Z"
+    },
+    {
+      "role": "ask",
+      "status": "answered",
+      "id": "0ce765d9",
+      "question": "Keep the old export path?",
+      "context": "",
+      "options": [
+        {
+          "label": "Keep",
+          "hint": ""
+        },
+        {
+          "label": "Drop",
+          "hint": ""
+        }
+      ],
+      "sig": "29c3366aa93c",
+      "kind": "ask",
+      "meta": null,
+      "askedCount": 4,
+      "ts": "2026-08-06T22:33:11.629Z",
+      "answer": "Keep",
+      "answeredAt": "2026-08-06T22:33:15.930Z"
     }
   ]
 }

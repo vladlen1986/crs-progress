@@ -585,13 +585,41 @@
   .ask-div{height:1px;background:var(--line2);opacity:.6;margin:10px 0 0}
   .ask-standing-opts{margin-top:8px}
   .ask-standing-opts .ask-opt{color:var(--muted);border-style:dashed}
-  .ask-other{display:none;margin-top:8px;gap:6px}
-  .ask-other.show{display:flex}
+  /* The free-text answer is ALWAYS visible (2026-08-07). It used to hide behind an
+     "Other…" button, which made typing feel like a fallback; it is a first-class
+     answer path. */
+  .ask-other{display:flex;margin-top:8px;gap:6px}
   .ask-other input{flex:1;background:var(--panel);border:1px solid var(--line2);border-radius:8px;color:var(--primary);padding:7px 10px;font:inherit;font-size:12px;outline:none}
   .ask-other input:focus{border-color:var(--cc-border-focus)}
   .ask-stand{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:12px;color:var(--muted);cursor:pointer;user-select:none}
   .ask-hint3{display:inline-block;margin-left:8px;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:1px 7px;vertical-align:middle;font-weight:500}
+
+  /* ── Pending question PINNED above the composer ───────────────────────────
+     A question used to be appended into the message stream, so it scrolled out
+     of view and got missed. The pending card now lives here, directly above the
+     input, always on screen; the answered receipt still goes into the transcript
+     so history reads correctly. */
+  .ask-pin{max-width:768px;margin:0 auto 8px}
+  .ask-pin:empty{display:none}
+  .ask-pin .askcard{max-width:none;margin:0;border:1px solid var(--cc-border-composer)}
+  .ask-pin .askcard.pending{background:var(--cc-bg-selected)}
+  .ask-kind{display:flex;align-items:center;gap:7px;margin-bottom:8px;font-size:12px;font-weight:600;color:var(--muted)}
+  .ask-kind .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex:0 0 6px}
+  /* a decision is visually distinct — it becomes a line in decisions.md */
+  .askcard.decision{border-color:var(--warning)}
+  .askcard.decision .ask-kind{color:var(--warning)}
+  .askcard.decision .ask-kind .dot{background:var(--warning)}
+  .ask-note{margin-top:9px;font-size:12px;color:var(--muted);line-height:1.45}
   .ask-receipt{margin:8px 0;font-size:12px;color:var(--muted)}
+  /* answered question, read back as a block in the transcript */
+  .ask-qa{margin:12px 0;padding:12px 14px;background:var(--cc-bg-card);border:1px solid var(--cc-border-divider);border-radius:8px;max-width:768px}
+  .ask-qa.decision{border-color:var(--warning)}
+  .ask-rhead{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .ask-rk{font-size:12px;font-weight:600;color:var(--muted)}
+  .ask-qa.decision .ask-rk{color:var(--warning)}
+  .ask-rt{margin-left:auto;font-size:12px;color:var(--cc-text-faint);font-variant-numeric:tabular-nums}
+  .ask-rq{font-size:13px;font-weight:600;color:var(--primary);line-height:1.45}
+  .ask-ra{font-size:13px;color:var(--secondary);line-height:1.5;margin-top:5px}
   .ask-receipt b{color:var(--primary);font-weight:600}
   /* ── learn toasts: the brain learning / applying knowledge (top-right, expandable) ── */
   #learnToasts{position:fixed;top:14px;right:14px;z-index:340;display:flex;flex-direction:column;gap:8px;width:330px;pointer-events:none}
@@ -1258,10 +1286,15 @@
   .proppop .pp-row .cp:hover{color:var(--primary);border-color:var(--line3)}
   /* chat search */
   /* sidebar3: one row = search (flex) + 32px icon-ghost "+" (new conversation) */
-  #chatActions{display:flex;align-items:center;gap:6px;margin:0 12px 8px}
-  .chat-search{display:block;flex:1 1 auto;min-width:0;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12px;font-family:inherit;outline:none}
+  /* Vlad 2026-08-07: search takes the full sidebar width, New chat sits BELOW it
+     as its own full-width row — the two were competing for one line. */
+  #chatActions{display:flex;flex-direction:column;align-items:stretch;gap:6px;margin:0 12px 8px}
+  .chat-search-wrap{position:relative;display:block;width:100%}
+  .chat-search-ic{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;color:var(--cc-text-muted);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;pointer-events:none}
+  .chat-search{display:block;width:100%;flex:1 1 auto;min-width:0;padding-left:31px !important;background:var(--panel2);border:1px solid var(--input-border);border-radius:var(--radius-input);color:var(--primary);padding:8px 11px;font-size:12px;font-family:inherit;outline:none}
   .chat-search:focus{border-color:var(--cc-border-focus)}
-  .chat-new{flex:0 0 32px;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;background:none;border:none;border-radius:8px;color:var(--muted);cursor:pointer;padding:0;transition:var(--transition)}
+  .chat-new{width:100%;height:30px;display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--cc-bg-control);border:none;border-radius:var(--radius-btn);color:var(--cc-text-body);font:inherit;font-size:12px;font-weight:500;cursor:pointer;padding:0;transition:var(--transition)}
+  .chat-new svg{width:14px;height:14px;flex:0 0 14px}
   .chat-new:hover{background:var(--cc-border-soft);color:var(--primary)}
   .chat-new .ic{width:16px;height:16px}
   .item .snip{display:block;color:var(--muted);font-size:12px;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -1497,8 +1530,8 @@
     </div>
     <div class="brand"><div class="brand-home" title="Home — dashboard" onclick="showDashboard()"><span class="wordwrap"><svg class="wordmark" viewBox="0 0 1024 324" role="img" aria-label="CRS Brain"><use href="#i-crs"/></svg><span class="brainwrap"><svg class="brainmark" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg></span></span></div><button class="col-collapse" title="Collapse sidebar" onclick="toggleCol('left')"><svg viewBox="0 0 24 24" aria-hidden="true" style="transform:rotate(180deg)"><use href="#i-chevron"/></svg></button></div>
     <div id="chatActions">
-      <input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)">
-      <button class="chat-new" onclick="newChat()" title="New conversation" aria-label="New conversation"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg></button>
+      <div class="chat-search-wrap"><svg class="chat-search-ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-search"/></svg><input class="chat-search" id="chatSearch" placeholder="Search conversations…" autocomplete="off" oninput="onChatSearch(this.value)"></div>
+      <button class="chat-new" onclick="newChat()" title="New conversation" aria-label="New conversation"><svg class="ic" viewBox="0 0 24 24"><use href="#i-plus"/></svg><span>New chat</span></button>
     </div>
     <div class="pane" id="paneChats"></div>
     <div class="side-foot">
@@ -1615,6 +1648,7 @@
     </div>
     <!-- persistent composer — always visible on every view -->
     <div class="composer-wrap">
+        <div class="ask-pin" id="askPin"></div>
         <div class="genmeter" id="genMeter"></div>
         <div class="queue-strip" id="queueStrip"></div>
         <div class="attach-chips" id="attachChips"></div>
@@ -2057,6 +2091,7 @@ async function openChat(id){
   $('centerTitle').textContent=(state.bp?'🔨 ':'')+(chat.title||'Conversation');
   reflectMode();
   renderChat(chat.messages); loadChats();
+  restorePendingAsk();
   try{ localStorage.setItem('crs-last-chat', id); }catch(e){}
   // land at the newest message — after render AND after layout settles (images,
   // fonts and work-step blocks all change the scroll height)
@@ -2088,45 +2123,98 @@ document.addEventListener('click',(e)=>{
 });
 // ---- Ask Protocol: inline question cards (shared by live SSE + persisted render) ----
 let ASK_LIVE_CARD=null;   // latest pending card → keyboard 1-9+Enter target
+// An answered question stays in the transcript as a Q&A BLOCK, not a one-liner:
+// what was asked and what Vlad chose both need to read back later (Vlad
+// 2026-08-07: "when i answer questions this kind of messages shall be in the chat").
 function askReceiptEl(m){
-  const d=document.createElement('div'); d.className='ask-receipt';
-  d.innerHTML=(m.status==='auto'?'Playbook answered: ':'→ You chose: ')+'<b>'+esc(m.answer||'')+'</b>'
-    +(m.status==='auto'?' <span style="opacity:.7">(standing)</span>':'')
-    +(m.answeredAt?' · '+fmtClock(m.answeredAt):'');
+  const d=document.createElement('div'); d.className='ask-receipt'+(m.question?' ask-qa':'')+(m.kind==='decision'?' decision':'');
+  const meta=(m.status==='auto'?'<span class="ask-rk">Playbook answered (standing)</span>'
+    :m.kind==='decision'?'<span class="ask-rk">Decision — recorded in decisions.md</span>'
+    :'<span class="ask-rk">You answered</span>')+(m.answeredAt?'<span class="ask-rt">'+fmtClock(m.answeredAt)+'</span>':'');
+  if(m.question){
+    d.innerHTML='<div class="ask-rhead">'+meta+'</div>'
+      +'<div class="ask-rq">'+esc(m.question)+'</div>'
+      +'<div class="ask-ra">'+esc(m.answer||'')+'</div>';
+  } else {
+    d.innerHTML=(m.status==='auto'?'Playbook answered: ':'→ You chose: ')+'<b>'+esc(m.answer||'')+'</b>'
+      +(m.status==='auto'?' <span style="opacity:.7">(standing)</span>':'')
+      +(m.answeredAt?' · '+fmtClock(m.answeredAt):'');
+  }
   return d;
 }
-function askCardEl(m){   // {id,chatId,question,context,options,status,answer,askedCount}
+function askCardEl(m){   // {id,chatId,question,context,options,status,answer,askedCount,kind,meta}
   if(m.status!=='pending') return askReceiptEl(m);
-  const card=document.createElement('div'); card.className='askcard pending'; card.dataset.askId=m.id;
+  const dec = m.kind==='decision';
+  const card=document.createElement('div'); card.className='askcard pending'+(dec?' decision':''); card.dataset.askId=m.id; card.dataset.kind=dec?'decision':'ask';
   const opts=m.options||[];
   card.innerHTML=
-    '<div class="ask-q">'+esc(m.question)+((m.askedCount||0)>=3?'<span class="ask-hint3">asked '+m.askedCount+'× — set a standing answer?</span>':'')+'</div>'
+    '<div class="ask-kind"><span class="dot"></span>'+(dec?'Decision — this becomes a line in decisions.md':'Question — the session is waiting on you')+'</div>'
+    +'<div class="ask-q">'+esc(m.question)+((m.askedCount||0)>=3&&!dec?'<span class="ask-hint3">asked '+m.askedCount+'× — set a standing answer?</span>':'')+'</div>'
     +(m.context?'<div class="ask-ctx"><span class="tease">'+esc(m.context.split('\n')[0].slice(0,80))+'… (more)</span><span class="full">'+esc(m.context)+'</span></div>':'')
     +'<div class="ask-opts">'+opts.map((o,i)=>'<button type="button" class="ask-opt" data-a="'+esc(o.label)+'"><span class="n">'+(i+1)+'</span><span>'+esc(o.label)+'</span>'+(o.hint?'<span class="hint">'+esc(o.hint)+'</span>':'')+'</button>').join('')+'</div>'
-    +'<div class="ask-div"></div>'
-    +'<div class="ask-opts ask-standing-opts">'
+    // A decision gets NO "recommend" shortcut: Vlad makes the architectural call
+    // himself. An operational ask keeps it.
+    +(dec?'':'<div class="ask-div"></div><div class="ask-opts ask-standing-opts">'
       +'<button type="button" class="ask-opt" data-a="recommend"><span class="n">?</span><span>I don&#39;t know — recommend one</span></button>'
-      +'<button type="button" class="ask-opt ask-other-btn"><span class="n">…</span><span>Other…</span></button>'
-    +'</div>'
-    +'<div class="ask-other"><input placeholder="Type your answer…"><button type="button" class="ask-opt" style="width:auto">Send</button></div>'
-    +'<label class="ask-stand"><input type="checkbox"> make this my standing answer (Playbook)</label>';
+      +'</div>')
+    +'<div class="ask-other"><input placeholder="'+(dec?'Or type your decision…':'Or type your own answer…')+'"><button type="button" class="ask-opt" style="width:auto">Send</button></div>'
+    // ...and NO standing-answer checkbox: a locked decision must never be born
+    // from a Playbook auto-answer. That is what the T5 boundary protects.
+    +(dec?'<div class="ask-note">Recorded in <b>decisions.md</b> as a candidate for you to ratify. No standing answer, no recommendation shortcut — this one is yours to call.</div>'
+        :'<label class="ask-stand"><input type="checkbox"> make this my standing answer (Playbook)</label>');
   const ctx=card.querySelector('.ask-ctx'); if(ctx) ctx.onclick=()=>ctx.classList.toggle('open');
-  const standing=()=>card.querySelector('.ask-stand input').checked;
+  const standing=()=>{ const c=card.querySelector('.ask-stand input'); return !!(c&&c.checked); };
   card.querySelectorAll('.ask-opt[data-a]').forEach(b=>b.onclick=()=>askAnswer(m, b.dataset.a, standing(), card));
   const other=card.querySelector('.ask-other');
-  card.querySelector('.ask-other-btn').onclick=()=>{ other.classList.add('show'); other.querySelector('input').focus(); };
   const sendOther=()=>{ const v=other.querySelector('input').value.trim(); if(v) askAnswer(m, v, standing(), card); };
   other.querySelector('button').onclick=sendOther;
   other.querySelector('input').addEventListener('keydown',e=>{ if(e.key==='Enter'){ e.preventDefault(); sendOther(); } e.stopPropagation(); });
   ASK_LIVE_CARD={m,card};
   return card;
 }
+// ---- the pinned slot above the composer -------------------------------------
+// One pending question is on screen at a time, directly above the input, immune
+// to scrolling. renderChat() wipes #chatLog, so the pin lives OUTSIDE it.
+function pinAsk(m){
+  const pin=$('askPin'); if(!pin) return;
+  pin.innerHTML=''; pin.appendChild(askCardEl(m));
+}
+function clearPin(id){
+  const pin=$('askPin'); if(!pin) return;
+  const c=pin.querySelector('.askcard');
+  if(!c || (id && c.dataset.askId!==id)) return;
+  pin.innerHTML='';
+  if(ASK_LIVE_CARD && ASK_LIVE_CARD.card===c) ASK_LIVE_CARD=null;
+}
+// The receipt still belongs in the transcript, where the history reads.
+function dropReceipt(m){
+  const log=$('chatLog'); if(!log) return;
+  const turns=log.querySelectorAll('.turn');
+  const host=turns.length?turns[turns.length-1]:log;
+  host.appendChild(askReceiptEl(m));
+  if(typeof nearBottom!=='function' || nearBottom()) log.scrollTop=log.scrollHeight;
+}
+// Restore a pending question after a reload / when opening a chat — nothing did
+// this before, because the card used to live in the transcript.
+async function restorePendingAsk(){
+  try{
+    const r=await api('/api/ask/pending');
+    // newest first — if several are pending, the one the session is blocked on
+    // right now is the most recent, and that is the one to put in front of him
+    const a=(r.asks||[]).filter(x=>x.chatId===state.chatId).sort((x,y)=>(y.ts||0)-(x.ts||0))[0] || null;
+    if(a) pinAsk({...a, status:'pending'}); else clearPin();
+  }catch(e){}
+}
 async function askAnswer(m, answer, standing, card){
   card.querySelectorAll('button,input').forEach(el=>el.disabled=true);
   try{
     const r=await api('/api/ask/answer',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({id:m.id,answer,standing:standing===true})});
-    card.replaceWith(askReceiptEl({status:'answered',answer,answeredAt:new Date().toISOString()}));
+    // the card is pinned above the composer; the receipt belongs in the transcript
+    const receipt={status:'answered',answer,answeredAt:new Date().toISOString(),kind:m.kind,question:m.question};
+    if(card.closest('#askPin')){ clearPin(m.id); dropReceipt(receipt); }
+    else card.replaceWith(askReceiptEl(receipt));
     if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m===m) ASK_LIVE_CARD=null;
+    if(m.kind==='decision') toast('Decision recorded in decisions.md as a candidate');
     if(standing) toast('Standing answer saved to the Playbook');
     // dead session (no live waiter) and this chat is open → resume it with the answer as a turn
     if(r && r.ok && !r.resumed && state.chatId===m.chatId && !(state.live && !state.live.done)){
@@ -2374,9 +2462,10 @@ function renderChat(messages){
   const log=$('chatLog'); log.innerHTML='';
   let curTurn=null, lastBot=null, lastBotMsg=null;
   for(const m of messages){
-    if(m.role==='ask'){   // question card (pending → answerable; answered/auto → receipt)
+    if(m.role==='ask'){   // answered/auto → receipt inline; PENDING is pinned above the composer
       if(!curTurn) curTurn=newTurn(log);
-      curTurn.appendChild(askCardEl({...m, chatId: state.chatId}));
+      if(m.status==='pending') continue;   // restorePendingAsk() pins it
+      curTurn.appendChild(askReceiptEl(m));
       continue;
     }
     if(m.role==='user'){
@@ -3421,13 +3510,15 @@ async function streamChat(text, opts={}){
           // session is BLOCKED on this — render the card right in the turn
           endStep();
           if(ev.status==='auto'){ body.insertBefore(askReceiptEl({status:'auto',answer:ev.answer,answeredAt:new Date().toISOString()}), answerEl); }
-          else body.insertBefore(askCardEl({id:ev.id,chatId:live.chatId,question:ev.question,context:ev.context,options:ev.options,status:'pending',askedCount:ev.askedCount}), answerEl);
+          // PIN it above the composer — inline cards scrolled out of view and got missed
+          else pinAsk({id:ev.id,chatId:live.chatId,question:ev.question,context:ev.context,options:ev.options,status:'pending',kind:ev.kind,meta:ev.meta,askedCount:ev.askedCount});
           if(nearBottom()) log.scrollTop=log.scrollHeight;
         }
         else if(ev.type==='question-answered'){
           // answered from another surface (phone/dashboard) — collapse the card here too
           const el=document.querySelector('.askcard[data-ask-id="'+ev.id+'"]');
-          if(el){ el.replaceWith(askReceiptEl({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString()})); if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m.id===ev.id) ASK_LIVE_CARD=null; }
+          if(el && el.closest('#askPin')){ const q=(el.querySelector('.ask-q')||{}).textContent||''; clearPin(ev.id); dropReceipt({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString(),kind:ev.kind,question:q}); }
+          else if(el){ el.replaceWith(askReceiptEl({status:'answered',answer:ev.answer,answeredAt:new Date().toISOString(),kind:ev.kind})); if(ASK_LIVE_CARD&&ASK_LIVE_CARD.m.id===ev.id) ASK_LIVE_CARD=null; }
         }
         else if(ev.type==='model'){ genModel=ev.model||''; paintMeter(); reflectRunSelection(ev.model, ev.effort); window.LIVEMAP&&LIVEMAP.ping('model', genModel); }
         else if(ev.type==='model-switch'){
@@ -3440,7 +3531,7 @@ async function streamChat(text, opts={}){
         else if(ev.type==='memory-saved'){ const n=(ev.entries||[]).length; if(n){ const first=ev.entries[0]; toast('🧠 Saved to memory — '+first.category+': '+first.title+(n>1?`  (+${n-1} more)`:'')); } }
         else if(ev.type==='usage'){ genIn=ev.in||genIn; genOut=ev.out||genOut; paintMeter(); }
         else if(ev.type==='delta'){ endStep(); full+=ev.text; }   // text streaming → stop the last step spinning; keep the group open
-        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt;
+        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; setTimeout(restorePendingAsk,120);   /* the backstop may have raised a card as the turn closed */ live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt;
           if(ev.bp===true){ live.bp=true; if(mine()) state.bp=true; }   // server auto-tagged it mid-turn → title mark + file refresh below
           if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt; if(mine()) state.chatId=ev.id; }
@@ -5806,8 +5897,12 @@ async function saveSmtp(){ const body={host:($('smtpHost').value||'').trim(),por
 async function testSmtp(){ const el=$('connSmtp'); if(el){el.textContent='Testing…';el.className='mstat';} try{ const r=await api('/api/connections/smtp-test',{method:'POST'}); if(el){ el.textContent=r.ok?'Reachable':('Unreachable'+(r.error?' · '+r.error:'')); el.className='mstat '+(r.ok?'ok':'warn'); } }catch(e){ if(el){el.textContent='Test failed';el.className='mstat warn';} } }
 document.addEventListener('keydown',e=>{ if(e.key==='Escape'){ closeSettings(); const bx=$('ninbox'); if(bx)bx.classList.remove('show'); const up=$('usagePop'); if(up){ up.classList.remove('show'); document.removeEventListener('click', closeUsageOnOut); } } });
 
-(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else { await restoreLastChat(); } })();
+(async function(){ await loadSettingsCache(); ensureSoundFiles().then(()=>SOUNDS.preload()); loadNotifications(); initConnWatch(); loadAuth(); loadModelSettings(); loadUsage(); loadRecentOpened(); loadRecentEdited(); loadEntities(); await loadChats(); await loadFiles(); await loadProgress(); await loadPlan(); if(location.hash==='#bp-compose') consumeBpCompose(); else if(location.hash.startsWith('#file=')||location.hash.startsWith('#explore=')) openFromHash(); else if(location.hash.startsWith('#view=')){ const _v=location.hash.slice(6); _v==='kanban'?showMap('board'):_v==='list'?showMap('list'):_v==='map'?showMap():_v==='bubble'?showBubble():_v==='chat'?newChat():_v==='bp'?newBpChat():showDashboard(); } else if(location.hash.startsWith('#settings=')){ showDashboard(); openSettings(location.hash.slice(10)||'general'); } else { await restoreLastChat(); } restorePendingAsk(); })();
 setInterval(loadUsage, 30000);
+// A pending question must never be missed. SSE pins it during a live turn, but
+// an ask can also outlive its turn (the prose backstop), be raised while another
+// chat is open, or survive a server restart — so poll when nothing is pinned.
+setInterval(()=>{ if(!document.querySelector('#askPin .askcard')) restorePendingAsk(); }, 12000);
 </script>
 <script src="js/livemap.js"></script>
 <script src="js/usagewin.js"></script>

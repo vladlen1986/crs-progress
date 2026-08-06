@@ -33,6 +33,49 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-07 (Windows) — Ask Protocol v2: no question can reach Vlad as prose
+
+Goal, verbatim: *"I never want to receive a question as a plain-text paragraph in a chat
+response again."* Three separate causes, all fixed, plus a backstop that makes it a
+guarantee rather than an instruction. Verified 24/24 by `probe-askpin.js` against the
+real server and a real browser (no model calls — asks are created through `/api/ask`
+exactly as the MCP shim does).
+
+**LOCKED RULES (new)**
+1. **A pending question is NEVER rendered inside the message stream.** It is pinned in
+   `#askPin`, a direct child of `.composer-wrap` above the composer, at the composer's
+   768px width. `renderChat()` wipes `#chatLog`, so the pin deliberately lives outside it.
+2. **The T5 [OPEN]-decision boundary is still enforced, but it UPGRADES instead of
+   rejecting.** `createAsk` used to return an error telling the session to emit
+   DECISION-NEEDED, which left prose as the only route — the exact behaviour being killed.
+   It now re-enters itself as `kind:'decision'`. What the boundary actually protects is
+   unchanged: a decision still cannot be auto-answered by a Playbook standing rule.
+3. **A decision card never writes a standing answer.** It appends a `[CANDIDATE]` entry to
+   `decisions.md` (newest at top, append-only) via `appendDecisionCandidate()`. It is
+   written as a candidate, not a locked ruling, because Vlad clicked an option — he did not
+   author the rationale. Ratifying it by hand is still a separate act.
+4. **The free-text answer is always visible on every card.** It used to hide behind an
+   "Other…" button, which made typing read as a fallback.
+5. **A question that ends a turn in prose is intercepted server-side.** `looksLikeProseQuestion()`
+   + `parseProseOptions()` run after `finalText`; if no card was raised during the turn
+   (`LIVE_TURNS[chat].raised`), one is raised with the options parsed out of the text.
+   Logged to `ask-log.jsonl` with `source:'backstop'`, so how often sessions try it is visible.
+
+**Also in this pass**
+- `decide_with_vlad` added to `ask-mcp.js` (tools list + dispatch) and to `--allowedTools`;
+  the shim tells the session when its ask was upgraded so it knows the answer is going into
+  decisions.md. The long-poll blocking contract is untouched.
+- Both ASK PROTOCOL clauses in the injected prompt rewritten: never ask in prose, operational
+  → `ask_vlad`, architectural/[OPEN] → `decide_with_vlad`, both block.
+- **An answered question stays in the transcript as a Q&A block** (question + answer +
+  who answered), not a one-line receipt — Vlad: *"when i answer questions this kind of
+  messages shall be in the chat"*.
+- **Nothing polled `/api/ask/pending` before**, so a card could only ever appear via a live
+  SSE turn. Added `restorePendingAsk()` on boot / chat open / turn end, plus a 12s poll when
+  nothing is pinned — a backstop ask outlives its turn, and asks survive a server restart.
+  The pin shows the NEWEST pending ask; picking the oldest showed a stale question.
+- Sidebar: search is full width with a search icon, New chat is its own full-width row below it.
+
 ## Session 2026-08-07 (Windows) — the colourful AI brain is back
 
 Vlad: *"colorful animation when in chat mode the brain is thinking its awesome and

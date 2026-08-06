@@ -589,22 +589,32 @@ function openDecisionTriggers() {
   return out;
 }
 // Create an ask. Returns {id} (pending), {answer} (Playbook auto), or {error} (boundary).
-function createAsk(chatId, question, context, options) {
+function createAsk(chatId, question, context, options, kind, meta) {
+  kind = kind === 'decision' ? 'decision' : 'ask';
   question = String(question || '').trim().slice(0, 500);
   options = (Array.isArray(options) ? options : []).slice(0, 6)
     .map((o) => ({ label: String((o && o.label) || '').trim().slice(0, 120), hint: String((o && o.hint) || '').trim().slice(0, 200) }))
     .filter((o) => o.label);
   if (!question || options.length < 2) return { error: 'ask needs a question and 2-6 options' };
-  // T5 boundary: operational asks only — [OPEN] decisions go through the guard flow.
-  const hay = (question + ' ' + (context || '') + ' ' + options.map((o) => o.label + ' ' + o.hint).join(' ')).toLowerCase();
-  for (const d of openDecisionTriggers()) {
-    const hit = d.kws.find((k) => hay.includes(k));
-    if (hit) return { error: `This touches the OPEN decision "${d.title}" (trigger: "${hit}"). Locked decisions are never born from a popover — stop and emit DECISION-NEEDED for it instead, per the guard flow.` };
+  // T5 boundary (2026-08-07): still enforced, but its OUTPUT changed. It used to
+  // reject the ask, which left the session with prose as its only route — the
+  // exact behaviour Vlad wants gone. Now it UPGRADES the ask to a decision card:
+  // same blocking contract, clickable options, but decision semantics (no
+  // recommend shortcut, no standing answer, lands in decisions.md as a
+  // candidate). A locked decision still can never be born from a Playbook
+  // auto-answer, which is what the boundary actually protects.
+  if (kind !== 'decision') {
+    const hay = (question + ' ' + (context || '') + ' ' + options.map((o) => o.label + ' ' + o.hint).join(' ')).toLowerCase();
+    for (const d of openDecisionTriggers()) {
+      const hit = d.kws.find((k) => hay.includes(k));
+      if (hit) return createAsk(chatId, question, context, options, 'decision', { openTitle: d.title, trigger: hit });
+    }
   }
   const sig = askSignature(question, options);
   try { fs.appendFileSync(ASK_LOG_FILE, JSON.stringify({ ts: nowIso(), sig, chatId, question }) + '\n'); } catch {}
   // T4: an ACTIVE standing answer wins — no card, no sound, turn shows the receipt.
-  const standing = loadStanding().find((s) => s.sig === sig && s.active !== false);
+  // NEVER for a decision: a locked decision must not be born from a Playbook rule.
+  const standing = kind === 'decision' ? null : loadStanding().find((s) => s.sig === sig && s.active !== false);
   const live = LIVE_TURNS.get(chatId);
   const persistMsg = (msg) => {
     if (live && live.chat) { live.chat.messages.push(msg); try { saveChat(live.chat); } catch {} }
@@ -618,12 +628,12 @@ function createAsk(chatId, question, context, options) {
     return { answer: standing.answer };
   }
   const id = crypto.randomUUID().slice(0, 8);
-  const ask = { id, chatId, question, context: String(context || '').slice(0, 1000), options, sig, ts: Date.now(), answered: false, answer: null, waiters: [], renotified: false, askedCount: askLogCount(sig) };
+  const ask = { id, chatId, question, context: String(context || '').slice(0, 1000), options, sig, kind, meta: meta || null, ts: Date.now(), answered: false, answer: null, waiters: [], renotified: false, askedCount: askLogCount(sig) };
   ASKS.set(id, ask);
-  persistMsg({ role: 'ask', status: 'pending', id, question, context: ask.context, options, sig, askedCount: ask.askedCount, ts: nowIso() });
-  if (live) live.sse({ type: 'question', status: 'pending', id, question, context: ask.context, options, askedCount: ask.askedCount });
-  addNotification({ type: 'question-pending', level: 'warning', title: 'A session needs you', body: question.slice(0, 140), target: 'chat:' + chatId });
-  return { id };
+  persistMsg({ role: 'ask', status: 'pending', id, question, context: ask.context, options, sig, kind, meta: ask.meta, askedCount: ask.askedCount, ts: nowIso() });
+  if (live) { live.raised = (live.raised || 0) + 1; live.sse({ type: 'question', status: 'pending', id, question, context: ask.context, options, kind, meta: ask.meta, askedCount: ask.askedCount }); }
+  addNotification({ type: 'question-pending', level: 'warning', title: kind === 'decision' ? 'A decision needs you' : 'A session needs you', body: question.slice(0, 140), target: 'chat:' + chatId });
+  return { id, kind };
 }
 function answerAsk(id, answer, opts) {
   const ask = ASKS.get(id);
@@ -634,7 +644,10 @@ function answerAsk(id, answer, opts) {
   const mark = (c) => { const m = (c.messages || []).find((x) => x.role === 'ask' && x.id === id); if (m) { m.status = 'answered'; m.answer = ask.answer; m.answeredAt = nowIso(); } };
   if (live && live.chat) { mark(live.chat); try { saveChat(live.chat); } catch {} }
   else { const c = loadChat(ask.chatId); if (c) { mark(c); try { saveChat(c); } catch {} } }
-  if ((opts || {}).standing) {
+  // A decision NEVER becomes a standing answer — that is the whole point of the
+  // T5 boundary. It is recorded in decisions.md as a candidate for Vlad to ratify.
+  if (ask.kind === 'decision') appendDecisionCandidate(ask);
+  else if ((opts || {}).standing) {
     const arr = loadStanding().filter((s) => s.sig !== ask.sig);
     arr.push({ sig: ask.sig, question: ask.question, options: ask.options.map((o) => o.label), answer: ask.answer, active: true, hits: 0, created: nowIso() });
     saveStanding(arr);
@@ -642,13 +655,86 @@ function answerAsk(id, answer, opts) {
   logAudit({ action: 'ask-answered', target: id, via: (opts || {}).via || 'desktop', meta: { question: ask.question.slice(0, 120), answer: ask.answer.slice(0, 120), standing: !!(opts || {}).standing } });
   const resumed = ask.waiters.length > 0;
   for (const w of ask.waiters.splice(0)) { try { w({ answered: true, answer: ask.answer }); } catch {} }
-  if (live) live.sse({ type: 'question-answered', id, answer: ask.answer });
+  if (live) live.sse({ type: 'question-answered', id, answer: ask.answer, kind: ask.kind || 'ask' });
   // keep the answered ask around briefly — a shim re-poll racing the answer must
   // still be able to fetch it (long-poll gap), then GC
   setTimeout(() => ASKS.delete(id), 10 * 60 * 1000).unref();
   return { ok: true, resumed };
 }
-function pendingAsks() { return [...ASKS.values()].filter((a) => !a.answered).map((a) => ({ id: a.id, chatId: a.chatId, question: a.question, context: a.context, options: a.options, askedCount: a.askedCount, ts: a.ts })); }
+// A decision card's answer is recorded in decisions.md as a CANDIDATE — newest at
+// top, append-only, matching the file's existing entry shape. It is deliberately
+// not written as a locked ruling: Vlad clicked an option, he did not author the
+// rationale, so the entry says so and asks to be ratified.
+function appendDecisionCandidate(ask) {
+  try {
+    const decPath = path.join(REPO_ROOT, 'decisions.md');
+    let md = fs.readFileSync(decPath, 'utf8');
+    const title = (ask.meta && ask.meta.openTitle) ? ask.meta.openTitle : ask.question.replace(/\s+/g, ' ').slice(0, 90);
+    const entry = '## ' + nowIso().slice(0, 10) + ' — [CANDIDATE] ' + title + '\n'
+      + '**Decision:** ' + ask.answer + '\n'
+      + '**Asked:** ' + ask.question + '\n'
+      + '**Options offered:** ' + ask.options.map((o) => o.label).join(' · ') + '\n'
+      + (ask.meta && ask.meta.trigger ? '**Matched OPEN trigger:** "' + ask.meta.trigger + '"\n' : '')
+      + '**Status:** CANDIDATE — chosen from a decision card, not yet ratified. Review the reasoning,' + '\n'
+      + 'then rewrite this as a proper locked entry (and delete the [OPEN] stub), or remove it.' + '\n'
+      + '**Artifacts:** raised in chat ' + ask.chatId + ', ask ' + ask.id + '.' + '\n\n---\n\n';
+    const at = md.indexOf('\n## ');
+    md = at > 0 ? md.slice(0, at + 1) + entry + md.slice(at + 1) : md + '\n' + entry;
+    fs.writeFileSync(decPath, md);
+    logAudit({ action: 'decision-candidate', target: title, meta: { answer: ask.answer.slice(0, 120) } });
+    addNotification({ type: 'info', level: 'info', title: 'Decision candidate recorded', body: title.slice(0, 140), target: 'decisions.md' });
+  } catch (e) { try { logAudit({ action: 'decision-candidate-failed', target: ask.id, meta: { err: e.message } }); } catch {} }
+}
+// ---- prose-question backstop ------------------------------------------------
+// The guarantee is not 'sessions are told not to ask in prose' — it is that a
+// prose question CANNOT reach Vlad as prose. When a turn ends, if its final
+// message reads as a question to him and no card was raised during the turn, we
+// parse the options out of the text and raise a card ourselves. Logged to
+// ask-log.jsonl with source:'backstop' so how often sessions try this is visible.
+const PROSE_Q_RE = /(which (one |option )?do you (want|prefer)|would you like me to|do you want me to|should i\b|let me know|shall i\b|your call\b|prefer(ence)?\?|say the word|tell me which|A or B\b|option [ab]\b)/i;
+function looksLikeProseQuestion(text) {
+  const t = String(text || '').trim();
+  if (!t) return false;
+  const tail = t.slice(-400);
+  if (PROSE_Q_RE.test(tail)) return true;
+  // a turn whose LAST non-empty line ends in a question mark is asking him something
+  const lines = t.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const last = lines[lines.length - 1] || '';
+  return /\?\s*$/.test(last) && last.length < 300;
+}
+// Pull candidate options out of prose: numbered/lettered/bulleted lists first,
+// then a bare 'X or Y' in the closing question. Falls back to a generic pair —
+// the free-text field on every card is always the real escape hatch.
+function parseProseOptions(text) {
+  const t = String(text || '');
+  const out = [];
+  const push = (v) => {
+    const label = String(v || '').replace(/[*_`]/g, '').replace(/\s+/g, ' ').trim().replace(/[.,;:]$/, '').slice(0, 90);
+    if (label && label.length > 1 && !out.some((o) => o.label.toLowerCase() === label.toLowerCase())) out.push({ label, hint: '' });
+  };
+  const listRe = /^\s*(?:[-*\u2022]|\(?[a-dA-D][).]|[1-6][).])\s+(.{2,90})$/gm;
+  let m;
+  while ((m = listRe.exec(t)) && out.length < 6) push(m[1]);
+  if (out.length < 2) {
+    out.length = 0;
+    const tail = t.slice(-300);
+    const or = tail.match(/([A-Za-z][\w '\-]{2,40})\s+or\s+([A-Za-z][\w '\-]{2,40})\s*\?/);
+    if (or) { push(or[1]); push(or[2]); }
+  }
+  if (out.length < 2) { out.length = 0; push('Go ahead'); push('Stop — I will explain'); }
+  return out.slice(0, 6);
+}
+// The question shown on the card: the last interrogative line, else the tail.
+function proseQuestionText(text) {
+  const lines = String(text || '').split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  for (let i = lines.length - 1; i >= 0 && i > lines.length - 8; i--) {
+    const l = lines[i].replace(/^[-*\u2022]\s*/, '');
+    if (/\?\s*$/.test(l) && l.length < 300) return l;
+  }
+  const t = String(text || '').trim();
+  return (t.slice(-240) || 'This turn ended with a question.').trim();
+}
+function pendingAsks() { return [...ASKS.values()].filter((a) => !a.answered).map((a) => ({ id: a.id, chatId: a.chatId, question: a.question, context: a.context, options: a.options, kind: a.kind || 'ask', meta: a.meta || null, askedCount: a.askedCount, ts: a.ts })); }
 // Re-notify once after N minutes (configurable), checked every 60s.
 setInterval(() => {
   try {
@@ -671,7 +757,7 @@ try {
     if (fs.statSync(path.join(CHATS_DIR, f)).mtimeMs < cutoff) continue;
     const c = JSON.parse(fs.readFileSync(path.join(CHATS_DIR, f), 'utf8'));
     for (const m of c.messages || []) {
-      if (m.role === 'ask' && m.status === 'pending' && m.id) ASKS.set(m.id, { id: m.id, chatId: c.id, question: m.question, context: m.context || '', options: m.options || [], sig: m.sig, ts: Date.parse(m.ts) || Date.now(), answered: false, answer: null, waiters: [], renotified: true, askedCount: m.askedCount || 0 });
+      if (m.role === 'ask' && m.status === 'pending' && m.id) ASKS.set(m.id, { id: m.id, chatId: c.id, question: m.question, context: m.context || '', options: m.options || [], sig: m.sig, kind: m.kind || 'ask', meta: m.meta || null, ts: Date.parse(m.ts) || Date.now(), answered: false, answer: null, waiters: [], renotified: true, askedCount: m.askedCount || 0 });
     }
   }
 } catch {}
@@ -1683,7 +1769,7 @@ const SYSTEM_PROMPT = [
   'You are "CRS Brain", the persistent assistant for Vlad\'s CRS (Casino Reporting Suite) project.',
   'You run inside a local second-brain app. The project root is this working directory.',
   'Your job: help track progress, remember decisions, and answer "what is next / what is missing".',
-  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, scope, naming — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "let me know" question — that is a contract violation. If he answers "recommend", present YOUR recommendation with one-line tradeoffs as a NEW ask_vlad call (recommended option first) — do not just proceed. If the tool rejects the ask because it touches an [OPEN] decision, stop and report DECISION-NEEDED instead. Operational choices only — architectural decisions are never made through an ask.',
+  'ASK PROTOCOL (hard contract): NEVER ask Vlad anything in prose. A question written as a paragraph - "which do you want?", "let me know", "A or B?", or a turn ending in a question mark - is a contract violation, and the server catches it and converts it into a card anyway. Every question goes through a tool and BLOCKS on his answer. OPERATIONAL choices (fix path, proceed/park, scope, naming) -> ask_vlad with 2-6 concrete options. ARCHITECTURAL choices, or anything touching an [OPEN] decision in decisions.md -> decide_with_vlad with 2-6 options, which records his choice in decisions.md as a candidate. An ask_vlad that touches an [OPEN] decision is upgraded to a decision card by the server automatically - you do not need to handle that. If he answers "recommend", present YOUR recommendation with one-line tradeoffs as a NEW ask_vlad call (recommended option first) - do not just proceed.',
   'RETRIEVAL: the knowledge base lives in brain/. ALWAYS read brain/INDEX.md first — it maps every',
   'domain (database, option-sets, security, workflows, migrations, design) to its file and its',
   'authoritative sources. Jump straight to the mapped file/section instead of grepping the repo.',
@@ -1793,7 +1879,7 @@ const BP_BODY = (ws) => [
   '(that is why runs feel slow). Apply changes to Bubble ONLY through the `buildprint` CLI — never use a',
   'script to call Bubble or to bulk-delete files. A hard safety gate blocks dangerous commands (apply-to-live,',
   '--force-apply, --no-check, sync --reset, data delete, rm -rf, git reset --hard) — do not attempt them.',
-  'ASK PROTOCOL (hard contract): when you need Vlad\'s input mid-task — which fix path, proceed/park, which page, naming, scope trims — call the ask_vlad tool with 2-6 concrete options and BLOCK on his answer. NEVER end a turn with a free-text "which do you want?" / "say the word" question — that is a contract violation. "recommend" answer → present YOUR recommendation + one-line tradeoffs as a NEW ask_vlad call (recommended option first). Tool rejected (touches an [OPEN] decision) → stop and emit DECISION-NEEDED per the guard flow. Operational choices only.',
+  'ASK PROTOCOL (hard contract): NEVER ask in prose - no "which do you want?", no "say the word", no turn ending in a question. Operational choices (fix path, proceed/park, which page, naming, scope trims) -> ask_vlad with 2-6 options, BLOCKS on his answer. Architectural choices or anything touching an [OPEN] decision -> decide_with_vlad with 2-6 options, which records the choice in decisions.md as a candidate. An ask_vlad that touches an [OPEN] decision is upgraded to a decision card by the server automatically.',
   'EDIT CLOSE-OUT IS VISUAL — HARD RULE for any UI/theme/layout edit task: after your last apply, you MUST capture the affected page in the run mode at the quality standard, in BOTH themes AND in the exact user-state the change targets (logged-in vs anonymous — a sign-in page is seen by ANONYMOUS users whose Current User fields are EMPTY, so user-keyed conditionals do not fire for them). READ the captures (this is requested analysis, not waste), confirm the change is ACTUALLY VISIBLE, fix and re-capture if not, and EMBED the final dark+light screenshots in your close-out report. NEVER report a visual change as done from structure alone — an unverified "functionally complete" that renders wrong is a failed task. Pages that require login are captured through the authenticated path (.bp-test-user form sign-in); pages reachable logged-out ALSO get the logged-out capture (that state is part of the truth). A visual task reported done without BOTH theme images embedded is a CONTRACT VIOLATION the verifier flags.',
   'VISUAL VERIFICATION — you CAN see the app and MUST use it to verify UI work before calling it done:',
   `- Anonymous: \`buildprint screenshot "<path>" --output "${SCREENSHOTS_DIR}/<name>.png"\`.`,
@@ -2462,7 +2548,7 @@ function runClaudeStream(message, sessionId, hooks = {}, opts = {}) {
     // question cards). Pipeline spawns (gen/memory/lesson) never get it — a
     // blocking ask inside an unattended pipeline would hang it.
     if (opts.askChatId) {
-      args.splice(args.indexOf('mcp__buildprint') + 1, 0, 'mcp__crsask__ask_vlad');
+      args.splice(args.indexOf('mcp__buildprint') + 1, 0, 'mcp__crsask__ask_vlad', 'mcp__crsask__decide_with_vlad');
       args.push('--mcp-config', ASK_MCP_CONFIG);
     }
     if (opts.model && opts.model !== 'auto') args.push('--model', opts.model);   // 'auto' is a ROUTING token, never a CLI model id
@@ -3675,6 +3761,19 @@ const server = http.createServer(async (req, res) => {
         if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
+        // BACKSTOP: a question must never reach Vlad as prose. If the turn ended
+        // asking him something and no card was raised during it, raise one now.
+        // The session is already gone, so answering resumes it as a new turn
+        // (the client's existing !resumed path) — the guarantee is about the UI
+        // contract, not about blocking a session that has already finished.
+        try {
+          const lt = LIVE_TURNS.get(chat.id);
+          if (!result.aborted && !(lt && lt.raised) && looksLikeProseQuestion(finalText)) {
+            const q = proseQuestionText(finalText);
+            const r = createAsk(chat.id, q, 'Raised by the backstop: this turn ended with a question in prose instead of a card.', parseProseOptions(finalText), 'ask', { source: 'backstop' });
+            if (r && r.id) lifeStep('Prose question intercepted', 'The turn ended with a question written as text. It has been raised as a card above the composer instead.');
+          }
+        } catch {}
         // Self-learning: distill lessons from this BP session in the background
         // (only when the turn carries learnable signal — zero spend otherwise).
         if (chat.bp && !result.aborted && turnLearnable(steps, new Date(completedAt) - new Date(startedAt))) {
@@ -4114,7 +4213,7 @@ const server = http.createServer(async (req, res) => {
     // ---- Ask Protocol endpoints ----
     if (p === '/api/ask' && req.method === 'POST') {   // called by the ask-mcp shim
       const b = await readJsonBody(req) || {};
-      return send(res, 200, createAsk((b.chatId || '').toString(), b.question, b.context, b.options));
+      return send(res, 200, createAsk((b.chatId || '').toString(), b.question, b.context, b.options, b.kind === 'decision' ? 'decision' : 'ask'));
     }
     if (p === '/api/ask/wait' && req.method === 'GET') {   // shim long-poll
       const id = u.searchParams.get('id');
