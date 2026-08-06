@@ -250,5 +250,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-01T21:00:51.560Z"
+  },
+  {
+    "id": "b0c0d2d6",
+    "category": "platform-gotcha",
+    "trigger": "buildprint CLI, out-of-repo worktree, directory access needed",
+    "rule": "Buildprint CLI must execute in its worktree directory; cd, bash -c, and env -C cannot bypass the session boundary — use /add-dir to grant directory access.",
+    "fix": "Run `/add-dir <worktree-path>` (e.g., `/add-dir /Users/vlad/projects/crs-bubble/casinoreportingsystem/test`), then invoke buildprint commands normally without cd.",
+    "errorSig": "",
+    "source": "chat 044102fe · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T10:01:35.667Z"
   }
 ]
