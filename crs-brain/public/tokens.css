@@ -25,7 +25,13 @@
   --cc-border:#373737; --cc-border-sidebar:#3B3B39; --cc-border-composer:#3D3D3B;
   --cc-border-segment:#474746; --cc-border-divider:#343433;
   --cc-border-soft:rgba(255,255,255,0.06); --cc-border-hairline:rgba(255,255,255,0.10);
-  --cc-focus-ring:rgba(255,255,255,0.22);
+  /* FOCUS (Vlad 2026-08-06): no double border. Focus/active brightens the
+   * element's OWN border ~10% and nothing else — the ring token resolves to
+   * transparent so every `box-shadow:0 0 0 3px var(--accent-glow)` in the app
+   * renders as nothing, killing the second outline globally in one place. */
+  --cc-focus-ring:transparent; --cc-border-focus:#4A4A48;
+  /* the header shares the sidebar fill — one continuous chrome surface */
+  --cc-bg-header:var(--cc-bg-sidebar);
   /* ── INK ──────────────────────────────────────────────────────── */
   --cc-text-primary:#E8E6E1; --cc-text-body:#C3C2B7; --cc-text-secondary:#939393;
   --cc-text-muted:#7F7F7F; --cc-text-faint:#5F5F5C; --cc-text-placeholder:#727272;
@@ -79,7 +85,8 @@
   --cc-border:#DEDCD6; --cc-border-sidebar:#D8D6D0; --cc-border-composer:#D2D0C9;
   --cc-border-segment:#C6C4BC; --cc-border-divider:#E4E2DC;
   --cc-border-soft:rgba(0,0,0,0.05); --cc-border-hairline:rgba(0,0,0,0.09);
-  --cc-focus-ring:rgba(0,0,0,0.24);
+  --cc-focus-ring:transparent; --cc-border-focus:#B8B5AD;
+  --cc-bg-header:var(--cc-bg-sidebar);
   --cc-text-primary:#20201F; --cc-text-body:#3B3A35; --cc-text-secondary:#6B6A64;
   --cc-text-muted:#82817A; --cc-text-faint:#A5A39C; --cc-text-placeholder:#8E8D86;
   --cc-success:#1E8E36; --cc-success-dim:#1A7A2E; --cc-danger:#C81E3E; --cc-warning:#A06C00;
