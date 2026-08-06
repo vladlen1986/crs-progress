@@ -1,5 +1,5 @@
 {
-  "model": "claude-opus-5",
+  "model": "auto",
   "effort": "medium",
   "manualsCheckedAt": 1785839157913,
   "autoRoute": false,
