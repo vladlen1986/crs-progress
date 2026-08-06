@@ -33,6 +33,32 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-07 (Windows) — the colourful AI brain is back
+
+Vlad: *"colorful animation when in chat mode the brain is thinking its awesome and
+yours no colors and stupid circle around"*. **Correction worth remembering: it was NOT
+still working in chat** — the 08-06 redesign had killed it (`.brainwrap .mol{display:none}`,
+flat `--accent` stroke, halo and hue-rotate deleted, and the `#g-ai` gradient removed from
+the defs). It was recovered from `f609abb` and restored, then scaled up for the hero.
+
+- **Restored in chat**, verbatim from history: `#g-ai` gradient stroke, pulsing
+  `rgba(168,85,247,.45)` halo, `aihue` hue-rotation, five glowing molecules on
+  counter-rotating orbits. Scoped to `.chat-brain` and `.wstep.run` only — **the sidebar
+  brand badge stays flat grey and static** (rig-asserted).
+- **The hero hover is the same language, multiplied**: five tilted orbital planes,
+  counter-rotating at five different speeds (two reversed), fifteen glowing molecules in
+  the AI palette, twelve twinkling motes drifting the other way for parallax, a breathing
+  purple halo, the glyph on the gradient, and `dhcHue` shifting the whole field.
+- **The "stupid circle" was a CSS inheritance bug**, not a design choice: `.dash-hero
+  .dh-mark svg{stroke:currentColor}` inherits into every child, so the soft radial halo
+  circle got a hard 1.1px outline and read as a bubble drawn through the greeting.
+  `.dh-cosmos circle{stroke:none}` fixed it — only the orbit ellipses are stroked.
+- Recorded as a **decision**, not a drive-by: see `decisions.md` 2026-08-07 — the AI
+  thinking layer is the one colour carve-out, and it supersedes exactly one clause of the
+  08-06 entry. Colour never shows at rest, so §10 acceptance still passes 13/13.
+- Rigs: `probe-thinking-brain.js` (8 checks, builds the indicator by injecting
+  `brainHtml()` so **no model call is spent**) and `shoot-cosmos.js` (11 checks).
+
 ## Session 2026-08-07 (Windows) — ONE screen, Map-only header, in-map view selector
 
 Vlad: *"i clicked chat on the header and got this screen … i dont need two separate

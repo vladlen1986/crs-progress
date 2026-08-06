@@ -95,15 +95,45 @@
   .brand .wordmark{width:110px;height:35px;color:var(--primary);opacity:.72;display:block}
   .brainwrap{position:relative;display:inline-block;width:15px;height:15px}
   .brand .brainwrap{position:absolute;top:-8px;right:-14px}
-  /* flat single-colour glyph — stroke lives on the svg so it inherits into the <use> shadow DOM */
+  /* gradient glyph — stroke lives on the svg so it inherits into the <use> shadow DOM.
+     At rest (sidebar badge, finished steps) it stays flat ink; only the THINKING
+     scopes light up. */
   .brainmark{width:15px;height:15px;display:block;stroke:var(--accent)}
+  .chat-brain .brainmark,.wstep.run .wstep-ico .brainmark{stroke:url(#g-ai)}
   /* in-chat thinking indicator — tops the streaming reply, removed once the first work step or answer text arrives (thinking step's brain takes over) */
   .chat-brain{display:flex;align-items:center;padding:8px 0 8px 14px}
-  /* 2026-08-06: the decorative AI layer (purple radial halo, hue-rotate, pulse and the
-     five orbiting molecule dots) is gone — flat surfaces, one accent, no glow on chrome.
-     The .mol nodes are still emitted by brainHtml() so JS keeps finding them; they render
-     nothing. */
-  .brainwrap .mol{display:none}
+  /* 2026-08-07: the decorative AI layer is BACK (Vlad: the colourful thinking brain
+     is the good one). It was stripped on 08-06 for flat chrome; the carve-out is
+     that this is the AI/thinking layer, not chrome. Animated ONLY in the thinking
+     scopes — .chat-brain while streaming and the running Thinking step. The sidebar
+     brand badge stays static and grey. */
+  .brainwrap::after{content:'';position:absolute;inset:-9px;border-radius:50%;background:radial-gradient(circle,rgba(168,85,247,.45),transparent 70%);filter:blur(3px);opacity:0;pointer-events:none;transition:opacity .35s}
+  .chat-brain .brainwrap::after,.wstep.run .brainwrap::after{opacity:1;animation:aipulse 1.6s ease-in-out infinite}
+  .chat-brain .brainmark,.wstep.run .brainmark{animation:aihue 2.4s linear infinite}
+  .brainwrap .mol{position:absolute;top:50%;left:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:currentColor;box-shadow:0 0 5px currentColor;opacity:0;transition:opacity .3s;pointer-events:none}
+  .brainwrap .m1{color:#EC4899;--r:9px}
+  .brainwrap .m2{color:#22D3EE;--r:12px;width:2.5px;height:2.5px}
+  .brainwrap .m3{color:#A855F7;--r:7px;width:2px;height:2px}
+  .brainwrap .m4{color:#6366F1;--r:14px}
+  .brainwrap .m5{color:#F59E0B;--r:11px;width:2px;height:2px}
+  .chat-brain .mol,.wstep.run .mol{opacity:1}
+  .chat-brain .m1,.wstep.run .m1{animation:molCW 1.1s linear infinite;animation-delay:-.2s}
+  .chat-brain .m2,.wstep.run .m2{animation:molCCW 1.7s linear infinite;animation-delay:-.8s}
+  .chat-brain .m3,.wstep.run .m3{animation:molCW .9s linear infinite;animation-delay:-.5s}
+  .chat-brain .m4,.wstep.run .m4{animation:molCCW 2.2s linear infinite;animation-delay:-1.4s}
+  .chat-brain .m5,.wstep.run .m5{animation:molCW 1.4s linear infinite;animation-delay:-1s}
+  /* mini brain inside a work-step icon: tighter orbits so dots hug the row */
+  .wstep-ico .brainwrap::after{inset:-5px}
+  .wstep-ico .brainwrap .m1{--r:6.5px}
+  .wstep-ico .brainwrap .m2{--r:8.5px}
+  .wstep-ico .brainwrap .m3{--r:5px}
+  .wstep-ico .brainwrap .m4{--r:10px}
+  .wstep-ico .brainwrap .m5{--r:7.5px}
+  @keyframes molCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(1turn) translateX(var(--r))}}
+  @keyframes molCCW{from{transform:rotate(0turn) translateX(var(--r))}to{transform:rotate(-1turn) translateX(var(--r))}}
+  @keyframes aihue{to{filter:hue-rotate(360deg)}}
+  @keyframes aipulse{0%,100%{transform:scale(.85);opacity:.5}50%{transform:scale(1.15);opacity:1}}
+  @media (prefers-reduced-motion:reduce){ .brainwrap .mol,.brainwrap::after{display:none} .chat-brain .brainmark,.wstep.run .brainmark{animation:none} }
 
   /* account */
   .account{display:flex;align-items:center;gap:9px;margin:2px 12px 6px;padding:9px 11px;background:var(--panel2);border:1px solid var(--line);border-radius:8px;font-size:12px}
@@ -1388,6 +1418,12 @@
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <!-- The AI gradient. This is the ONE colour carve-out in an otherwise greyscale
+       app (Vlad 2026-08-07) and it is scoped to the thinking/brain layer only:
+       the in-chat thinking indicator, the running Thinking step, and the hero
+       mark on hover. Chrome stays flat ink; Clay stays on the spark glyph. -->
+  <linearGradient id="g-ai" gradientUnits="userSpaceOnUse" x1="3" y1="4" x2="21" y2="20"><stop offset="0" stop-color="#EC4899"/><stop offset=".5" stop-color="#A855F7"/><stop offset="1" stop-color="#6366F1"/></linearGradient>
+  <linearGradient id="g-ai-lg" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EC4899"/><stop offset=".5" stop-color="#A855F7"/><stop offset="1" stop-color="#6366F1"/></linearGradient>
   <symbol id="i-logo" viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></symbol>
   <symbol id="i-crs" viewBox="0 0 1024 324"><path fill="currentColor" stroke="none" d="M190.193 23.2843C200.571 22.281 224.786 22.9283 236.014 22.9575L321.039 23.0299L478.737 23.0178C494.579 23.0147 510.688 23.2877 526.504 23.0017C587.336 21.9019 670.73 24.2163 699.054 89.5594C707.097 111.998 703.172 131.179 733.491 134.007C754.044 135.924 774.756 134.941 795.711 135.161C828.268 135.503 861.187 135.314 893.801 135.402C913.522 135.455 937.136 139.969 955.412 147.68C1003.25 167.866 1003.99 242.882 969.816 275.325C935.777 307.081 880.604 303.884 836.903 303.931C812.867 303.984 788.831 303.836 764.798 303.488C759.08 298.58 747.841 285.713 742.298 279.779L697.591 231.676C738.878 233.513 784.787 232.098 826.532 232.345L863.732 232.384C880.936 232.379 909.81 235.088 909.264 210.218C908.794 188.802 884.666 190.825 869.576 190.822L842.008 190.828C813.147 190.843 784.491 190.511 755.625 190.868C740.247 190.884 720.406 191.394 705.383 189.603C675.1 185.994 634.361 173.276 620.188 143.47C614.424 132.152 614.082 116.755 604.326 107.737C587.513 92.1963 558.219 96.0959 536.977 95.97L448.691 95.9169L288.75 95.9794C257.629 95.9625 226.484 95.9868 195.361 95.9983C171.507 96.0072 146.259 102.526 129.157 120.239C117.136 132.51 110.598 149.125 111.032 166.297C111.69 201.029 139.74 224.149 171.997 229.973C188.85 233.016 206.411 232.148 223.497 232.255C249.006 232.538 274.516 232.475 300.023 232.066C300.786 246.85 300.278 262.76 300.401 277.667C300.45 283.477 300.704 298.486 299.933 303.587L231.415 303.718C167.947 304.122 116.071 303.58 65.8834 256.912C13.3973 208.107 8.9359 125.604 58.8321 73.4673C92.6335 38.1483 142.556 24.3324 190.193 23.2843Z"/><path fill="currentColor" stroke="none" d="M516.239 160.264C539.455 161.022 564.257 159.638 587.663 160.44C593.392 166.145 599.208 172.529 604.682 178.509C643.111 220.491 683.09 261.367 721.268 303.543C716.508 304.155 709.372 303.934 704.388 303.924L677.702 303.883L636.735 303.919C628.956 303.926 619.816 304.169 612.191 303.69C610.297 302.321 604.732 295.36 602.981 293.262L587.346 274.679L562.906 245.871C558.886 241.138 552.711 234.271 549.313 229.487L539.375 229.437C501.491 229.335 460.586 228.579 422.933 229.539L422.743 276.95C422.732 284.791 423.134 296.118 422.555 303.54L336.274 303.616C335.365 290.038 336.012 268.451 336.012 254.123L336.054 160.345L516.239 160.264Z"/><path fill="currentColor" stroke="none" d="M735.749 23.2874C746.301 22.6796 759.978 22.995 770.756 22.9953L830.4 23.0011C881.614 22.9942 934.303 22.3637 985.401 23.0995C980.16 30.8945 971.838 41.0366 965.909 48.6904L933.168 91.2403C930.469 95.0541 929.3 95.8535 924.43 95.8805C917.427 95.9193 910.442 95.5005 903.435 95.5658L820.058 95.675C801.594 95.7901 783.13 95.7814 764.667 95.6489C755.837 95.6655 742.398 96.1519 733.804 95.5067C732.189 91.2229 730.804 85.196 728.976 80.3274C719.97 56.3314 708.82 44.0813 689.957 27.8474C707.604 25.2315 717.649 23.6539 735.749 23.2874Z"/></symbol>
   <symbol id="i-brain" viewBox="0 0 24 24"><g fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a3 3 0 1 0-5.997.125 4 4 0 0 0-2.526 5.77 4 4 0 0 0 .556 6.588A4 4 0 1 0 12 18Z"/><path d="M12 5a3 3 0 1 1 5.997.125 4 4 0 0 1 2.526 5.77 4 4 0 0 1-.556 6.588A4 4 0 1 1 12 18Z"/><path d="M15 13a4.5 4.5 0 0 1-3-4 4.5 4.5 0 0 1-3 4"/></g></symbol>
@@ -1918,26 +1954,36 @@ function greeting(){ const h=new Date().getHours(); return h<5?'Good night':h<12
 // aria-hidden, pointer-events:none, monochrome ink (Clay stays reserved for the
 // spark glyph) and dies entirely under prefers-reduced-motion.
 function cosmosHtml(){
-  // long dashes with short gaps, so each orbit reads as a RING with breaks in it
-  // rather than as scattered ticks; steep tilts give the edge-on depth.
+  // The chat thinking indicator's molecule cloud, scaled up and multiplied: five
+  // tilted orbital planes, counter-rotating at different speeds, each carrying
+  // three glowing molecules in the AI palette. Long dashes with short gaps so an
+  // orbit reads as a RING with breaks, not as scattered ticks.
+  const HUES = ['#EC4899', '#22D3EE', '#A855F7', '#6366F1', '#F59E0B', '#34D399', '#F472B6', '#38BDF8'];
   const ORBITS = [
-    { c: 's1', tilt: -16, rx: 50, ry: 17, dash: '13 7' },
-    { c: 's2', tilt: 38, rx: 41, ry: 13, dash: '9 6' },
-    { c: 's3', tilt: 84, rx: 58, ry: 21, dash: '16 9' },
+    { tilt: -16, rx: 50, ry: 17, dash: '13 7', spin: '15s', rev: false },
+    { tilt: 38, rx: 41, ry: 13, dash: '9 6', spin: '9.5s', rev: true },
+    { tilt: 84, rx: 58, ry: 21, dash: '16 9', spin: '23s', rev: false },
+    { tilt: 118, rx: 46, ry: 15, dash: '7 6', spin: '12.5s', rev: true },
+    { tilt: 62, rx: 64, ry: 23, dash: '18 11', spin: '28s', rev: false },
   ];
   const ell = (rx, ry) => `M ${rx} 0 A ${rx} ${ry} 0 1 1 ${-rx} 0 A ${rx} ${ry} 0 1 1 ${rx} 0`;
-  const sys = ORBITS.map((o) => `<g transform="rotate(${o.tilt})"><g class="dhc-spin ${o.c}">
-      <ellipse class="dhc-ring" rx="${o.rx}" ry="${o.ry}" stroke-dasharray="${o.dash}"/>
-      <circle class="dhc-el" style="offset-path:path('${ell(o.rx, o.ry)}')"/>
-      <circle class="dhc-el sm" style="offset-path:path('${ell(o.rx, o.ry)}');animation-delay:-1.9s;animation-duration:4.6s"/>
-    </g></g>`).join('');
-  const MOTES = [[-52, -33], [46, -41], [-37, 38], [56, 25], [-60, 7], [18, -54], [34, 49], [-24, -49], [63, -8]];
-  const motes = MOTES.map((m, i) => `<circle class="dhc-mote${i % 3 === 0 ? ' big' : ''}" cx="${m[0]}" cy="${m[1]}" style="animation-delay:-${(i * 0.6).toFixed(1)}s"/>`).join('');
-  return `<svg class="dh-cosmos" viewBox="0 0 170 170" aria-hidden="true">
-    <defs><radialGradient id="dhcGlow"><stop offset="0%" stop-color="currentColor" stop-opacity=".20"/><stop offset="55%" stop-color="currentColor" stop-opacity=".07"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
-    <g transform="translate(85,85)">
-      <circle class="dhc-halo" r="62" fill="url(#dhcGlow)"/>
-      <circle class="dhc-shell" r="70"/>
+  let n = 0;
+  const sys = ORBITS.map((o) => {
+    const mols = [0, 1, 2].map((k) => {
+      const col = HUES[n++ % HUES.length];
+      const r = [2.3, 1.6, 1.9][k];
+      return `<circle class="dhc-el" r="${r}" style="offset-path:path('${ell(o.rx, o.ry)}');color:${col};animation-duration:${(3 + k * 1.3).toFixed(1)}s;animation-delay:-${(k * 1.7 + n * 0.31).toFixed(2)}s"/>`;
+    }).join('');
+    return `<g transform="rotate(${o.tilt})"><g class="dhc-spin" style="animation-duration:${o.spin}${o.rev ? ';animation-direction:reverse' : ''}">
+      <ellipse class="dhc-ring" rx="${o.rx}" ry="${o.ry}" stroke-dasharray="${o.dash}"/>${mols}
+    </g></g>`;
+  }).join('');
+  const MOTES = [[-52, -33], [46, -41], [-37, 38], [56, 25], [-60, 7], [18, -54], [34, 49], [-24, -49], [63, -8], [-68, -22], [70, 40], [-14, 62]];
+  const motes = MOTES.map((m, i) => `<circle class="dhc-mote${i % 3 === 0 ? ' big' : ''}" cx="${m[0]}" cy="${m[1]}" style="color:${HUES[i % HUES.length]};animation-delay:-${(i * 0.6).toFixed(1)}s"/>`).join('');
+  return `<svg class="dh-cosmos" viewBox="0 0 190 190" aria-hidden="true">
+    <defs><radialGradient id="dhcGlow"><stop offset="0%" stop-color="#A855F7" stop-opacity=".42"/><stop offset="45%" stop-color="#6366F1" stop-opacity=".16"/><stop offset="100%" stop-color="#6366F1" stop-opacity="0"/></radialGradient></defs>
+    <g transform="translate(95,95)">
+      <circle class="dhc-halo" r="70" fill="url(#dhcGlow)"/>
       <g class="dhc-field">${motes}</g>${sys}
     </g></svg>`;
 }

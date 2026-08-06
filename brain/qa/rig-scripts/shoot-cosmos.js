@@ -30,15 +30,21 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
       rings: c.querySelectorAll('.dhc-ring').length,
       electrons: c.querySelectorAll('.dhc-el').length,
       motes: c.querySelectorAll('.dhc-mote').length,
-      spins: [...c.querySelectorAll('.dhc-spin')].map((g) => getComputedStyle(g).animationName + ':' + getComputedStyle(g).animationDuration + ':' + getComputedStyle(g).animationDirection),
+      spins: [...c.querySelectorAll('.dhc-spin')].map((g) => getComputedStyle(g).animationDuration + ':' + getComputedStyle(g).animationDirection),
+      colours: [...new Set([...c.querySelectorAll('.dhc-el')].map((e) => getComputedStyle(e).fill))],
+      hue: getComputedStyle(c).animationName,
       markAnim: getComputedStyle(document.querySelector('#chatLog .dh-mark')).animationName,
+      markStroke: getComputedStyle(document.querySelector('#chatLog .dh-mark svg:not(.dh-cosmos)')).stroke,
       hits: (() => { const r = c.getBoundingClientRect(); const el = document.elementFromPoint(r.x + 6, r.y + 6); return el ? (el.closest('.dh-cosmos') ? 'cosmos' : 'passthrough') : 'none'; })(),
     };
   });
   check('cosmos visible on hover', shown.opacity === '1', shown.opacity);
-  check('3 orbits, 6 electrons, 9 motes', shown.rings === 3 && shown.electrons === 6 && shown.motes === 9, JSON.stringify({ r: shown.rings, e: shown.electrons, m: shown.motes }));
-  check('orbits counter-rotate at different speeds', shown.spins.length === 3 && new Set(shown.spins).size === 3 && shown.spins.some((s) => /reverse/.test(s)), JSON.stringify(shown.spins));
+  check('5 orbits, 15 molecules, 12 motes', shown.rings === 5 && shown.electrons === 15 && shown.motes === 12, JSON.stringify({ r: shown.rings, e: shown.electrons, m: shown.motes }));
+  check('orbits counter-rotate at different speeds', shown.spins.length === 5 && new Set(shown.spins).size === 5 && shown.spins.filter((s) => /reverse/.test(s)).length === 2, JSON.stringify(shown.spins));
+  check('molecules are the AI palette, not grey', shown.colours.length >= 6 && !shown.colours.some((c) => /rgb\((\d+), \1, \1\)/.test(c)), JSON.stringify(shown.colours));
+  check('whole field hue-shifts', shown.hue === 'dhcHue', shown.hue);
   check('mark switches to the thinking pulse', shown.markAnim === 'dhThink', shown.markAnim);
+  check('mark strokes the AI gradient', /g-ai/.test(shown.markStroke), shown.markStroke);
   check('cosmos never eats a click', shown.hits !== 'cosmos', shown.hits);
 
   // sample real motion: matrix of each spin group + electron offset over time

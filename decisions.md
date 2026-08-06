@@ -57,6 +57,37 @@ Triggers: soft-deleted, deleted data types, deleted DTs, restore or purge
 
 ---
 
+## 2026-08-07 — The AI/thinking layer is the ONE colour carve-out in the brain app
+**Decision:** the gradient/glow/orbiting-molecule layer is restored and is explicitly
+exempt from the brain app's greyscale rule — but only on the **AI thinking layer**:
+the in-chat thinking indicator (`.chat-brain`), the running Thinking step
+(`.wstep.run`), and the hero brain mark **on hover**. Palette: the `#g-ai` gradient
+(`#EC4899 → #A855F7 → #6366F1`) for the glyph stroke, a `rgba(168,85,247,.45)` radial
+halo, and molecules in `#EC4899 / #22D3EE / #A855F7 / #6366F1 / #F59E0B / #34D399`,
+with `aihue` / `dhcHue` hue-rotation.
+
+**Why:** the 2026-08-06 entry below stripped this layer as part of "flat surfaces, no
+glow on chrome". Vlad rejected the greyscale result outright — *"colorful animation when
+in chat mode the brain is thinking its awesome and yours no colors and stupid circle
+around, its not something cool"*. The carve-out reasoning: this layer is **not chrome**,
+it is the product's one moment of personality, and it only exists while the system is
+actually thinking or while the user is deliberately hovering the mark.
+
+**Scope limits (all enforced by rigs):** everything else stays flat ink. The sidebar
+brand badge stays grey and static. Clay `#D97757` remains reserved for the spark glyph.
+The colour never appears at rest — the §10 acceptance screenshot is taken idle and still
+passes 13/13, so the orange budget is untouched. The whole layer is `aria-hidden`, never
+hit-tested, and removed under `prefers-reduced-motion`.
+
+**Supersedes:** the "no decorative gradient/glow/hue-rotate layer" clause of the
+2026-08-06 entry below. Every other clause of that entry stands.
+
+**Artifacts:** `crs-brain/public/index.html` (`#g-ai` / `#g-ai-lg` defs, `.brainwrap`
+block, `cosmosHtml()`), `crs-brain/public/tokens.css` (`.dh-cosmos`),
+`brain/qa/rig-scripts/probe-thinking-brain.js`, `brain/qa/rig-scripts/shoot-cosmos.js`.
+
+---
+
 ## 2026-08-06 — CRS Brain app gets its own look (Claude Code style); product design system unchanged
 **Decision:** the BRAIN APP's UI diverges from the CRS product design system. `crs-brain/public/tokens.css` is no longer a verbatim paste of §2.10 — it is now the brain app's own token set, modelled on the Claude Code desktop app: warm near-black surfaces (`#1B1A18/#211F1D/#272522`), hairline borders, a single rust accent (`#C86E4E` dark / `#B45B36` light) used sparingly, small radii (card 8 / btn 6 / input 6 / modal 10 / badge 4), near-flat shadows, desaturated status colours, and no decorative gradient/glow/hue-rotate layer.
 **Why:** Vlad's direct instruction (2026-08-06): "change design of the entire brain app to look like claude code, colors border icons everything simplistic." A newer direct instruction supersedes an older standing one — same precedent as judgment call #56 superseding #35.
