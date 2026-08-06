@@ -23,7 +23,7 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
     title: (document.querySelector('#chatLog .dh-title') || {}).textContent || '',
     line: !!document.querySelector('#chatLog .dh-line'),
     hint: !!document.querySelector('#chatLog .dh-hint'),
-    mark: (() => { const s = document.querySelector('#chatLog .dh-mark svg'); return s ? Math.round(s.getBoundingClientRect().width) : null; })(),
+    mark: (() => { const s = document.querySelector('#chatLog .dh-mark svg:not(.dh-cosmos)'); return s ? Math.round(s.getBoundingClientRect().width) : null; })(),   // the cosmos layer is also an svg in here
   }));
   check('home is the chat, no second screen', home.chatVisible && !home.dashVisible && home.heroInChat, JSON.stringify(home));
   check('greeting only (time-of-day + name)', /^(Good (morning|afternoon|evening|night)), Vlad$/.test(home.title.trim()), JSON.stringify(home.title));

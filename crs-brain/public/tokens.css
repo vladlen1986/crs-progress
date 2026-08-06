@@ -132,8 +132,46 @@ b, strong { font-weight: 600; }
 .dash-hero .dh-stack{position:relative;display:flex;flex-direction:column;align-items:center}
 .dash-hero .dh-id{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 18px 14px;border-radius:8px;cursor:default;transition:var(--transition)}
 .dash-hero .dh-id:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}
-.dash-hero .dh-mark{width:72px;height:72px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
+.dash-hero .dh-mark{position:relative;width:72px;height:72px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
 .dash-hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
+
+/* ---- the hover cosmos ---------------------------------------------------- */
+/* Hovering the mark takes the chat's thinking language (brain + molecules) much
+ * further: three tilted, counter-rotating dashed orbits with electrons running
+ * them, and motes drifting behind. Decorative, so: never hit-tested, monochrome
+ * ink only (Clay stays reserved for the spark glyph), and gone entirely under
+ * prefers-reduced-motion. It overflows the 72px mark on purpose. */
+.dash-hero .dh-mark .dh-cosmos{position:absolute;left:50%;top:50%;width:210px;height:210px;margin:0;
+  transform:translate(-50%,-50%);pointer-events:none;overflow:visible;opacity:0;transition:opacity .38s ease .04s}
+.dash-hero .dh-stack:hover .dh-cosmos,
+.dash-hero .dh-stack:focus-within .dh-cosmos{opacity:1;transition:opacity .5s ease}
+/* the mark itself switches from its slow resting breath to a thinking pulse */
+.dash-hero .dh-stack:hover .dh-mark,
+.dash-hero .dh-stack:focus-within .dh-mark{animation:dhThink 1.5s ease-in-out infinite;color:var(--cc-text-body)}
+.dh-cosmos .dhc-ring{fill:none;stroke:var(--cc-text-secondary);stroke-width:1;opacity:.55;stroke-linecap:round}
+/* the outer shell is atmosphere, not a boundary — at full strength it read as a
+   bubble drawn through the greeting */
+.dh-cosmos .dhc-shell{fill:none;stroke:var(--cc-text-muted);stroke-width:.6;stroke-dasharray:1 7;opacity:.12;animation:dhcSpin 40s linear infinite;transform-origin:0 0}
+.dh-cosmos .dhc-halo{color:var(--cc-text-secondary);animation:dhcHalo 4.4s ease-in-out infinite;transform-origin:0 0}
+.dh-cosmos .dhc-el{r:2;fill:var(--cc-text-primary);offset-rotate:0deg;animation:dhcTravel 3.4s linear infinite}
+.dh-cosmos .dhc-el.sm{r:1.3;fill:var(--cc-text-body)}
+/* the mote field drifts the opposite way to the orbits — parallax, so the thing
+   reads as depth rather than as one flat rotating decal */
+.dh-cosmos .dhc-field{animation:dhcSpin 90s linear infinite reverse;transform-origin:0 0}
+.dh-cosmos .dhc-mote{r:1;fill:var(--cc-text-secondary);animation:dhcTwinkle 4.2s ease-in-out infinite}
+.dh-cosmos .dhc-mote.big{r:1.6}
+.dh-cosmos .dhc-spin{animation:dhcSpin 15s linear infinite;transform-origin:0 0}
+.dh-cosmos .dhc-spin.s2{animation-duration:9.5s;animation-direction:reverse}
+.dh-cosmos .dhc-spin.s3{animation-duration:23s}
+@keyframes dhcSpin{to{transform:rotate(360deg)}}
+@keyframes dhcTravel{from{offset-distance:0%}to{offset-distance:100%}}
+@keyframes dhcTwinkle{0%,100%{opacity:.12}50%{opacity:.75}}
+@keyframes dhcHalo{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes dhThink{0%,100%{opacity:.7}50%{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+  .dash-hero .dh-cosmos{display:none}
+  .dash-hero .dh-stack:hover .dh-mark,.dash-hero .dh-stack:focus-within .dh-mark{animation:none;opacity:1}
+}
 .dash-hero .dh-title{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary)}
 /* hover-revealed starter prompts — out of flow, so the greeting never moves */
 /* out of flow → it must carry its own width, and it lays out WIDE (5 across) so

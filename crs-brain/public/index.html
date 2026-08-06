@@ -1912,10 +1912,39 @@ function heroCards(mode){ return '<div class="tcards">'+(TEMPLATES[mode]||[]).ma
 // time-of-day greeting, nothing else; the starter prompts stay hidden until the
 // mark is hovered (or focused, for keyboard).
 function greeting(){ const h=new Date().getHours(); return h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':h<22?'Good evening':'Good night'; }
+// The hover state of the mark: the chat's thinking language (brain + orbiting
+// molecules) taken much further — three tilted, counter-rotating dashed orbits
+// with electrons travelling them, plus drifting motes. Decorative only, so it is
+// aria-hidden, pointer-events:none, monochrome ink (Clay stays reserved for the
+// spark glyph) and dies entirely under prefers-reduced-motion.
+function cosmosHtml(){
+  // long dashes with short gaps, so each orbit reads as a RING with breaks in it
+  // rather than as scattered ticks; steep tilts give the edge-on depth.
+  const ORBITS = [
+    { c: 's1', tilt: -16, rx: 50, ry: 17, dash: '13 7' },
+    { c: 's2', tilt: 38, rx: 41, ry: 13, dash: '9 6' },
+    { c: 's3', tilt: 84, rx: 58, ry: 21, dash: '16 9' },
+  ];
+  const ell = (rx, ry) => `M ${rx} 0 A ${rx} ${ry} 0 1 1 ${-rx} 0 A ${rx} ${ry} 0 1 1 ${rx} 0`;
+  const sys = ORBITS.map((o) => `<g transform="rotate(${o.tilt})"><g class="dhc-spin ${o.c}">
+      <ellipse class="dhc-ring" rx="${o.rx}" ry="${o.ry}" stroke-dasharray="${o.dash}"/>
+      <circle class="dhc-el" style="offset-path:path('${ell(o.rx, o.ry)}')"/>
+      <circle class="dhc-el sm" style="offset-path:path('${ell(o.rx, o.ry)}');animation-delay:-1.9s;animation-duration:4.6s"/>
+    </g></g>`).join('');
+  const MOTES = [[-52, -33], [46, -41], [-37, 38], [56, 25], [-60, 7], [18, -54], [34, 49], [-24, -49], [63, -8]];
+  const motes = MOTES.map((m, i) => `<circle class="dhc-mote${i % 3 === 0 ? ' big' : ''}" cx="${m[0]}" cy="${m[1]}" style="animation-delay:-${(i * 0.6).toFixed(1)}s"/>`).join('');
+  return `<svg class="dh-cosmos" viewBox="0 0 170 170" aria-hidden="true">
+    <defs><radialGradient id="dhcGlow"><stop offset="0%" stop-color="currentColor" stop-opacity=".20"/><stop offset="55%" stop-color="currentColor" stop-opacity=".07"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+    <g transform="translate(85,85)">
+      <circle class="dhc-halo" r="62" fill="url(#dhcGlow)"/>
+      <circle class="dhc-shell" r="70"/>
+      <g class="dhc-field">${motes}</g>${sys}
+    </g></svg>`;
+}
 function heroHtml(){
   return `<div class="dash-hero"><div class="dh-stack">
     <div class="dh-id" tabindex="0" role="button" aria-label="Show quick actions" title="Hover for quick actions">
-      <div class="dh-mark">${svg('i-brain')}</div>
+      <div class="dh-mark">${cosmosHtml()}${svg('i-brain')}</div>
       <div class="dh-title">${esc(greeting())}, Vlad</div>
     </div>
     <div class="dh-cards">${heroCards('chat')}</div>
