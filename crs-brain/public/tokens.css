@@ -108,6 +108,10 @@
   color-scheme: light;
 }
 
+/* §3 — max weight is 600. <b>/<strong> default to 700 in every browser, which
+ * is the one place a 700 still reaches the screen; cap it here for all pages. */
+b, strong { font-weight: 600; }
+
 /* §7 motion — hover fills snap, panels ease; nothing bounces or scales. */
 * { transition: background-color var(--transition-colors), color var(--transition-colors), border-color var(--transition-colors), fill var(--transition-colors); }
 @media (prefers-reduced-motion: reduce) { *,*::before,*::after{ transition-property: opacity !important; animation: none !important; } }

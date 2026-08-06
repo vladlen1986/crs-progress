@@ -147,7 +147,9 @@
   .side-set:hover svg,.side-set.on svg{color:var(--accent2)}
 
   /* sidebar3 rows: quiet + compact (~30px) */
-  .item{position:relative;min-height:26px;padding:3px 8px;border-radius:var(--radius-btn);color:var(--secondary);font-size:13px;line-height:20px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
+  /* spec §5.2: nav row 26px tall, 28px pitch — padding 2px keeps the 20px line
+     box inside 26 so the row measures exactly 26 + 2 margin = 28 */
+  .item{position:relative;min-height:26px;height:26px;padding:2px 8px;border-radius:var(--radius-btn);color:var(--secondary);font-size:13px;line-height:20px;display:flex;gap:8px;align-items:center;cursor:pointer;transition:var(--transition);margin:1px 0}
   .item:hover{background:var(--cc-bg-hover)}
   /* selected = background + text only (no accent bar — bg+border+text is banned) */
   .item.on{background:var(--cc-bg-selected);color:var(--cc-text-primary)}
