@@ -17,8 +17,11 @@
 
 :root, [data-theme="dark"] {
   /* ── SURFACES — four levels, ~4% lightness apart ──────────────── */
-  --cc-bg-sidebar:#1D1D1C; --cc-bg-canvas:#20201F; --cc-bg-panel:#262626; --cc-bg-card:#2F2F2F;
-  --cc-bg-composer:#2C2C2A; --cc-bg-subtle:#292928; --cc-bg-control:#313131; --cc-bg-control-strong:#393938;
+  /* Vlad 2026-08-06, explicit: sidebar AND header #1D1D1C · chat/working area
+   * #20201F · inputs and secondary surfaces #262626. Buttons/chips stay one
+   * step up (#313131) so they still read against a #262626 field. */
+  --cc-bg-sidebar:#1D1D1C; --cc-bg-canvas:#20201F; --cc-bg-panel:#262626; --cc-bg-card:#262626;
+  --cc-bg-composer:#262626; --cc-bg-subtle:#262626; --cc-bg-control:#313131; --cc-bg-control-strong:#393938;
   --cc-bg-selected:#343433; --cc-bg-segment-track:#2A2A29; --cc-bg-segment-thumb:#40403F;
   --cc-bg-hover:#262625; --cc-bg-hover-canvas:#2A2A29;
   /* ── BORDERS — hairlines only ─────────────────────────────────── */
@@ -52,7 +55,8 @@
    * The app's existing token names are re-pointed at the spec ramp, so every
    * consumer inherits the greyscale UI without a rename. NOTHING here is a hue. */
   --bg-primary:var(--cc-bg-canvas); --bg-secondary:var(--cc-bg-panel);
-  --bg-tertiary:var(--cc-bg-control); --bg-elevated:var(--cc-bg-selected); --na:var(--cc-bg-card);
+  /* --bg-tertiary is the app's "input / secondary surface" alias → #262626 */
+  --bg-tertiary:var(--cc-bg-panel); --bg-elevated:var(--cc-bg-selected); --na:var(--cc-bg-card);
   --border-default:var(--cc-border); --border-hover:var(--cc-border-sidebar);
   --border-active:var(--cc-border-segment); --input-border:var(--cc-border-composer);
   --text-primary:var(--cc-text-primary); --text-secondary:var(--cc-text-body);
@@ -80,8 +84,10 @@
 /* Light theme: the same greyscale discipline, warm paper ramp. Still no hue in
  * chrome — semantics keep their meaning, darkened for contrast on light. */
 [data-theme="light"] {
+  /* light mirror of the same three-surface rule: sidebar+header, canvas, then
+   * one shared secondary surface for panels/cards/inputs */
   --cc-bg-sidebar:#F2F1EE; --cc-bg-canvas:#FAF9F7; --cc-bg-panel:#FFFFFF; --cc-bg-card:#FFFFFF;
-  --cc-bg-composer:#FFFFFF; --cc-bg-subtle:#F4F3F0; --cc-bg-control:#EFEEEA; --cc-bg-control-strong:#E5E3DE;
+  --cc-bg-composer:#FFFFFF; --cc-bg-subtle:#FFFFFF; --cc-bg-control:#EFEEEA; --cc-bg-control-strong:#E5E3DE;
   --cc-bg-selected:#E8E6E1; --cc-bg-segment-track:#EFEEEA; --cc-bg-segment-thumb:#FFFFFF;
   --cc-bg-hover:#F0EFEC; --cc-bg-hover-canvas:#F0EFEC;
   --cc-border:#DEDCD6; --cc-border-sidebar:#D8D6D0; --cc-border-composer:#D2D0C9;
