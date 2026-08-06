@@ -138,13 +138,19 @@ b, strong { font-weight: 600; }
 /* hover-revealed starter prompts — out of flow, so the greeting never moves */
 /* out of flow → it must carry its own width, and it lays out WIDE (5 across) so
    two short rows clear the composer instead of five tall ones running under it */
-.dash-hero .dh-cards{position:absolute;top:100%;left:50%;margin-top:10px;width:min(1060px,calc(100vw - 120px));opacity:0;visibility:hidden;pointer-events:none;
+/* Hit-testing is governed by `visibility` ALONE — never pointer-events. A
+   pointer-events toggle keyed on :hover reverts the instant the pointer leaves
+   the mark, so the cards could never receive the hover that keeps them open.
+   visibility carries a .44s exit delay, so they stay hittable while you travel
+   to them. padding-top bridges the gap so there is no dead strip to cross. */
+.dash-hero .dh-cards{position:absolute;top:100%;left:50%;padding-top:12px;width:min(1060px,calc(100vw - 120px));opacity:0;visibility:hidden;
   transform:translateX(-50%) translateY(-4px);
   transition:opacity .16s ease .28s, transform .16s ease .28s, visibility 0s linear .44s}
 .dash-hero .dh-id:hover ~ .dh-cards,
 .dash-hero .dh-id:focus-visible ~ .dh-cards,
+.dash-hero .dh-id:focus-within ~ .dh-cards,   /* any focus, not just the :focus-visible heuristic — otherwise Tab skips hidden cards */
 .dash-hero .dh-cards:hover,
-.dash-hero .dh-cards:focus-within{opacity:1;visibility:visible;pointer-events:auto;
+.dash-hero .dh-cards:focus-within{opacity:1;visibility:visible;
   transform:translateX(-50%) translateY(0);
   transition:opacity .16s ease, transform .16s ease, visibility 0s}
 .dash-hero .dh-cards .tcards{margin:0;max-width:none;grid-template-columns:repeat(5,1fr);gap:8px}
