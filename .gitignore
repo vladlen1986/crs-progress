@@ -17,3 +17,4 @@ crs-brain/node_modules/
 # QA test scratch (created by verification runs)
 qa-scratch/
 backups/
+crs-brain/data/statusline-raw.json

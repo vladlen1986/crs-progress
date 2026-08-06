@@ -24,6 +24,15 @@ process.stdin.on('end', () => {
   let j = {};
   try { j = JSON.parse(raw); } catch {}
 
+  // Keep the LAST RAW payload verbatim. Added 2026-08-07 to settle "why is there
+  // no per-model weekly bar?" with evidence instead of assertion: if Claude Code
+  // ever sends more rate-limit windows (seven_day_opus, an overage bucket, …)
+  // they are visible here even if the code above never learned to read them.
+  // Only renders that actually CARRY rate_limits are worth keeping: a session
+  // emits several renders per turn and most arrive before the API response, so
+  // an unconditional write just overwrites the interesting one with an empty one.
+  try { if (j && j.rate_limits) fs.writeFileSync(path.join(__dirname, 'data', 'statusline-raw.json'), raw); } catch {}
+
   // 1. persist usage for the app. `rate_limits` is present ONLY for subscribers
   //    AFTER the first API response (per Claude Code's own statusline schema), so
   //    a session's startup render — and any short/headless-ish turn — arrives

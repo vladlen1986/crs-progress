@@ -33,6 +33,27 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-07 (Windows) — the missing Fable weekly bar: measured, not argued
+
+Vlad kept reporting the per-model weekly limit was missing; I kept asserting the payload
+did not carry it. Settled it with evidence instead: `statusline.js` now writes the last
+raw payload that actually carried `rate_limits` to `data/statusline-raw.json` (gitignored),
+and a Haiku probe was run to force a render.
+
+**Result — Claude Code CLI 2.1.120 emits exactly two windows:**
+`rate_limits = { five_hour: {used_percentage, resets_at}, seven_day: {used_percentage, resets_at} }`.
+No per-model bucket, no overage field. The desktop app's "Weekly · Fable" row comes from
+somewhere the statusline hook does not expose.
+
+**The likely fix is a CLI update: 2.1.120 → 2.1.223 is available** (`winget upgrade
+Anthropic.ClaudeCode`). Not run unattended — upgrading the CLI mid-session would disrupt
+running sessions, including the one doing the work.
+
+The window is already ready for it: rows are generated from every key in `rate_limits`, so
+if a newer build emits `seven_day_<model>` the bar appears with no further code change.
+Re-check after updating by deleting `crs-brain/data/statusline-raw.json`, pressing Refresh,
+and reading the file — the capture is self-verifying.
+
 ## Session 2026-08-07 (Windows) — usage window: four real fixes
 
 All four complaints were valid; the first version shipped with them.
