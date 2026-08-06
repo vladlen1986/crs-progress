@@ -1905,7 +1905,9 @@ const TEMPLATES={
 function seedInput(text){ const inp=$('input'); if(!inp)return; inp.value=text; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus(); }
 function seedTpl(mode,idx){ const t=(TEMPLATES[mode]||[])[idx]; if(t) seedInput(t.s); }
 function heroCards(mode){ return '<div class="tcards">'+(TEMPLATES[mode]||[]).map((t,i)=>`<button class="tcard" onclick="seedTpl('${mode}',${i})"><span class="tct">${svg(t.i,'sm')} ${esc(t.t)}</span><span class="tcd">${esc(t.d)}</span></button>`).join('')+'</div>'; }
-function heroHtml(){ return '<div class="hero"><div class="hero-mark">'+svg('i-logo')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b style="color:var(--primary)">brain/</b>, the living map of the CRS infrastructure.</div>'+heroCards('chat')+'</div>'; }
+// One hero shape everywhere: the designed breathing brain mark, a sentence, then
+// the starter prompts — so the chat empty state and the main screen match.
+function heroHtml(){ return '<div class="hero"><div class="dh-mark">'+svg('i-brain')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b>brain/</b>, the living map of the CRS infrastructure.</div>'+heroCards('chat')+'</div>'; }
 // ONE CHAT (2026-08-06): no mode switch. state.bp is now a read-only DISPLAY flag
 // meaning "this conversation actually used Buildprint" (server auto-tags it) —
 // it never gates capability, and nothing in the UI sets it any more.
@@ -2556,6 +2558,7 @@ function dashHeroHtml(dash, chats, greet){
     <div class="dh-title">${esc(greet)}, Vlad</div>
     <div class="dh-line">${dashHeroLine(dash, chats)}</div>
     <div class="dh-hint">Ask below · tools live in the header · ⌘K searches everything</div>
+    ${heroCards('chat')}
   </div>`;
 }
 async function renderDashboard(){

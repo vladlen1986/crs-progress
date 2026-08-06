@@ -33,6 +33,35 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-06/07 (Windows) — Claude-Code 1:1 redesign
+
+The whole app was restyled to Vlad's measured Claude Code Desktop spec, saved verbatim as
+`brain/design/claude-code-spec.md` (source of truth; `decisions.md` 2026-08-06 records why the
+brain app diverges from the CRS product design system). Acceptance = `verify-spec-acceptance.js`
+(§10, 13 checks) — currently 13/13.
+
+- **Not orange.** Warm near-black greyscale ramp; Clay `#D97757` appears ONLY on the Claude spark
+  glyph / thinking spinner. Applying Clay as a theme colour was the single biggest earlier error.
+- **Surfaces are exactly three**: sidebar + header `#1D1D1C`, chat/working area `#20201F`,
+  inputs and secondary `#262626`. `--cc-bg-header` is an alias of `--cc-bg-sidebar` by design.
+- **No double focus ring.** `--accent-glow` is `transparent` (kills every legacy `0 0 0 3px` ring);
+  focus is a ~10%-brighter border edge only (`--cc-focus-ring`).
+- **Header carries all tools** as hover-revealed groups (Build / Knowledge / Ops + a View segment,
+  spec in `brain/design/header-tools.md`) and shows **no page title** — buttons and indicators only.
+- **Main screen = calm hero + starter prompts.** `DASH_HERO` gates it; the old dashboard panels are
+  preserved behind the flag (`dashFull()`), not deleted. The hero is the 72px breathing `i-brain`
+  mark + greeting + one real status sentence + the 10 starter prompt cards, and the chat empty state
+  now uses the **same** mark (`heroHtml()` no longer uses the old `.hero-mark`/`#i-logo`).
+- **Auto by default.** A new chat / app reopen resets the model to Auto and clears effort; the
+  composer selectors then report what the brain actually routed to (`reflectRunSelection`).
+- **Refresh reopens the last chat at the very bottom** (`localStorage['crs-last-chat']`, multi-stage
+  scroll); a new chat clears that memory.
+- **Galaxy colours are the originals.** `map.html`'s renderer script was restored wholesale from
+  `d0e61a0~1` and the vivid palette re-asserted (with a darkened twin for light theme); only the
+  panels/chrome around it are restyled. `restore-galaxy.js` in the rig does this reproducibly.
+- Rig scripts mirrored to `brain/qa/rig-scripts/` (`probe-main-hero.js` is the hero check).
+  Reminder: `public/` is served fresh per request but **`server.js` edits need a restart**.
+
 ## Session 2026-08-06 (Windows) — Chat ⇄ Buildprint modes merged into ONE chat
 
 The Chat vs Buildprint mode toggle is gone. **Every conversation is a Claude Code session with the repo as cwd and the cloned Bubble TEST worktree attached via `--add-dir`**, and it drives the Buildprint CLI whenever the task needs it. Verified 13/13 by the rig.

@@ -131,6 +131,11 @@ b, strong { font-weight: 600; }
 .dash-hero .dh-line{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-body);max-width:560px}
 .dash-hero .dh-line b{color:var(--cc-text-primary);font-weight:600}
 .dash-hero .dh-hint{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);margin-top:2px}
+/* the chat empty state reuses the same mark, centred above its prompts */
+.hero .dh-mark{width:72px;height:72px;margin:0 auto 14px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
+.hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
+/* starter prompts under the hero on both screens */
+.dash-hero .tcards{margin-top:22px}
 @keyframes dhBreathe{0%,100%{opacity:.55}50%{opacity:1}}
 @media (prefers-reduced-motion: reduce){ .dash-hero .dh-mark{animation:none;opacity:.9} }
 
