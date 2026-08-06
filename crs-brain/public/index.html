@@ -172,6 +172,33 @@
   .viewseg button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
   .viewseg button:hover{color:var(--secondary)}
   .viewseg button.on{background:var(--cc-bg-segment-thumb);border-color:var(--cc-border-segment);color:var(--cc-text-primary)}   /* greyscale toggle rule — no accent fill on view/mode toggles */
+  /* ───── header tool groups: Build · Knowledge · Ops (one home for every tool) ─────
+     Quiet at rest (no border, no fill), 13px label + 12px chevron. The popover is the
+     ONLY element in this header allowed a shadow. */
+  .hgroups{display:flex;align-items:center;gap:2px;flex:0 0 auto}
+  .hgroup{position:relative;display:inline-flex}
+  .hgtrig{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border:none;background:none;border-radius:6px;color:var(--cc-text-secondary);font-family:inherit;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;cursor:pointer;transition:var(--transition)}
+  .hgtrig:hover,.hgroup.open>.hgtrig{background:var(--cc-bg-hover-canvas);color:var(--cc-text-primary)}   /* active = bg + text only */
+  .hgtrig:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}   /* one brighter border, never a ring */
+  .hgtrig .hgi{width:14px;height:14px;flex:0 0 14px;display:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .hgtrig .hgc{width:12px;height:12px;flex:0 0 12px;color:var(--cc-text-muted);fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:transform .12s linear}
+  .hgtrig:hover .hgc,.hgroup.open>.hgtrig .hgc{color:var(--cc-text-secondary)}
+  .hgroup.open>.hgtrig .hgc{transform:rotate(180deg)}
+  .hgmenu{position:absolute;top:calc(100% + 4px);left:0;z-index:60;min-width:200px;padding:4px;background:var(--cc-bg-panel);border:1px solid var(--cc-border);border-radius:8px;box-shadow:var(--shadow-dropdown);display:none;flex-direction:column}
+  .hgroup.open>.hgmenu{display:flex}
+  .hgmenu button{display:flex;align-items:center;gap:10px;width:100%;height:26px;padding:0 8px;border:none;background:none;border-radius:6px;color:var(--cc-text-body);font-family:inherit;font-size:13px;font-weight:500;line-height:1;text-align:left;white-space:nowrap;cursor:pointer;transition:var(--transition)}
+  .hgmenu button:hover,.hgmenu button:focus{outline:none;background:var(--cc-bg-hover-canvas);color:var(--cc-text-primary)}
+  .hgmenu button:focus-visible{box-shadow:inset 0 0 0 1px var(--cc-border-focus)}
+  .hgmenu button svg{width:14px;height:14px;flex:0 0 14px;color:var(--cc-text-muted);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .hgmenu button:hover svg,.hgmenu button:focus svg{color:var(--cc-text-secondary)}
+  .hgsep{height:1px;background:var(--cc-border-divider);margin:4px 2px}
+  /* narrow header: labels drop, triggers become icon-only so nothing pushes the title */
+  @media (max-width:1100px){
+    .hgtrig{width:26px;padding:0;justify-content:center}
+    .hgtrig .hgl,.hgtrig .hgc{display:none}
+    .hgtrig .hgi{display:inline-block}
+  }
+  @media (max-width:760px){ .hgroups{gap:0} .hgtrig{width:24px} }
   /* default button = ghost: transparent, hairline --line, --text-secondary; hover raises to --bg-tertiary */
   .ghost{background:var(--cc-bg-control);border:1px solid transparent;color:var(--cc-text-body);border-radius:var(--radius-btn);height:24px;padding:0 10px;font-size:12px;transition:var(--transition)}
   .ghost:hover{background:var(--cc-bg-control-strong);color:var(--primary)}
@@ -545,7 +572,8 @@
      (pulsing dots) → Stage C "Solution found" (PROBLEM → SOLUTION cards) or
      C-alt "Already known" (muted). Tokens only; cards are border-only per design rules. */
   .ltoast.staged .lt-body{margin-top:6px}
-  .ltoast .lt-sig{font:500 12px/1.5 var(--mono);color:var(--warning);background:var(--warning-tint);border-radius:6px;padding:6px 8px;word-break:break-word;max-height:52px;overflow:hidden}
+  /* block panels stay on a NEUTRAL surface — the semantic hue is text-level only */
+  .ltoast .lt-sig{font:500 12px/1.5 var(--mono);color:var(--cc-warning);background:var(--cc-bg-hover-canvas);border-radius:6px;padding:6px 8px;word-break:break-word;max-height:52px;overflow:hidden}
   .ltoast.expanded .lt-sig{max-height:none}
   .ltoast .lt-src{color:var(--muted);font-size:12px;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .ltoast .lt-think{display:inline-flex;gap:3px;margin-left:7px;vertical-align:middle}
@@ -556,11 +584,11 @@
   .ltoast.expanded .lt-sol1{display:none}
   .ltoast .lt-lesson{border:1px solid var(--line2);border-radius:8px;padding:9px 10px;margin-top:8px}
   .ltoast .lt-k{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:3px}
-  .ltoast .lt-prob{color:var(--warning);background:var(--warning-tint);border-radius:6px;padding:5px 7px;word-break:break-word}
-  .ltoast .lt-sol{color:var(--good);background:var(--success-tint);border-radius:6px;padding:5px 7px;margin-top:6px;word-break:break-word}
+  .ltoast .lt-prob{color:var(--cc-warning);background:var(--cc-bg-hover-canvas);border-radius:6px;padding:5px 7px;word-break:break-word}
+  .ltoast .lt-sol{color:var(--cc-success);background:var(--cc-bg-hover-canvas);border-radius:6px;padding:5px 7px;margin-top:6px;word-break:break-word}
   .ltoast .lt-cat{color:var(--muted);font-size:12px;margin-top:6px}
   .ltoast.done{border-left-color:var(--good)}
-  .ltoast.done .lt-ic{background:var(--success-tint);color:var(--good)}
+  .ltoast.done .lt-ic{background:var(--cc-bg-hover-canvas);color:var(--cc-success)}
   .ltoast.mutedc{border-left-color:var(--line3);opacity:.85}
   .ltoast.fading{opacity:0;transition:opacity .6s ease}
   @media (prefers-reduced-motion: no-preference){
@@ -672,7 +700,7 @@
   .ent-chip:hover{color:var(--cc-link);border-bottom-style:solid}
   .dp-backlinks{margin:22px 0 6px;padding-top:12px;border-top:1px solid var(--line);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
   .dp-backlinks .bl-h{font-size:12px;color:var(--muted);font-weight:600;margin-right:4px}
-  .dp-backlinks .bl-orphan{font-size:12px;color:var(--warning);background:var(--warning-tint);border:1px solid var(--warning);border-radius:var(--radius-btn);padding:5px 9px}
+  .dp-backlinks .bl-orphan{font-size:12px;color:var(--cc-warning);background:var(--cc-bg-hover-canvas);border:1px solid var(--cc-border);border-radius:var(--radius-btn);padding:5px 9px}   /* neutral surface + border; the hue is text-level */
   .dp-backlinks .bl-chip{background:var(--panel2);border:1px solid var(--line);color:var(--secondary);border-radius:var(--radius-pill);padding:2px 9px;font-size:12px;font-family:var(--mono);cursor:pointer}
   .dp-backlinks .bl-chip:hover{color:var(--primary);border-color:var(--line2)}
   .dp-backlinks .bl-k{font-size:12px;color:var(--muted);margin-right:5px}
@@ -732,7 +760,6 @@
   .dash .subline{color:var(--muted);font-size:12px}
   .dash section{margin-bottom:18px}
   /* section-label family — 10px / 600 / .08em / --text-muted, never accent-coloured */
-  .dash .lbl{font-size:12px;color:var(--muted);font-weight:600;margin:0 0 8px}
   /* Chief-of-staff board (P2) */
   .rowlbl{font-size:12px;color:var(--muted);font-weight:600;margin:2px 0 7px;display:flex;align-items:center;gap:8px}
   .rowlbl::after{content:'';flex:1;height:1px;background:var(--line)}
@@ -750,15 +777,15 @@
   .hbtn-sm:active{background:var(--cc-bg-segment-track)}
   .trow{display:flex;align-items:center;gap:7px;padding:5px 4px;border-bottom:1px solid var(--line);font-size:12px;line-height:1.5}
   .trow:last-child{border-bottom:none}
-  .trow.overdue{background:var(--warning-tint);border-radius:var(--radius-btn);padding-left:7px}
-  .trow.overdue .ttitle{color:var(--warning)}
+  /* overdue is TEXT-level only: the row keeps the normal neutral surface and the
+     state is carried by the small .tover label. (.trow.overdue stays as a JS hook.) */
   .tchk{width:17px;height:17px;flex:0 0 auto;border-radius:6px;border:1.5px solid var(--input-border);background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--transparent);padding:0}
   .tchk:hover{border-color:var(--line3)}
   .tchk.on{border-color:var(--success);background:var(--success);color:var(--white) /* approved literal — check on --success fill */}
   .tchk svg{width:11px;height:11px}
   .ttitle{flex:1;min-width:70px;color:var(--primary);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   /* quiet label, not a chip — --warning as TEXT only */
-  .tover{font-size:12px;font-weight:600;color:var(--warning);}
+  .tover{font-size:12px;font-weight:600;color:var(--cc-warning)}
   .tchip{background:var(--cc-bg-subtle);border:1px solid var(--cc-border-soft);color:var(--secondary);border-radius:var(--radius-badge);padding:1px 7px;font:inherit;font-size:12px;font-family:var(--mono);cursor:pointer;white-space:nowrap;max-width:45%;overflow:hidden;text-overflow:ellipsis;flex-shrink:1;transition:var(--transition)}
   .tchip:hover{color:var(--primary);background:var(--cc-bg-hover-canvas)}
   .tst{border:1px solid transparent;background:var(--cc-bg-control);color:var(--text-muted);border-radius:var(--radius-badge);padding:1px 6px;font:inherit;font-size:12px;font-weight:600;cursor:pointer}
@@ -771,7 +798,6 @@
   /* P10 — phone-width command post: reading + ruling only */
   @media (max-width:480px){
     .col.left, #input, .composer, .dash-head .subline{display:none !important}
-    .tools, .lbl{display:none !important}
     .dash-two{grid-template-columns:1fr}
     .dash-inner{padding:12px}
     .dash-cols{grid-template-columns:1fr}
@@ -810,14 +836,7 @@
   .atag.ask,.atag.decide,.atag.verify{background:var(--bg-tertiary);color:var(--text-muted)}
   .atag.over{background:var(--warning-tint);color:var(--warning)}
   .atag.fail{background:var(--error-tint);color:var(--error)}
-  /* Secondary tools — ghost rows, monochrome glyphs (the per-tool colour tint is gone) */
-  .tools{display:flex;flex-wrap:wrap;gap:6px}
-  .tool{display:inline-flex;align-items:center;gap:7px;background:var(--cc-bg-control);border:1px solid transparent;border-radius:var(--radius-btn);height:24px;padding:0 10px;color:var(--cc-text-body);font-size:12px;font-weight:500;font-family:inherit;cursor:pointer;transition:var(--transition)}
-  .tool:hover{color:var(--primary);background:var(--cc-bg-control-strong)}
-  .tool:active{background:var(--cc-bg-segment-track)}
-  .tool .ti{width:16px;height:16px;border-radius:0;display:flex;align-items:center;justify-content:center;background:none;color:var(--muted);flex:0 0 16px}
-  .tool:hover .ti{color:var(--secondary)}
-  .tool .ti .ic{width:14px;height:14px}
+  /* (.tools/.tool tile CSS deleted — those actions are header menus now) */
   .dash-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
   /* min-width:0 lets grid items shrink below their nowrap content (long chat titles) */
   .dcard{background:var(--cc-bg-card);border:none;border-radius:var(--radius-card);padding:12px 14px;min-width:0}
@@ -1447,9 +1466,49 @@
       <button class="uchip acct" id="usageChip" onclick="toggleUsagePop(event)" title="Account · usage · connection"><span class="acct-dot" id="usageDot"></span><span id="usageChipTxt" class="uv dim">—</span></button>
       <button class="hicon" id="notifBell" onclick="toggleNotif(event)" title="Notifications"><svg viewBox="0 0 24 24"><use href="#i-bell"/></svg><span class="nbadge" id="notifBadge"></span></button>
       <button class="hicon" id="livemapBtn" onclick="window.LIVEMAP&&LIVEMAP.toggle()" title="Live system map — what's working now"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.8"/><circle cx="5" cy="6" r="1.7"/><circle cx="19" cy="6" r="1.7"/><circle cx="6" cy="18.5" r="1.7"/><circle cx="18.5" cy="18.5" r="1.7"/><path d="M9.9 10.1L6.3 7.2M14.1 10.1l3.5-2.9M10.2 14.2l-3 3.1M13.8 14.2l3.3 3.1"/></svg></button>
-      <button class="hicon" id="appPreviewBtn" onclick="openTarget('/app-preview.html',{title:'App Preview'})" title="App Preview — all modules, sidebar, prototypes"><svg viewBox="0 0 24 24"><use href="#i-grid"/></svg></button>
       <button class="hicon" id="themeToggle" onclick="setTheme(document.documentElement.getAttribute('data-theme')==='light'?'dark':'light')" title="Toggle theme"><svg viewBox="0 0 24 24"><use id="themeToggleIcon" href="#i-moon"/></svg></button>
       <button class="hicon" id="settingsBtn" onclick="openSettings()" title="Settings & preferences"><svg viewBox="0 0 24 24"><use href="#i-cog"/></svg></button>
+      <!-- header tool groups — every action relocated from the old dashboard "Tools" strip.
+           Handlers are the originals, verbatim. Hover (150ms intent) or click/Enter/Space. -->
+      <nav class="hgroups" id="hgroups" aria-label="Tools">
+        <div class="hgroup" data-g="build">
+          <button type="button" class="hgtrig" id="hgTrig-build" aria-haspopup="menu" aria-expanded="false" aria-controls="hgMenu-build" title="Build">
+            <svg class="hgi" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-tool"/></svg><span class="hgl">Build</span><svg class="hgc" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9.5 12 15.5 18 9.5"/></svg>
+          </button>
+          <div class="hgmenu" id="hgMenu-build" role="menu" aria-labelledby="hgTrig-build">
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/tree.html',{title:'Progress Tree'})"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M8 6h4a2 2 0 0 1 2 2v2M8 18h4a2 2 0 0 0 2-2v-2"/></svg><span>Progress Tree</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/protos.html',{title:'Prototypes'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-file"/></svg><span>Prototypes</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/app-preview.html',{title:'App Preview'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-grid"/></svg><span>App Preview</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/wishlist.html',{title:'Wishlist'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-flag"/></svg><span>Wishlist</span></button>
+          </div>
+        </div>
+        <div class="hgroup" data-g="knowledge">
+          <button type="button" class="hgtrig" id="hgTrig-knowledge" aria-haspopup="menu" aria-expanded="false" aria-controls="hgMenu-knowledge" title="Knowledge">
+            <svg class="hgi" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-book"/></svg><span class="hgl">Knowledge</span><svg class="hgc" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9.5 12 15.5 18 9.5"/></svg>
+          </button>
+          <div class="hgmenu" id="hgMenu-knowledge" role="menu" aria-labelledby="hgTrig-knowledge">
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/memory.html',{title:'Memory'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-brain"/></svg><span>Memory</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/playbook.html',{title:'Playbook'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-doc-sm"/></svg><span>Playbook</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="showBubble()"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-db"/></svg><span>Bubble data</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openExpl('')"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-folder"/></svg><span>Files</span></button>
+          </div>
+        </div>
+        <div class="hgroup" data-g="ops">
+          <button type="button" class="hgtrig" id="hgTrig-ops" aria-haspopup="menu" aria-expanded="false" aria-controls="hgMenu-ops" title="Ops">
+            <svg class="hgi" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-terminal"/></svg><span class="hgl">Ops</span><svg class="hgc" viewBox="0 0 24 24" aria-hidden="true"><polyline points="6 9.5 12 15.5 18 9.5"/></svg>
+          </button>
+          <div class="hgmenu" id="hgMenu-ops" role="menu" aria-labelledby="hgTrig-ops">
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/activity.html',{title:'Activity log'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-clock"/></svg><span>Activity log</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/queue.html',{title:'Task queue'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-list"/></svg><span>Task queue</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openWeeklyDigest()"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-sparkle"/></svg><span>Weekly digest</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="startIngest()"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-ingest"/></svg><span>Ingest report</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="openTarget('/cost.html',{title:'Cost &amp; usage'})"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-gauge"/></svg><span>Cost &amp; usage</span></button>
+            <div class="hgsep" role="separator"></div>
+            <button type="button" role="menuitem" tabindex="-1" onclick="bpTrack()"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-refresh"/></svg><span>Sync BP → brain</span></button>
+            <button type="button" role="menuitem" tabindex="-1" onclick="runHandoff()"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-send"/></svg><span>Handoff</span></button>
+          </div>
+        </div>
+      </nav>
       <div class="viewseg" id="viewSeg">
         <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
         <button data-v="map" onclick="setView('map')" title="Galaxy map"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg><span class="vlbl">Map</span></button>
@@ -2318,6 +2377,72 @@ function setView(v){
 // polish: showKanban/kbColumns/kbCardHtml/kbScope/renderKanban deleted — kanban is the map board now.
 function markView(v){ document.querySelectorAll('#viewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.v===v)); }
 
+// ---------- header tool groups: Build · Knowledge · Ops ----------
+// Replaces the old dashboard "Tools" strip. Opens on hover (150ms intent) AND on
+// click/Enter/Space; closes on mouse-leave (200ms travel grace), Esc, outside click
+// or focus leaving the group. Only one group open at a time. Roving ↑/↓/Home/End.
+const HG={open:null,tOpen:null,tClose:null};
+function hgItems(g){ return Array.from(g.querySelectorAll('.hgmenu [role="menuitem"]')); }
+// Keep the popover inside the center column (.col has overflow:hidden, so anything
+// past its edges would be clipped) and inside the viewport.
+function hgPlace(menu){
+  const pad=8, col=menu.closest('.col')||document.body, cr=col.getBoundingClientRect();
+  const minX=Math.max(pad,cr.left+pad), maxX=Math.min(window.innerWidth-pad,cr.right-pad);
+  menu.style.left='0'; menu.style.right='auto';
+  const r=menu.getBoundingClientRect();
+  if(r.right>maxX){
+    menu.style.left='auto'; menu.style.right='0';
+    const r2=menu.getBoundingClientRect();
+    if(r2.left<minX) menu.style.right=(r2.left-minX)+'px';   // negative → nudge back right
+  }
+}
+function hgOpen(g,focusFirst){
+  clearTimeout(HG.tOpen); clearTimeout(HG.tClose);
+  if(HG.open&&HG.open!==g) hgClose(HG.open);
+  g.classList.add('open');
+  const t=g.querySelector('.hgtrig'); if(t) t.setAttribute('aria-expanded','true');
+  hgPlace(g.querySelector('.hgmenu'));
+  HG.open=g;
+  if(focusFirst){ const it=hgItems(g); if(it[0]) it[0].focus(); }
+}
+function hgClose(g,refocus){
+  if(!g) return;
+  g.classList.remove('open');
+  const t=g.querySelector('.hgtrig');
+  if(t){ t.setAttribute('aria-expanded','false'); if(refocus) t.focus(); }
+  if(HG.open===g) HG.open=null;
+}
+function hgInit(){
+  document.querySelectorAll('.hgroup').forEach(g=>{
+    const trig=g.querySelector('.hgtrig');
+    g.addEventListener('mouseenter',()=>{ clearTimeout(HG.tClose); clearTimeout(HG.tOpen); HG.tOpen=setTimeout(()=>hgOpen(g),150); });
+    g.addEventListener('mouseleave',()=>{ clearTimeout(HG.tOpen); clearTimeout(HG.tClose); HG.tClose=setTimeout(()=>hgClose(g),200); });
+    trig.addEventListener('click',e=>{ e.preventDefault(); clearTimeout(HG.tOpen); g.classList.contains('open')?hgClose(g):hgOpen(g); });
+    trig.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'||e.key==='Enter'||e.key===' '){ e.preventDefault(); hgOpen(g,true); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); hgOpen(g); const it=hgItems(g); if(it.length) it[it.length-1].focus(); }
+      else if(e.key==='Escape'){ e.stopPropagation(); hgClose(g); }
+    });
+    g.addEventListener('keydown',e=>{
+      if(e.target===trig) return;                       // trigger keys already handled above
+      const it=hgItems(g); if(!it.length) return;
+      const i=it.indexOf(document.activeElement);
+      if(e.key==='Escape'){ e.preventDefault(); e.stopPropagation(); hgClose(g,true); }
+      else if(e.key==='Tab'){ hgClose(g); }
+      else if(i<0) return;
+      else if(e.key==='ArrowDown'){ e.preventDefault(); it[(i+1)%it.length].focus(); }
+      else if(e.key==='ArrowUp'){ e.preventDefault(); it[(i-1+it.length)%it.length].focus(); }
+      else if(e.key==='Home'){ e.preventDefault(); it[0].focus(); }
+      else if(e.key==='End'){ e.preventDefault(); it[it.length-1].focus(); }
+    });
+    g.addEventListener('focusout',()=>{ setTimeout(()=>{ if(!g.contains(document.activeElement)) hgClose(g); },0); });
+    hgItems(g).forEach(b=>b.addEventListener('click',()=>hgClose(g)));   // picking an item closes the menu
+  });
+  document.addEventListener('click',e=>{ if(!e.target.closest||!e.target.closest('.hgroup')) hgClose(HG.open); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape'&&HG.open) hgClose(HG.open,true); });
+}
+hgInit();
+
 // Embedded galaxy map — same page, shown above the persistent chat input (no more popup window).
 let mapLoaded=false, mapBoardOpen=false;
 function showMap(mode){
@@ -2386,9 +2511,7 @@ async function renderDashboard(){
   if(!dash){ box.innerHTML='<div class="dash-inner"><div class="dempty">Dashboard data unavailable — is the server up?</div></div>'; return; }
   const chats=chatsR.chats||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
-  const c={accent:'var(--accent)',purple:'var(--purple)',cyan:'var(--cyan)',green:'var(--good)',amber:'var(--warn)',soft:'var(--accent2)'};
-  const tint=x=>`color-mix(in srgb, ${x} 12%, transparent)`;
-  const T=(icon,title,onclick,color)=>`<button class="tool" onclick="${onclick}" style="--qc:${color};--qc-bg:${tint(color)}"><span class="ti">${svg(icon)}</span>${title}</button>`;
+  // (c / tint / T deleted with the Tools strip — the tools are header menus now)
   const num=v=>`<span class="dnum">${v}</span>`;
 
   // -- tasks (todos & follow-ups) --
@@ -2460,24 +2583,7 @@ async function renderDashboard(){
       </div>
     </section>
 
-    <section><div class="lbl">Tools</div><div class="tools">
-      ${T('i-gauge','Progress Tree',"openTarget('/tree.html',{title:'Progress Tree'})",c.green)}
-      ${T('i-doc','Prototypes',"openTarget('/protos.html',{title:'Prototypes'})",c.cyan)}
-      ${T('i-db','Bubble data','showBubble()',c.cyan)}
-      ${T('i-ingest','Ingest report','startIngest()',c.amber)}
-      ${T('i-folder','Files',"openExpl('')",c.green)}
-      ${T('i-map','Galaxy map','showMap()',c.soft)}
-      ${T('i-book','Memory',"openTarget('/memory.html',{title:'Memory'})",c.purple)}
-      ${T('i-clock','Activity',"openTarget('/activity.html',{title:'Activity log'})",c.amber)}
-      ${T('i-list','Task queue',"openTarget('/queue.html',{title:'Task queue'})",c.accent)}
-      ${T('i-flag','Wishlist',"openTarget('/wishlist.html',{title:'Wishlist'})",c.accent)}
-      ${T('i-sparkle','Weekly digest','openWeeklyDigest()',c.soft)}
-      ${T('i-refresh','Sync BP → brain','bpTrack()',c.cyan)}
-      ${T('i-send','Handoff','runHandoff()',c.purple)}
-      ${T('i-gauge','Cost & usage',"openTarget('/cost.html',{title:'Cost & usage'})",c.amber)}
-      ${T('i-folder','App Preview',"openTarget('/app-preview.html',{title:'App Preview'})",c.green)}
-    </div></section>
-  </div>`;
+  </div>`;   // the old "Tools" strip lives in the header groups now (Build · Knowledge · Ops)
 }
 function mpoShow(title, body, acts){
   let el=$('mpo'); if(!el){ el=document.createElement('div'); el.className='mpo'; el.id='mpo'; document.body.appendChild(el); }
