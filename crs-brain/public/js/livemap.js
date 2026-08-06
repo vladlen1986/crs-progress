@@ -34,23 +34,32 @@
   const W_MIN = 300, W_MAX = 640;
 
   // ---- scene: nodes sized by importance, molecule layout -------------------
-  // color keys → tokens (gradients + --ec) — one place, both themes
-  const TOK = { accent: '--accent', soft: '--accent-soft', purple: '--purple', good: '--good', warn: '--warning', cyan: '--cyan' };
+  // color keys → tokens (gradients + --ec) — one place, both themes.
+  // 2026-08-06 (Claude Code restyle, pass 2): accent/soft already resolve to the
+  // NEUTRAL ink (tokens.css re-points --accent at the grey ramp), and the three
+  // surviving CATEGORY hues are pulled ~half-way to that ink via color-mix
+  // (--lm-purple/--lm-good/--lm-cyan, defined on #lmPanel below) so the scene still
+  // reads as a diagram but never as a UI accent. 'warn' is SEMANTIC ONLY now — amber
+  // marks "known mistake repeated" (warn ring + shockwave) and nothing else, so the
+  // TOOLS node moved off it onto the neutral 'tool' key. Keys stay in TOK because the
+  // radial-gradient ids are generated from them (#lmg-warn is used by .lm-node.warn).
+  const TOK = { accent: '--accent', soft: '--accent-soft', purple: '--lm-purple', good: '--lm-good', warn: '--warning', cyan: '--lm-cyan', tool: '--accent' };
+  // labels are sentence case: the spec kills uppercase + letter-spaced headers.
   const NODES = {
-    playbook:  { x: 78,  y: 42,  r: 10, c: 'accent', ic: 'i-book',     lbl: 'PLAYBOOK',   tip: 'Playbook' },
-    distiller: { x: 185, y: 28,  r: 9,  c: 'purple', ic: 'i-ingest',   lbl: 'DISTILLER',  tip: 'Distiller' },
-    ledger:    { x: 289, y: 40,  r: 10, c: 'good',   ic: 'i-db',       lbl: 'LEDGER',     tip: 'Ledger' },
-    you:       { x: 36,  y: 168, r: 11, c: 'cyan',   ic: 'i-user',     lbl: 'YOU',        tip: 'You' },
-    brain:     { x: 136, y: 140, r: 19, c: 'accent', ic: 'i-brain',    lbl: 'BRAIN',      tip: 'Brain' },
-    model:     { x: 226, y: 96,  r: 13, c: 'soft',   ic: 'i-sparkle',  lbl: 'MODEL',      tip: 'Model' },
-    tools:     { x: 234, y: 178, r: 11, c: 'warn',   ic: 'i-terminal', lbl: 'TOOLS',      tip: 'Tools' },
-    bp:        { x: 306, y: 202, r: 10, c: 'purple', ic: 'i-tool',     lbl: 'BUILDPRINT', tip: 'Buildprint' },
-    bubble:    { x: 348, y: 152, r: 10, c: 'good',   ic: 'i-grid',     lbl: 'BUBBLE',     tip: 'Bubble' },
+    playbook:  { x: 78,  y: 42,  r: 10, c: 'accent', ic: 'i-book',     lbl: 'Playbook',   tip: 'Playbook' },
+    distiller: { x: 185, y: 28,  r: 9,  c: 'purple', ic: 'i-ingest',   lbl: 'Distiller',  tip: 'Distiller' },
+    ledger:    { x: 289, y: 40,  r: 10, c: 'good',   ic: 'i-db',       lbl: 'Ledger',     tip: 'Ledger' },
+    you:       { x: 36,  y: 168, r: 11, c: 'cyan',   ic: 'i-user',     lbl: 'You',        tip: 'You' },
+    brain:     { x: 136, y: 140, r: 19, c: 'accent', ic: 'i-brain',    lbl: 'Brain',      tip: 'Brain' },
+    model:     { x: 226, y: 96,  r: 13, c: 'soft',   ic: 'i-sparkle',  lbl: 'Model',      tip: 'Model' },
+    tools:     { x: 234, y: 178, r: 11, c: 'tool',   ic: 'i-terminal', lbl: 'Tools',      tip: 'Tools' },
+    bp:        { x: 306, y: 202, r: 10, c: 'purple', ic: 'i-tool',     lbl: 'Buildprint', tip: 'Buildprint' },
+    bubble:    { x: 348, y: 152, r: 10, c: 'good',   ic: 'i-grid',     lbl: 'Bubble',     tip: 'Bubble' },
   };
   const EDGES = [
     { id: 'you-brain',       a: 'you',       b: 'brain',   c: 'accent', s: +1, dots: 2 },
     { id: 'brain-model',     a: 'brain',     b: 'model',   c: 'soft',   s: -1, dots: 2 },
-    { id: 'model-tools',     a: 'model',     b: 'tools',   c: 'warn',   s: +1, dots: 1 },
+    { id: 'model-tools',     a: 'model',     b: 'tools',   c: 'tool',   s: +1, dots: 1 },
     { id: 'tools-bp',        a: 'tools',     b: 'bp',      c: 'purple', s: -1, dots: 1 },
     { id: 'bp-bubble',       a: 'bp',        b: 'bubble',  c: 'good',   s: -1, dots: 1 },
     { id: 'playbook-brain',  a: 'playbook',  b: 'brain',   c: 'accent', s: +1, dots: 3 },
@@ -114,23 +123,48 @@
   // intensity. Glow drop-shadow radii and the nebula color-mix alphas were trimmed
   // in step so they stay in proportion instead of becoming the loudest thing left.
   // Nothing was deleted: every animation, keyframe and reduced-motion guard is intact.
+  // 2026-08-06 PASS 2 (spec conformance, brain/design/claude-code-spec.md):
+  //  · --lm-deco stays .35/.22 — the scene's quietness is already right.
+  //  · DOM chrome is now GLOW-FREE: the live dot and the pill dot lost their
+  //    box-shadow halos (§SHADOWS = menus/popovers only). The SVG scene keeps its
+  //    ≤1.8px drop-shadows — that layer is the "canvas", i.e. data-viz, not chrome.
+  //  · Shadows that remain: #lmPanel.chrome, #lmPill and #lmTip — all floating
+  //    overlay surfaces, the popover class the spec still allows.
+  //  · Type: chrome is 13px/20 body + 12px/16 meta, weight ≤600, letter-spacing 0,
+  //    title switched to sentence case. SVG label sizes are viewBox units and stay.
+  //  · Radii already land on the 4/6/8/10 set (card 8 / btn 6 / pill 6) + 50% dots.
+  //  · Hue: link-blue emphasis (--accent-text) → a brightness step; amber is reserved
+  //    for the recurrence warning; the three category hues are mixed toward the ink.
   const css = document.createElement('style');
   css.textContent = `
   /* chromeless panel: translucent smoke base by default, solid chrome on hover */
   #lmPanel{position:fixed;z-index:260;background:color-mix(in srgb,var(--panel) 55%,transparent);border:1px solid transparent;border-radius:var(--radius-card);overflow:hidden;--lm-deco:.35;user-select:none;cursor:grab;transition:background-color .2s ease-in-out,border-color .2s ease-in-out,box-shadow .2s ease-in-out}
+  /* the shadow is spec-legal here: #lmPanel is a floating overlay window (popover
+     class), which is the one place §SHADOWS still allows 0 12px 40px. Cards, buttons
+     and inputs inside it carry none. */
   #lmPanel.chrome{background:var(--panel);border-color:var(--line2);box-shadow:var(--shadow-dropdown)}
   #lmPanel.dragging{cursor:grabbing}
   [data-theme="light"] #lmPanel{--lm-deco:.22}
+  /* data-viz CATEGORY ramp — the only hue left anywhere in this widget. Each is the
+     app token pulled ~half-way to the neutral ink with color-mix, so a lane still
+     reads as a lane but never as a UI accent (spec PRIME DIRECTIVE: hue is semantic,
+     at text scale). Declared on #lmPanel so each theme mixes its own base tokens. */
+  #lmPanel{--lm-purple:color-mix(in srgb,var(--purple) 42%,var(--text-muted));
+           --lm-good:color-mix(in srgb,var(--success) 38%,var(--text-muted));
+           --lm-cyan:color-mix(in srgb,var(--cyan) 45%,var(--text-muted))}
   /* hover chrome: floating header line + buttons, hidden until .chrome */
   #lmPanel .lm-head{position:absolute;top:0;left:0;right:0;z-index:3;display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;opacity:0;pointer-events:none;transition:opacity .2s ease-in-out}
   #lmPanel.chrome .lm-head{opacity:1;pointer-events:auto}
   #lmPanel .lm-live-dot{width:7px;height:7px;border-radius:50%;background:var(--text-muted);flex:0 0 7px}
-  /* live dot: one soft 4px halo instead of the old 8px+4px double glow (the new
-     system keeps DOM chrome flat) — the accent fill still carries the signal */
-  #lmPanel.live .lm-live-dot{background:var(--accent);box-shadow:0 0 4px var(--accent-glow)}
-  #lmPanel .lm-ttl{font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--text-primary)}
-  #lmPanel .lm-sub{font-size:10.5px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
-  #lmPanel.live .lm-sub{color:var(--accent-text)}
+  /* live dot: FLAT fill, no halo at all. Spec §SHADOWS — only menus/popovers carry a
+     shadow, so DOM chrome gets none; the live signal is a brightness step from
+     --text-muted to --text-primary, the same trick as the spec's nav-row state matrix */
+  #lmPanel.live .lm-live-dot{background:var(--text-primary)}
+  /* §TYPE — the chrome has exactly two sizes (13/20 and 12/16) and bold runs 600.
+     The old 10px/700/.12em uppercase title was three tells in one line. */
+  #lmPanel .lm-ttl{font-size:12px;font-weight:600;letter-spacing:0;color:var(--text-primary);white-space:nowrap}
+  #lmPanel .lm-sub{font-size:12px;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+  #lmPanel.live .lm-sub{color:var(--text-primary)}
   #lmPanel .lm-hbtn{background:none;border:none;color:var(--text-muted);width:26px;height:26px;border-radius:var(--radius-btn);cursor:pointer;font-size:12px;line-height:1;font-family:inherit;flex:0 0 auto}
   #lmPanel .lm-hbtn:hover{color:var(--text-primary);background:var(--panel2)}
   /* resize grip — bottom-right, chrome-only */
@@ -146,16 +180,17 @@
   /* nebula mixes trimmed ~30% (14/12/9/8 → 10/8/6/6) on top of the --lm-deco cut */
   #lmPanel .lm-neb1{background:
     radial-gradient(90% 80% at 25% 30%,color-mix(in srgb,var(--accent) 10%,transparent),transparent 65%),
-    radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--purple) 8%,transparent),transparent 62%);
+    radial-gradient(75% 90% at 80% 75%,color-mix(in srgb,var(--lm-purple) 8%,transparent),transparent 62%);
     background-size:165% 165%,175% 175%;background-repeat:no-repeat}
   #lmPanel .lm-neb2{background:
-    radial-gradient(80% 70% at 72% 18%,color-mix(in srgb,var(--cyan) 6%,transparent),transparent 60%),
+    radial-gradient(80% 70% at 72% 18%,color-mix(in srgb,var(--lm-cyan) 6%,transparent),transparent 60%),
     radial-gradient(95% 90% at 28% 88%,color-mix(in srgb,var(--accent-soft) 6%,transparent),transparent 66%);
     background-size:185% 185%,155% 155%;background-repeat:no-repeat}
   #lmPanel.chrome .lm-neb{opacity:0;animation-play-state:paused}
   /* typewriter ticker — one mono line at the bottom */
-  #lmTicker{position:relative;z-index:2;height:${TICK_H}px;display:flex;align-items:center;padding:0 12px;font:500 10px/1 var(--mono);letter-spacing:.02em;color:var(--text-muted);white-space:nowrap;overflow:hidden;transition:opacity .3s ease}
-  #lmTicker.f-acc{color:var(--accent-text)}
+  #lmTicker{position:relative;z-index:2;height:${TICK_H}px;display:flex;align-items:center;padding:0 12px;font:500 12px/16px var(--mono);letter-spacing:0;color:var(--text-muted);white-space:nowrap;overflow:hidden;transition:opacity .3s ease}
+  /* emphasis = a brightness step, not a hue (the old --accent-text was link blue) */
+  #lmTicker.f-acc{color:var(--text-primary)}
   #lmTicker.f-warn{color:var(--warning)}
   #lmTicker.fade{opacity:0}
   /* v4 galaxy scenery — hex lattice + static starfield + Saturn planets (map.html recipes) */
@@ -183,8 +218,11 @@
   .lm-node .lm-core{opacity:.5;transition:opacity var(--transition-colors)}
   .lm-node .lm-ic{color:var(--white);opacity:.55;transition:opacity var(--transition-colors)}
   [data-theme="light"] .lm-node .lm-ic{opacity:.8}
-  .lm-node text{fill:var(--text-muted);font:600 7.5px var(--sans);letter-spacing:.09em;text-anchor:middle;transition:fill var(--transition-colors)}
-  .lm-node .lm-mlbl{fill:var(--text-secondary);font:600 7px var(--mono);letter-spacing:.02em;text-transform:none}
+  /* §TYPE letter-spacing 0 everywhere; weights cap at 600. These px values are
+     viewBox UNITS (the scene scales with the panel), not chrome type — the two-size
+     rule governs the DOM chrome above, and resizing them would break the layout. */
+  .lm-node text{fill:var(--text-muted);font:600 7.5px var(--sans);letter-spacing:0;text-anchor:middle;transition:fill var(--transition-colors)}
+  .lm-node .lm-mlbl{fill:var(--text-secondary);font:600 7px var(--mono);letter-spacing:0;text-transform:none}
   .lm-node.recent .lm-halo{opacity:calc(.4*var(--lm-deco))}
   .lm-node.recent .lm-core{opacity:.82}.lm-node.recent .lm-ic{opacity:.85}
   .lm-node.on .lm-halo{opacity:calc(.95*var(--lm-deco))}
@@ -198,10 +236,10 @@
   .lm-kid.dying{opacity:0}
   .lm-kid .lm-kid-in{transform-box:fill-box;transform-origin:center}
   .lm-kid circle{fill:var(--ec);opacity:.88;filter:drop-shadow(0 0 1.5px var(--ec))}   /* glow 2.5→1.5px */
-  .lm-kid text{fill:var(--text-secondary);font:600 5.5px var(--mono);letter-spacing:.06em;text-anchor:middle}
+  .lm-kid text{fill:var(--text-secondary);font:600 5.5px var(--mono);letter-spacing:0;text-anchor:middle}
   .lm-kid.mote circle{opacity:.85}
-  .lm-kid.mote text{font:600 5px var(--mono);letter-spacing:.02em;fill:var(--text-muted)}
-  .lm-mote-travel{fill:var(--purple);r:2.2;filter:drop-shadow(0 0 1.8px var(--purple));offset-rotate:0deg;opacity:0}   /* glow 3→1.8px */
+  .lm-kid.mote text{font:600 5px var(--mono);letter-spacing:0;fill:var(--text-muted)}
+  .lm-mote-travel{fill:var(--lm-purple);r:2.2;filter:drop-shadow(0 0 1.8px var(--lm-purple));offset-rotate:0deg;opacity:0}   /* scene glow, not chrome */
   /* brain core life — faint orbital ring (always-on idle) + electrons + 2nd halo layer (turn only) */
   .lm-orbit{fill:none;stroke:var(--accent);stroke-width:.7;opacity:calc(.18*var(--lm-deco));transform-box:fill-box;transform-origin:center}
   .lm-halo2{opacity:0;transform-box:fill-box;transform-origin:center;transition:opacity var(--transition-colors)}
@@ -266,14 +304,16 @@
   @keyframes lmPlanetDrift{from{transform:translate(0,0)}to{transform:translate(5px,-4px)}}
   @keyframes lmBadgePop{0%{transform:scale(1)}45%{transform:scale(1.4)}100%{transform:scale(1)}}
   /* tooltip */
-  #lmTip{position:absolute;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:6px 10px;font-size:11px;color:var(--text-primary);display:none;max-width:220px;z-index:2}
-  #lmTip .t2{color:var(--text-muted);font-size:10px;margin-top:1px}
-  /* collapsed pill */
+  /* tooltip IS a popover — the one surface §SHADOWS still allows. 13px body / 12px meta. */
+  #lmTip{position:absolute;pointer-events:none;background:var(--elev);border:1px solid var(--line2);border-radius:var(--radius-btn);box-shadow:var(--shadow-dropdown);padding:6px 10px;font-size:13px;line-height:20px;color:var(--text-primary);display:none;max-width:220px;z-index:2}
+  #lmTip .t2{color:var(--text-muted);font-size:12px;line-height:16px;margin-top:1px}
+  /* collapsed pill — a floating overlay surface like the panel, so it keeps the
+     popover shadow; the dot inside it is flat (see .lm-live-dot). */
   #lmPill{position:fixed;z-index:260;display:flex;align-items:center;gap:7px;height:${PILL_H}px;padding:0 12px;background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius-pill);box-shadow:var(--shadow-dropdown);cursor:pointer;color:var(--text-secondary)}
   #lmPill:hover{border-color:var(--line3);color:var(--text-primary)}
   #lmPill svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
   #lmPill .lm-pdot{width:7px;height:7px;border-radius:50%;background:var(--text-muted)}
-  #lmPill.live .lm-pdot{background:var(--accent);box-shadow:0 0 4px var(--accent-glow)}  /* matches .lm-live-dot */
+  #lmPill.live .lm-pdot{background:var(--text-primary)}  /* matches .lm-live-dot: flat, no glow */
   @media (max-width:900px){#lmPanel,#lmPill,#livemapBtn{display:none!important}}`;
   document.head.appendChild(css);
 
@@ -313,7 +353,7 @@
     `<circle r="${pr}" fill="var(${tok})" opacity=".38"/><circle r="${(pr * 0.45).toFixed(1)}" fill="var(${tok})" opacity=".6"/>` +
     `<ellipse rx="${(pr * 1.9).toFixed(1)}" ry="${(pr * 0.62).toFixed(1)}" fill="none" stroke="var(${tok})" stroke-opacity=".55" stroke-width=".9"/></g></g>`;
   const decoSvg = `<g id="lmDeco"><rect id="lmHexRect" width="${SCENE_W}" height="${SCENE_H}" fill="url(#lmHexPat)"/>` +
-    `<g id="lmStars">${starsSvg}</g><g id="lmPlanets">${planet(20, 16, 3.4, '--purple', 120, -18)}${planet(172, 221, 2.6, '--cyan', 85, 14)}</g></g>`;
+    `<g id="lmStars">${starsSvg}</g><g id="lmPlanets">${planet(20, 16, 3.4, '--lm-purple', 120, -18)}${planet(172, 221, 2.6, '--lm-cyan', 85, 14)}</g></g>`;
   const edgesSvg = EDGES.map((e) => {
     e.d = edgeD(e);
     return `<g class="lm-edge" data-e="${e.id}" style="--ec:var(${TOK[e.c]})"><path class="lm-eglow" d="${e.d}"/><path class="lm-ebase" d="${e.d}"/><path class="lm-eflow" d="${e.d}"/></g>`;
@@ -341,7 +381,7 @@
   }).join('');
   panel.innerHTML = `
     <div class="lm-head" id="lmHead">
-      <span class="lm-live-dot"></span><span class="lm-ttl">LIVE SYSTEM MAP</span>
+      <span class="lm-live-dot"></span><span class="lm-ttl">Live system map</span>
       <span class="lm-sub" id="lmStatus">idle</span>
       <button class="lm-hbtn" id="lmMin" title="Collapse to pill">–</button>
       <button class="lm-hbtn" id="lmX" title="Close">✕</button>
