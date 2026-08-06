@@ -2,7 +2,7 @@
 
 > Checkpoint for the **CRS Brain app** (`crs-brain/`) — the local second-brain tool that helps build the CRS Bubble app. This file is the zero-context-loss handoff between sessions. The CRS *product* itself is documented in `CLAUDE.md`, `decisions.md`, and `brain/`.
 
-Last updated: **2026-08-02**.
+Last updated: **2026-08-06**.
 
 > **New session? Read the two 2026-07-16 logs first — they capture the whole last session.** The CRS *product* lives in `brain/STATUS.md` + `decisions.md` + `brain/`; this file is the *tool* (crs-brain app) log.
 
@@ -18,20 +18,42 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 ```
 
 - `crs-brain/node_modules` is **gitignored** (as of 2026-07-16) — native binaries are per-OS, so each machine builds its own with `npm install`. Do **not** commit node_modules. `npm install` needs Xcode Command Line Tools on Mac (for node-pty's native build); if it fails, the app still runs, just without live usage.
-- To operate Buildprint from the Mac you also need the **Buildprint CLI linked + the Test branch cloned** on that machine — see `brain/buildprint/CLI-MCP-PLAYBOOK.md §5` (`npm i -g buildprint` → `buildprint link <token>` → `buildprint project clone <appId> --branch test` into `~/projects/crs-bubble/`). The workspace path is per-machine; the app finds it automatically.
+- To operate Buildprint from the Mac you also need the **Buildprint CLI linked + the Test branch cloned** on that machine — see `brain/buildprint/CLI-MCP-PLAYBOOK.md §5` (`npm i -g buildprint` → `buildprint link <token>` → `buildprint project clone <appId> --branch test` into `~/projects/crs-bubble/`). The workspace path is per-machine; the app finds it automatically. Without the clone the chat still works — Buildprint capability just degrades with an honest note (not a hard error).
 - Optional: `npm install -g agent-browser` for screenshots/visual verification.
 
 ---
 
 ## Current feature set (snapshot 2026-07-16 — read this instead of all the logs)
 
-- **Chat + Buildprint copilot** (`index.html`): Claude-style chat, grouped "Worked for Xs" activity blocks, mode switch, persistent **memory** ("remember this…" → compiled + injected into every prompt; `memory.html`), **action log** with savepoint-aware rollback (`activity.html`), hard safety gate (`bp-guard.js`) + auto command logging (`bp-log.js`), guardrailed prompt generation (PROMPT-STANDARD + templates).
+- **Chat + Buildprint copilot** (`index.html`): Claude-style chat, grouped "Worked for Xs" activity blocks, ONE chat (no mode switch — every session also drives Buildprint; see the 2026-08-06 merge log), persistent **memory** ("remember this…" → compiled + injected into every prompt; `memory.html`), **action log** with savepoint-aware rollback (`activity.html`), hard safety gate (`bp-guard.js`) + auto command logging (`bp-log.js`), guardrailed prompt generation (PROMPT-STANDARD + templates).
 - **OS-style file explorer** (in `index.html`): windowed (drag/resize/snap/maximize/fullscreen/minimize-chips), list+grid views, marquee/kb selection, context menus with typed New-file submenu, inline extension-masked rename, cut/copy/paste, drag-drop moves with spring-loaded folders, 6s **Undo**, favorites + collapsible sidebar, recursive search, item-anchored hover previews (files AND folders), **document popup** (md rendered / code highlighted / csv table / pdf embed / html sandbox), **OS interop** (drag in from Explorer incl. folders, Ctrl+V OS files/screenshots, drag OUT via DownloadURL, Download / ZIP / Copy-content menu). Explorer always shows the FULL repo tree; server ops all `safeRepoPath`-guarded (`/api/fs/*`, `/api/upload`, `/api/zip`).
 - **Icons**: approved two-tier generator `icons.js` (badge tier ≥40px / glyph tier <40px), used at every render site.
 - **Other pages**: `map.html` galaxy map + kanban (dept hubs all linked to the CLAUDE.MD center; promoted subfolder clusters are namespaced — a `#data` id collision used to leave one hub floating), `tree.html` Progress Tree (46 modules), `wishlist.html` (app todos + Claude-Code prompt generator per item).
 - **Cross-platform**: zero-dep server, node_modules gitignored (per-OS builds), `.gitattributes` line-ending lock, `doctor.js` health check, `start.bat` / `start.command` launchers.
 
 ---
+
+## Session 2026-08-06 (Windows) — Chat ⇄ Buildprint modes merged into ONE chat
+
+The Chat vs Buildprint mode toggle is gone. **Every conversation is a Claude Code session with the repo as cwd and the cloned Bubble TEST worktree attached via `--add-dir`**, and it drives the Buildprint CLI whenever the task needs it. Verified 13/13 by the rig.
+
+- **`bp:true` is no longer a creation-time mode.** `chat.bp` is now an after-the-fact **TAG** — the server auto-sets it when a conversation actually uses Buildprint tools. The sidebar **BP** chip means "this chat used Buildprint", not "this chat is a bp chat".
+- **`cd` instead of a flag.** The Buildprint CLI resolves its workspace by walking UP from cwd and has **no `--project` flag**, so a session `cd`s into `~/projects/crs-bubble/<app>/test` in its **own Bash call** (chaining breaks the command allowlist) and `cd`s back to the repo for brain work. Verified: the spawn sandbox permits `cd` into `--add-dir`'d trees only.
+- **Lazy preflight.** The CLI preflight (and its "Buildprint ready — CLI vX, linked · workspace app/branch" step) now runs only on turns that look like Bubble work — brain-only questions start instantly.
+- **Missing clone degrades honestly.** On a machine without the test clone the chat still works; Buildprint capability is reported as degraded with a note (previously a hard error).
+- **All locked guardrails survive verbatim** in the unified prompt: TEST branch only / never live, sync first, savepoint before every apply + check after, one step per apply, no `--force-apply` / `--no-check` / `sync --reset` without approval in that chat, plan-before-first-apply, Pattern A (company + property + privacy rules checking both), stop-and-surface on anything odd.
+
+## Session 2026-08-06 (Windows) — Ultra / Ultracode effort levels + auto-effort routing
+
+Composer effort dropdown gained **Auto (by task)**, **Ultra** and **Ultracode**; `data/settings.json` default flipped to `effort: "auto"`.
+
+- **What the CLI actually supports** (verified against `claude --help`, v2.1.120): `--effort` takes `low|medium|high|xhigh|max` only. There is no `ultra` level, and `ultrathink` is an in-prompt cue that does **not** raise API effort. Both new levels are therefore app-side aliases translated in `resolveEffort()` (server.js):
+  - `ultra` → `--effort max` + `ultrathink` appended to the stdin prompt.
+  - `ultracode` → `--effort xhigh` + `{"ultracode":true}` in the settings file (dynamic workflow orchestration). **Needs claude ≥ 2.1.154**; older CLIs ignore the key and just run xhigh.
+- **Ultracode is xhigh, i.e. one notch BELOW max on raw reasoning** — it trades depth-per-turn for orchestration. Don't present it as "above Max".
+- `claude` accepts only ONE `--settings` value and it already carries the bp-guard hooks, so ultracode rides in a second generated file `data/bp-guard-settings-ultracode.json` (same hooks + the flag). **The guard hooks must never be dropped to enable ultracode** — verified identical.
+- **Auto-effort**: `routeTaskEffort(message, model)` picks effort independently of the model dropdown (Vlad's ask: choosing a model shouldn't force choosing effort). Multi-step build → Ultracode on Opus / max elsewhere; deep reasoning → max; quick mechanical → low; otherwise medium. Surfaced as an "Auto-effort: …" lifecycle step, never silent.
+- `'auto'` is a ROUTING token and never reaches the CLI — `resolveEffort()` drops it, mirroring the existing `model === 'auto'` guard.
 
 ## Session 2026-08-02 (Windows) — chat-first dashboard rebuild
 
@@ -225,7 +247,7 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 - **brain/ = one fact one file**; INDEX.md read first; brain/ links to authoritative sources (decisions.md, design/, specs/), never duplicates. Manuals: `brain/bubble` (Bubble), `brain/buildprint` (Buildprint), `brain/bubble-forum` (community, manual overrides).
 - **Project-only file view** = default: hide `crs-brain/`, `scripts/`, `README.md`, `CLAUDE.md`, and `brain/{bubble,buildprint,bubble-forum}`. `CRS_DIRS`/`CRS_ROOT_FILES`/`MANUAL_DIRS` in index.html; server mirror in `/api/recent-edited`.
 - **Mobile PIN** persists to `crs-brain/.pin` (gitignored, generated once, stable across relaunch).
-- Chat identity: Buildprint tasks are normal chats with `bp:true` (reuse the whole chat engine).
+- Chat identity: **one chat, no modes** (2026-08-06). Every conversation is a Claude Code session with the repo as cwd + the TEST worktree via `--add-dir`, and drives the Buildprint CLI when the task needs it. `chat.bp` is an after-the-fact TAG (server-set when Buildprint tools are used) that drives the sidebar BP chip — never a creation-time mode.
 
 ## 7. Gotchas
 - **node-pty `spawn-helper` needs `chmod +x`** on this Mac (was `-rw-r--r--` → `posix_spawnp failed`). After any `npm install`/rebuild in `crs-brain/`, re-run `chmod +x node_modules/node-pty/prebuilds/darwin-*/spawn-helper`. NOT committed (would churn/break Windows).
