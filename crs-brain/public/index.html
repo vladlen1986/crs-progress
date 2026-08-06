@@ -3151,7 +3151,9 @@ async function streamChat(text, opts={}){
         else if(ev.type==='memory-saved'){ const n=(ev.entries||[]).length; if(n){ const first=ev.entries[0]; toast('🧠 Saved to memory — '+first.category+': '+first.title+(n>1?`  (+${n-1} more)`:'')); } }
         else if(ev.type==='usage'){ genIn=ev.in||genIn; genOut=ev.out||genOut; paintMeter(); }
         else if(ev.type==='delta'){ endStep(); full+=ev.text; }   // text streaming → stop the last step spinning; keep the group open
-        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt; if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
+        else if(ev.type==='done'){ live.chatId=ev.id; full=ev.reply||full; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt;
+          if(ev.bp===true){ live.bp=true; if(mine()) state.bp=true; }   // server auto-tagged it mid-turn → title mark + file refresh below
+          if(mine()){ state.chatId=ev.id; if(ev.title) $('centerTitle').textContent=(live.bp?'🔨 ':'')+ev.title; } }
         else if(ev.type==='stopped'){ live.chatId=ev.id; full=ev.reply||full; stoppedReply=true; streamDone=true; live.startedAt=ev.startedAt||live.startedAt; live.completedAt=ev.completedAt; if(mine()) state.chatId=ev.id; }
         else if(ev.type==='error'){ errored=true; clearInterval(timerIv); finalizeCard(); body.classList.add('err'); answerEl.remove(); const em=document.createElement('div'); em.innerHTML=svg('i-alert','sm')+'  '+esc(ev.error); body.appendChild(em); addRetryBar(a,false); }
       }

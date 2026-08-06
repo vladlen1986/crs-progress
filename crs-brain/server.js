@@ -1993,7 +1993,10 @@ function runBuildprint(args, ws) {
 // The decision is surfaced as a Brain-lane lifecycle step — never silent.
 // Does this turn look like Bubble/Buildprint work? Only these pay the CLI
 // preflight round-trip; everything else starts talking immediately.
-const BUBBLE_INTENT_RE = /buildprint|bubble|\bapply\b|\bsync\b|savepoint|data.?type|option.?set|privacy rule|workflow|run.?mode|screenshot|\bmodule\b|schema|repeating group|\bpage\b|\bworkspace\b|test branch/i;
+// Deliberately narrow: generic words (module/schema/workflow/page/apply/sync)
+// appear constantly in brain-only questions, and a false positive costs a CLI
+// round-trip on a turn that never touches Bubble.
+const BUBBLE_INTENT_RE = /buildprint|bubble|savepoint|option.?set|privacy rule|repeating group|test branch|run.?mode|data.?type|\bapply\b.{0,20}\b(change|step|it|them)\b|screenshot/i;
 const ROUTE_QUICK_RE = /screenshot|capture|\bsync\b|\bversion\b|status\s*(check)?\b|\blist\b|\bopen\b.+\bpage\b|\bping\b|copy|rename|move\b/i;
 const ROUTE_DEEP_RE = /audit|analy[sz]e|review|investigat|security|design|architect|plan\b|implement|build\b|refactor|migrat|why\b|debug|root cause|compare|verify/i;
 function routeTaskModel(message, cfg) {
@@ -2558,6 +2561,11 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
   // ever when NOTHING was streamed yet: same model+session once more → then a
   // fresh session (drops CLI-side memory of the chat — say so via onRetry).
   const isTransientExec = (e) => e && e.stage === 'pre' && !e.retryable && /error_during_execution/i.test(e.message || '');
+  // Claude Code stores sessions per WORKING DIRECTORY. The one-chat merge moved
+  // every chat to the repo root, so sessions recorded while a chat ran in the
+  // Bubble worktree can't be found any more (and old sessions expire anyway).
+  // That must degrade to a fresh session, not kill the turn.
+  const isLostSession = (e) => e && e.stage === 'pre' && /No conversation found with session ID/i.test(e.message || '');
 
   let lastErr;
   for (let i = 0; i < models.length; i++) {
@@ -2571,7 +2579,8 @@ async function runClaudeWithFallback(message, sessionId, hooks = {}, opts = {}) 
         return { ...r, model: model || r.model || null, freshSession: at.sid === null && sessionId != null };
       } catch (e) {
         lastErr = e;
-        if (!isTransientExec(e) || a === attempts.length - 1) break;   // only the transient class walks the ladder
+        if ((!isTransientExec(e) && !isLostSession(e)) || a === attempts.length - 1) break;   // transient + lost-session walk the ladder
+        if (isLostSession(e)) { a = attempts.length - 2; continue; }   // skip the pointless same-session retry → go straight to a fresh session
       }
     }
     const e = lastErr, next = models[i + 1];
@@ -3573,7 +3582,9 @@ const server = http.createServer(async (req, res) => {
           distillLessons(message, steps, finalText, chat.id, chat.title).catch(() => {});
         }
         await memPromise;   // ensure the memory save + toast land before we close the stream
-        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt });
+        // bp rides the done event: the client only learns a chat actually used
+        // Buildprint AFTER the turn (auto-tag), and it drives the file-tree refresh.
+        sse({ type: result.aborted ? 'stopped' : 'done', id: chat.id, title: chat.title, reply: finalText, sessionId: chat.sessionId, startedAt, completedAt, bp: chat.bp === true });
       } catch (e) {
         // Persist the chat anyway — otherwise the user's message (and a brand-new
         // chat entirely) vanishes on a claude error, with no retry possible.
