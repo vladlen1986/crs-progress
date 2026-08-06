@@ -4,7 +4,7 @@
   "sessionId": "d30fa174-36b8-4e14-b3a3-8d8908bfa573",
   "bp": false,
   "created": "2026-08-06T21:40:34.551Z",
-  "updated": "2026-08-06T21:50:41.532Z",
+  "updated": "2026-08-06T22:07:23.782Z",
   "messages": [
     {
       "role": "user",
@@ -483,6 +483,50 @@
           "tool": null,
           "label": "Playbook check — clean",
           "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "write prompt for claude code to implement that, so no text questions anymore only options i can select and custom anwer field",
+      "ts": "2026-08-06T22:06:37.561Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Here's the prompt. It covers both halves — the UI (cards pinned above the composer) and the reason plain-text questions still leak through today (the T5 boundary at `server.js:598` rejects architecture asks, so they come back as prose).\n\n```\nWork in C:\\Users\\CCTV Mgr\\Projects\\crs-progress on the CRS Brain app (crs-brain/).\nRead crs-brain/BRAIN_APP_PROGRESS.md first. Zero-dep Node server + vanilla JS, no\nbuild step, no frameworks, no new dependencies.\n\nGOAL\nI never want to receive a question as a plain-text paragraph in a chat response\nagain. Every question a session asks me must arrive as a card pinned directly\nabove the composer input box, with clickable options AND a free-text field for a\ncustom answer. Selecting or typing is the only way I answer questions.\n\nWHAT EXISTS TODAY (read these before changing anything)\n- crs-brain/ask-mcp.js — MCP shim exposing the `ask_vlad` tool. Relays to\n  POST /api/ask, then long-polls /api/ask/wait so the session truly BLOCKS on my\n  answer. This blocking contract must not break.\n- crs-brain/server.js lines 552-651 — the ask broker: createAsk(), answerAsk(),\n  pendingAsks(), the ASKS map, standing answers (Playbook auto-answer), and the\n  routes /api/ask, /api/ask/wait, /api/ask/pending, /api/ask/answer.\n- crs-brain/public/index.html — askCardEl() at ~line 2096 builds the card,\n  askAnswer() at ~2122 posts it, a 1-9 + Enter keyboard handler at ~2137, CSS\n  .askcard/.ask-opts/.ask-other at ~572-591, the composer markup at ~1615, the\n  live-stream insert at ~3422, and the mobile path mobileAskView() at ~2787.\n\nTHREE REASONS TEXT QUESTIONS STILL REACH ME — fix all three\n\n1. THE CARD SCROLLS AWAY. askCardEl() is appended inline into the chat message\n   stream, so a pending question scrolls out of view and I miss it.\n   → Render the pending card as a panel pinned directly above the composer\n     (inside/above .composer-wrap), always visible regardless of scroll position,\n     max-width matching the composer's 768px, same dark+light theming via the\n     existing CSS vars (--cc-bg-selected, --cc-border-composer, etc. — no\n     hard-coded colors). Keep the answered receipt inline in the transcript\n     where it is now, so history still reads correctly. Keep the 1-9 + Enter\n     keyboard shortcuts working against the pinned card.\n\n2. ARCHITECTURE QUESTIONS ARE REJECTED AND FALL BACK TO PROSE. createAsk() at\n   server.js:598-603 rejects any ask whose text matches an [OPEN] decision\n   trigger from decisions.md, telling the session to \"emit DECISION-NEEDED\"\n   instead — which it does as a plain-text paragraph with options in prose.\n   That is exactly the behavior I'm trying to kill.\n   → Do NOT remove the boundary; change its OUTPUT. Add a second card type\n     (\"decision card\") so these questions still render as clickable options, but\n     with different semantics from operational asks:\n       - no \"I don't know — recommend one\" shortcut (I must make the call myself)\n       - no \"make this my standing answer\" checkbox (a locked decision must never\n         be born from a Playbook auto-answer)\n       - visually distinct (warning accent) and labeled as a decision\n       - on answer: append a decision candidate to decisions.md (newest at top,\n         append-only, matching the existing entry format) rather than writing to\n         standing-answers.json\n     Update ask-mcp.js and the tool description so the session has a way to raise\n     a decision card instead of writing prose.\n\n3. THE CUSTOM-ANSWER FIELD IS HIDDEN. Today the free-text input sits behind an\n   \"Other…\" button (.ask-other.show).\n   → Make the custom-answer input always visible on every card, below the\n     options. Enter submits. Typing must be a first-class answer path, not a\n     fallback.\n\nBACKSTOP (this is what makes the guarantee real)\nAdd a server-side check when a turn finishes: if the assistant's final message\nends in a question (or contains a \"which do you want / let me know / A or B\"\npattern) and no ask/decision card was raised during that turn, do not leave it as\nprose — surface it as a card with the options parsed out of the message, plus the\nalways-on custom-answer field. Log these to the existing ask-log.jsonl so I can\nsee how often a session tried to ask in prose.\n\nALSO update the system prompt the server injects into sessions so the contract\nreads: never ask in prose; operational choices → ask_vlad card; architectural /\n[OPEN]-decision choices → decision card. Both block on my answer.\n\nCONSTRAINTS\n- Vanilla JS only, no new deps, no build step. Match existing code style.\n- Do not break the ask_vlad long-poll blocking contract or standing answers.\n- Mobile path (mobileAskView) must keep working with both card types.\n- Dark AND light themes both correct — use existing CSS vars only.\n\nVERIFY BEFORE REPORTING DONE (do not claim success from code alone)\nStart the server, open the app in a browser, and prove:\n  a) an operational ask renders pinned above the composer, stays visible while\n     scrolling, answers by click, and unblocks the waiting session;\n  b) the custom-answer field is visible by default and submitting typed text\n     works;\n  c) a question touching an [OPEN] decision renders as a decision card (no\n     recommend shortcut, no standing checkbox) and its answer lands in\n     decisions.md;\n  d) both themes render correctly.\nScreenshot the pinned card in dark and light and include both in your report.\n\nWhen done, update crs-brain/BRAIN_APP_PROGRESS.md with what changed and any new\nlocked rules.\n```\n\nOne honest caveat: item 2 is the load-bearing one. The UI change alone won't stop prose questions — the reason you got a text answer from me earlier is that the T5 boundary deliberately blocks architecture asks from the popup, so prose was the only route left. That prompt changes the output of the boundary rather than removing it, which keeps the \"no locked decision born from a click\" protection intact while still giving you buttons.",
+      "ts": "2026-08-06T22:07:23.782Z",
+      "startedAt": "2026-08-06T22:06:37.562Z",
+      "completedAt": "2026-08-06T22:07:23.782Z",
+      "model": "claude-opus-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Routing — Opus 5 · high effort  (depth 0.62 · risk 0.00)",
+          "body": "Weighed: 1 deep-work cue · multi-step build\nDepth 0.62 · risk 0.00\nRe-decided from scratch for this message.",
           "actor": "brain"
         },
         {
