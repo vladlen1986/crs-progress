@@ -62,6 +62,18 @@
   /* board open → toolbar buttons slide left of the drawer so BOARD stays reachable/toggleable */
   body.board-open .menu-btn{transform:translateX(calc(-1 * var(--board-w)))}
 
+  /* in-map view selector: Map · Kanban · List · Ideas — top centre, the one empty
+     lane in this chrome. Same greyscale thumb language as the .seg controls. */
+  .mvseg{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:14;display:flex;gap:2px;
+    background:var(--cc-bg-segment-track);border:1px solid var(--border-default);border-radius:var(--radius-btn);padding:2px;
+    transition:transform var(--transition),background-color var(--transition-colors),border-color var(--transition-colors)}
+  .mvseg button{background:none;border:1px solid transparent;color:var(--text-secondary);border-radius:var(--radius-btn);
+    padding:3px 12px;font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;letter-spacing:0;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .mvseg button:hover:not(.on){background:var(--cc-bg-hover-canvas);color:var(--text-primary)}
+  .mvseg button.on{background:var(--cc-bg-segment-thumb);border-color:var(--cc-border-segment);color:var(--cc-text-primary)}
+  /* keep it centred on the galaxy that's still visible beside the drawer */
+  body.board-open .mvseg{transform:translateX(calc(-50% - var(--board-w) / 2))}
+
   /* the ≡ MENU popover — one of the three surfaces the spec still allows a shadow on */
   .panel{position:fixed;top:52px;right:20px;width:230px;z-index:11;background:var(--bg-secondary);border:1px solid var(--border-default);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);padding:16px;display:flex;flex-direction:column;gap:10px}
   .panel.hide{display:none}
@@ -293,8 +305,11 @@
     .brand .mark{width:23px;height:23px}
     .menu-btn{top:11px;padding:5px 10px}
     #fsBtn{display:none}                        /* fullscreen is awkward on mobile browsers */
-    #boardBtn{right:104px!important}
     .menu-btn:not([id]){right:13px!important}
+    /* the view selector shrinks but never leaves — on a phone it is the only way
+       back to the galaxy once the full-screen board is up */
+    .mvseg{top:11px;padding:1px}
+    .mvseg button{padding:3px 9px;font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs)}
     .panel{top:50px;right:12px;left:auto;width:min(84vw,290px);max-height:calc(100dvh - 140px);overflow-y:auto}
     .dock{left:10px;right:10px;width:auto;bottom:10px;transform:none}
     .dock .dbody{max-height:32vh}
@@ -302,6 +317,7 @@
     .board{width:100dvw}
     /* Full-screen board covers the toolbar — don't slide the buttons offscreen. */
     body.board-open .menu-btn{transform:none}
+    body.board-open .mvseg{transform:translateX(-50%)}
     /* Embedded on a phone: the kanban/list board fills the screen — no galaxy behind
        it, no floating map chrome. (The app's own header switches views.) transform:none
        pins it full-screen deterministically instead of relying on the slide translate. */
@@ -325,7 +341,14 @@
   <div class="mark"><svg viewBox="0 0 24 24"><circle cx="12" cy="5.5" r="2.2"/><circle cx="5.5" cy="17" r="2.2"/><circle cx="18.5" cy="17" r="2.2"/><path d="M12 7.7v3.3m0 0l-5 4.2m5-4.2l5 4.2"/></svg></div>
   <div><b>CRS BRAIN</b> <span>SECOND BRAIN</span><div class="by">CASINO REPORTING SUITE</div></div>
 </div>
-<button class="menu-btn" id="boardBtn" style="right:170px" title="Folder board" onclick="toggleBoard()">▦ Board</button>
+<!-- The view selector lives HERE, on the map, not in the app header (Vlad
+     2026-08-07): the three things it switches between are all this screen. -->
+<div class="mvseg" id="mapViewSeg">
+  <button data-mv="map" onclick="pickView('map')" title="Galaxy map">Map</button>
+  <button data-mv="board" onclick="pickView('board')" title="Kanban — files as columns">Kanban</button>
+  <button data-mv="list" onclick="pickView('list')" title="List — the same files in one vertical list">List</button>
+  <button data-mv="ideas" onclick="pickView('ideas')" title="Ideas board">Ideas</button>
+</div>
 <button class="menu-btn" id="fsBtn" style="right:118px" title="Fullscreen" onclick="toggleFS()">⛶</button>
 <button class="menu-btn" onclick="ui.panel.classList.toggle('hide')">≡ MENU</button>
 <div class="board" id="board">
@@ -1412,7 +1435,7 @@ function parseIdea(text){ // native parsing: #tags and !priority
 function toggleBoard(){ boardOpen=!boardOpen;
   document.getElementById('board').classList.toggle('open',boardOpen);
   document.body.classList.toggle('board-open',boardOpen);
-  document.getElementById('boardBtn').classList.toggle('on',boardOpen);
+  markMapView();   // the ▦ Board button is gone — the view selector shows this state now
   if(!boardOpen){ boardLink=null; syncBoardHover(); }
   // Tell the host app so it can un-float its composer — the right-side drawer overlaps
   // the composer's corner and it would otherwise sit behind the panel. Covers BOTH the
@@ -1775,6 +1798,7 @@ document.getElementById('dockForm').addEventListener('submit',async e=>{
 // ---- boot ----------------------------------------------------------------------------
 // Embedded in the app: the app's composer is the one chat, so drop the map's own dock.
 if(EMBED){ document.body.classList.add('embed'); const dk=document.getElementById('dock'); if(dk) dk.style.display='none'; }
+markMapView();   // mark the selector immediately, before /api/files lands
 fetch('/api/files').then(r=>r.json()).then(d=>{ tree=d.tree; buildGraph(); loadRefs(); requestAnimationFrame(loop); applyView(modeFromHash()); })
   .catch(()=>{ document.body.insertAdjacentHTML('beforeend','<div style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:var(--text-secondary)">Could not load the repo tree — is the CRS Brain server running?</div>'); });
 // Files-as-a-list vs. columns: same board data, just stack the folder columns vertically.
@@ -1795,7 +1819,17 @@ function applyView(mode){
     setBoardLayout('columns');
     if(boardOpen) toggleBoard();   // galaxy view: close the board drawer
   }
+  markMapView();
 }
+// Which view is actually on screen, derived from state (never from what was
+// clicked) so the hash, the app's Map button and the drawer can't drift apart.
+function currentMapView(){
+  if(!boardOpen) return 'map';
+  if(boardTab==='ideas') return 'ideas';
+  return document.body.classList.contains('blist') ? 'list' : 'board';
+}
+function markMapView(){ const v=currentMapView(); document.querySelectorAll('#mapViewSeg button').forEach(b=>b.classList.toggle('on', b.dataset.mv===v)); }
+function pickView(mode){ if(mode===currentMapView()) return; applyView(mode); }
 window.applyView = applyView;
 window.addEventListener('hashchange', ()=>applyView(modeFromHash()));
 </script>

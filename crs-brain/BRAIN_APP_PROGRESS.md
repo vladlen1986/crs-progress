@@ -33,6 +33,40 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-07 (Windows) — ONE screen, Map-only header, in-map view selector
+
+Vlad: *"i clicked chat on the header and got this screen … i dont need two separate
+screens no point"*. Verified 23/23 by `probe-one-screen.js`; acceptance still 13/13.
+
+- **Home IS the chat.** There is no dashboard screen. `showDashboard()` survives as the
+  name every entry point already calls (rail Home, brand, ⌘K, `#view=`, `surfaceBack`,
+  the QA rigs) but now just opens a fresh conversation. `#dashView` stays in the DOM,
+  permanently hidden, so the display guards that read it and the `dashFull(true)`
+  escape hatch (old panel dashboard, via `showDashboardLegacy()`) keep working.
+- **One hero, defined once** (`heroHtml()`): breathing 72px `i-brain` mark + a
+  time-of-day greeting ("Good morning/afternoon/evening/night, Vlad"). The live status
+  line and the hint row are **gone** — Vlad: *"remove this no need"*.
+- **Quick actions hide until you hover the mark.** `.dh-cards` is absolutely positioned
+  (out of flow → revealing it never shifts the greeting; rig asserts 0px shift) and lays
+  out 5-across so its two rows clear the composer. Hover is on `.dh-id` (mark + greeting)
+  with a 0.28s close delay so travelling to the cards doesn't dismiss them; `:focus-visible`
+  on the same element makes it keyboard-reachable.
+- **Header: Map only.** Chat is gone (home is the chat) and Kanban/List moved into the
+  map. A lone `.viewseg.solo` drops the segment track and renders as a plain button.
+- **Kanban/List/Ideas now live ON the map** (`#mapViewSeg`, top-centre, the one empty lane
+  in that chrome). It replaces the old `▦ Board` button. `currentMapView()` derives the
+  marked view from state (boardOpen / boardTab / `body.blist`) rather than from what was
+  clicked, so the hash, the app's Map button and the drawer can't drift. It stays visible
+  on a phone when the board goes full-screen — otherwise there'd be no way back to the galaxy.
+- **Header is taller: 44px**, driven by `--cc-titlebar-h` (previously declared but unused,
+  with 36px hardcoded twice). `.upop`/`.ninbox` now anchor to the token, and `.hgroup`
+  stretches to full header height so its popover drops clear of the taller bar.
+- Two acceptance instruments were corrected (not the app): **A2** asserted "top 4 pixel
+  colours are spec surfaces", but a correct home screen now shows only THREE surfaces —
+  4th place is glyph antialiasing at 0.2%. It now asserts top-3 are surfaces AND the ramp
+  covers ≥90% (97.36% actual). **A9b** measured the composer border as "before" while home
+  had already autofocused it; it now blurs first.
+
 ## Session 2026-08-06/07 (Windows) — Claude-Code 1:1 redesign
 
 The whole app was restyled to Vlad's measured Claude Code Desktop spec, saved verbatim as

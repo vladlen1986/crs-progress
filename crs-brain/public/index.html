@@ -165,12 +165,14 @@
   .tree .dir .ic{color:var(--secondary)}
 
   /* center header */
-  .center-head{padding:0 12px;border-bottom:none;display:flex;align-items:center;gap:8px;height:36px;flex:0 0 36px;background:var(--head-bg)}   /* flat opaque header — no backdrop blur */
+  .center-head{padding:0 14px;border-bottom:none;display:flex;align-items:center;gap:8px;height:var(--cc-titlebar-h);flex:0 0 var(--cc-titlebar-h);background:var(--head-bg)}   /* flat opaque header — no backdrop blur; height comes from the §4 token */
   .center-head .title{color:var(--primary);font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .center-head .spacer{margin-left:auto}
-  /* view switcher: Chat · Map · Kanban · List */
+  /* view button — Map only; the galaxy's own selector switches map/kanban/list */
   .viewseg{display:inline-flex;background:var(--cc-bg-segment-track);border:1px solid var(--cc-border-divider);border-radius:6px;padding:2px;gap:1px;flex:0 0 auto}
-  .viewseg button{background:none;border:1px solid transparent;color:var(--secondary);font-family:inherit;font-size:12px;font-weight:600;height:22px;padding:0 10px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:var(--transition);white-space:nowrap}
+  .viewseg.solo{background:none;border-color:transparent;padding:0}   /* a lone button is a button, not a segment track */
+  .viewseg button{background:none;border:1px solid transparent;color:var(--secondary);font-family:inherit;font-size:13px;font-weight:500;height:24px;padding:0 8px;border-radius:6px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;transition:var(--transition);white-space:nowrap}
+  .viewseg.solo button:hover{background:var(--cc-bg-hover-canvas);color:var(--cc-text-primary)}
   .viewseg button svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
   .viewseg button:hover{color:var(--secondary)}
   .viewseg button.on{background:var(--cc-bg-segment-thumb);border-color:var(--cc-border-segment);color:var(--cc-text-primary)}   /* greyscale toggle rule — no accent fill on view/mode toggles */
@@ -178,7 +180,7 @@
      Quiet at rest (no border, no fill), 13px label + 12px chevron. The popover is the
      ONLY element in this header allowed a shadow. */
   .hgroups{display:flex;align-items:center;gap:2px;flex:0 0 auto}
-  .hgroup{position:relative;display:inline-flex}
+  .hgroup{position:relative;display:inline-flex;align-items:center;align-self:stretch}   /* full header height, so the popover drops clear of a taller bar */
   .hgtrig{display:inline-flex;align-items:center;gap:5px;height:24px;padding:0 8px;border:none;background:none;border-radius:6px;color:var(--cc-text-secondary);font-family:inherit;font-size:13px;font-weight:500;line-height:1;white-space:nowrap;cursor:pointer;transition:var(--transition)}
   .hgtrig:hover,.hgroup.open>.hgtrig{background:var(--cc-bg-hover-canvas);color:var(--cc-text-primary)}   /* active = bg + text only */
   .hgtrig:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}   /* one brighter border, never a ring */
@@ -220,7 +222,7 @@
   .uchip .uv{color:var(--primary);font-variant-numeric:tabular-nums;font-family:var(--mono);font-weight:600}
   /* polish: chip stays neutral in every state — severity lives in the dot + popover
      (was: .uchip.warn/.crit amber/red border tints at 75%/90% usage) */
-  .upop{position:absolute;top:40px;right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
+  .upop{position:absolute;top:calc(var(--cc-titlebar-h) + 4px);right:16px;width:326px;max-width:calc(100vw - 32px);background:var(--panel);border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow-modal);z-index:45;display:none;overflow:hidden}
   .upop.show{display:block;animation:msgIn .16s ease both}
   .upop .usage{padding:14px 15px}
   /* account chip (header): connection dot + usage % only; detail lives in the popover */
@@ -250,7 +252,7 @@
   .nbadge{position:absolute;top:-5px;right:-5px;min-width:16px;height:16px;padding:0 4px;border-radius:8px;background:var(--danger);color:var(--white);font-size:12px;font-weight:600;display:none;align-items:center;justify-content:center;font-family:var(--mono);border:2px solid var(--panel)}
   .nbadge.show{display:inline-flex}
   /* notifications inbox */
-  .ninbox{position:absolute;top:40px;right:16px;width:370px;max-width:calc(100vw - 32px);max-height:72vh;background:var(--panel);border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow-dropdown);z-index:46;display:none;flex-direction:column;overflow:hidden}
+  .ninbox{position:absolute;top:calc(var(--cc-titlebar-h) + 4px);right:16px;width:370px;max-width:calc(100vw - 32px);max-height:72vh;background:var(--panel);border:1px solid var(--line2);border-radius:8px;box-shadow:var(--shadow-dropdown);z-index:46;display:none;flex-direction:column;overflow:hidden}
   .ninbox.show{display:flex;animation:msgIn .16s ease both}
   .ninbox-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);color:var(--primary);font-size:12px;font-weight:600}
   .ninbox-head .act{background:none;border:none;color:var(--muted);font-size:12px;cursor:pointer;padding:3px 7px;border-radius:6px;font-family:inherit}
@@ -1515,11 +1517,11 @@
           </div>
         </div>
       </nav>
-      <div class="viewseg" id="viewSeg">
-        <button data-v="chat" onclick="setView('chat')" title="Conversation"><svg viewBox="0 0 24 24"><use href="#i-sparkle"/></svg><span class="vlbl">Chat</span></button>
-        <button data-v="map" onclick="setView('map')" title="Galaxy map"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg><span class="vlbl">Map</span></button>
-        <button data-v="kanban" onclick="setView('kanban')" title="Kanban board — files as columns"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="10" rx="1"/><rect x="16" y="4" width="5" height="13" rx="1"/></svg><span class="vlbl">Kanban</span></button>
-        <button data-v="list" onclick="setView('list')" title="List — the same files in one vertical list"><svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="20" y2="12"/><line x1="8" y1="18" x2="20" y2="18"/><line x1="3.5" y1="6" x2="3.6" y2="6"/><line x1="3.5" y1="12" x2="3.6" y2="12"/><line x1="3.5" y1="18" x2="3.6" y2="18"/></svg><span class="vlbl">List</span></button>
+      <!-- Map is the only view button left in the header (Vlad 2026-08-07). Chat is
+           gone because home IS the chat; Kanban/List moved INTO the map screen as
+           its own view selector, next to the galaxy they switch between. -->
+      <div class="viewseg solo" id="viewSeg">
+        <button data-v="map" onclick="setView('map')" title="Galaxy map · kanban · list"><svg viewBox="0 0 24 24" stroke-width="1.6"><circle cx="12" cy="12" r="2.5"/><circle cx="12" cy="12" r="8"/><circle cx="19.5" cy="7" r="1.2"/></svg><span class="vlbl">Map</span></button>
       </div>
       <!-- indicators sit after the buttons, pushed right -->
       <span class="spacer"></span>
@@ -1905,9 +1907,20 @@ const TEMPLATES={
 function seedInput(text){ const inp=$('input'); if(!inp)return; inp.value=text; inp.style.height='auto'; inp.style.height=Math.min(inp.scrollHeight,260)+'px'; inp.focus(); }
 function seedTpl(mode,idx){ const t=(TEMPLATES[mode]||[])[idx]; if(t) seedInput(t.s); }
 function heroCards(mode){ return '<div class="tcards">'+(TEMPLATES[mode]||[]).map((t,i)=>`<button class="tcard" onclick="seedTpl('${mode}',${i})"><span class="tct">${svg(t.i,'sm')} ${esc(t.t)}</span><span class="tcd">${esc(t.d)}</span></button>`).join('')+'</div>'; }
-// One hero shape everywhere: the designed breathing brain mark, a sentence, then
-// the starter prompts — so the chat empty state and the main screen match.
-function heroHtml(){ return '<div class="hero"><div class="dh-mark">'+svg('i-brain')+'</div><div class="hero-t">CRS Brain</div><div class="hero-s">Ask about progress, decisions, what\'s next, or what\'s missing — answers are grounded in <b>brain/</b>, the living map of the CRS infrastructure.</div>'+heroCards('chat')+'</div>'; }
+// ONE screen (Vlad 2026-08-07): home IS the empty conversation — there is no
+// separate dashboard screen any more. The hero is the breathing mark plus a
+// time-of-day greeting, nothing else; the starter prompts stay hidden until the
+// mark is hovered (or focused, for keyboard).
+function greeting(){ const h=new Date().getHours(); return h<5?'Good night':h<12?'Good morning':h<18?'Good afternoon':h<22?'Good evening':'Good night'; }
+function heroHtml(){
+  return `<div class="dash-hero"><div class="dh-stack">
+    <div class="dh-id" tabindex="0" role="button" aria-label="Show quick actions" title="Hover for quick actions">
+      <div class="dh-mark">${svg('i-brain')}</div>
+      <div class="dh-title">${esc(greeting())}, Vlad</div>
+    </div>
+    <div class="dh-cards">${heroCards('chat')}</div>
+  </div></div>`;
+}
 // ONE CHAT (2026-08-06): no mode switch. state.bp is now a read-only DISPLAY flag
 // meaning "this conversation actually used Buildprint" (server auto-tags it) —
 // it never gates capability, and nothing in the UI sets it any more.
@@ -2505,8 +2518,15 @@ function setMapBoardOpen(open){
   $('centerCol').classList.toggle('map-mode', !open);
 }
 
-// ---------- dashboard (home) ----------
-function showDashboard(){
+// ---------- home ----------
+// ONE screen (Vlad 2026-08-07: "i dont need two separate screens no point").
+// Home is the empty conversation, not a second surface — showDashboard() is kept
+// as the name every entry point (rail, brand, ⌘K, #view=, surfaceBack, the QA
+// rigs) already calls, but it now just opens a fresh chat showing the hero.
+// #dashView still exists, permanently hidden, so the `dashFull(true)` escape
+// hatch and the display guards that read it keep working.
+function showDashboard(){ newChat(); if(innerWidth<=900) mob(null); }   // mob(null) kept from the old dashboard: closes the phone drawer
+function showDashboardLegacy(){
   bumpView();
   state.chatId=null;
   $('chatView').style.display='none'; $('dashView').style.display='block'; $('mapView').style.display='none'; $('bubbleView').style.display='none'; $('surfaceView').style.display='none'; surfaceReturn=null; $('centerCol').classList.remove('map-mode'); $('centerCol').classList.remove('no-composer');
@@ -2535,32 +2555,13 @@ function dashChip(link){
 // exists and returns the moment this flag flips, or via `dashFull(true)` in the
 // console. Everything it showed is reachable from the header menus.
 let DASH_HERO = true;
-function dashFull(on){ DASH_HERO = on === false; renderDashboard(); }
-// One real sentence about where the project stands — assembled from live state,
-// never filler. Falls back gracefully when a store is empty.
-function dashHeroLine(dash, chats){
-  const bits = [];
-  const focus = dash && dash.modules && dash.modules.focus;
-  if (focus) bits.push('Building <b>' + esc(focus.name) + '</b>');
-  const done = dash && dash.modules && (dash.modules.counts||{})['done'] || 0;
-  const total = dash && dash.modules && dash.modules.total || 0;
-  if (total) bits.push(done + ' of ' + total + ' modules done');
-  const open = (dash && dash.tasks || []).filter(t => t.status !== 'done').length;
-  if (open) bits.push(open + ' open todo' + (open > 1 ? 's' : ''));
-  const decisions = (dash && dash.decisionsOpen || []).length;
-  if (decisions) bits.push(decisions + ' decision' + (decisions > 1 ? 's' : '') + ' waiting on you');
-  if (!bits.length) bits.push('Everything is quiet');
-  return bits.join(' · ');
-}
-function dashHeroHtml(dash, chats, greet){
-  return `<div class="dash-hero">
-    <div class="dh-mark">${svg('i-brain')}</div>
-    <div class="dh-title">${esc(greet)}, Vlad</div>
-    <div class="dh-line">${dashHeroLine(dash, chats)}</div>
-    <div class="dh-hint">Ask below · tools live in the header · ⌘K searches everything</div>
-    ${heroCards('chat')}
-  </div>`;
-}
+// Console escape hatch: dashFull(true) brings the old panel dashboard back on
+// its own surface; dashFull(false) returns to the one-screen home.
+function dashFull(on){ DASH_HERO = on === false; if(DASH_HERO) showDashboard(); else showDashboardLegacy(); }
+// The hero is now ONE shape, defined once as heroHtml() next to the templates —
+// greeting only, prompts on hover. (Vlad 2026-08-07: "remove this no need. Only
+// Title … depending on time local"; the status line and hint row are gone.)
+function dashHeroHtml(){ return heroHtml(); }
 async function renderDashboard(){
   const box=$('dashView');
   const [dash,chatsR,plansD]=await Promise.all([
@@ -2570,11 +2571,7 @@ async function renderDashboard(){
   ]);
   if(plansD) plansCache=plansD;
   if(!dash){ box.innerHTML='<div class="dash-inner"><div class="dempty">Dashboard data unavailable — is the server up?</div></div>'; return; }
-  if(DASH_HERO){
-    const hr0=new Date().getHours();
-    box.innerHTML=dashHeroHtml(dash, chatsR.chats||[], hr0<12?'Good morning':hr0<18?'Good afternoon':'Good evening');
-    return;
-  }
+  if(DASH_HERO){ box.innerHTML=dashHeroHtml(); return; }
   const chats=chatsR.chats||[];
   const hr=new Date().getHours(); const greet=hr<12?'Good morning':hr<18?'Good afternoon':'Good evening';
   // (c / tint / T deleted with the Tools strip — the tools are header menus now)
@@ -3113,7 +3110,7 @@ async function streamChat(text, opts={}){
   if(state.sending) return;
   showChat();
   const log=$('chatLog');
-  if(log.querySelector('.hero')||log.querySelector('.empty')) log.innerHTML='';
+  if(log.querySelector('.dash-hero')||log.querySelector('.hero')||log.querySelector('.empty')) log.innerHTML='';
   document.querySelectorAll('.turn-acts .act-nav').forEach(el=>el.remove());   // only the newest reply keeps its retry/continue controls
   // One unified action: prompt → thinking → working → answer all live inside a single .turn.
   let turn;

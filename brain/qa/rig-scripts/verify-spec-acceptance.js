@@ -68,7 +68,13 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   const topHexes = hist.top.map((t) => t[0]);
   // every surface/border the spec defines — the dominant four vary with what is on screen
   const specSurfaces = ['#1D1D1C', '#20201F', '#262626', '#2F2F2F', '#2C2C2A', '#292928', '#313131', '#393938', '#343433', '#2A2A29', '#40403F', '#373737', '#3B3B39', '#3D3D3B', '#474746'];
-  check('A2 neutral ramp dominates', topHexes.slice(0, 4).every((h) => specSurfaces.includes(h)), JSON.stringify(hist.top));
+  // Home now shows exactly THREE surfaces (sidebar, canvas, composer) — the card
+  // fill only appears on hover. So "top 4 are surfaces" no longer describes a
+  // correct screen: 4th place is glyph antialiasing at ~0.2%. Assert what the
+  // spec actually says instead — the ramp DOMINATES: top 3 are spec surfaces and
+  // together the ramp covers >=90% of pixels.
+  const rampShare = hist.top.filter(([h]) => specSurfaces.includes(h)).reduce((s, [, p]) => s + p, 0);
+  check('A2 neutral ramp dominates', topHexes.slice(0, 3).every((h) => specSurfaces.includes(h)) && rampShare >= 90, JSON.stringify(hist.top) + ` ramp=${rampShare.toFixed(2)}%`);
   const warmth = await page.evaluate(() => { const s = getComputedStyle(document.documentElement); const names=['--cc-bg-sidebar','--cc-bg-canvas','--cc-bg-panel','--cc-bg-card','--cc-bg-composer','--cc-bg-control','--cc-bg-selected','--cc-bg-hover','--cc-bg-hover-canvas','--cc-bg-segment-track','--cc-bg-segment-thumb']; const bad=[]; for(const n of names){ const v=s.getPropertyValue(n).trim(); const m=/^#([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(v); if(!m) continue; const r=parseInt(m[1],16),g=parseInt(m[2],16),b=parseInt(m[3],16); if(!(r>=g&&g>=b&&(r-b)>=0&&(r-b)<=3)) bad.push(n+' '+v); } return bad; });
   check('A3 warmth R>=G>=B, R-B 0..3 on every surface token', warmth.length === 0, warmth.join(' | '));
 
@@ -137,6 +143,7 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   const focus = await page.evaluate(() => {
     const inp = document.querySelector('#input') || document.querySelector('input');
     if (!inp) return null;
+    inp.blur();   // home opens a fresh chat and autofocuses the composer — measure the RESTING border first
     const before = getComputedStyle(inp.closest('.composer') || inp).borderTopColor;
     inp.focus();
     const host = inp.closest('.composer') || inp;

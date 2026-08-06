@@ -119,23 +119,40 @@ b, strong { font-weight: 600; }
 /* Kept for assistive tech, removed from the visual flow. */
 .vis-hidden{position:absolute !important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);clip-path:inset(50%);white-space:nowrap;border:0}
 
-/* ---- Dashboard hero ------------------------------------------------------ */
-/* A calm empty state: one large mark, one real sentence. The mark breathes
+/* ---- Home hero ----------------------------------------------------------- */
+/* ONE screen (Vlad 2026-08-07): home IS the empty conversation. The hero is a
+ * greeting and nothing else — no status line, no hint row. The mark breathes
  * (opacity only — §7 forbids scaling/bouncing) and stops entirely under
  * prefers-reduced-motion. Monochrome: the mark is ink, not brand — a filled
- * clay glyph this size would blow the §10 orange budget on its own. */
-.dash-hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:64px 24px;text-align:center}
+ * clay glyph this size would blow the §10 orange budget on its own.
+ * The starter prompts are HIDDEN until the mark (or its greeting) is hovered
+ * or focused; they are absolutely positioned so revealing them never shifts
+ * the greeting off centre. */
+.dash-hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
+.dash-hero .dh-stack{position:relative;display:flex;flex-direction:column;align-items:center}
+.dash-hero .dh-id{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 18px 14px;border-radius:8px;cursor:default;transition:var(--transition)}
+.dash-hero .dh-id:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}
 .dash-hero .dh-mark{width:72px;height:72px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
 .dash-hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
-.dash-hero .dh-title{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary);margin-top:6px}
-.dash-hero .dh-line{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);color:var(--cc-text-body);max-width:560px}
-.dash-hero .dh-line b{color:var(--cc-text-primary);font-weight:600}
-.dash-hero .dh-hint{font-size:var(--cc-fs-xs);line-height:var(--cc-lh-xs);color:var(--cc-text-muted);margin-top:2px}
-/* the chat empty state reuses the same mark, centred above its prompts */
-.hero .dh-mark{width:72px;height:72px;margin:0 auto 14px;color:var(--cc-text-secondary);opacity:.9;animation:dhBreathe 3.6s ease-in-out infinite}
-.hero .dh-mark svg{width:72px;height:72px;stroke-width:1.1;fill:none;stroke:currentColor}
-/* starter prompts under the hero on both screens */
-.dash-hero .tcards{margin-top:22px}
+.dash-hero .dh-title{font-size:var(--cc-fs-sm);line-height:var(--cc-lh-sm);font-weight:600;color:var(--cc-text-primary)}
+/* hover-revealed starter prompts — out of flow, so the greeting never moves */
+/* out of flow → it must carry its own width, and it lays out WIDE (5 across) so
+   two short rows clear the composer instead of five tall ones running under it */
+.dash-hero .dh-cards{position:absolute;top:100%;left:50%;margin-top:10px;width:min(1060px,calc(100vw - 120px));opacity:0;visibility:hidden;pointer-events:none;
+  transform:translateX(-50%) translateY(-4px);
+  transition:opacity .16s ease .28s, transform .16s ease .28s, visibility 0s linear .44s}
+.dash-hero .dh-id:hover ~ .dh-cards,
+.dash-hero .dh-id:focus-visible ~ .dh-cards,
+.dash-hero .dh-cards:hover,
+.dash-hero .dh-cards:focus-within{opacity:1;visibility:visible;pointer-events:auto;
+  transform:translateX(-50%) translateY(0);
+  transition:opacity .16s ease, transform .16s ease, visibility 0s}
+.dash-hero .dh-cards .tcards{margin:0;max-width:none;grid-template-columns:repeat(5,1fr);gap:8px}
+.dash-hero .dh-cards .tcard{padding:11px 13px}
+@media (max-width:1180px){
+  .dash-hero .dh-cards{width:min(780px,calc(100vw - 80px))}
+  .dash-hero .dh-cards .tcards{grid-template-columns:repeat(3,1fr)}
+}
 @keyframes dhBreathe{0%,100%{opacity:.55}50%{opacity:1}}
 @media (prefers-reduced-motion: reduce){ .dash-hero .dh-mark{animation:none;opacity:.9} }
 
@@ -168,7 +185,7 @@ b, strong { font-weight: 600; }
   /* §3 type scale — only two sizes exist in the chrome. */
   --cc-fs-sm: 13px; --cc-fs-xs: 12px; --cc-lh-sm: 20px; --cc-lh-xs: 16px;
   /* §4 structural metrics */
-  --cc-titlebar-h:36px; --cc-sidebar-w:370px; --cc-nav-row-h:26px; --cc-nav-row-pitch:28px;
+  --cc-titlebar-h:44px; --cc-sidebar-w:370px; --cc-nav-row-h:26px; --cc-nav-row-pitch:28px;
   --cc-content-max-w:768px; --cc-panel-w:512px; --cc-composer-h:44px; --cc-button-h:24px;
   --cc-pill-h:20px; --cc-scrollbar-w:6px;
 }
