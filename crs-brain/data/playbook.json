@@ -334,5 +334,19 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T17:53:10.148Z"
+  },
+  {
+    "id": "e9203cc8",
+    "category": "decision-pointer",
+    "trigger": "brain app design, brain app ui, tokens.css, restyle, accent colour, app look, theme",
+    "rule": "The BRAIN APP has its own Claude-Code-style look since 2026-08-06 � it deliberately does NOT follow the CRS product design system palette.",
+    "fix": "Brain-app UI: use crs-brain/public/tokens.css (warm near-black surfaces, rust accent #C86E4E/#B45B36, radii 8/6/6/10/4, near-flat shadows). The CRS PRODUCT (Bubble app + all prototypes) still follows design/tokens.css + CRS-design-system.md �2.10 � never cross the two. Rules that still bind the app: tokens-only, default body text --text-secondary, active = bg+text only, greyscale toggles, cards border-only, no glow. See decisions.md 2026-08-06.",
+    "errorSig": "",
+    "source": "manual · 2026-08-06",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-06T18:05:21.699Z"
   }
 ]
