@@ -128,7 +128,12 @@ b, strong { font-weight: 600; }
  * The starter prompts are HIDDEN until the mark (or its greeting) is hovered
  * or focused; they are absolutely positioned so revealing them never shifts
  * the greeting off centre. */
-.dash-hero{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
+/* ONE CHOREOGRAPHY (Vlad 2026-08-07: "must be flawlessly synced"). The nucleus
+ * shrinking, the atom fading up and the cards arriving are one gesture, so they
+ * share a single trigger (.dh-stack:hover / :focus-within), a single easing and
+ * a single pair of durations. Change these three vars and all three move together. */
+.dash-hero{--dh-open:520ms;--dh-close:360ms;--dh-ease:cubic-bezier(.32,.72,0,1);
+  min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:64px 24px;text-align:center}
 .dash-hero .dh-stack{position:relative;display:flex;flex-direction:column;align-items:center}
 .dash-hero .dh-id{display:flex;flex-direction:column;align-items:center;gap:12px;padding:8px 18px 14px;border-radius:8px;cursor:default;transition:var(--transition)}
 .dash-hero .dh-id:focus-visible{outline:none;box-shadow:inset 0 0 0 1px var(--cc-border-focus)}
@@ -142,18 +147,20 @@ b, strong { font-weight: 600; }
  * ink only (Clay stays reserved for the spark glyph), and gone entirely under
  * prefers-reduced-motion. It overflows the 72px mark on purpose. */
 .dash-hero .dh-mark .dh-cosmos{position:absolute;left:50%;top:50%;width:210px;height:210px;margin:0;
-  transform:translate(-50%,-50%);pointer-events:none;overflow:visible;opacity:0;transition:opacity .38s ease .04s}
+  transform:translate(-50%,-50%);pointer-events:none;overflow:visible;opacity:0;
+  transition:opacity var(--dh-close) var(--dh-ease)}
 .dash-hero .dh-stack:hover .dh-cosmos,
-.dash-hero .dh-stack:focus-within .dh-cosmos{opacity:1;transition:opacity .5s ease}
+.dash-hero .dh-stack:focus-within .dh-cosmos{opacity:1;transition:opacity var(--dh-open) var(--dh-ease)}
 /* the mark itself goes gradient and hue-shifts, exactly like the chat thinking brain */
 .dash-hero .dh-stack:hover .dh-mark,
 .dash-hero .dh-stack:focus-within .dh-mark{animation:dhThink 3.6s ease-in-out infinite}
 /* on hover the glyph eases DOWN into a small nucleus and everything floats
    around it (Vlad 2026-08-07) — transform needs its own transition, the global
    one only covers colours */
-.dash-hero .dh-mark svg:not(.dh-cosmos){transform-origin:50% 50%;transition:transform .6s cubic-bezier(.32,.72,0,1)}
+.dash-hero .dh-mark svg:not(.dh-cosmos){transform-origin:50% 50%;transition:transform var(--dh-close) var(--dh-ease)}
 .dash-hero .dh-stack:hover .dh-mark svg:not(.dh-cosmos),
-.dash-hero .dh-stack:focus-within .dh-mark svg:not(.dh-cosmos){transform:scale(.4);stroke:url(#g-ai);animation:aihue 14s linear infinite}
+.dash-hero .dh-stack:focus-within .dh-mark svg:not(.dh-cosmos){transform:scale(.4);stroke:url(#g-ai);
+  transition:transform var(--dh-open) var(--dh-ease);animation:aihue 14s linear infinite}
 /* the whole field drifts through the spectrum, exactly like the chat brain's aihue */
 .dash-hero .dh-stack:hover .dh-cosmos,
 .dash-hero .dh-stack:focus-within .dh-cosmos{animation:dhcHue 28s linear infinite}
@@ -209,18 +216,19 @@ b, strong { font-weight: 600; }
 /* Hit-testing is governed by `visibility` ALONE — never pointer-events. A
    pointer-events toggle keyed on :hover reverts the instant the pointer leaves
    the mark, so the cards could never receive the hover that keeps them open.
-   visibility carries a .44s exit delay, so they stay hittable while you travel
-   to them. padding-top bridges the gap so there is no dead strip to cross. */
+   The cards sit flush under .dh-id (top:100% of a stack whose height IS .dh-id)
+   with padding-top as the bridge, so there is no dead strip to cross.
+   TRIGGER: .dh-stack:hover — the SAME condition that drives the nucleus and the
+   atom, so all three start on the identical event with identical timing. The
+   stack contains both the mark and the cards, so travelling between them never
+   drops the state. */
 .dash-hero .dh-cards{position:absolute;top:100%;left:50%;padding-top:12px;width:min(1060px,calc(100vw - 120px));opacity:0;visibility:hidden;
   transform:translateX(-50%) translateY(-4px);
-  transition:opacity .16s ease .28s, transform .16s ease .28s, visibility 0s linear .44s}
-.dash-hero .dh-id:hover ~ .dh-cards,
-.dash-hero .dh-id:focus-visible ~ .dh-cards,
-.dash-hero .dh-id:focus-within ~ .dh-cards,   /* any focus, not just the :focus-visible heuristic — otherwise Tab skips hidden cards */
-.dash-hero .dh-cards:hover,
-.dash-hero .dh-cards:focus-within{opacity:1;visibility:visible;
+  transition:opacity var(--dh-close) var(--dh-ease), transform var(--dh-close) var(--dh-ease), visibility 0s linear var(--dh-close)}
+.dash-hero .dh-stack:hover .dh-cards,
+.dash-hero .dh-stack:focus-within .dh-cards{opacity:1;visibility:visible;
   transform:translateX(-50%) translateY(0);
-  transition:opacity .16s ease, transform .16s ease, visibility 0s}
+  transition:opacity var(--dh-open) var(--dh-ease), transform var(--dh-open) var(--dh-ease), visibility 0s}
 .dash-hero .dh-cards .tcards{margin:0;max-width:none;grid-template-columns:repeat(5,1fr);gap:8px}
 .dash-hero .dh-cards .tcard{padding:11px 13px}
 @media (max-width:1180px){

@@ -59,6 +59,20 @@ the defs). It was recovered from `f609abb` and restored, then scaled up for the 
 - Rigs: `probe-thinking-brain.js` (8 checks, builds the indicator by injecting
   `brainHtml()` so **no model call is spent**) and `shoot-atom.js` (14 checks).
 
+**Hover choreography is now ONE gesture.** Vlad: *"animation timing of cards appearing
+and the brain shrinking and galaxy around must be flawlessly synced"*. They were three
+separate transitions — 0.6s cubic-bezier on the shrink, 0.38s ease +0.04s delay on the
+atom, 0.16s ease +0.28s delay on the cards — and worse, two different triggers
+(`.dh-stack:hover` for the atom, `.dh-id:hover ~` for the cards). Now:
+- Three vars on `.dash-hero` — `--dh-open:520ms`, `--dh-close:360ms`, `--dh-ease` — drive
+  all three. Change them in one place and everything still moves together.
+- **One trigger for all three: `.dh-stack:hover` / `:focus-within`.** The stack contains
+  both the mark and the cards, so travelling between them can never drop the state, and
+  the old exit-delay hack that existed to survive that travel is gone.
+- `probe-sync.js` samples the shrink (from the transform matrix), the atom opacity and the
+  card opacity *together* mid-flight and asserts their progress spread stays ≤0.1 — it
+  measures 0.000 on both open and close.
+
 **Third cut — the atom, rebuilt from web research.** Two rejections first:
 dashed rings ("dashed and static") and a 7-dot follower trail ("looks like a snake
 game / terrible"). The trail failed for a measurable reason: on a 223-unit orbit the
