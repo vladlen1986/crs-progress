@@ -7,19 +7,23 @@
  *    GET /api/usage is a plain file read, so polling it is free — but the file
  *    only advances when Claude Code actually renders. That is why the footer
  *    always states how old the reading is instead of implying it is real-time.
- *  - The context window row goes live the moment THIS app is running a turn: the
- *    stream reports token counts per message, so during a turn we show the real
- *    figure and fall back to the last statusline reading when idle.
- *  - POST /api/usage/populate is NEVER on a timer: it drives a real interactive
- *    claude session to force a fresh statusline, i.e. it spends a real turn. It
- *    stays a manual button.
+ *  - The context row is THIS CHAT's, from /api/usage/chat — the newest turn's
+ *    input tokens (whole replayed conversation + cache reads) against that
+ *    model's window, and live from the stream while a turn runs. usage.json's own
+ *    context_window belongs to whatever interactive session last rendered a
+ *    statusline, which is a different conversation entirely.
+ *  - Refresh (and the opt-in 3-minute auto) calls POST /api/usage/populate, which
+ *    drives one tiny HAIKU turn to force a statusline render. That is the only
+ *    mechanism that exists — Claude Code has no usage command, and headless
+ *    `claude -p` turns never fire the statusline hook. Auto is off by default,
+ *    pauses on a hidden tab, and never fires mid-turn.
  *
  * Conventions copied from js/livemap.js: fixed panel at z-index 260, pointer-
  * capture drag, position + open state in localStorage, header button toggles it.
  */
 (function () {
   if (window.USAGEWIN) return;
-  const LS_POS = 'crs-usagewin-pos', LS_OPEN = 'crs-usagewin-open';
+  const LS_POS = 'crs-usagewin-pos', LS_OPEN = 'crs-usagewin-open', LS_AUTO = 'crs-usagewin-auto';
   const W = 372;
   const $ = (id) => document.getElementById(id);
 
@@ -45,10 +49,14 @@
   #uwPanel .uw-foot{display:flex;align-items:center;gap:8px;color:var(--text-muted);margin-top:13px;padding-top:11px;border-top:1px solid var(--cc-border-divider)}
   #uwPanel .uw-live{width:6px;height:6px;border-radius:50%;background:var(--good);flex:0 0 6px}
   #uwPanel .uw-live.stale{background:var(--muted)}
-  #uwPanel .uw-refresh{margin-left:auto;background:none;border:1px solid var(--line2);color:var(--text-secondary);border-radius:var(--radius-btn);height:22px;padding:0 9px;font-size:12px;font-family:inherit;cursor:pointer}
+  #uwPanel .uw-refresh{background:none;border:1px solid var(--line2);color:var(--text-secondary);border-radius:var(--radius-btn);height:22px;padding:0 9px;font-size:12px;font-family:inherit;cursor:pointer}
   #uwPanel .uw-refresh:hover:not(:disabled){color:var(--text-primary);border-color:var(--line3)}
   #uwPanel .uw-refresh:disabled{opacity:.5;cursor:default}
   #uwPanel .uw-empty{color:var(--text-muted);line-height:1.5}
+  #uwPanel .uw-cap{margin-top:5px;font-size:12px;color:var(--cc-text-faint)}
+  #uwPanel .uw-auto{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);cursor:pointer;user-select:none;margin-left:auto}
+  #uwPanel .uw-auto input{margin:0}
+  #uwPanel .uw-refresh{margin-left:8px}
   @media (max-width:900px){#uwPanel,#usageWinBtn{display:none!important}}`;
   document.head.appendChild(css);
 
@@ -117,62 +125,119 @@
       + `<div class="uw-bar"><span style="width:${p}%;background:${barColor(p)}"></span></div></div>`;
   }
 
-  let busy = false;
+  let busy = false, chatCtx = null, autoTimer = null;
+
+  // Pretty name for the model the BRAIN is running. The old header showed
+  // usage.json's `model`, which is whatever INTERACTIVE Claude Code session last
+  // rendered a statusline — a different session on a different model, which is
+  // why it read "Opus 4.7 (1M context)" while the app was on Sonnet 5.
+  // index.html declares `state` with let at the top level of its inline script,
+  // which makes it a LEXICAL global — never a property of window. Reading
+  // window.state silently yields undefined, so probe the bare identifier.
+  const curChat = () => { try { return state.chatId || ''; } catch (e) { return ''; } };
+  const liveTurn = () => { try { return !!(state.live && !state.live.done); } catch (e) { return false; } };
+  function brainModel() {
+    try {
+      if (typeof genModel === 'string' && genModel) return modelNice(genModel);
+      if (chatCtx && chatCtx.model) return modelNice(chatCtx.model);
+      const sel = document.getElementById('modelSel');
+      if (sel) { const o = sel.querySelector('option[value=auto]'); if (sel.value === 'auto' && o && /·/.test(o.textContent)) return o.textContent.split('·')[1].trim(); if (sel.value !== 'auto') return modelNice(sel.value); }
+    } catch (e) {}
+    return '';
+  }
+  // Every window the payload carries, not a hardcoded pair. Claude Code exposes
+  // five_hour and seven_day today; if it ever adds per-model weekly buckets
+  // (seven_day_opus, …) they appear here automatically instead of being dropped.
+  const WINDOW_NAMES = { five_hour: '5-hour limit', seven_day: 'Weekly · all models' };
+  function windowLabel(key) {
+    if (WINDOW_NAMES[key]) return WINDOW_NAMES[key];
+    const m = /^seven_day_(.+)$/.exec(key);
+    if (m) return 'Weekly · ' + m[1].replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
+  }
+
   function render(d, enabled) {
     const body = $('uwBody'), sub = $('uwSub');
     if (!enabled) {
       body.innerHTML = '<div class="uw-empty">Usage tracking is off. Turn it on in Settings → Usage to install the statusline hook that reports your plan limits.</div>';
       sub.textContent = 'off'; return;
     }
-    if (!d) { body.innerHTML = '<div class="uw-empty">No reading yet. Use Claude Code once, or press Refresh.</div>'; sub.textContent = ''; return; }
     let h = '';
-    // context window — live during a turn, last statusline reading when idle
-    const live = window.state && state.live && !state.live.done;
-    const cw = d.context_window || {};
-    if (cw.context_window_size) {
-      const used = live && typeof genIn === 'number' && genIn
-        ? genIn
-        : (cw.current_usage
-          ? (cw.current_usage.input_tokens || 0) + (cw.current_usage.cache_read_input_tokens || 0) + (cw.current_usage.cache_creation_input_tokens || 0)
-          : Math.round(cw.context_window_size * (cw.used_percentage || 0) / 100));
-      const pct = Math.min(100, used / cw.context_window_size * 100);
-      h += row('Context window', num(used) + ' / ' + num(cw.context_window_size), pct);
+    // ---- context window: THIS chat, not the statusline's session -------------
+    const live = liveTurn();
+    const liveIn = (typeof genIn === 'number' && genIn) ? genIn : 0;
+    if (chatCtx && (chatCtx.used || liveIn)) {
+      const used = live && liveIn ? liveIn : chatCtx.used;
+      const size = chatCtx.size || 1000000;
+      h += row('Context window', num(used) + ' / ' + num(size), Math.min(100, used / size * 100));
+      h += '<div class="uw-cap">this chat · ' + (chatCtx.turns || 0) + ' turn' + (chatCtx.turns === 1 ? '' : 's')
+        + (live && liveIn ? ' · live' : chatCtx.estimated ? ' · estimated from the transcript' : '') + '</div>';
+    } else {
+      h += '<div class="uw-empty" style="margin-bottom:12px">No turns in this chat yet — the context bar fills once you send something.</div>';
     }
-    const rl = d.rate_limits || {};
-    if (rl.five_hour || rl.seven_day) {
+    // ---- plan limits ---------------------------------------------------------
+    const rl = (d && d.rate_limits) || {};
+    const keys = Object.keys(rl).filter((k) => rl[k] && typeof rl[k].used_percentage === 'number');
+    if (keys.length) {
       h += '<div class="uw-sec">Plan usage limits</div>';
-      if (rl.five_hour) h += row('5-hour limit', resetIn(rl.five_hour.resets_at), rl.five_hour.used_percentage || 0);
-      if (rl.seven_day) h += row('Weekly · all models', resetIn(rl.seven_day.resets_at), rl.seven_day.used_percentage || 0);
+      keys.sort((a, b) => (a === 'five_hour' ? -1 : b === 'five_hour' ? 1 : a.localeCompare(b)));
+      for (const k of keys) h += row(windowLabel(k), resetIn(rl[k].resets_at), rl[k].used_percentage || 0);
+    } else {
+      h += '<div class="uw-sec">Plan usage limits</div><div class="uw-empty">No reading yet — press Refresh.</div>';
     }
-    // Claude Code's statusline exposes exactly these two windows — there is no
-    // per-model weekly bucket in the payload, so none is invented here.
-    const stale = !d.rate_limits_at || (Date.now() - d.rate_limits_at) > 30 * 60 * 1000;
-    h += `<div class="uw-foot"><span class="uw-live${stale ? ' stale' : ''}"></span>`
-      + `<span>Limits read ${esc(ago(d.rate_limits_at || d.at))}</span>`
-      + `<button class="uw-refresh" id="uwRefresh"${busy ? ' disabled' : ''} title="Drives one real Claude Code turn to force a fresh statusline reading">${busy ? 'Fetching…' : 'Refresh'}</button></div>`;
+    const stale = !d || !d.rate_limits_at || (Date.now() - d.rate_limits_at) > 6 * 60 * 1000;
+    h += '<div class="uw-foot"><span class="uw-live' + (stale ? ' stale' : '') + '"></span>'
+      + '<span>' + (busy ? 'Refreshing…' : 'Limits read ' + esc(ago(d && (d.rate_limits_at || d.at)))) + '</span>'
+      + '<label class="uw-auto" title="Refresh the plan limits every 3 minutes. Each refresh runs one tiny Haiku turn — the only way to make Claude Code emit a fresh reading.">'
+      + '<input type="checkbox" id="uwAuto"' + (autoOn() ? ' checked' : '') + '> auto</label>'
+      + '<button class="uw-refresh" id="uwRefresh"' + (busy ? ' disabled' : '') + '>Refresh</button></div>';
     body.innerHTML = h;
-    sub.textContent = d.model || '';
+    sub.textContent = brainModel();
     const rb = $('uwRefresh');
-    if (rb) rb.onclick = async () => {
-      busy = true; render(d, enabled);
-      try { await fetch('/api/usage/populate', { method: 'POST' }); } catch {}
-      busy = false; await tick();
-    };
+    if (rb) rb.onclick = () => populate();
+    const ab = $('uwAuto');
+    if (ab) ab.onchange = () => { localStorage.setItem(LS_AUTO, ab.checked ? '1' : '0'); armAuto(); };
+  }
+
+  // The ONLY way to get a fresh rate-limit reading: Claude Code's statusline hook
+  // fires in interactive sessions after an API response, so the server drives one
+  // tiny Haiku turn. That costs a fraction of a cent, which is what makes putting
+  // it on a timer defensible at all — it is still opt-in.
+  async function populate() {
+    if (busy) return;
+    busy = true; await tick();
+    try { await fetch('/api/usage/populate', { method: 'POST' }); } catch (e) {}
+    busy = false; await tick();
+  }
+  const autoOn = () => localStorage.getItem(LS_AUTO) === '1';
+  function armAuto() {
+    if (autoTimer) clearInterval(autoTimer);
+    autoTimer = null;
+    if (!autoOn() || panel.style.display === 'none') return;
+    autoTimer = setInterval(() => {
+      if (panel.style.display === 'none') return;
+      if (document.hidden) return;                       // don't burn turns on a hidden tab
+      if (liveTurn()) return;   // never mid-turn
+      populate();
+    }, 3 * 60 * 1000);
   }
 
   async function tick() {
     if (panel.style.display === 'none') return;
     try {
-      const r = await fetch('/api/usage');
-      const j = await r.json();
-      render(j.data, j.enabled);
-    } catch { /* server down — keep the last paint */ }
+      const id = curChat();
+      const [r, c] = await Promise.all([
+        fetch('/api/usage').then((x) => x.json()),
+        id ? fetch('/api/usage/chat?id=' + encodeURIComponent(id)).then((x) => x.json()).catch(() => null) : Promise.resolve(null),
+      ]);
+      chatCtx = (c && c.ok) ? c : null;
+      render(r.data, r.enabled);
+    } catch (e) { /* server down — keep the last paint */ }
   }
-
-  // Poll while OPEN only (the endpoint is a file read, so this is free), and
-  // repaint faster during a turn so the context-window row tracks it live.
+  // Poll while OPEN only. /api/usage and /api/usage/chat are both plain file
+  // reads, so this is free; 4s keeps the context row close to a running turn.
   let timer = null;
-  function startLoop() { stopLoop(); tick(); timer = setInterval(tick, 10000); }
+  function startLoop() { stopLoop(); tick(); timer = setInterval(tick, 4000); }
   function stopLoop() { if (timer) clearInterval(timer); timer = null; }
 
   function setOpen(on) {
@@ -180,7 +245,7 @@
     localStorage.setItem(LS_OPEN, on ? '1' : '0');
     const btn = $('usageWinBtn');
     if (btn) btn.classList.toggle('on', on);
-    if (on) { place(); startLoop(); requestAnimationFrame(place); } else stopLoop();
+    if (on) { place(); startLoop(); armAuto(); requestAnimationFrame(place); } else { stopLoop(); if (autoTimer) clearInterval(autoTimer); autoTimer = null; }
   }
   panel.querySelector('#uwX').onclick = () => setOpen(false);
 

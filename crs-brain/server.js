@@ -1633,11 +1633,15 @@ function populateUsage() {
     // node-pty's posix_spawnp doesn't reliably resolve 'claude' via PATH — use the
     // full binary path (found via extended PATH) so the pty can exec it.
     const file = isWin ? 'cmd.exe' : (resolveBin('claude') || 'claude');
-    // Use the user's DEFAULT model — don't force Haiku. Forcing a model made the
-    // usage panel report that model (e.g. "Haiku 4.5") instead of what the user
-    // actually runs. rate_limits are subscription-wide, so the probe model doesn't
-    // change the numbers; the honest thing is to reflect their real default.
-    const args = (isWin ? ['/c', 'claude'] : []);
+    // Probe on the CHEAPEST model (2026-08-07). The old comment here said not to
+    // force one, because forcing Haiku made the panel report "Haiku 4.5" as the
+    // model. That was a DISPLAY bug, now fixed at the source: the window shows the
+    // model the BRAIN is running, never the probe's. rate_limits are
+    // subscription-wide, so the probe model does not change the numbers — and a
+    // Haiku probe is cheap enough to run on a timer, which is what makes the
+    // reading actually stay fresh.
+    const probeModel = 'claude-haiku-4-5-20251001';
+    const args = (isWin ? ['/c', 'claude', '--model', probeModel] : ['--model', probeModel]);
 
     let term;
     try {
@@ -3739,7 +3743,7 @@ const server = http.createServer(async (req, res) => {
             sse({ type: 'detail', text: line });
           },
           onStatus: (s) => sse({ type: 'status', text: s }),
-          onUsage: (u) => sse({ type: 'usage', in: u.in, out: u.out }),
+          onUsage: (u) => { turnIn = u.in; turnOut = u.out; sse({ type: 'usage', in: u.in, out: u.out }); },
           onModelSwitch: (m) => { liveModel = m.to || liveModel; const lt = LIVE_TURNS.get(chat.id); if (lt) lt.model = liveModel; sse({ type: 'model-switch', from: m.from, to: m.to, reason: m.reason }); },
           onRetry: (r) => {
             // Transient CLI death recovered pre-output — show it instead of dying silently.
@@ -3757,7 +3761,7 @@ const server = http.createServer(async (req, res) => {
         chat.updated = completedAt;
         // Persist whatever was produced — even a partial reply from Stop — so it
         // survives reload and can be continued from the same session.
-        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(liveModel ? { model: liveModel } : {}), ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
+        chat.messages.push({ role: 'assistant', content: finalText, ts: completedAt, startedAt, completedAt, ...(liveModel ? { model: liveModel } : {}), ...(turnIn ? { tokensIn: turnIn, tokensOut: turnOut } : {}), ...(steps.length ? { steps } : {}), ...(result.aborted ? { partial: true } : {}) });
         if (usedBuildprint && !chat.bp) chat.bp = true;   // auto-tag from real tool use
         saveChat(chat);
         autoCommit(chat.title);
@@ -3923,6 +3927,31 @@ const server = http.createServer(async (req, res) => {
       return res.end();
     }
 
+    // Context actually in play for ONE chat: the newest turn's input tokens (which
+    // include the whole replayed conversation plus cache reads) against that
+    // model's window. usage.json's context_window belongs to whatever interactive
+    // session last rendered a statusline — a different conversation entirely.
+    if (p === '/api/usage/chat' && req.method === 'GET') {
+      const c = loadChat((u.searchParams.get('id') || '').toString());
+      if (!c) return send(res, 200, { ok: false });
+      let last = null, lastModel = '';
+      for (const m of c.messages || []) {
+        if (m.role !== 'assistant') continue;
+        if (m.model) lastModel = m.model;
+        if (m.tokensIn) last = m;
+      }
+      const size = /opus-4-8|1m|sonnet-5|opus-5/i.test(lastModel) ? 1000000 : 200000;
+      // tokensIn is only recorded from 2026-08-07 onward, so older chats have no
+      // measured figure. Rather than show an empty bar, estimate from the
+      // transcript (~4 chars per token) and SAY it is an estimate.
+      let used = last ? last.tokensIn : 0, estimated = false;
+      if (!used) {
+        const chars = (c.messages || []).reduce((n, m) => n + String(m.content || '').length, 0);
+        used = Math.round(chars / 4);
+        estimated = used > 0;
+      }
+      return send(res, 200, { ok: true, model: lastModel, used, out: last ? last.tokensOut : 0, size, estimated, at: last ? last.completedAt : null, turns: (c.messages || []).filter((m) => m.role === 'user').length });
+    }
     if (p === '/api/usage' && req.method === 'GET') {
       return send(res, 200, { enabled: usageEnabled(), data: loadUsage() });
     }

@@ -1168,6 +1168,16 @@
       "auto": {
         "key": "smoke:scaffold-token-markers"
       }
+    },
+    {
+      "id": "d0b2a515",
+      "title": "Client error ×3: Uncaught ReferenceError: tick is not defined",
+      "status": "todo",
+      "created": "2026-08-06T22:37:58.073Z",
+      "notes": "ReferenceError: tick is not defined\n    at http://localhost:4317/js/usagewin.js:233:14\n    at http://localhost:4317/js/usagewin.js:236:3",
+      "auto": {
+        "key": "clienterr:Uncaught ReferenceError: tick is not defined"
+      }
     }
   ]
 }

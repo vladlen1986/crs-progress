@@ -33,6 +33,33 @@ npm install              # ONE-TIME, optional — builds node-pty for THIS OS so
 
 ---
 
+## Session 2026-08-07 (Windows) — usage window: four real fixes
+
+All four complaints were valid; the first version shipped with them.
+- **The header said "Opus 4.7 (1M context)"** because it printed `usage.json`'s `model`,
+  which is whatever INTERACTIVE Claude Code session last rendered a statusline — a
+  different session on a different model. It now shows the model the BRAIN is running
+  (live routed model → this chat's last model → the composer pick).
+- **Per-model weekly buckets** are no longer dropped: the rows are generated from
+  every key in `rate_limits`, with `seven_day_<model>` rendered as "Weekly · <Model>".
+  Standing fact: this Claude Code build emits exactly `five_hour` and `seven_day`, so
+  a Fable row only appears if/when the payload carries one. Nothing is invented.
+- **The context row is now THIS CHAT's** (`GET /api/usage/chat`): the newest turn's
+  input tokens — whole replayed conversation plus cache reads — against that model's
+  window, live from the stream while a turn runs. `tokensIn/tokensOut` are persisted on
+  each assistant message from now on; older chats fall back to a transcript estimate,
+  labelled "estimated from the transcript" rather than shown as measured.
+- **"Limits read 9m ago"**: the poll was already 10s (now 4s) — the SOURCE was stale.
+  Claude Code has no usage command and headless `claude -p` never fires the statusline
+  hook, so the only way to force a fresh reading is an interactive session. The probe now
+  runs on **Haiku** instead of the user's default model (the old comment forbade this
+  because forcing a model made the panel report it — that was a display bug, fixed above),
+  which makes it cheap enough to offer an opt-in **auto-refresh every 3 minutes**. Off by
+  default, paused on a hidden tab, never mid-turn.
+- **Gotcha worth remembering:** `index.html` declares `state` with `let` at the top level
+  of its inline script, so it is a LEXICAL global and `window.state` is `undefined`. The
+  window read `window.state.chatId` and silently got nothing. Bare identifier, guarded.
+
 ## Session 2026-08-07 (Windows) — Ask Protocol v2: no question can reach Vlad as prose
 
 Goal, verbatim: *"I never want to receive a question as a plain-text paragraph in a chat

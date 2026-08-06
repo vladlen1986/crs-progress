@@ -21,8 +21,12 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   check('closed by default', await p.evaluate(() => document.getElementById('uwPanel').style.display === 'none'));
   check('header button exists', await p.evaluate(() => !!document.getElementById('usageWinBtn')));
 
+  // open a real chat first — the context row is scoped to the OPEN chat, so on
+  // the home screen it correctly has nothing to show
+  const cid = await p.evaluate(async () => { const r = await fetch('/api/chats'); const j = await r.json(); const c = (j.chats||[])[0]; if (c) await openChat(c.id); return c ? c.id : null; });
+  await sleep(2200);
   await p.click('#usageWinBtn');
-  await sleep(1200);
+  await sleep(1600);
   const open = await p.evaluate(() => {
     const el = document.getElementById('uwPanel'); const r = el.getBoundingClientRect();
     return {
@@ -41,15 +45,19 @@ const check = (n, ok, d) => { console.log((ok ? 'PASS' : 'FAIL'), n, d || ''); i
   });
   check('opens from the header', open.shown && open.btnOn, JSON.stringify({ shown: open.shown, on: open.btnOn }));
   check('floats above everything, on screen', open.pos === 'fixed' && open.z === '260' && open.onScreen, `${open.pos}/${open.z}/${open.onScreen}`);
-  check('shows context window + both plan limits', open.rows.join('|') === 'Context window|5-hour limit|Weekly · all models', JSON.stringify(open.rows));
-  check('every row has a real bar and a percentage', open.bars.length === 3 && open.bars.every((w) => /%$/.test(w)) && open.pcts.every((t) => /^\d+%$/.test(t)), JSON.stringify([open.bars, open.pcts]));
+  check('shows context window + every plan-limit window', open.rows[0] === 'Context window' && open.rows.includes('5-hour limit') && open.rows.some((r) => /^Weekly/.test(r)), JSON.stringify(open.rows));
+  check('every row has a real bar and a percentage', open.bars.length >= 3 && open.bars.every((w) => /%$/.test(w)) && open.pcts.every((t) => /^\d+%$/.test(t)), JSON.stringify([open.bars, open.pcts]));
   check('reset times are shown', open.metas.some((m) => /Resets/.test(m)), JSON.stringify(open.metas));
   check('reading age is stated, not implied live', /Limits read/.test(open.foot), open.foot.slice(0, 60));
-  check('model label in the title bar', open.sub.length > 0, open.sub);
+  check("title bar shows the BRAIN's model, not the statusline session's", open.sub.length > 0 && !/4\.7/.test(open.sub), open.sub);
+  const ctx = await p.evaluate(() => { const el=[...document.querySelectorAll('#uwPanel .uw-cap')][0]; return el?el.textContent:''; });
+  check('context row is scoped to THIS chat', /this chat/.test(ctx), ctx);
+  const auto = await p.evaluate(() => { const a=document.getElementById('uwAuto'); return a?{present:true,on:a.checked}:null; });
+  check('auto-refresh exists and is OFF by default', auto && auto.present && !auto.on, JSON.stringify(auto));
 
   // it refreshes itself — no clicking
   const before = calls.filter((c) => c === 'GET /api/usage').length;
-  await sleep(11000);
+  await sleep(9000);
   const after = calls.filter((c) => c === 'GET /api/usage').length;
   check('refreshes itself while open', after > before, `${before} -> ${after} GET /api/usage`);
   check('never auto-triggers the expensive populate', !calls.some((c) => /populate/.test(c)), JSON.stringify(calls.filter((c) => /populate/.test(c))));
