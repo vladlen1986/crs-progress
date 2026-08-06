@@ -4,7 +4,7 @@
   "sessionId": "d30fa174-36b8-4e14-b3a3-8d8908bfa573",
   "bp": false,
   "created": "2026-08-06T21:40:34.551Z",
-  "updated": "2026-08-06T21:47:57.907Z",
+  "updated": "2026-08-06T21:49:27.266Z",
   "messages": [
     {
       "role": "user",
@@ -360,6 +360,57 @@
       "ts": "2026-08-06T21:47:57.907Z",
       "startedAt": "2026-08-06T21:47:21.884Z",
       "completedAt": "2026-08-06T21:47:57.907Z",
+      "model": "claude-sonnet-5",
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-routing: standard task → Sonnet 5, medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Auto-effort: standard task → medium effort",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
+    },
+    {
+      "role": "user",
+      "content": "but property belongs to company eg company has multiple properties, so if privicy by proeprty is good",
+      "ts": "2026-08-06T21:49:12.129Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "You're right that property-only *is* sound for isolation — a property can't belong to two companies, so matching on property alone can't leak cross-tenant. That part of your logic holds.\n\nBut that wasn't the objection. The objection is **company-wide visibility**, which you haven't answered yet: does any role in CRS need to see across multiple properties in the same company (Owner, Company Admin, corporate reporting), or is it strictly \"one user, one property, zero rollup, ever\"?\n\nIf it's the latter — property-only is not just fine, it's *better* (simpler rules, fewer fields, less to get wrong). If it's the former, property-only forces every one of those rollup queries into a `This Thing's property's company is Current User's property's company` traversal instead of a direct field match, which is measurably worse in Bubble as data grows (`brain/bubble-performance/INDEX.md` — traversal constraints don't use indexes the way direct FK constraints do; more WU per search, worse at 5M records).\n\nScale test: at 500 properties under one enterprise casino group, does a corporate compliance officer ever run a report across all of them? If yes → you need `company` as a direct field regardless of what you do with `property`. If no → drop it.\n\nWhich is it?",
+      "ts": "2026-08-06T21:49:27.266Z",
+      "startedAt": "2026-08-06T21:49:12.129Z",
+      "completedAt": "2026-08-06T21:49:27.266Z",
       "model": "claude-sonnet-5",
       "steps": [
         {
