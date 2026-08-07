@@ -443,7 +443,8 @@ function logEntry(subject, action, detail, agoMin, actor){
 }
 USERS.forEach((u,i)=>{
   const seed = hash(u._id+'act');
-  logEntry(u._id,'user_created','Created from employee record · role “'+roleById(u.role).name+'”', 1440*(30+(seed%800)), i===0?null:'u005');
+  logEntry(u._id,'user_created','Created from employee record · role “'+roleById(u.role).name+'”',
+           (NOW - new Date(u.created_date)) / 60000, i===0?null:'u005');
   if(u.last_login) logEntry(u._id,'login_success','Chrome 141 · Windows 11', (seed%9)*60 + 30, u._id);
   if(seed % 4 === 0) logEntry(u._id,'role_assigned','Role set to “'+roleById(u.role).name+'”', 1440*(3+(seed%40)));
   if(seed % 5 === 0) logEntry(u._id,'password_reset_sent','Reset email sent to '+u.username, 1440*(1+(seed%20)));

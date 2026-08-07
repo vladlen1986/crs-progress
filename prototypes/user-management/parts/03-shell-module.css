@@ -35,10 +35,10 @@
 }
 .navsec__head:hover { color:var(--text-secondary); background:var(--bg-tertiary); }
 .navsec__chev { width:13px; height:13px; transition:transform var(--transition); }
-.navsec[data-open="true"] .navsec__chev { transform:rotate(90deg); }
+.navsec[data-expanded="true"] .navsec__chev { transform:rotate(90deg); }
 .navsec__count { margin-left:auto; font-family:var(--font-mono); font-size:10px; color:var(--text-disabled); }
 .navsec__items { display:none; padding-top:3px; }
-.navsec[data-open="true"] .navsec__items { display:block; }
+.navsec[data-expanded="true"] .navsec__items { display:block; }
 
 .navitem {
   width:100%; display:flex; align-items:center; gap:8px; height:32px; padding:0 8px;
@@ -102,8 +102,12 @@
 }
 .simchip svg { width:13px; height:13px; }
 .simchip__val { color:var(--text-primary); }
+.topbar > * { flex:none; }
+.crumbs, .simchip { white-space:nowrap; }
 
 .content { padding:22px 24px 60px; max-width:1560px; width:100%; }
+/* the view is focused programmatically on navigation — never paint a ring for that */
+.content:focus, .content:focus-visible { outline:none; box-shadow:none; }
 
 /* ───────── Page header ───────── */
 .page__head { display:flex; align-items:flex-start; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
@@ -322,6 +326,8 @@
   .rail { display:none; }
   .content { padding:18px 16px 60px; }
   .topsearch { display:none; }
+  .crumbs { display:none; }
+  .topbar { padding:0 12px; gap:8px; }
 }
 @media (max-width:640px) {
   .kpirow { grid-template-columns:repeat(2, minmax(0,1fr)); gap:8px; }
@@ -334,4 +340,10 @@
   .scrim { padding:16px; align-items:flex-end; }
   .kv { grid-template-columns:1fr; gap:2px 0; }
   .kv__k { margin-top:8px; }
+  .simchip__lbl { display:none; }
+  .page__actions { width:100%; }
+  .page__actions .btn { flex:1; }
+  .listrow { gap:10px; padding:11px 12px; }
+  .detail__acts { width:100%; margin-left:0; }
+  .detail__hero { gap:14px; }
 }

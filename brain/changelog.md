@@ -4,6 +4,21 @@ Append-only. One entry per ingest or manual brain update. Newest at top.
 
 ---
 
+## 2026-08-07 — User Management clickable prototype (`prototypes/user-management/`)
+
+**No Bubble changes** — design artefact only, no sync/savepoint/apply.
+
+- **New prototype** `prototypes/user-management/user-management.html` (206 KB, single self-contained file, opens over `file://`, zero network requests). Built from the v17 spec (`crs-brain/data/docs/user-management-spec.html`), `design/design.md`, and the **as-built** Bubble types read off branch `test`. Source parts in `parts/`, assembled by `node build.js` — never edit the HTML directly.
+- **Covers the full app shell**, not just the module: sidebar with all **46 modules / 7 sections + Pinned**, collapsible + searchable + pinnable, active state = bg + colour with **no border** (§10/§17); non-built modules render the **full-page Coming Soon** treatment.
+- **Module scope:** 7 click-to-filter KPI tiles, 4 views (table/list/cards/detail), filters + alphabet rail + filter chips + sorting + pagination (47 users, 25/page), bulk actions, quick-view drawer, 4-tab detail page, profile page, and 12 wired modals including the **type-`ANONYMIZE` GDPR flow**, create-user wizard with **temp password revealed once**, and 2FA enrolment.
+- **Permission simulator** in the topbar re-gates the entire UI across Admin / HR Manager / Surveillance Manager / Operator / Read Only — the directory becomes an access-denied panel for Operator. This is the first artefact that makes the 10 User-Management permissions *visible* rather than tabular.
+- **Naming truth captured while building:** the live `OS - Permission` set uses display labels `Users - View / Create / Edit / Deactivate / Reset Password` (+ menu gates), **not** the spec's dotted `admin.*` codes. The prototype shows both side by side. Also confirmed: live **User** has no `company` field (property-only) and no `two_fa_*`, `presence_*`, `is_anonymized` or `extra_permissions` — all four are spec-only and are labelled `SPEC` in `parts/04-data.js`.
+- **Open contradiction surfaced, not resolved:** `CLAUDE.md` + `decisions.md` + the v17 spec say per-user **extra permissions** exist; `design/design.md` §12.2 says "single permissions list on the Role (no per-user extras)". Prototype follows the majority (extras exist) and flags it. Needs a ruling.
+- Stale-doc note: `design/design.md` §11's per-section module counts (Admin/Core 9, Operations 5, Guests 5, Compliance 4, Communication 3) predate the 2026-04-28 final reconciliation. `crs-brain/data/modules.json` and `CLAUDE.md` (11/9/6/6/9/3/2 = 46) are authoritative.
+- Screenshots: `crs-brain/data/screenshots/user-management/` — directory + detail in both themes, cards, drawer, anonymize modal, profile, mobile 390.
+
+---
+
 ## 2026-08-06 — LG initiator export (live, read-only) + chat file-download button
 
 Two pieces of work. **No Bubble changes** — no savepoint/apply was needed for either.

@@ -1,0 +1,21 @@
+{
+  "name": "user-management",
+  "module": "user_management",
+  "status": "draft",
+  "created": "2026-08-07",
+  "entry": "user-management.html",
+  "build": "node build.js  (concatenates parts/* → user-management.html)",
+  "selfContained": true,
+  "themes": ["dark", "light"],
+  "viewports": ["1920x1080", "390x844"],
+  "notes": [
+    "Full app shell: sidebar with all 46 modules across the 7 locked sections + Pinned, per design.md §10.",
+    "Field names mirror the as-built Bubble types on branch `test` (User / Employee / Role / Property).",
+    "Spec-only fields (two_fa_enabled, presence_status, is_anonymized, extra_permissions) are labelled SPEC in parts/04-data.js.",
+    "Permission simulator in the topbar re-gates the entire UI as Admin / HR Manager / Surveillance Manager / Operator / Read Only.",
+    "Avatars are deterministic inline SVG portraits — no network requests, works over file://."
+  ],
+  "versions": [
+    { "v": 1, "note": "first build — directory (4 views), detail, profile, 12 modals, all flows clickable", "ts": "2026-08-07" }
+  ]
+}

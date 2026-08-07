@@ -407,8 +407,8 @@ function profPrefs(u){
         <div style="flex:1"><div style="color:var(--text-primary);font-size:12.5px;font-weight:600">Theme</div>
           <div style="font-size:11.5px;color:var(--text-muted);margin-top:2px">Dark is the default — built for 24/7 control rooms</div></div>
         <div class="seg seg--quiet">
-          <button class="seg__btn" data-theme="dark"  aria-pressed="${state.theme==='dark'}">${svg('moon')}Dark</button>
-          <button class="seg__btn" data-theme="light" aria-pressed="${state.theme==='light'}">${svg('sun')}Light</button>
+          <button class="seg__btn" data-set-theme="dark"  aria-pressed="${state.theme==='dark'}">${svg('moon')}Dark</button>
+          <button class="seg__btn" data-set-theme="light" aria-pressed="${state.theme==='light'}">${svg('sun')}Light</button>
         </div>
       </div>
       <div class="divider"></div>

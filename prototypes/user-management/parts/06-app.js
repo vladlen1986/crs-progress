@@ -82,7 +82,7 @@ function renderNav(){
 
 function navSection(title, items, isPinned){
   const open = state.navQuery ? true : (isPinned ? true : !!state.navOpen[title]);
-  return `<section class="navsec" data-open="${open}" data-sec="${esc(title)}">
+  return `<section class="navsec" data-expanded="${open}" data-sec="${esc(title)}">
     <button class="navsec__head" data-navsec="${esc(title)}" aria-expanded="${open}">
       ${svg('chevronR','navsec__chev')}<span>${esc(title)}</span>
       <span class="navsec__count">${items.length}</span>
@@ -134,8 +134,8 @@ function renderUserCard(){
     <div class="usermenu__theme">
       <span style="font-size:12.5px">Theme</span>
       <div class="seg seg--quiet">
-        <button class="seg__btn" data-theme="dark"  aria-pressed="${state.theme==='dark'}">${svg('moon')}Dark</button>
-        <button class="seg__btn" data-theme="light" aria-pressed="${state.theme==='light'}">${svg('sun')}Light</button>
+        <button class="seg__btn" data-set-theme="dark"  aria-pressed="${state.theme==='dark'}">${svg('moon')}Dark</button>
+        <button class="seg__btn" data-set-theme="light" aria-pressed="${state.theme==='light'}">${svg('sun')}Light</button>
       </div>
     </div>
     <div class="pop__sep"></div>
@@ -144,7 +144,7 @@ function renderUserCard(){
   $$('#userMenu [data-um]').forEach(b => b.onclick = () => {
     closePops(); const fn = rows[+b.dataset.um][2]; if (fn) fn();
   });
-  $$('#userMenu [data-theme]').forEach(b => b.onclick = () => setTheme(b.dataset.theme));
+  $$('#userMenu [data-set-theme]').forEach(b => b.onclick = () => setTheme(b.dataset.setTheme));
   $('#userMenu [data-signout]').onclick = () => { closePops(); toast('info','Signed out','Prototype — no session was actually ended.'); };
 }
 
@@ -155,7 +155,8 @@ function renderTopbar(){
   $('#bellBtn').innerHTML = svg('bell');
 
   const r = myRole();
-  $('#simBtn').innerHTML = `${svg('eye')}Viewing as <span class="simchip__val">${esc(r.name)}</span>${svg('chevronD')}`;
+  $('#simBtn').innerHTML = `${svg('eye')}<span class="simchip__lbl">Viewing as</span>
+    <span class="simchip__val">${esc(r.name)}</span>${svg('chevronD')}`;
   $('#simMenu').innerHTML = `<div class="pop__label">Preview permissions as</div>` +
     ROLES.map(x => `<button class="pop__item" data-role="${x.id}" aria-checked="${x.id===state.actingRole}">
         ${x.id===state.actingRole?svg('check'):'<span style="width:16px"></span>'}
