@@ -35,8 +35,8 @@
     "fix": "buildprint check flags any non-schema directory (e.g. .context/) at the workspace root as an invalid entry. Write scratch/analysis files OUTSIDE the worktree; rm -rf is guard-blocked, so stray files must be deleted individually before check passes.",
     "errorSig": "invalid workspace root entry",
     "source": "migrated from memory 2026-07-19",
-    "hits": 0,
-    "lastHit": null,
+    "hits": 1,
+    "lastHit": "2026-08-07T05:30:13.052Z",
     "recurred": 0,
     "status": "active",
     "created": "2026-07-19T00:21:07.753Z"
