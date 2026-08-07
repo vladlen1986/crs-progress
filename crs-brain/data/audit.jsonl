@@ -44,20 +44,6 @@
 {"ts":"2026-07-19T00:23:27.279Z","action":"playbook-retired","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.288Z","action":"playbook-active","target":"db198c67","via":"desktop","meta":null}
 {"ts":"2026-07-19T00:23:27.298Z","action":"playbook-edit","target":"db198c67","via":"desktop","meta":null}
-{"ts":"2026-07-19T16:21:08.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-20T16:21:08.398Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-21T17:21:07.070Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-22T17:21:07.242Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-23T18:21:06.312Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-24T18:21:06.467Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-25T16:21:07.206Z","action":"backup-snapshot","target":"state-2026-07-25.zip","via":"scheduler","meta":null}
-{"ts":"2026-07-25T18:21:06.602Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-26T19:21:05.426Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-27T19:21:05.570Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-28T19:21:05.770Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-29T20:21:04.543Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-30T20:21:04.918Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
-{"ts":"2026-07-31T21:21:05.033Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-19T01:03:17.789Z","action":"playbook-delete","target":"c74d4f7a","via":"desktop","meta":null}
 {"ts":"2026-07-19T01:04:47.161Z","action":"playbook-delete","target":"47aa6cc2","via":"desktop","meta":null}
 {"ts":"2026-07-19T01:05:47.228Z","action":"playbook-delete","target":"922150e0","via":"desktop","meta":null}
@@ -68,6 +54,7 @@
 {"ts":"2026-07-19T02:40:16.238Z","action":"ask-answered","target":"58ebbd03","via":"desktop","meta":{"question":"Proceed with Step 1: add 4 entries (Task/Report/Thread/InfoboardItem) to the empty os___notification_entity_type option ","answer":"stop i wanna test when you are learning something and when applying learning there must be visual floating group for tha","standing":false}}
 {"ts":"2026-07-19T02:40:31.685Z","action":"ask-answered","target":"40ba44be","via":"desktop","meta":{"question":"The floating \"learning\" indicator is a Claude Code UI feature, not something I can build from this CRS/Buildprint sessio","answer":"Hold off","standing":false}}
 {"ts":"2026-07-19T13:48:49.116Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-19T16:21:08.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-19T16:42:24.252Z","action":"playbook-delete","target":"8c36b231","via":"desktop","meta":null}
 {"ts":"2026-07-19T16:42:24.264Z","action":"playbook-delete","target":"adc0ad95","via":"desktop","meta":null}
 {"ts":"2026-07-20T13:41:06.401Z","action":"chunk-status","target":"casino-settings/c1=sent","via":"desktop","meta":null}
@@ -75,17 +62,30 @@
 {"ts":"2026-07-20T13:41:14.501Z","action":"chunk-status","target":"casino-settings/c1=verified","via":"desktop","meta":null}
 {"ts":"2026-07-20T13:41:17.755Z","action":"chunk-status","target":"casino-settings/c1=failed","via":"desktop","meta":null}
 {"ts":"2026-07-20T14:08:56.136Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-20T16:21:08.398Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-21T14:08:56.380Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-21T17:21:07.070Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-22T14:12:26.530Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-22T17:21:07.242Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-23T15:08:03.922Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-23T18:21:06.312Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-24T15:30:42.105Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-24T18:21:06.467Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-25T13:52:29.089Z","action":"backup-snapshot","target":"state-2026-07-25.zip","via":"scheduler","meta":null}
 {"ts":"2026-07-25T15:54:33.653Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-25T16:21:07.206Z","action":"backup-snapshot","target":"state-2026-07-25.zip","via":"scheduler","meta":null}
+{"ts":"2026-07-25T18:21:06.602Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-26T16:12:26.194Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-26T19:21:05.426Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-27T16:59:26.786Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-27T19:21:05.570Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-28T17:20:54.238Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-28T19:21:05.770Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-29T17:39:26.069Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-29T20:21:04.543Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-30T20:21:04.918Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-07-31T12:23:19.038Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
+{"ts":"2026-07-31T21:21:05.033Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-01T14:12:59.120Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-01T14:12:59.977Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
 {"ts":"2026-08-01T16:52:47.306Z","action":"backup-snapshot","target":"state-2026-08-01.zip","via":"scheduler","meta":null}
@@ -96,7 +96,6 @@
 {"ts":"2026-08-05T15:24:42.190Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-06T09:48:49.012Z","action":"ask-answered","target":"f0e5f4fd","via":"desktop","meta":{"question":"The Buildprint CLI needs to run in ~/projects/crs-bubble/casinoreportingsystem/test, but this session is sandboxed to th","answer":"Run /add-dir now","standing":false}}
 {"ts":"2026-08-06T09:56:54.979Z","action":"ask-answered","target":"e7799821","via":"desktop","meta":{"question":"Please paste this in your Claude Code terminal now: /add-dir /Users/vlad/projects/crs-bubble/casinoreportingsystem/test ","answer":"do everything on my behalf","standing":false}}
-{"ts":"2026-08-06T16:24:40.449Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-06T15:23:13.204Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-06T15:32:37.615Z","action":"ask-answered","target":"833c919a","via":"desktop","meta":{"question":"Ultracode needs claude CLI ≥2.1.154 (you're on 2.1.120) — upgrade the CLI now, or wire the flag so it activates on your ","answer":"Wire both + upgrade CLI now","standing":false}}
 {"ts":"2026-08-06T15:50:57.907Z","action":"ask-answered","target":"045962b3","via":"desktop","meta":{"question":"My upgrade commands are blocked by the permission layer — how do you want the CLI bump landed?","answer":"Retry now, I'll approve the prompt","standing":false}}
@@ -104,6 +103,7 @@
 {"ts":"2026-08-06T16:04:30.013Z","action":"ask-answered","target":"480e4bcf","via":"desktop","meta":{"question":"23 reports are tagged GEL (8 carry amounts, each with a forex rate ~2.5-2.9 GEL/USD). How should I handle them so the fi","answer":"Leave GEL amounts as-is","standing":false}}
 {"ts":"2026-08-06T16:05:21.092Z","action":"ask-answered","target":"93d41364","via":"desktop","meta":{"question":"I filtered on the EMPLOYEE's department = Live Game. 137 of the 6,723 reports are themselves filed under another departm","answer":"Keep them - employee dept is what matters","standing":false}}
 {"ts":"2026-08-06T16:20:43.619Z","action":"ask-answered","target":"de18a771","via":"desktop","meta":{"question":"The CSV is on your disk (1.49 MB) but Claude Code can't attach files to chat. Where do you want it so it's easy to grab?","answer":"So add functionality to this chat and response contains file there must be download or save to disk option, implement th","standing":false}}
+{"ts":"2026-08-06T16:24:40.449Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
 {"ts":"2026-08-06T22:28:39.828Z","action":"ask-answered","target":"62769ec0","via":"desktop","meta":{"question":"Which fix path should I take for the header overflow?","answer":"Clamp the label","standing":false}}
 {"ts":"2026-08-06T22:29:01.092Z","action":"ask-answered","target":"3859cb1b","via":"desktop","meta":{"question":"Which fix path should I take for the header overflow?","answer":"call it lifecycle_state","standing":false}}
 {"ts":"2026-08-06T22:29:22.315Z","action":"ask-answered","target":"65a1a793","via":"desktop","meta":{"question":"What should I name the new column?","answer":"status","standing":false}}
@@ -137,3 +137,4 @@
 {"ts":"2026-08-07T09:45:38.035Z","action":"ask-answered","target":"37fa7a61","via":"desktop","meta":{"question":"I can't reach your logged-in Buildprint session — how do you want me to get the prompt into it?","answer":"I'll paste it myself — print the full prompt here","standing":false}}
 {"ts":"2026-08-07T09:46:18.693Z","action":"ask-answered","target":"18fc27d9","via":"desktop","meta":{"question":"Given the size, want the full pasteable block output in the chat again, or is pointing your Buildprint agent at the file","answer":"give me prompt in this chat in md format","standing":false}}
 {"ts":"2026-08-07T09:47:16.562Z","action":"ask-answered","target":"da4592af","via":"desktop","meta":{"question":"g — say the word and I'll output the complete new block, or just tell your Buildprint agent to re-read `brain/buildprint","answer":"give me here dont tel anything to buildprint here please","standing":false}}
+{"ts":"2026-08-07T15:38:24.829Z","action":"backup-push","target":"skipped: dirty tree","via":"scheduler","meta":null}
