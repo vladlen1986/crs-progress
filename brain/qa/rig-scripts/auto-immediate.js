@@ -1,0 +1,23 @@
+const puppeteer=require('puppeteer-core');
+(async()=>{
+  const b=await puppeteer.launch({executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',headless:'new'});
+  const p=await b.newPage(); await p.setViewport({width:1500,height:950});
+  const errs=[];p.on('console',m=>{if(m.type()==='error')errs.push(m.text())});p.on('pageerror',e=>errs.push(e.message));
+  let populateCalls=0;
+  await p.setRequestInterception(true);
+  p.on('request',r=>{ if(r.url().includes('/api/usage/populate')){populateCalls++; r.respond({status:200,contentType:'application/json',body:'{"ok":true}'});} else r.continue(); });
+  await p.goto('http://127.0.0.1:4317/',{waitUntil:'networkidle2'});
+  await new Promise(r=>setTimeout(r,1500));
+  await p.evaluate(()=>{localStorage.removeItem('crs-usagewin-auto'); USAGEWIN.open&&USAGEWIN.open()});
+  await new Promise(r=>setTimeout(r,1500));
+  console.log('populate calls before ticking auto:',populateCalls);
+  const box=await p.evaluate(()=>{const c=document.getElementById('uwAuto');const r=c.getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}});
+  await p.mouse.click(box.x,box.y);
+  await new Promise(r=>setTimeout(r,2500));
+  const st=await p.evaluate(()=>({checked:document.getElementById('uwAuto').checked,ls:localStorage.getItem('crs-usagewin-auto')}));
+  console.log('after ticking auto:',JSON.stringify(st),'| populate calls:',populateCalls);
+  console.log('TICKS:',st.checked&&st.ls==='1'?'PASS':'FAIL');
+  console.log('IMMEDIATE REFRESH ON ENABLE:',populateCalls>=1?'PASS':'FAIL (waits 3min)');
+  console.log('console errors:',errs.length,errs.slice(0,2));
+  await b.close();
+})().catch(e=>{console.error('RIGFAIL',e.message);process.exit(1)});

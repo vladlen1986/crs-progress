@@ -83,7 +83,11 @@
   addEventListener('resize', () => { if (panel.style.display !== 'none') place(); });
   let drag = null;
   panel.addEventListener('pointerdown', (ev) => {
-    if (ev.target.closest('button,a')) return;
+    // Never start a window drag from an interactive control: the drag calls
+    // preventDefault(), which swallows the click a checkbox/label needs to
+    // toggle. Missing `input,label` here is why the "auto" box could not be
+    // ticked at all — clicking it just dragged the panel. (2026-08-07)
+    if (ev.target.closest('button,a,input,label,select,textarea')) return;
     drag = { dx: ev.clientX - panel.offsetLeft, dy: ev.clientY - panel.offsetTop };
     panel.classList.add('dragging'); panel.setPointerCapture(ev.pointerId); ev.preventDefault();
   });
@@ -125,7 +129,7 @@
       + `<div class="uw-bar"><span style="width:${p}%;background:${barColor(p)}"></span></div></div>`;
   }
 
-  let busy = false, chatCtx = null, autoTimer = null;
+  let busy = false, chatCtx = null, autoTimer = null, lastData = null;
 
   // Pretty name for the model the BRAIN is running. The old header showed
   // usage.json's `model`, which is whatever INTERACTIVE Claude Code session last
@@ -188,7 +192,7 @@
     const stale = !d || !d.rate_limits_at || (Date.now() - d.rate_limits_at) > 6 * 60 * 1000;
     h += '<div class="uw-foot"><span class="uw-live' + (stale ? ' stale' : '') + '"></span>'
       + '<span>' + (busy ? 'Refreshing…' : 'Limits read ' + esc(ago(d && (d.rate_limits_at || d.at)))) + '</span>'
-      + '<label class="uw-auto" title="Refresh the plan limits every 3 minutes. Each refresh runs one tiny Haiku turn — the only way to make Claude Code emit a fresh reading.">'
+      + '<label class="uw-auto" title="Refresh the plan limits every 3 minutes — and immediately when switched on if the reading is stale. Each refresh runs one tiny Haiku turn, the only way to make Claude Code emit a fresh reading.">'
       + '<input type="checkbox" id="uwAuto"' + (autoOn() ? ' checked' : '') + '> auto</label>'
       + '<button class="uw-refresh" id="uwRefresh"' + (busy ? ' disabled' : '') + '>Refresh</button></div>';
     body.innerHTML = h;
@@ -210,16 +214,23 @@
     busy = false; await tick();
   }
   const autoOn = () => localStorage.getItem(LS_AUTO) === '1';
+  const AUTO_MS = 3 * 60 * 1000;
   function armAuto() {
     if (autoTimer) clearInterval(autoTimer);
     autoTimer = null;
     if (!autoOn() || panel.style.display === 'none') return;
+    // Don't make the user wait a full interval to see auto do anything: if the
+    // reading on screen is already older than one interval when auto is switched
+    // on (or the window is reopened), refresh right now. Otherwise ticking the
+    // box next to a 25-minute-old number appears to do nothing for 3 minutes.
+    const readAt = lastData && (lastData.rate_limits_at || lastData.at);
+    if (!liveTurn() && !document.hidden && (!readAt || Date.now() - readAt > AUTO_MS)) populate();
     autoTimer = setInterval(() => {
       if (panel.style.display === 'none') return;
       if (document.hidden) return;                       // don't burn turns on a hidden tab
       if (liveTurn()) return;   // never mid-turn
       populate();
-    }, 3 * 60 * 1000);
+    }, AUTO_MS);
   }
 
   async function tick() {
@@ -231,6 +242,7 @@
         id ? fetch('/api/usage/chat?id=' + encodeURIComponent(id)).then((x) => x.json()).catch(() => null) : Promise.resolve(null),
       ]);
       chatCtx = (c && c.ok) ? c : null;
+      lastData = r.data;
       render(r.data, r.enabled);
     } catch (e) { /* server down — keep the last paint */ }
   }
