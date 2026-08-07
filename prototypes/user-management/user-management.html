@@ -310,7 +310,7 @@ svg { flex:none; width:16px; height:16px; }
 
 /* ───────── Avatars (§20.5) — SM 24 · MD 32 · LG 44 ───────── */
 .av { position:relative; flex:none; display:inline-block; border-radius:50%; }
-.av svg, .av img { display:block; width:100%; height:100%; border-radius:50%; }
+.av svg, .av img { display:block; width:100%; height:100%; border-radius:50%; object-fit:cover; background:var(--bg-tertiary); }
 .av--sm { width:24px; height:24px; } .av--md { width:32px; height:32px; }
 .av--lg { width:44px; height:44px; } .av--xl { width:72px; height:72px; }
 .av--ring { box-shadow:0 0 0 2px var(--border-active); }
@@ -1263,6 +1263,26 @@ const HAIR = [
  * @param {string} seed  stable per person (we use employee id)
  * @param {number} px    rendered size
  */
+/* Real stock portrait photos (randomuser.me — free, no key, gender-matched, deterministic per person).
+   "thumb/" = 48px jpg, no prefix = 128px jpg. Use the small one below ~40px so it never looks upscaled. */
+function personPhotoURL(emp, px){
+  const g = emp.gender === 'f' ? 'women' : 'men';
+  const idx = hash(emp._id + 'photo') % 100;
+  const size = px < 40 ? 'thumb/' : '';
+  return `https://randomuser.me/api/portraits/${size}${g}/${idx}.jpg`;
+}
+function avatarImgHTML(emp, px, initClass){
+  const url = personPhotoURL(emp, px);
+  const initials = esc(initialsOf(emp));
+  return `<img src="${url}" alt="" loading="lazy" width="${px}" height="${px}"
+    onerror="avatarFallback(this,'${initials}','${initClass}')">`;
+}
+function avatarFallback(img, initials, cls){
+  const span = document.createElement('span');
+  span.className = 'av__init ' + cls;
+  span.textContent = initials;
+  img.replaceWith(span);
+}
 function avatarSVG(seed, px){
   const h = hash(seed);
   const skin = pick(SKIN, h), hairc = pick(HAIRC, h>>3), shirt = pick(SHIRT, h>>6), bg = pick(BGC, h>>9);
@@ -1509,9 +1529,10 @@ function avatar(user, size, extra){
   const e = empById(user.employee);
   const px = { sm:24, md:32, lg:44, xl:72 }[size];
   const dotState = !user.is_active ? 'inactive' : (user.presence_status || 'offline');
+  const initClass = 'av__init--' + (user.is_anonymized ? 'neutral' : 'accent');
   const inner = (e.photo && !user.is_anonymized)
-    ? avatarSVG(e._id, px)
-    : `<span class="av__init av__init--${user.is_anonymized?'neutral':'accent'}">${esc(initialsOf(e))}</span>`;
+    ? avatarImgHTML(e, px, initClass)
+    : `<span class="av__init ${initClass}">${esc(initialsOf(e))}</span>`;
   const ring = user.is_active ? '' : ' av--ring';
   return `<span class="av av--${size}${ring} ${extra||''}">${inner}<span class="av__dot av__dot--${dotState}"></span></span>`;
 }
@@ -2562,7 +2583,7 @@ create(){
       <div class="pop__list" style="max-height:230px;margin:0 -4px">
         ${shown.length ? shown.map(e => `
           <button class="pickrow" data-pick="${e._id}" aria-selected="${wiz.employee===e._id}">
-            <span class="av av--md">${avatarSVG(e._id,32)}</span>
+            <span class="av av--md">${avatarImgHTML(e,32,'av__init--accent')}</span>
             <span style="flex:1;min-width:0">
               <span class="who__name" style="display:block">${esc(e.full_name)}</span>
               <span class="who__sub" style="display:block">${esc(e.position)} · ${esc(e.department)}</span></span>

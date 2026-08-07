@@ -62,7 +62,7 @@ create(){
       <div class="pop__list" style="max-height:230px;margin:0 -4px">
         ${shown.length ? shown.map(e => `
           <button class="pickrow" data-pick="${e._id}" aria-selected="${wiz.employee===e._id}">
-            <span class="av av--md">${avatarSVG(e._id,32)}</span>
+            <span class="av av--md">${avatarImgHTML(e,32,'av__init--accent')}</span>
             <span style="flex:1;min-width:0">
               <span class="who__name" style="display:block">${esc(e.full_name)}</span>
               <span class="who__sub" style="display:block">${esc(e.position)} · ${esc(e.department)}</span></span>

@@ -39,9 +39,10 @@ function avatar(user, size, extra){
   const e = empById(user.employee);
   const px = { sm:24, md:32, lg:44, xl:72 }[size];
   const dotState = !user.is_active ? 'inactive' : (user.presence_status || 'offline');
+  const initClass = 'av__init--' + (user.is_anonymized ? 'neutral' : 'accent');
   const inner = (e.photo && !user.is_anonymized)
-    ? avatarSVG(e._id, px)
-    : `<span class="av__init av__init--${user.is_anonymized?'neutral':'accent'}">${esc(initialsOf(e))}</span>`;
+    ? avatarImgHTML(e, px, initClass)
+    : `<span class="av__init ${initClass}">${esc(initialsOf(e))}</span>`;
   const ring = user.is_active ? '' : ' av--ring';
   return `<span class="av av--${size}${ring} ${extra||''}">${inner}<span class="av__dot av__dot--${dotState}"></span></span>`;
 }

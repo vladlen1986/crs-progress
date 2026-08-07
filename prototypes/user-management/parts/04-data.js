@@ -276,6 +276,26 @@ const HAIR = [
  * @param {string} seed  stable per person (we use employee id)
  * @param {number} px    rendered size
  */
+/* Real stock portrait photos (randomuser.me — free, no key, gender-matched, deterministic per person).
+   "thumb/" = 48px jpg, no prefix = 128px jpg. Use the small one below ~40px so it never looks upscaled. */
+function personPhotoURL(emp, px){
+  const g = emp.gender === 'f' ? 'women' : 'men';
+  const idx = hash(emp._id + 'photo') % 100;
+  const size = px < 40 ? 'thumb/' : '';
+  return `https://randomuser.me/api/portraits/${size}${g}/${idx}.jpg`;
+}
+function avatarImgHTML(emp, px, initClass){
+  const url = personPhotoURL(emp, px);
+  const initials = esc(initialsOf(emp));
+  return `<img src="${url}" alt="" loading="lazy" width="${px}" height="${px}"
+    onerror="avatarFallback(this,'${initials}','${initClass}')">`;
+}
+function avatarFallback(img, initials, cls){
+  const span = document.createElement('span');
+  span.className = 'av__init ' + cls;
+  span.textContent = initials;
+  img.replaceWith(span);
+}
 function avatarSVG(seed, px){
   const h = hash(seed);
   const skin = pick(SKIN, h), hairc = pick(HAIRC, h>>3), shirt = pick(SHIRT, h>>6), bg = pick(BGC, h>>9);
