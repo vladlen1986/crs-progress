@@ -54,7 +54,9 @@ It currently has **no privacy rules at all** — it is publicly readable. That g
 
 **The UI placeholder already exists.** Inside the `app` page there's a floating group `Pages`, and inside it a custom element named `# notifications` — but it's currently pointing at the `# dashboard` reusable definition as a placeholder, with a visibility condition matching `OS - Module` = `notifications` from the URL path segment. You will point that at the real reusable element you build.
 
-**Email is not set up.** App settings show `use_sendgrid: true` but `sendgrid_verified: false`, and the only API Connector entries are OpenAI, Google AI Studio and a generic "AI" call. There is no Postmark/SendGrid API Connector and no email plugin. Plan accordingly — see the email section.
+**Email is not set up.** App settings show `use_sendgrid: true` but `sendgrid_verified: false`, and the only API Connector entries are OpenAI, Google AI Studio and a generic "AI" call. There is no Postmark/SendGrid API Connector and no email plugin. Plan accordingly — see the Email channel section.
+
+**There is no mobile app.** This app is web-only today. Native iOS/Android apps with push notifications are planned but don't exist yet. Plan accordingly — see the Push channel section.
 
 **Existing backend workflows** (29 total) are all module-specific: `um_create_user`, `um_save_user`, `um_set_user_status`, `um_reset_user_password`, `log_user_action`, `log_role_action`, `create_role`, `save_role`, `delete_role`, `create_property`, `save_property`, `save_company`, plus report/employee link builders and country migrations. None of them send notifications. Nothing exists to build on — you're creating the notification pipeline fresh.
 
@@ -83,6 +85,8 @@ I've already made these calls based on how notification infrastructure is actual
 **Two-tier preferences: module-level mute plus per-event override.** With 46 modules the per-event list will run to hundreds of rows; nobody will toggle them one by one. Users mute a whole module in one click, then override individual events inside it if they care. This "section → category → channel" shape is the standard preference-centre pattern and it's the single biggest usability factor once you pass ~15 notification types.
 
 **Mandatory events cannot be muted.** Security, role, and permission events always deliver. They show with a lock icon and a disabled toggle in the preferences UI.
+
+**Push and email are both "wire the pipe now, connect the tap later."** There is no mobile app yet and no verified email provider yet, but both are coming — iOS/Android native apps with push, and SendGrid once it's verified. Build the full data model, preference plumbing, and channel-routing logic for both channels now, exactly as if they were live, with only the final provider-specific send action stubbed. When the mobile app and SendGrid exist, turning each channel on should be a small, contained change (wire one API/plugin action, flip a readiness flag) — not a redesign. See the **Push channel** and **Email channel** sections below for exactly what to build now versus defer.
 
 ---
 
@@ -148,7 +152,13 @@ Template lookup falls back in this order, and the last step always exists so a s
 
 `property` on this one is nullable — templates are company-scoped, not property-scoped, and global defaults have no company at all. That's the one deliberate Pattern A exception in this build; note it in your report.
 
-### 6. Add to the existing `User` type
+### 6. `notification_device` — new, mobile push registration (build now, dormant until the app ships)
+
+`company`, `property`, `user` (owner), `platform` (OS - Device Platform: ios / android / web), `push_token` (text — the APNs/FCM device token), `device_name` (text, optional — "Vlad's iPhone"), `is_active` (yes/no, default yes), `last_seen_date` (date), `registered_date` (date).
+
+There's no mobile app yet, so nothing populates this today. Build it anyway so the day the iOS/Android app exists, it registers a device by creating one row here, and the delivery workflow already knows what to do with it (see **Push channel** below). One user can have multiple active devices (phone + tablet); a token can go stale (app deleted, token rotated) — that's what `is_active` and `last_seen_date` are for, not a hard delete.
+
+### 7. Add to the existing `User` type
 
 `unread_notification_count` (number, default 0) and `notification_preferences` (→ notification_preferences).
 
@@ -221,6 +231,10 @@ Seed with the entities that exist or are imminent: `report`, `task`, `subtask`, 
 
 `realtime` (Real-time), `daily` (Daily digest), `weekly` (Weekly digest), `off` (Off). Add `interval_minutes` as a number attribute.
 
+### `OS - Device Platform` — new
+
+`ios` (iOS), `android` (Android), `web` (Web push). Used by `notification_device`. Add now even though only `web` (browser push, also dormant) is remotely reachable today — the point is the schema doesn't change shape when the native apps arrive.
+
 ### `OS - Permission` — add notification permissions
 
 Add a `notifications` value to `OS - User Permission Modules` first if it isn't there, then add these permissions with `user_permission_module = notifications`:
@@ -259,6 +273,7 @@ That's the whole contract. Every module calls exactly this, with the same eight-
 5. Otherwise create the notification. Set `state = unread`, denormalize `module` and `severity` from the event type, render `title` and `body_preview` (actor-verb-object; nothing sensitive), build `cta_url` from the entity type's `app_route` plus `entity_id`.
 6. Increment the recipient's `unread_notification_count` by 1.
 7. If email is an active channel: set `email_status = scheduled`, set `email_scheduled_send_date` to `now + batch_window_minutes`, and schedule `send_notification_email` for that time.
+8. If push is an active channel: search `notification_device` for `user = recipient` and `is_active = yes`. If none exist, skip — nothing to do yet, this is the normal case until the mobile app ships. If any exist, schedule `send_notification_push` for the same time as the email (or immediately if `batch_window_minutes = 0`).
 
 Put a condition on the **event step** rather than on each action wherever you can — halting at the event is cheaper than evaluating conditions action by action, and conditions cost workload even when they return false.
 
@@ -288,6 +303,21 @@ Takes a `token` and an optional `event_code` or `module`. Looks up `notification
 
 Build this now even though the email provider isn't wired yet, because once it is, one-click unsubscribe headers point straight at it.
 
+### `send_notification_push` — scheduled, one per device fan-out (build now, stub the actual send)
+
+1. Load the notification. Same exit conditions as `send_notification_email`: deleted or no longer `unread` → exit.
+2. Search `notification_device` for `user = recipient` and `is_active = yes`.
+3. For each active device, this is where a real implementation calls FCM (Android/web) or APNs (iOS) with the device's `push_token`, the notification's `title`/`body_preview`, and `cta_url` as the deep-link payload. **There is no push provider connected yet and no mobile app to receive it** — stub this action as a no-op that still writes the bookkeeping: append `push` to `channels_delivered`, stamp a `push_sent_date` if you add one, and log clearly in the workflow's comment that this step needs a real FCM/APNs integration (API Connector or a Bubble push plugin) before it does anything visible. Do not fail the workflow — a stub that no-ops safely is correct here, not an error.
+4. If a provider ever reports the token invalid (410/unregistered), set that `notification_device` row's `is_active = no` rather than deleting it — same "soft-expire, don't delete" pattern as email failures.
+
+### `notification_register_device` / `notification_deregister_device` — public-facing API endpoints, build now
+
+`notification_register_device` takes `user`, `platform`, `push_token`, `device_name` (optional). Upserts a `notification_device` row — if a row already exists for that exact `push_token`, update it (reactivate, refresh `last_seen_date`, reassign `user` if the device changed hands) rather than creating a duplicate. This is the endpoint a future iOS/Android app calls once, right after the user grants push permission and the OS hands back a token.
+
+`notification_deregister_device` takes `push_token`, sets `is_active = no`. Called on logout or uninstall.
+
+Neither endpoint requires the email/push provider to exist. They're pure bookkeeping and cost nothing to have ready — build them so the mobile app, whenever it ships, has a stable contract to call into on day one instead of waiting on a backend change.
+
 ---
 
 ## Privacy rules
@@ -299,6 +329,7 @@ Right now `notification` has no privacy rules and is publicly readable. Fix all 
 - **notification_event_preference** — view/edit only when `This Thing's preferences's user = Current User`.
 - **notification_subscription** — view/edit when `This Thing's user = Current User`. Admins with a suitable permission may view (not edit) subscriptions within their own company and property, so "who is watching this record" is answerable.
 - **notification_email_template** — readable by any logged-in user of the matching company (or where company is empty), since sends need to render it. Editable only by users holding `manage_notification_templates`.
+- **notification_device** — view/edit only when `This Thing's user = Current User`. Create via the register endpoint (backend, ignoring privacy rules since the device isn't authenticated as a full session yet at registration time) or by the owning user directly. A push token is a credential — treat this table with the same care as a password field, never expose it in any search result other than the owner's own.
 
 Every one of these rules gets the company + property clause as its first condition, per Pattern A. Also add the company/property clause to the recipient rules — recipient alone is sufficient logically, but the tenancy clause is the project standard and it costs nothing.
 
@@ -319,6 +350,20 @@ Set the pipeline up so that swap is genuinely easy, because it's coming:
 - Batching is a deliverability control as much as a UX one. Fifty separate emails to one recipient in one minute reads as a spam burst and can throttle the whole sending domain, not just that user.
 - The email body carries **no sensitive data** — subject and body are actor-verb-object plus a deep link into the app. Nothing that leaks if the mailbox is compromised or the recipient forwards it.
 - Note in your report that the domain still needs SPF, DKIM, DMARC and a dedicated sending subdomain before any real send. That's my job, not yours, but I want it on the record.
+
+---
+
+## Push channel
+
+There is no mobile app and no push provider connected yet — build the data model and delivery plumbing described above (`notification_device`, `notification_register_device`, `notification_deregister_device`, `send_notification_push`) so that when the iOS/Android app arrives, turning push on is: (a) the mobile app calls `notification_register_device` once per install, (b) someone wires FCM/APNs credentials into `send_notification_push`'s stubbed send action via an API Connector call or a Bubble push plugin, (c) done — no schema change, no change to `trigger_notification` or `deliver_to_user`, because they already treat push as a channel exactly like email.
+
+A few things to get right now so that day goes smoothly:
+
+- **Respect the same preference and mute rules as every other channel.** Push is not special-cased — it reads `global_push_enabled`, `muted_modules`, and per-event `push` overrides exactly like email does. A user who muted a module must not start getting push just because a phone got registered.
+- **Payload discipline matches email:** the push payload is `title` + a short body — never the underlying record's content, same actor-verb-object rule, because push notifications render on a lock screen where anyone standing nearby can read them. This is a stronger reason for the "nothing sensitive in the title" rule than email even is.
+- **Multiple devices per user is normal**, not an edge case — don't build assuming one device per user.
+- **Token lifecycle is soft-expire, not delete**, as noted above. Deleting rows on the first bounce loses the device silently; flipping `is_active` keeps history and lets a future retry logic exist.
+- Note in your report that mobile push, when it's time, will also need: Apple Push Notification service certificates/keys (APNs), a Firebase project for Android + Web (FCM), and a Bubble plugin or direct API Connector calls to reach both. That's a separate piece of work outside this build.
 
 ---
 
@@ -397,26 +442,28 @@ Use the existing sidebar/module conventions throughout: 256px sidebar, active st
 
 Plan mode first — inventory, then this plan with your corrections, then wait for me.
 
-1. Create the four new option sets (State, Channel, Email Status, Digest Frequency).
+1. Create the five new option sets (State, Channel, Email Status, Digest Frequency, Device Platform).
 2. Add the attributes to `OS - Notification Event Type` and `OS - Notification Entity Type`, and seed the entity types.
 3. Seed the 17 starter event-type values.
 4. Restructure the `notification` data type (add new fields, remove dead ones).
 5. Create `notification_preferences` and `notification_event_preference`.
 6. Create `notification_subscription`.
 7. Create `notification_email_template` and seed global `en` defaults for all 17 events.
-8. Add `unread_notification_count` and `notification_preferences` to `User`; add the notification permissions to `OS - Permission`.
-9. Privacy rules on all five types.
-10. `trigger_notification`.
-11. `deliver_to_user`.
-12. `send_notification_email` + the `notification_unsubscribe` endpoint.
-13. `notification_nightly_maintenance`.
-14. The bell dropdown (clone `GF - User Menu`).
-15. The inbox (clone `# User Management`), and repoint the `# notifications` custom element.
-16. Preferences (clone `# Casino Settings`).
-17. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole chain works.
-18. Cleanup pass (the list above) and final report.
+8. Create `notification_device`.
+9. Add `unread_notification_count` and `notification_preferences` to `User`; add the notification permissions to `OS - Permission`.
+10. Privacy rules on all six types.
+11. `trigger_notification`.
+12. `deliver_to_user`.
+13. `send_notification_email` + the `notification_unsubscribe` endpoint.
+14. `send_notification_push` (stubbed send) + `notification_register_device` + `notification_deregister_device`.
+15. `notification_nightly_maintenance`.
+16. The bell dropdown (clone `GF - User Menu`).
+17. The inbox (clone `# User Management`), and repoint the `# notifications` custom element.
+18. Preferences (clone `# Casino Settings`) — include the Push master toggle (disabled, tooltipped) alongside In-app/Email.
+19. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole in-app + email chain works. Push has nothing to prove yet since there's no device to register — confirm instead that `deliver_to_user` correctly finds zero active devices and skips cleanly, without erroring.
+20. Cleanup pass (the list above) and final report.
 
-Steps 1–9 are schema; 10–13 are logic; 14–16 are UI; 17–18 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
+Steps 1–10 are schema; 11–15 are logic; 16–18 are UI; 19–20 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
 
 ---
 
@@ -424,8 +471,10 @@ Steps 1–9 are schema; 10–13 are logic; 14–16 are UI; 17–18 prove and tid
 
 Go through this list explicitly in your final report and mark each pass or fail:
 
-- [ ] A module can fire a notification with a single "Schedule API workflow" action and needs to know nothing about channels, preferences, batching or email.
-- [ ] All five data types carry `company` and `property`, and every privacy rule checks both.
+- [ ] A module can fire a notification with a single "Schedule API workflow" action and needs to know nothing about channels, preferences, batching, email, or push.
+- [ ] All six data types carry `company` and `property`, and every privacy rule checks both.
+- [ ] `notification_device` exists, is privacy-locked to its owner, and `deliver_to_user` / `send_notification_push` handle the zero-devices case (today's reality) without erroring.
+- [ ] `notification_register_device` and `notification_deregister_device` work end to end (create/reactivate a row, deactivate a row) even though nothing calls them yet.
 - [ ] `notification` is no longer publicly readable. Only the recipient can see their own rows. No admin override exists.
 - [ ] Firing the same event twice for the same recipient and entity inside the batch window produces **one** row with `group_count = 2`, not two rows.
 - [ ] A user who mutes a module gets **no row created at all** for that module's events — not a hidden one.
@@ -445,5 +494,5 @@ Then tell me:
 2. Every decision you made where I hadn't specified one, and why.
 3. The deviations you were told to flag: the four-state lifecycle versus the spec's three, and the nullable `property` on `notification_email_template`.
 4. Anything you found broken or worrying **outside** this scope — list it, don't fix it.
-5. What's left before this can carry real traffic: the email provider swap, SPF/DKIM/DMARC, the remaining ~380 event types as modules land, and anything else you hit.
+5. What's left before this can carry real traffic: the email provider swap, SPF/DKIM/DMARC, the FCM/APNs push provider integration once there's a mobile app, the remaining ~380 event types as modules land, and anything else you hit.
 6. The exact places I'll most likely want to adjust — copy, defaults, batching windows — so I know where to look first.
