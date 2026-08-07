@@ -522,6 +522,38 @@ Files: `crs-brain/public/index.html` + `crs-brain/public/map.html`. All 5 shippe
 
 ## Decisions log (append-only)
 
+### 2026-08-07 — Session: Mac — Fable weekly bar, usage-card unification, Buildprint Web Supervisor Phase 0
+- **Fable weekly limit bar shipped.** Settled by measurement, not assumption: CLI 2.1.223's
+  statusline payload still carries only `five_hour` + `seven_day` — upgrading does NOT expose
+  per-model limits (the prior handoff assumed it would). The per-model window exists only on
+  the interactive `/usage` screen, so `populateUsage()` now opens it in the pty session it
+  already drives and scrapes `Current week (<Model>) N% used` into `usage.json` as
+  `seven_day_<model>`. `windowLabel()` already handled that key shape, so the bar rendered
+  with no UI change. Reset time reuses `seven_day.resets_at` deliberately (same cycle;
+  parsing a localized reset string across timezones is more fragile than the epoch we have).
+- **node-pty had never worked on the Mac.** npm drops the executable bit on the bundled
+  `spawn-helper`, so every pty spawn failed with `posix_spawnp failed.` — even `/bin/echo` —
+  which meant the usage refresh was silently dead on this machine. The server now self-heals
+  the bit before requiring node-pty.
+- **The usage auto-checkbox was physically untickable**: the panel's drag handler exempted
+  only `button,a`, so pressing the checkbox started a window drag and `preventDefault()` ate
+  the click. Interactive elements are now exempt. Auto also refreshes immediately on enable
+  when the reading is stale instead of waiting a full 3-minute interval.
+- **The account popover and the Usage window are now one renderer** (`bodyHtml` + `paintAll`
+  + `USAGEWIN.mount(el)`; controls id → class since the markup is on screen twice). They had
+  drifted into two implementations: different labels/colours, no per-model row, a "Haiku 4.5"
+  line that was really the usage probe's model, and a context row from an unrelated session.
+- **Buildprint Web Supervisor — Phase 0 done** (`brain/buildprint/web-ui-map.md`). Vlad chose
+  the browser route over both the CLI and the REST API. Access route decided: the
+  Claude-in-Chrome extension against the real profile — Chrome >=136 refuses
+  `--remote-debugging-port` on the default user-data-dir, and cloning the session into a
+  separate profile fails because the `__Host-__convexAuth*` cookies do not authenticate (both
+  tested, both ruled out). State machine is `button "Stop generating"` = running /
+  `button "Send"` = done. The composer is contenteditable (typing must be read back) and
+  carries a Test/Build branch selector — the first enforceable guardrail for "TEST branch
+  only". Question/error states remain unmapped and block Phase 3.
+
+
 ### 2026-07-19 — Sessions: Playbook close-out (Mac) + Sidebar v3 (catch-up entry; also covers 07-18 QA/polish/ASK work logged only in brain/qa/)
 - **Playbook program (T0–T6) COMPLETE** — self-learning made law: `data/playbook.json` lesson store (7 operational seeds migrated out of memory.json; schema with trigger/rule/fix/errorSig/hits/recurred), matched injection into bp system prompts with a visible "Playbook check — N lessons loaded" step, recurrence alarm (errorSig match on real ✗ tool results → warning + What's-wrong todo + recurred++), learn-events ledger + top-right 🧠/⚡/⚠ toasts, `playbook.html` surface + ⌘K + dash top-traps strip. Zebra probe green 10/10 twice (independent verifier); PLAYBOOK.1–6 in `brain/qa/master-checklist.md`; checkpoint `brain/qa/checkpoints/playbook.md`. Meta-proof: run-1's probe failed BECAUSE injection prevented the planted mistake.
 - **Sidebar v3** (Claude-Code-style minimalism): search + 32px "+" merged into one row (`.newbtn` gone), caps = Pinned/Recents, legend deleted, rows = mark + title only (count pill/pin icon removed), bp rows now a "BP" mono chip on accent-tint, live-turn opacity pulse `sb-live` on the mark via `state.live`/`syncLiveRow()` (reduced-motion → static accent dot), selected = accent-glow wash + NEW inset 2px accent bar, default width 280px, row 6px pad (~34px). SIDEBAR3.1–6 verified both themes.
