@@ -419,45 +419,93 @@ A few things to get right now so that day goes smoothly:
 
 ## UI — clone, don't invent
 
-**This is the part I care most about.** Do not build these screens from scratch. Clone the existing ones, strip what doesn't apply, and adapt the skeleton. I want the notification screens to be visually indistinguishable in structure from what's already there.
+**This is the part I care most about — read this section twice.** Do not build these screens from scratch. Clone the existing ones, strip what doesn't apply, and adapt the skeleton. The notification screens must be **indistinguishable** from the rest of the app: same tokens, same styles, same spacing, same naming conventions, same interaction patterns.
+
+**Reuse rule, absolute:** before you build *any* control — a dropdown, a date picker, an avatar, a chip, a toggle, a confirmation popup — search the app's existing reusable elements for one that already does it. This app has 534 reusable elements including a large family of pre-built dropdowns (`DD <Thing> - Multyselect Chips (Fuzzy)`, `DD <Thing> - Multyselect (Server)`, `DD <Thing> - Single Select (Server)` and many more), `# Avatar - User`, `PP - Confirmation`, `DT - Date Range Picker`, `Toggle - Relative Date Picker`, and status toggles. **Use the existing one.** Only build something new if you have genuinely searched and nothing fits — and when you do, say so explicitly in your report with the name of what you built and what you searched for first. A one-off bespoke dropdown that looks 95% like the existing ones is a defect, not a shortcut.
 
 ### 1. The inbox — clone `# User Management`
 
-`# User Management` is the newest and best-built module reusable in the app (529 elements, 7 workflows). Its skeleton is exactly what a notification inbox needs:
+`# User Management` (reusable id `bpwyhp`, 529 elements) is the newest and best-built module in the app. **Duplicate the whole reusable** and adapt it — do not hand-rebuild its skeleton. Its structure, which you are keeping essentially intact:
 
-- a permission-gate group (`G UM NoAccess` + `PP - Access Denied UM`) wrapping the whole thing
-- a KPI/stat row with click-to-filter
-- a filter + search bar
-- a paginated list (it uses a `page_no` custom state, plus `kpi_filter`, `role_filter`, `dept_filter`, `kpis_hidden`)
-- a detail drawer (`drawer_open`, `drawer_edit`, `selected_user` custom states)
-- a save bar floating group (`FG UMP SaveBar`) that appears when state is dirty
-- create/confirm popups
+- `G UM Main` — the wrapper for everything
+- `G UM Topbar` — breadcrumbs (`G UM Crumbs`: "Admin › Users") + `G UM Topbar Right` holding `BTN UM KPI Toggle`, `BTN UM Fullscreen`, and the primary action button
+- `G UM AppHead` — `G UM Controls` (search, view toggle, filter dropdowns) + `G UM KPIs` (7 KPI tiles) + a collapsible `BTN UM Overview` summary
+- `G UM Chips` — active-filter chips with individual close buttons and a `BTN UM Reset All`
+- `G UM ListScroll` — the four view containers plus `G UM Empty`
+- `G UM Footer` — `TXT UM Footer Count` on the left, pager (`BTN UM Pager Prev/1/2/3/Next`) on the right
+- `FG UM Drawer` + `FG UM Scrim` — the slide-in detail drawer
+- `FG UM Toast` — an in-module toast
+- `HTML UM Mobile CSS` — the responsive rules
 
-Duplicate it as a new reusable named `# Notifications`. Then:
-- Strip every user-CRUD workflow, the create-user popup, the one-time-password popup, and all user-specific fields.
-- Drop the permission gate entirely — every user can see their own notifications, so there is nothing to gate.
-- Rename the custom states: `selected_notification`, `state_filter`, `module_filter`, `page_no`, `drawer_open`.
-- Repoint the repeating group at `Search for notification` constrained by `recipient = Current User`, sorted by created date descending, **with a "Do a search for" that always carries at least the recipient constraint.** More constraints in the search itself, never `:filtered` afterwards — filtering downloads the whole set and then throws most of it away.
-- KPI row becomes: Unread / Read / Archived / Critical, each click-to-filter.
-- Filters become: module (from `OS - Module`), event type, state, date range.
-- Bulk actions: Mark all read, Archive selected, Delete archived.
-- Row anatomy: severity dot, module icon (from the module's `icon_code`), title, snippet, relative timestamp (the Relative Time with Moment.js plugin is already installed — use it), unread indicator. When `group_count > 1`, show "and N more".
-- Clicking a row marks it read, decrements the counter, verifies the target still exists and is visible, then navigates to `cta_url` — or shows the unavailable message. If a matching `notification_delivery_record` exists (compliance-relevant event), also stamp its `read_date` here — that's the field an auditor cares about, "was it actually opened," not just "was it sent."
-- Unread rows are distinguished by **more than colour** — a dot plus a weight change — so it works for colour-blind users and in both themes.
+Name the clone `# Notifications`. Follow the app's existing element-naming convention exactly, swapping the `UM` infix for `NT`: `G NT Main`, `G NT Topbar`, `G NT AppHead`, `G NT Controls`, `G NT KPIs`, `G NT ListScroll`, `G NT Footer`, `FG NT Drawer`, `FG NT Scrim`, `RG NT List`, `BTN NT View Table`, and so on. Consistency here is not cosmetic — it's how the app stays navigable.
 
-Finally, repoint the `# notifications` custom element inside the `Pages` floating group at this new reusable instead of the `# dashboard` placeholder it currently references.
+**The four view modes — keep all four, this is a hard requirement.** User Management drives them off a `view_mode` custom state (text, default `"list"`), toggled by `G UM ViewTog`, which contains four segments — `G UM View Seg list`, `G UM View Seg card`, `G UM View Seg table`, `G UM View Seg det` — each an icon + text pair (`ICO UM View list` / `BTN UM View List`, etc.). Each segment sets `view_mode` and the four containers show conditionally:
 
-### 2. The bell dropdown — clone `GF - User Menu`
+| view_mode | Container | Notification content |
+|---|---|---|
+| `list` | `RG UM List` → `RG NT List` | Default. One compact row per notification: unread dot, severity colour, module icon, title, snippet, relative time. |
+| `card` | `RG UM Cards` → `RG NT Cards` | Larger tiles — actor avatar (use `# Avatar - User`), title, snippet, module chip, time, quick actions. |
+| `table` | `G UM Table` (`RG UM Table` + `G UM Table Head`) → `G NT Table` | Dense grid with a sticky header: State, Severity, Module, Event, Title, Actor, Date. This is the view someone uses to audit a month of activity. |
+| `det` | `RG UM Det` → `RG NT Det` | Detailed rows — everything from list, plus the full body preview, the delivery channels that fired, and the entity deep link inline. |
 
-`GF - User Menu` (60 elements) is the app's existing dropdown-from-header pattern. Clone it as `# GR - Notification Bell` and place it in the same header area, beside the user menu.
+Replicate the toggle's exact visual treatment — same segment group, same icon-plus-label pairing, same active/inactive styling driven by `view_mode`. Do not invent a different control.
 
-- Bell icon with an unread badge; cap the display at "99+".
-- The badge reads `Current User's unread_notification_count`. **Do not put a live search behind it, and do not build a polling/refresh workflow for it either.** Bind the badge text directly to that field — Bubble syncs changes to the Current User's own fields to the page automatically without any refresh action. Binding directly gets you real-time-feeling updates for free; a "refresh every 30 seconds" workflow on top of that would be pure wasted workload.
-- Opening the dropdown sets every `unread` row that's currently displayed to `seen` and clears the badge — without marking them read.
-- Body: the 15 most recent notifications, newest first. Fifteen, hard-capped, so the query cost is constant no matter how many thousands the user has.
+Then adapt:
+- **Strip** every user-CRUD workflow, `FG UM Create` (create-user popup), `FG UM OneTimePW`, and all user-specific fields, dropdowns and filters.
+- **Drop the permission gate** (`G UM NoAccess`, `PP - Access Denied UM`) — every user sees their own notifications, there is nothing to gate.
+- **Custom states** become: `view_mode` (text, default `"list"` — keep this name), `page_no` (number, default 1), `kpi_filter`, `state_filter`, `module_filter`, `severity_filter`, `kpis_hidden`, `stats_open`, `drawer_open`, `selected_notification` (notification), plus a `bulk_selection` (list of notification) for the bulk actions.
+- **Repeating group source** for all four views: `Do a search for notification` constrained by `recipient = Current User`, sorted by Created Date descending. **Every constraint goes in the search itself, never `:filtered` afterwards** — `:filtered` downloads the whole set and throws most of it away. The recipient constraint is always present, non-negotiable.
+- **KPI tiles** (`G UM KPI 1`–`7` → reuse the same tile structure): Unread, Seen, Read, Archived, Critical, This Week, Total. Each click-to-filter, setting `kpi_filter`, exactly as User Management does.
+- **Filter controls** in `G NT Controls`: search input (same as `G UM Search`), the view toggle, then module / event-type / state / severity dropdowns and a date-range picker — **using the existing dropdown and date-picker reusables**, not new ones. If an `OS - Module` multiselect-chips dropdown already exists, use it.
+- **Filter chips** — keep the `G UM Chips` pattern exactly: one chip per active filter with a close button, plus Reset All.
+- **Bulk actions**: Mark selected read, Archive selected, Delete archived, Mark all read. Route destructive ones through the existing `PP - Confirmation` reusable.
+- **Row anatomy** (list view): unread dot, severity colour accent, module icon (from the module's `icon_code`), title, snippet, relative timestamp — use the **Relative Time with Moment.js** plugin that's already installed. When `group_count > 1`, append "and N more".
+- **Clicking a row** marks it read, decrements the counter, verifies the target still exists and is still visible to this user, then navigates to `cta_url` — or shows "This item is no longer available". If a matching `notification_delivery_record` exists, stamp its `read_date` too.
+- **Unread rows are distinguished by more than colour** — a dot plus a font-weight change — so it works for colour-blind users and in both themes.
+- **Empty state** (`G UM Empty` → `G NT Empty`): keep the icon + message pattern, with copy appropriate to the active filter ("No unread notifications" vs "No notifications match these filters").
+- **Keep the drawer.** `FG UM Drawer` becomes `FG NT Drawer`: clicking a row opens the full notification detail — event type, actor, full body, all timestamps (created/seen/read), which channels delivered, and a button through to the linked record. Same scrim, same slide-in, same close button.
+- **Keep `HTML UM Mobile CSS`** and adapt it — the module must stay responsive exactly like User Management does.
+
+Finally, repoint the `# notifications` custom element inside the `Pages` floating group at this new reusable instead of the `# dashboard` placeholder it currently references, and set its `OS - Module` condition to the existing `notifications` value.
+
+### 2. The bell — clone `GF - User Menu`, place it in `# Sidebar`
+
+**Where it goes.** There is no separate page header in this app — the persistent chrome is `# Sidebar` (reusable `bTxnv`), which has three top-level groups: `Logo`, `Main` (the nav), and `Footer`. The `Footer` group already holds `GF - User Menu A` (a custom element pointing at the `GF - User Menu` reusable) and a `Mobile CSS` HTML block. **Put the bell in that same `Footer` group, immediately beside `GF - User Menu A`.** Because `# Sidebar` renders on every module, that gives you the bell on every page without touching a single module — which is exactly the requirement. Do not add a bell per module, and do not create a new header bar.
+
+**What to clone.** `GF - User Menu` (reusable `bUFcl`, 60 elements) is the app's existing "click a thing in the sidebar footer, get a floating panel" pattern. Clone it as `# GF - Notification Bell` and keep its open/close mechanics, its floating-group positioning logic, its scrim/outside-click behaviour, and its visual treatment. You are changing the contents, not the pattern.
+
+- Bell icon (the `bell` icon code, matching the `OS - Module` `notifications` value) with an unread count badge; cap the display at "99+", hide the badge entirely at zero.
+- The badge reads `Current User's unread_notification_count`. **Do not put a live search behind it, and do not build a polling/refresh workflow for it either.** Bind the badge text directly to that field — Bubble syncs changes to the Current User's own fields to the page automatically with no refresh action. Binding directly gets real-time-feeling updates for free; a "refresh every 30 seconds" workflow on top would be pure wasted workload.
+- Opening the panel sets every `unread` row currently displayed to `seen` and clears the badge — **without** marking them read.
+- Body: the 15 most recent notifications, newest first. Fifteen, hard-capped, so the query cost stays constant no matter how many thousands the user has accumulated.
 - Tabs: Unread / All.
-- Footer: "View all" → the notifications module, and a gear → preferences.
+- Row anatomy matches the inbox list row (unread dot, severity, module icon, title, snippet, relative time) so the two never look like different products.
+- Footer: "View all" → the notifications module, and a gear icon → notification preferences.
 - Empty state with a real message, not a blank panel.
+
+### 2b. Toast notifications — new `#FG - Notification Toast`, anchored top-right
+
+New notifications pop as a toast in the **top-right** corner while the user is working.
+
+**Important — the existing `Toast` floating group on the `app` page is centered, not right-aligned** (`floating_reference: "top"`, `floating_reference_horizontal_resp: "center"`, width 320). Do not repurpose or reposition it — other things use it. Build a separate `#FG - Notification Toast` anchored top-right, and **copy its visual styling exactly** so the two are visibly the same component family:
+
+- background: `var(--color_primary_default)` (the same token binding the existing toast uses — do not substitute a literal colour)
+- border: 1px solid, using the app's `Border Default` token
+- border radius: 12
+- box shadow: outset, 0 horizontal / 8 vertical / 30 blur / -2 spread, `rgba(0,0,0,0.35)`
+- width: 320
+- `collapse_when_hidden: true`, `is_visible: false` by default
+
+Behaviour:
+- Fires for a newly arrived notification while the user is on the page. Severity drives the accent: `info` → `Accent`, `warning` → `Warning`, `critical` → `Error`, using tokens.
+- Content: module icon, title, one-line snippet, and a close button. Clicking the body does exactly what clicking an inbox row does (mark read, verify target, navigate). Clicking close dismisses without marking read.
+- Auto-dismiss after ~5 seconds for `info` and `warning`. **`critical` does not auto-dismiss** — it stays until the user acknowledges it. Someone whose role just changed should not miss it because they looked away.
+- Stack downward if more than one arrives, newest at top, and cap the visible stack at 3 — beyond that, the bell badge is the overflow indicator. Do not let toasts cover the screen.
+- Never show a toast for a notification the user has already seen in this session, and never for one they triggered themselves (the actor is already excluded upstream, but don't re-introduce it here).
+- Respect `global_inapp_enabled` — a user who turned in-app notifications off gets no toasts.
+- The toast must be reachable by screen readers (aria-live) and dismissible by keyboard, not mouse-only.
+
+Place this floating group on the `app` page alongside the existing `Toast` FG so it is available across every module, the same way the sidebar bell is.
 
 ### 3. Preferences — clone `# Casino Settings`
 
@@ -512,13 +560,16 @@ Plan mode first — inventory, then this plan with your corrections, then wait f
 16. `send_notification_push` (stubbed send) + `notification_register_device` + `notification_deregister_device`.
 17. `trigger_company_announcement`.
 18. `notification_nightly_maintenance`.
-19. The bell dropdown (clone `GF - User Menu`) — bind the badge directly to the counter field, no polling.
-20. The inbox (clone `# User Management`), and repoint the `# notifications` custom element.
-21. Preferences (clone `# Casino Settings`) — include the Push master toggle (disabled, tooltipped) alongside In-app/Email, and the company-policy-forced / company-disabled states.
-22. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole in-app + email chain works. Push has nothing to prove yet since there's no device to register — confirm instead that `deliver_to_user` correctly finds zero active devices and skips cleanly, without erroring.
-23. Cleanup pass (the list above) and final report.
+19. The bell (clone `GF - User Menu` → `# GF - Notification Bell`) placed in `# Sidebar`'s `Footer` group beside `GF - User Menu A` — bind the badge directly to the counter field, no polling.
+20. `#FG - Notification Toast` on the `app` page, top-right, styled to match the existing `Toast` FG.
+21. The inbox (duplicate `# User Management` → `# Notifications`) — **all four view modes working**, KPIs, chips, filters, pager, drawer, empty state. Repoint the `# notifications` custom element.
+22. Preferences (clone `# Casino Settings`) — include the Push master toggle (disabled, tooltipped) alongside In-app/Email, and the company-policy-forced / company-disabled states.
+23. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole in-app + email chain works. Push has nothing to prove yet since there's no device to register — confirm instead that `deliver_to_user` correctly finds zero active devices and skips cleanly, without erroring.
+24. Cleanup pass (the list above) and final report.
 
-Steps 1–12 are schema; 13–18 are logic; 19–21 are UI; 22–23 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
+Steps 1–12 are schema; 13–18 are logic; 19–22 are UI; 23–24 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
+
+**On the UI steps specifically: do them as real clones.** Duplicating `# User Management` and adapting it is the instruction — if you find yourself creating elements one by one to approximate its layout, you have gone off-plan. Stop and clone instead.
 
 ---
 
@@ -543,8 +594,14 @@ Go through this list explicitly in your final report and mark each pass or fail:
 - [ ] No `title` or `body_preview` contains record content — actor-verb-object only.
 - [ ] The nightly maintenance job is batch-capped and cannot run away.
 - [ ] The unsubscribe endpoint works without login, keyed on a random token.
+- [ ] The inbox is a genuine clone of `# User Management` — same topbar/crumbs, KPI row, filter chips, controls, footer pager, drawer and mobile CSS structure, renamed `UM` → `NT`.
+- [ ] **All four view modes work** — list, card, table, detailed — driven by a `view_mode` state off a four-segment toggle that matches `G UM ViewTog` exactly.
+- [ ] The bell lives in `# Sidebar`'s `Footer` group beside `GF - User Menu A`, so it appears on every module without per-module work.
+- [ ] Toasts appear **top-right**, styled identically to the existing `Toast` FG (320px, radius 12, same shadow, token background), auto-dismiss except `critical`, and stack no more than 3.
+- [ ] No bespoke control was built where an existing reusable would have done — and every new element you did create is listed in the report with what you searched for first.
 - [ ] No hex colour appears anywhere in the new UI; every element uses a named token or style.
 - [ ] Both themes render correctly — check light as well as dark.
+- [ ] The new module is responsive — it behaves like User Management does at mobile width, not just desktop.
 - [ ] `task.assigned` fires end to end: task assigned → row created → badge increments → appears in dropdown and inbox → email scheduled → clicking opens the task.
 
 Then tell me:
