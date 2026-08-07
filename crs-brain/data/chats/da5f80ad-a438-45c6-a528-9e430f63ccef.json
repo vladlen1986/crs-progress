@@ -1,0 +1,154 @@
+{
+  "id": "da5f80ad-a438-45c6-a528-9e430f63ccef",
+  "title": "do we have full specs for notification system ? If yes provi",
+  "sessionId": "ce0555df-8efc-4c96-9f42-c8aba47d1e02",
+  "bp": false,
+  "created": "2026-08-07T05:23:14.182Z",
+  "updated": "2026-08-07T05:23:57.697Z",
+  "messages": [
+    {
+      "role": "user",
+      "content": "do we have full specs for notification system ? If yes provide please",
+      "ts": "2026-08-07T05:23:14.182Z",
+      "attachments": []
+    },
+    {
+      "role": "assistant",
+      "content": "Yes — full spec exists and is marked \"Spec Complete\" (module #30, Admin/Core section, Core tier — always active regardless of subscription tier). It's **not built in Bubble yet** (all 46 modules are roadmap-status), but the design is fully locked. Source: `specs/CRS_Blueprint.html` lines 3279–3990.\n\n## Notifications Module — Summary\n\n**Architecture:** In-app + Email active for MVP; Push channel infrastructure-ready but dormant.\n\n**5 Data Types:**\n| DT | Purpose |\n|---|---|\n| `Notification` | One row per recipient per event. v20: supports 3 recipient kinds (internal `User`, `ApplicantAccount`, or raw `recipient_email`) via nullable FKs + `recipient_kind` discriminator — exactly one must be set. |\n| `NotificationPreferences` | 1-per-user, auto-created on signup. Global toggles (in-app/email/push) + list of `EventPreference`. |\n| `EventPreference` | Per-event channel override, only created when user deviates from default. |\n| `Subscription` | Watch/Follow. Auto-subscribe on create/assign; user can manually watch/unwatch/mute. |\n| `EmailTemplate` | Body per event, v20 fallback chain: company+language → company+en → global+language → global+en → hardcoded. |\n\n**3 Option Sets:** `OS - Notification Event Type` (the event catalog — code, module, default channels, severity, batching window, template key), `OS - Notification State` (Unread/Read/Archived), `OS - Recipient Kind`.\n\n**Key mechanics:**\n- **Dedupe:** one notification per (user + event + entity).\n- **Batching:** grouped by (recipient + event_type + module + time window) — 15min for creates, 10min updates, 5min assignments, 0min (immediate) for critical events like permission approvals/role changes. This is a WU-cost control, not just UX polish.\n- **Delivery pipeline:** `trigger_notification` → schedules `deliver_to_user` per recipient → schedules `send_notification_email`. Check-on-fire guard for idempotency, no reschedule races.\n- **Privacy:** strict recipient-only, **no admin override** — even admins can't read other users' notification content (audit goes through `ActivityLog` instead).\n- **Retention:** Unread indefinite; Read non-critical archives at 30d, deletes at 90d; critical kept 1 year regardless of state.\n\n**UI:** Bell dropdown (last 10-15, unread badge) + `/notifications` full page + `/settings/notifications` preferences (grouped Module → Submodule, checkbox grid per event/channel).\n\nAlready mapped to live Bubble: legacy `notification` DT exists (16 fields, tenant-scoped) but currently has **NO privacy rules** (`brain/database.md:52`) — that's the gap between spec and reality if/when this gets built.",
+      "ts": "2026-08-07T05:23:57.697Z",
+      "startedAt": "2026-08-07T05:23:14.185Z",
+      "completedAt": "2026-08-07T05:23:57.697Z",
+      "model": "claude-sonnet-5",
+      "tokensIn": 93055,
+      "tokensOut": 994,
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Routing — Sonnet 5 · medium effort  (depth 0.30 · risk 0.00)",
+          "body": "Nothing unusual in this message — standard handling.\nDepth 0.30 · risk 0.00\nRe-decided from scratch for this message.",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "Search for notification-related files",
+          "body": "description: Search for notification-related files\ncommand: grep -ril \"notification\" /Users/vlad/projects/crs-progress/brain /Users/vlad/projects/crs-progress/specs /Users/vlad/projects/crs-progress/design /Users/vlad/projects/crs-progress/decisions.md 2>/dev/null",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -in \"notification\" /Users/vlad/projects/crs-progress/data/CRS_M…",
+          "body": "⇒ /Users/vlad/projects/crs-progress/brain/STATUS.md /Users/vlad/projects/crs-progress/brain/changelog.md /Users/vlad/projects/crs-progress/brain/workflows.md /Use\ncommand: grep -in \"notification\" /Users/vlad/projects/crs-progress/data/CRS_Module_OptionSets.xlsx 2>/dev/null; python3 -c \"\nimport zipfile\nz = zipfile.ZipFile('/Users/vlad/projects/crs-progress/data/CRS_Module_OptionSets.xlsx')\nimport re\nfor n in z.namelist():\n    if 'sharedStrings' in n:\n        data = z.read(n).decode('utf-8', errors='ignore')\n        if 'otific' in data.lower():\n            print('found notification mentions in sharedStrings')\n\"\n⇒ found notification mentions in sharedStrings",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n -i \"notification\" /Users/vlad/projects/crs-progress/brain/da…",
+          "body": "command: grep -n -i \"notification\" /Users/vlad/projects/crs-progress/brain/database.md | head -80",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n -i \"notification\" /Users/vlad/projects/crs-progress/decision…",
+          "body": "⇒ 52:| 36 Notification | `notification` | 16/0 | yes | yes | NO RULES | 69:Whole families retired at type level: Zona gamification (zona_artifact/inventory_item/m\ncommand: grep -n -i \"notification\" /Users/vlad/projects/crs-progress/decisions.md | head -50",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n -i \"notification\" /Users/vlad/projects/crs-progress/design/d…",
+          "body": "command: grep -n -i \"notification\" /Users/vlad/projects/crs-progress/design/design.md | head -80\n⇒ 135:**Settings:** presented as a tabbed panel (left sub-nav: General/Appearance/Notifications/Connections/About) 325: Notifications, System Activity Log, Import\n⇒ 278:**Build discipline (build-now vs stub-hidden):** only show rows whose destination exists. Build hidden rows for future destinations (My Profile, Notificatio",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ sed -n '1,140p' /Users/vlad/projects/crs-progress/brain/database.md …",
+          "body": "command: sed -n '1,140p' /Users/vlad/projects/crs-progress/brain/database.md | grep -n -i -A5 -B5 \"notification\"",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n -i \"notification\" /Users/vlad/projects/crs-progress/specs/CR…",
+          "body": "⇒ 47-| 31 Role | `permission_groups` | 5/3 | **no (deleted)** | yes | property-only | 48-| 31.1 Role Audit Log | `role_audit_log` | 7/0 | **no** | yes | property-\ncommand: grep -n -i \"notification\" /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html | head -60\n⇒ 1387: <a class=\"nav-item\" href=\"#module=notifications\" data-module=\"notifications\" data-module-category=\"admin\">Notifications<span class=\"nav-status done\">DONE<",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Yes — full Notifications module spec exists, marked \"Complete\" in `specs/CRS_Blueprint.html` (module #30, Admin/Core, Core-tier). It's an entire module container starting at line 3279 with 7 tabs (Overview, Data Model, Workflows, Privacy, U",
+          "body": "Yes — full Notifications module spec exists, marked \"Complete\" in `specs/CRS_Blueprint.html` (module #30, Admin/Core, Core-tier). It's an entire module container starting at line 3279 with 7 tabs (Overview, Data Model, Workflows, Privacy, UI, Dependencies, Edge Cases). Let me pull the full content to give you the real specifics rather than just a table of contents.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ awk 'NR==3279,/<div class=\"module-container\" data-module=\"[a-z-]+\" i…",
+          "body": "command: awk 'NR==3279,/<div class=\"module-container\" data-module=\"[a-z-]+\" id=\"module-(?!notifications)/' /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html > /dev/null; grep -n 'module-container data-module=' /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html | awk -F: -v start=3279 '$1>start' | head -3\n⇒ ✗ This Bash command contains multiple operations. The following parts require approval: awk 'NR==3279,/<div class=\"module-container\" data-module=\"[a-z-]+\" id=\"module-(?!notifications)/' /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html ; grep -n 'module-container data-module=' /Users/vlad/pro",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Bash",
+          "label": "$ grep -n 'class=\"module-container\"' /Users/vlad/projects/crs-progress…",
+          "body": "command: grep -n 'class=\"module-container\"' /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html\n⇒ 2563:<div class=\"module-container\" data-module=\"roles-permissions\" id=\"module-roles-permissions\"> 3279:<div class=\"module-container\" data-module=\"notifications\"",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Notifications module spans lines 3279–3990 (712 lines) in `specs/CRS_Blueprint.html`. Let me read it in full.",
+          "body": "Notifications module spans lines 3279–3990 (712 lines) in `specs/CRS_Blueprint.html`. Let me read it in full.",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read CRS_Blueprint.html",
+          "body": "file_path: /Users/vlad/projects/crs-progress/specs/CRS_Blueprint.html\noffset: 3279\nlimit: 712\n⇒ 3279 <div class=\"module-container\" data-module=\"notifications\" id=\"module-notifications\"> 3280 <div class=\"module-header-bar\"> 3281 <div class=\"module-header-le",
+          "actor": "brain"
+        }
+      ]
+    }
+  ]
+}
