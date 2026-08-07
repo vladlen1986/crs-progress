@@ -4,7 +4,7 @@
   "sessionId": "bb7a9dc1-34d8-4437-be41-2c6126abd8fb",
   "bp": false,
   "created": "2026-08-07T00:22:29.150Z",
-  "updated": "2026-08-07T00:22:52.884Z",
+  "updated": "2026-08-07T00:23:51.682Z",
   "messages": [
     {
       "role": "user",
@@ -189,6 +189,81 @@
       "ts": "2026-08-07T00:23:28.179Z",
       "answer": "user-management-spec.html",
       "answeredAt": "2026-08-07T00:23:36.834Z"
+    },
+    {
+      "role": "assistant",
+      "content": "## User Management — Full Spec (v17)\n\n`crs-brain/data/docs/user-management-spec.html`\n\n**Status:** Spec Complete (v17). UI is built and data-wired in Bubble, but **security Pass‑2 is not done** — the live User DT is currently property-only, missing the company check.\n\n### Data model\n- **User** (25 fields) — login identity only, no PII. Requires `employee` FK (all PII lives there), `role` FK, `company`+`property`, `extra_permissions`, `is_active`, `must_change_password`, GDPR anonymize fields, 2FA fields, presence status.\n- **UserPreferences** — 1:1, dark mode + directory view.\n- **Session** — one record per login, `session_token` never client-visible.\n- 4 new option sets (Device Type, Session Status, Directory View, Presence Status).\n\n### Key workflows\n- No self-service signup — admin creates account, temp password shared out-of-band.\n- Optional per-user 2FA (TOTP via Zeroqode plugin), 10 backup codes.\n- Strict 2-step GDPR: **Deactivate** (reversible) → **Anonymize** (destructive, requires typing \"ANONYMIZE\", scrubs Employee PII, rewrites email to `anonymized-{id}@deleted.crs.app`).\n- Presence (Online/Away/Busy/Offline) is separate from account status, write-throttled for WU efficiency.\n\n### Privacy & permissions\n- 5-rule priority stack on User (Self → Admin → Same Company → Anonymized → Cross-Company, zero access).\n- 10 permissions under Admin → User Management with dependency chains.\n- `two_fa_secret`, `two_fa_backup_codes`, `session_token` blocked in every rule, including self.\n\n### Gaps flagged in the doc itself\n1. Dependencies tab empty — no cross-module mapping done.\n2. All 14 UI components / 19 features marked \"Planned\" at the component-tracking level.\n3. **Real gap:** privacy rules are designed but not enforced live; 22 demo records still present; mobile Filters button non-functional.\n\n**Next logical step** would be closing the security Pass‑2 gap (company+property enforcement on live User DT) since that's the only thing standing between this spec and Pattern-A compliance. Want me to check `brain/STATUS.md` §3 or `brain/security.md` for the current state of that gap before we act on it?",
+      "ts": "2026-08-07T00:23:51.682Z",
+      "startedAt": "2026-08-07T00:23:17.392Z",
+      "completedAt": "2026-08-07T00:23:51.682Z",
+      "model": "claude-sonnet-5",
+      "tokensIn": 71372,
+      "tokensOut": 826,
+      "steps": [
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Playbook check — clean",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Routing — Sonnet 5 · medium effort  (depth 0.30 · risk 0.00)",
+          "body": "Nothing unusual in this message — standard handling.\nDepth 0.30 · risk 0.00\nRe-decided from scratch for this message.",
+          "actor": "brain"
+        },
+        {
+          "kind": "note",
+          "tool": null,
+          "label": "Connected — model session live",
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "ToolSearch",
+          "label": "Toolsearch · select:ask_vlad",
+          "body": "query: select:ask_vlad\nmax_results: 3\n⇒ No matching deferred tools found",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "ToolSearch",
+          "label": "Toolsearch · crsask ask_vlad decide_with_vlad",
+          "body": "query: crsask ask_vlad decide_with_vlad\nmax_results: 5",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "mcp__crsask__ask_vlad",
+          "label": "Crsask Ask Vlad",
+          "body": "question: Which prototype should I open and summarize first?\ncontext: Recommending user-management-spec.html — it's the most developed (full spec, v17), vs. the settings pages which are more visual-only prototypes.\noptions: [{\"label\":\"user-management-spec.html\",\"hint\":\"recommended — most developed, full spec v17\"},{\"label\":\"casino-settings.html (prototypes/)\",\"hint\":\"current settings prototype\"},{\"label\":\"casino_property_settings.html (demos/)\",\"hint\":\"older settings demo\"},{\"label\":\"user-cards.html\",\"hint\":\"card UI variations only\"},{\"label\":\"all four, brief summary each\",\"hint\":\"broader but shallower pass\"}]\n⇒ Vlad answered: user-management-spec.html",
+          "actor": "brain"
+        },
+        {
+          "kind": "tool",
+          "tool": "Read",
+          "label": "Read user-management-spec.html",
+          "body": "file_path: /Users/vlad/projects/crs-progress/crs-brain/data/docs/user-management-spec.html\n⇒ 1 <!DOCTYPE html> 2 <html lang=\"en\"> 3 <head> 4 <meta charset=\"UTF-8\"> 5 <title>User Management — Full Spec (v17)</title> 6 <style> 7 :root { 8 --bg: #181818; -",
+          "actor": "brain"
+        },
+        {
+          "kind": "thinking",
+          "tool": null,
+          "label": null,
+          "body": "",
+          "actor": "brain"
+        }
+      ]
     }
   ]
 }
