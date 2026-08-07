@@ -348,5 +348,33 @@
     "recurred": 0,
     "status": "active",
     "created": "2026-08-06T18:05:21.699Z"
+  },
+  {
+    "id": "0d7c003e",
+    "category": "platform-gotcha",
+    "trigger": "browser automation, Chrome debugging, Buildprint sessions, remote-debugging-port",
+    "rule": "The Claude Code automation browser runs in a separate profile/session from the user's logged-in Chrome; CDP discovery will fail even if Chrome is running, because the automation instance cannot reach it.",
+    "fix": "Have the user quit their main Chrome completely, then you restart it with `open -a 'Google Chrome' --args --remote-debugging-port=9222` — your login session survives, and you can then attach and drive the chat.",
+    "errorSig": "all cdp discovery methods failed for # # # # #",
+    "source": "chat da5f80ad · 2026-08-07",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-07T06:29:13.214Z"
+  },
+  {
+    "id": "c187adfd",
+    "category": "cli-bug",
+    "trigger": "Python one-liners, multi-line -c commands, embedded newlines",
+    "rule": "Literal newlines inside quoted shell arguments (e.g., `python3 -c \"...\\n...\"`) are parsed as argument terminators and break the command.",
+    "fix": "For multi-line logic, write to a temp file and execute it (`node /tmp/script.js`) instead of embedding newlines in -c strings; or use backslash continuation within the shell syntax.",
+    "errorSig": "newline followed by # inside a quoted argument can hide arguments from path validation",
+    "source": "chat da5f80ad · 2026-08-07",
+    "hits": 0,
+    "lastHit": null,
+    "recurred": 0,
+    "status": "active",
+    "created": "2026-08-07T06:29:13.214Z"
   }
 ]
