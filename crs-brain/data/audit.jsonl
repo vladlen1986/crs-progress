@@ -130,3 +130,5 @@
 {"ts":"2026-08-06T22:33:09.088Z","action":"ask-answered","target":"2f00d7ed","via":"desktop","meta":{"question":"How should we handle 01 Company going forward?","answer":"Keep it as is","standing":false}}
 {"ts":"2026-08-06T22:33:11.611Z","action":"ask-answered","target":"d9c34a7e","via":"desktop","meta":{"question":"Proceed with the migration now?","answer":"Park it","standing":false}}
 {"ts":"2026-08-06T22:33:15.930Z","action":"ask-answered","target":"0ce765d9","via":"desktop","meta":{"question":"Keep the old export path?","answer":"Keep","standing":false}}
+{"ts":"2026-08-07T00:23:17.359Z","action":"ask-answered","target":"420fec22","via":"desktop","meta":{"question":"No prototype exists yet for any of the other 46 modules beyond these. Want me to open one of these and summarize its cur","answer":"recommend","standing":false}}
+{"ts":"2026-08-07T00:23:36.835Z","action":"ask-answered","target":"eb1318a7","via":"desktop","meta":{"question":"Which prototype should I open and summarize first?","answer":"user-management-spec.html","standing":false}}

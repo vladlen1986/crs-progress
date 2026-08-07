@@ -5459,38 +5459,32 @@ async function loadUsage(){
       `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
     return;
   }
-  let rows='';
-  // rate_limits (5h session + 7d weekly) show for subscribers once a reading was
-  // captured after an API response; context window + cost render alongside/below.
-  if(d.rate_limits){
-    if(d.rate_limits.five_hour) rows+=usageRow('Session · 5h', d.rate_limits.five_hour);
-    if(d.rate_limits.seven_day) rows+=usageRow('Weekly · 7d', d.rate_limits.seven_day);
-  }
-  const cw=d.context_window;
-  if(cw){
-    const pct = cw.used_percentage!=null ? Math.round(cw.used_percentage) : (cw.total_input_tokens&&cw.context_window_size ? Math.round(100*cw.total_input_tokens/cw.context_window_size) : 0);
-    const winK = cw.context_window_size ? Math.round(cw.context_window_size/1000)+'K' : '';
-    rows+=`<div class="urow"><div class="ulabel"><b>Context window</b><span class="pctv">${pct}%</span></div>`+
-      `<div class="bar"><span style="width:${Math.min(100,pct)}%;background:${barColor(pct)}"></span></div>`+
-      `<div class="sub"><span class="reset">${(cw.total_input_tokens||0).toLocaleString()} in · ${(cw.total_output_tokens||0).toLocaleString()} out · ${winK}</span></div></div>`;
-  }
-  if(d.cost && (d.cost.total_lines_added||d.cost.total_lines_removed||d.cost.total_cost_usd)){
-    rows+=`<div class="sub" style="margin-top:8px">Session: ${d.cost.total_cost_usd?('$'+d.cost.total_cost_usd.toFixed(2)+' · '):''}+${d.cost.total_lines_added||0}/-${d.cost.total_lines_removed||0} lines</div>`;
-  }
-  if(!rows) rows='<div class="note">Waiting for your next Claude Code render…</div>';
-  // For the 5h/7d bars the meaningful timestamp is when the limits were read, which
-  // can trail the last render (limits carry forward until a fresh post-response read).
-  // header account chip: just the 5-hour session % (the active window); the popover
-  // has the full 5h/7d breakdown + resets. Border severity flags either window.
+  // ONE renderer for both cards. This popover used to build its own bars, labels,
+  // model line, cost line and footer — which is exactly how it drifted from the
+  // Usage window (different colours/labels, no per-model Fable row, a "Haiku 4.5"
+  // line that was really the probe model, and a context row belonging to whatever
+  // interactive session last rendered a statusline rather than this chat).
+  // USAGEWIN.mount() paints the identical body here and keeps it live. The only
+  // things this card adds are the account bits above: email, tier, connection,
+  // Disconnect. (2026-08-07)
   const sessP = d.rate_limits&&d.rate_limits.five_hour ? Math.round(d.rate_limits.five_hour.used_percentage||0) : null;
   const wkP = d.rate_limits&&d.rate_limits.seven_day ? Math.round(d.rate_limits.seven_day.used_percentage||0) : null;
-  const maxP = Math.max(sessP||0, wkP||0);
   setUsageChip(sessP!=null ? sessP+'%' : (wkP!=null ? wkP+'%' : '—'));
+  if(window.USAGEWIN&&USAGEWIN.mount){
+    box.innerHTML='<div class="ucard uw-scope" id="acctUsageBody"></div>';
+    USAGEWIN.mount($('acctUsageBody'));
+    return;
+  }
+  // Fallback only if usagewin.js failed to load.
+  let rows='';
+  if(d.rate_limits){
+    rows+=(d.rate_limits.five_hour?usageRow('Session · 5h',d.rate_limits.five_hour):'')
+      +(d.rate_limits.seven_day?usageRow('Weekly · 7d',d.rate_limits.seven_day):'');
+  }
+  if(!rows) rows='<div class="note">Waiting for your next Claude Code render…</div>';
   const stamp = d.rate_limits ? (d.rate_limits_at||d.at) : d.at;
-  const stampLbl = d.rate_limits ? 'Limits read' : 'Updated';
-  box.innerHTML=`<div class="ucard">${d.model?`<div class="sub" style="margin-bottom:8px;color:var(--secondary)">${esc(d.model)}</div>`:''}${rows}<div class="updated">${svg('i-refresh','sm')} ${stampLbl} ${fmtAgo(stamp)}</div>`+
-    `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button>`+
-    `<button class="disable" onclick="disableUsage()">Turn off tracking</button></div>`;
+  box.innerHTML=`<div class="ucard">${rows}<div class="updated">${svg('i-refresh','sm')} Limits read ${fmtAgo(stamp)}</div>`+
+    `<button class="enable" style="margin-top:10px" onclick="fetchFreshUsage()">${svg('i-refresh')} Fetch fresh reading</button></div>`;
 }
 // Drive a brief interactive Claude session to get a brand-new reading.
 async function fetchFreshUsage(){

@@ -31,37 +31,38 @@
   css.textContent = `
   #uwPanel{position:fixed;z-index:260;width:${W}px;background:var(--panel);border:1px solid var(--line2);border-radius:var(--radius-card);box-shadow:var(--shadow-dropdown);overflow:hidden;user-select:none;cursor:grab;font-size:12px}
   #uwPanel.dragging{cursor:grabbing}
-  #uwPanel .uw-head{display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;border-bottom:1px solid var(--cc-border-divider)}
-  #uwPanel .uw-ttl{font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap}
-  #uwPanel .uw-sub{flex:1;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  #uwPanel .uw-hbtn{background:none;border:none;color:var(--text-muted);width:26px;height:26px;border-radius:var(--radius-btn);cursor:pointer;font-size:12px;line-height:1;font-family:inherit;flex:0 0 auto}
-  #uwPanel .uw-hbtn:hover{color:var(--text-primary);background:var(--panel2)}
-  #uwPanel .uw-body{padding:12px 13px}
-  #uwPanel .uw-row{margin-bottom:13px}
-  #uwPanel .uw-row:last-child{margin-bottom:0}
-  #uwPanel .uw-lbl{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
-  #uwPanel .uw-name{color:var(--text-primary);font-weight:600}
-  #uwPanel .uw-meta{margin-left:auto;color:var(--text-muted);font-variant-numeric:tabular-nums}
-  #uwPanel .uw-pct{color:var(--text-primary);font-weight:600;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
-  #uwPanel .uw-bar{height:7px;border-radius:8px;background:var(--veil,rgba(255,255,255,.07));overflow:hidden}
-  #uwPanel .uw-bar span{display:block;height:100%;border-radius:8px;transition:width .5s ease}
-  #uwPanel .uw-sec{color:var(--text-muted);margin:14px 0 9px;padding-top:12px;border-top:1px solid var(--cc-border-divider)}
-  #uwPanel .uw-foot{display:flex;align-items:center;gap:8px;color:var(--text-muted);margin-top:13px;padding-top:11px;border-top:1px solid var(--cc-border-divider)}
-  #uwPanel .uw-live{width:6px;height:6px;border-radius:50%;background:var(--good);flex:0 0 6px}
-  #uwPanel .uw-live.stale{background:var(--muted)}
-  #uwPanel .uw-refresh{background:none;border:1px solid var(--line2);color:var(--text-secondary);border-radius:var(--radius-btn);height:22px;padding:0 9px;font-size:12px;font-family:inherit;cursor:pointer}
-  #uwPanel .uw-refresh:hover:not(:disabled){color:var(--text-primary);border-color:var(--line3)}
-  #uwPanel .uw-refresh:disabled{opacity:.5;cursor:default}
-  #uwPanel .uw-empty{color:var(--text-muted);line-height:1.5}
-  #uwPanel .uw-cap{margin-top:5px;font-size:12px;color:var(--cc-text-faint)}
-  #uwPanel .uw-auto{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);cursor:pointer;user-select:none;margin-left:auto}
-  #uwPanel .uw-auto input{margin:0}
-  #uwPanel .uw-refresh{margin-left:8px}
+  .uw-scope .uw-head{display:flex;align-items:center;gap:8px;height:30px;padding:0 6px 0 12px;border-bottom:1px solid var(--cc-border-divider)}
+  .uw-scope .uw-ttl{font-size:12px;font-weight:600;color:var(--text-primary);white-space:nowrap}
+  .uw-scope .uw-sub{flex:1;color:var(--text-muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .uw-scope .uw-hbtn{background:none;border:none;color:var(--text-muted);width:26px;height:26px;border-radius:var(--radius-btn);cursor:pointer;font-size:12px;line-height:1;font-family:inherit;flex:0 0 auto}
+  .uw-scope .uw-hbtn:hover{color:var(--text-primary);background:var(--panel2)}
+  .uw-scope .uw-body{padding:12px 13px}
+  .uw-scope .uw-row{margin-bottom:13px}
+  .uw-scope .uw-row:last-child{margin-bottom:0}
+  .uw-scope .uw-lbl{display:flex;align-items:baseline;gap:8px;margin-bottom:6px}
+  .uw-scope .uw-name{color:var(--text-primary);font-weight:600}
+  .uw-scope .uw-meta{margin-left:auto;color:var(--text-muted);font-variant-numeric:tabular-nums}
+  .uw-scope .uw-pct{color:var(--text-primary);font-weight:600;font-variant-numeric:tabular-nums;min-width:34px;text-align:right}
+  .uw-scope .uw-bar{height:7px;border-radius:8px;background:var(--veil,rgba(255,255,255,.07));overflow:hidden}
+  .uw-scope .uw-bar span{display:block;height:100%;border-radius:8px;transition:width .5s ease}
+  .uw-scope .uw-sec{color:var(--text-muted);margin:14px 0 9px;padding-top:12px;border-top:1px solid var(--cc-border-divider)}
+  .uw-scope .uw-foot{display:flex;align-items:center;gap:8px;color:var(--text-muted);margin-top:13px;padding-top:11px;border-top:1px solid var(--cc-border-divider)}
+  .uw-scope .uw-live{width:6px;height:6px;border-radius:50%;background:var(--good);flex:0 0 6px}
+  .uw-scope .uw-live.stale{background:var(--muted)}
+  .uw-scope .uw-refresh{background:none;border:1px solid var(--line2);color:var(--text-secondary);border-radius:var(--radius-btn);height:22px;padding:0 9px;font-size:12px;font-family:inherit;cursor:pointer}
+  .uw-scope .uw-refresh:hover:not(:disabled){color:var(--text-primary);border-color:var(--line3)}
+  .uw-scope .uw-refresh:disabled{opacity:.5;cursor:default}
+  .uw-scope .uw-empty{color:var(--text-muted);line-height:1.5}
+  .uw-scope .uw-cap{margin-top:5px;font-size:12px;color:var(--cc-text-faint)}
+  .uw-scope .uw-auto{display:inline-flex;align-items:center;gap:5px;color:var(--text-muted);cursor:pointer;user-select:none;margin-left:auto}
+  .uw-scope .uw-auto input{margin:0}
+  .uw-scope .uw-refresh{margin-left:8px}
   @media (max-width:900px){#uwPanel,#usageWinBtn{display:none!important}}`;
   document.head.appendChild(css);
 
   const panel = document.createElement('div');
   panel.id = 'uwPanel';
+  panel.className = 'uw-scope';
   panel.style.display = 'none';
   panel.innerHTML = `<div class="uw-head">
       <span class="uw-ttl">Usage</span><span class="uw-sub" id="uwSub"></span>
@@ -160,12 +161,13 @@
     return key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
   }
 
-  function render(d, enabled) {
-    const body = $('uwBody'), sub = $('uwSub');
-    if (!enabled) {
-      body.innerHTML = '<div class="uw-empty">Usage tracking is off. Turn it on in Settings → Usage to install the statusline hook that reports your plan limits.</div>';
-      sub.textContent = 'off'; return;
-    }
+  // The body is built as a STRING and painted into every mounted surface (the
+  // window itself + the account popover), so the two cards are identical by
+  // construction rather than by two implementations agreeing. Controls are
+  // addressed by CLASS, never id — the same markup exists in more than one place
+  // at a time and duplicate ids would break the handler wiring. (2026-08-07)
+  function bodyHtml(d, enabled) {
+    if (!enabled) return '<div class="uw-empty">Usage tracking is off. Turn it on in Settings → Usage to install the statusline hook that reports your plan limits.</div>';
     let h = '';
     // ---- context window: THIS chat, not the statusline's session -------------
     const live = liveTurn();
@@ -193,15 +195,31 @@
     h += '<div class="uw-foot"><span class="uw-live' + (stale ? ' stale' : '') + '"></span>'
       + '<span>' + (busy ? 'Refreshing…' : 'Limits read ' + esc(ago(d && (d.rate_limits_at || d.at)))) + '</span>'
       + '<label class="uw-auto" title="Refresh the plan limits every 3 minutes — and immediately when switched on if the reading is stale. Each refresh runs one tiny Haiku turn, the only way to make Claude Code emit a fresh reading.">'
-      + '<input type="checkbox" id="uwAuto"' + (autoOn() ? ' checked' : '') + '> auto</label>'
-      + '<button class="uw-refresh" id="uwRefresh"' + (busy ? ' disabled' : '') + '>Refresh</button></div>';
-    body.innerHTML = h;
-    sub.textContent = brainModel();
-    const rb = $('uwRefresh');
-    if (rb) rb.onclick = () => populate();
-    const ab = $('uwAuto');
-    if (ab) ab.onchange = () => { localStorage.setItem(LS_AUTO, ab.checked ? '1' : '0'); armAuto(); };
+      + '<input type="checkbox" class="uw-auto-cb"' + (autoOn() ? ' checked' : '') + '> auto</label>'
+      + '<button class="uw-refresh"' + (busy ? ' disabled' : '') + '>Refresh</button></div>';
+    return h;
   }
+  function wireBody(root) {
+    const rb = root.querySelector('.uw-refresh');
+    if (rb) rb.onclick = () => populate();
+    const ab = root.querySelector('.uw-auto-cb');
+    if (ab) ab.onchange = () => { localStorage.setItem(LS_AUTO, ab.checked ? '1' : '0'); armAuto(); paintAll(lastData, lastEnabled); };
+  }
+  // Extra surfaces (the account popover) register here and get the identical body.
+  const mounts = new Set();
+  let lastEnabled = true;
+  function paintAll(d, enabled) {
+    const h = bodyHtml(d, enabled);
+    const body = $('uwBody');
+    if (body && panel.style.display !== 'none') { body.innerHTML = h; wireBody(body); }
+    const sub = $('uwSub');
+    if (sub) sub.textContent = enabled ? brainModel() : 'off';
+    for (const el of [...mounts]) {
+      if (!el.isConnected) { mounts.delete(el); continue; }
+      el.innerHTML = h; wireBody(el);
+    }
+  }
+  function render(d, enabled) { lastEnabled = enabled; paintAll(d, enabled); }
 
   // The ONLY way to get a fresh rate-limit reading: Claude Code's statusline hook
   // fires in interactive sessions after an API response, so the server drives one
@@ -218,7 +236,7 @@
   function armAuto() {
     if (autoTimer) clearInterval(autoTimer);
     autoTimer = null;
-    if (!autoOn() || panel.style.display === 'none') return;
+    if (!autoOn() || !anyLive()) return;
     // Don't make the user wait a full interval to see auto do anything: if the
     // reading on screen is already older than one interval when auto is switched
     // on (or the window is reopened), refresh right now. Otherwise ticking the
@@ -226,15 +244,17 @@
     const readAt = lastData && (lastData.rate_limits_at || lastData.at);
     if (!liveTurn() && !document.hidden && (!readAt || Date.now() - readAt > AUTO_MS)) populate();
     autoTimer = setInterval(() => {
-      if (panel.style.display === 'none') return;
+      if (!anyLive()) return;
       if (document.hidden) return;                       // don't burn turns on a hidden tab
       if (liveTurn()) return;   // never mid-turn
       populate();
     }, AUTO_MS);
   }
 
+  // Live whenever ANY surface is showing — the window, or the account popover.
+  const anyLive = () => panel.style.display !== 'none' || [...mounts].some((el) => el.isConnected && el.offsetParent !== null);
   async function tick() {
-    if (panel.style.display === 'none') return;
+    if (!anyLive()) return;
     try {
       const id = curChat();
       const [r, c] = await Promise.all([
@@ -267,6 +287,32 @@
     toggle: (force) => setOpen(force === true ? true : panel.style.display === 'none'),
     isOpen: () => panel.style.display !== 'none',
     refresh: tick,
+    // Render the SAME body into another container (the account popover) and keep
+    // it live: registering starts the shared poll loop even when the window is closed.
+    mount(el) {
+      if (!el) return;
+      mounts.add(el);
+      el.classList.add('uw-scope');
+      if (lastData !== null) { el.innerHTML = bodyHtml(lastData, lastEnabled); wireBody(el); }
+      startLoop(); armAuto();
+    },
+    // ---- shared renderers (single source of truth for limit visuals) --------
+    // The account popover shows the SAME numbers in the same place in the UI;
+    // when it drew its own bars with its own labels the two drifted — different
+    // colours, different names, and the popover silently missed per-model
+    // windows because it hardcoded five_hour/seven_day. Both surfaces now call
+    // these, inside a `.uw-scope` container. (2026-08-07)
+    row,                 // row(name, meta, pct) -> html
+    windowLabel,         // 'seven_day_fable' -> 'Weekly · Fable'
+    resetIn,             // epoch seconds -> 'Resets in 22 hr 48 min'
+    ago,                 // epoch ms -> '28m ago'
+    // Every rate-limit window the payload carries, five_hour first.
+    limitsHtml(rl) {
+      const keys = Object.keys(rl || {}).filter((k) => rl[k] && typeof rl[k].used_percentage === 'number');
+      if (!keys.length) return '';
+      keys.sort((a, b) => (a === 'five_hour' ? -1 : b === 'five_hour' ? 1 : a.localeCompare(b)));
+      return keys.map((k) => row(windowLabel(k), resetIn(rl[k].resets_at), rl[k].used_percentage || 0)).join('');
+    },
   };
   if (localStorage.getItem(LS_OPEN) === '1') setOpen(true);
 })();
