@@ -16,6 +16,14 @@ Notifications is module #30, in the **Admin / Core** section. Core modules are a
 
 The point of this build: **every one of the 46 modules must be able to fire a notification by calling one backend workflow with the same parameters.** If a module has to know anything about email, batching, preferences or channels, the design has failed. I want to add a new module later and have notifications work by writing one action.
 
+**This is B2B SaaS infrastructure, not a consumer app or marketing site — build it like it.** That has concrete consequences, not just vibes:
+
+- **Tenant admins get policy control, not just individual users.** A casino's compliance officer needs to be able to force certain notifications on for their whole property, or turn a channel off company-wide (some properties won't allow push to personal devices, full stop). This is a layer above personal preferences, not a replacement for them. See the new `notification_company_policy` type below.
+- **Recipients are often roles or departments, not named people.** "Notify the Surveillance shift supervisors" is a normal ops requirement — the calling module shouldn't have to hand-resolve that to a user list every time. `trigger_notification` accepts role-based targeting directly.
+- **There is no growth/engagement surface here at all.** No re-engagement pushes, no "come back and see what's new," no marketing digest, no social-style activity feed trying to maximize opens. Every notification exists because someone needs to act on or be aware of something operational. If you find yourself building anything that looks like a growth lever, stop — it doesn't belong in this module.
+- **Compliance needs delivery proof without content exposure.** Casino operations are regulated. An auditor may ask "prove the Compliance Manager was notified when X happened." The personal notification inbox stays strictly private (see privacy rules) — but delivery *metadata* for compliance-relevant events is captured separately so that proof is answerable without opening anyone's personal inbox. See `notification_delivery_record` below.
+- **No tier-gating logic in this build.** Notifications is a Core module and stays fully functional at every tier per the locked pricing structure — don't invent per-tier notification limits, that's a commercial decision for a different conversation.
+
 ---
 
 ## Non-negotiables
@@ -86,13 +94,23 @@ I've already made these calls based on how notification infrastructure is actual
 
 **Mandatory events cannot be muted.** Security, role, and permission events always deliver. They show with a lock icon and a disabled toggle in the preferences UI.
 
+**Preference precedence has a tenant layer above the user, not just user-then-default.** This is the actual difference between a B2B tool and a consumer app: an org admin's policy can override an individual's opt-out, and can disable a channel for the whole tenant. Resolve channels in this order, highest wins:
+1. Event is mandatory (`allow_opt_out = no`) → always on, nothing below matters.
+2. Company policy forces this event on for the tenant → on, regardless of the user's personal preference.
+3. Company policy disables this channel tenant-wide (e.g. push disabled company-wide) → off, regardless of anything else including a user who wants it.
+4. User's per-event override, if one exists.
+5. User's global channel toggle / muted module.
+6. The event type's own default.
+
+**Compliance-relevant events get a delivery record, separate from the personal notification.** The personal `notification` row stays strictly private to its recipient — see Privacy rules. But for events flagged `compliance_relevant = yes` on the event type, `deliver_to_user` also writes a `notification_delivery_record`: who, what event, when, which channels — no title, no content, just proof of delivery. That's what answers "was the Compliance Manager notified" during an audit, without ever exposing anyone's inbox contents to another user.
+
 **Push and email are both "wire the pipe now, connect the tap later."** There is no mobile app yet and no verified email provider yet, but both are coming — iOS/Android native apps with push, and SendGrid once it's verified. Build the full data model, preference plumbing, and channel-routing logic for both channels now, exactly as if they were live, with only the final provider-specific send action stubbed. When the mobile app and SendGrid exist, turning each channel on should be a small, contained change (wire one API/plugin action, flip a readiness flag) — not a redesign. See the **Push channel** and **Email channel** sections below for exactly what to build now versus defer.
 
 ---
 
 ## Data model
 
-Five data types. Every one of them gets `company` (→ Company) and `property` (→ 01.1 Property) — Pattern A, no exceptions.
+Eight data types, plus two fields added to the existing `User` type. Every data type gets `company` (→ Company) and `property` (→ 01.1 Property) — Pattern A — except the two called out explicitly below (`notification_email_template`, `notification_company_policy`), which are deliberately company-scoped only.
 
 ### 1. `notification` — restructure the existing type
 
@@ -158,7 +176,19 @@ Template lookup falls back in this order, and the last step always exists so a s
 
 There's no mobile app yet, so nothing populates this today. Build it anyway so the day the iOS/Android app exists, it registers a device by creating one row here, and the delivery workflow already knows what to do with it (see **Push channel** below). One user can have multiple active devices (phone + tablet); a token can go stale (app deleted, token rotated) — that's what `is_active` and `last_seen_date` are for, not a hard delete.
 
-### 7. Add to the existing `User` type
+### 7. `notification_company_policy` — new, one row per Company (tenant-level override layer)
+
+`company`, `forced_on_events` (list of OS - Notification Event Type — events the tenant requires regardless of individual opt-out, where `allow_opt_out` on the event itself still permits it), `disabled_channels` (list of OS - Notification Channel — channels this tenant has switched off entirely, e.g. a property that disallows push to personal devices), `default_digest_frequency` (OS - Digest Frequency — what new users start with), `created_by` (User), `last_edited_by` (User), `last_edited_date` (date).
+
+One row per Company, created lazily (first time an admin touches notification settings, or seeded blank at company creation — your call). No `property` field on this one **on purpose** — policy is set at the tenant level, not per property, because it's the company's compliance officer setting rules across their whole operation, not a single floor. If a future request needs per-property overrides, that's a deliberate v2 addition, not something to guess into this build.
+
+### 8. `notification_delivery_record` — new, compliance-safe audit trail (no content)
+
+`company`, `property`, `recipient` (User), `event_type` (OS - Notification Event Type), `entity_type` (OS - Notification Entity Type), `entity_id` (text), `channels_delivered` (list of text), `delivered_date` (date), `read_date` (date, nullable — synced from the Notification row when it's read, so an auditor can see not just "sent" but "opened").
+
+Written by `deliver_to_user` **only** when the event type has `compliance_relevant = yes` — not for every notification, that would just be a shadow copy of the whole table and defeat the point of keeping it lean. Contains **zero message content** — no title, no snippet, no cta_url. It exists to answer "who was told about this and when," never "what exactly did it say."
+
+### 9. Add to the existing `User` type
 
 `unread_notification_count` (number, default 0) and `notification_preferences` (→ notification_preferences).
 
@@ -186,6 +216,9 @@ Add these attributes:
 | `batch_window_minutes` | number | 0 = never batch, send immediately. |
 | `template_key` | text | Matches the email template. |
 | `is_active` | yes/no | Retire an event without deleting it. |
+| `compliance_relevant` | yes/no | Default no. Yes = `deliver_to_user` also writes a `notification_delivery_record`. Only flag events where "prove this was delivered" is a real audit question — role changes, permission grants, compliance escalations. Not every event needs this. |
+| `escalate_after_minutes` | number | 0 = no escalation. Reserved for v2 — see note below. Build the field now so the schema doesn't change shape later. |
+| `escalate_to_role` | OS - Permission | Who to notify if it's still unread after the escalation window. Reserved for v2, same reasoning. |
 
 **Keep the description short and add no other long-text attributes.** Bubble ships the entire option set to the browser as JavaScript on every single page load, and this catalog will grow toward 400+ values as the remaining modules land. Lean attributes are the price of keeping the catalog as an option set instead of a database table. If it ever passes ~400 values, flag it to me — at that point it should move to a data type.
 
@@ -210,6 +243,10 @@ Seed this starter catalog (enough to prove the system; the rest arrive as module
 | `user.password_reset` | Your password was reset | users | critical | **no** | 0 | email |
 | `user.mentioned` | You were mentioned | core | info | yes | 3 | in-app + email |
 | `system.announcement` | System announcement | core | warning | yes | 0 | in-app + email |
+
+Mark `user.role_changed`, `user.permission_granted`, `user.permission_revoked`, and `user.account_deactivated` as `compliance_relevant = yes`. Leave the rest no.
+
+**Escalation is a reserved field, not a built feature in this pass.** `escalate_after_minutes` and `escalate_to_role` exist on the event type so the schema is ready, but do not build the escalation workflow itself now — that's a genuinely separate scheduled job (find unread notifications past their escalation window, notify the fallback role) and it's scope creep for this build. Leave every seed value at `escalate_after_minutes = 0`. Note it in your report as a clearly-scoped v2 item, not something you half-built.
 
 ### `OS - Notification Entity Type`
 
@@ -239,9 +276,10 @@ Seed with the entities that exist or are imminent: `report`, `task`, `subtask`, 
 
 Add a `notifications` value to `OS - User Permission Modules` first if it isn't there, then add these permissions with `user_permission_module = notifications`:
 
-- `manage_notification_events` — edit the event catalog (`is_sensitive` = yes)
+- `manage_notification_events` — edit the event catalog and the company's notification policy (`is_sensitive` = yes)
 - `manage_notification_templates` — edit company email templates (`is_sensitive` = yes)
-- `send_system_announcement` — broadcast to all users at a property (`is_sensitive` = yes)
+- `send_system_announcement` — broadcast to all users at a property or company (`is_sensitive` = yes)
+- `view_notification_delivery_records` — view compliance delivery proof for their company + property (`is_sensitive` = yes)
 
 Regular users need no permission to see their own notifications — that's what the recipient privacy rule is for.
 
@@ -249,31 +287,35 @@ Regular users need no permission to see their own notifications — that's what 
 
 ## Backend workflows
 
-Five workflows. Keep the entry point thin and push per-recipient work into scheduled children — a workflow that loops synchronously over a large recipient list will time out.
+Nine workflows. Keep the entry point thin and push per-recipient work into scheduled children — a workflow that loops synchronously over a large recipient list will time out.
 
 ### `trigger_notification` — the single entry point every module calls
 
-Parameters: `event_code` (text) · `entity_type` (OS - Notification Entity Type) · `entity_id` (text) · `actor` (User) · `recipients` (list of Users) · `company` (Company) · `property` (Property) · `title_override` (text, optional) · `context_1` … `context_4` (text, optional — values that get substituted into the template, e.g. a report number).
+Parameters: `event_code` (text) · `entity_type` (OS - Notification Entity Type) · `entity_id` (text) · `actor` (User) · `recipients` (list of Users, optional) · `recipient_roles` (list of OS - Permission, optional) · `company` (Company) · `property` (Property) · `title_override` (text, optional) · `context_1` … `context_4` (text, optional — values that get substituted into the template, e.g. a report number).
+
+`recipients` and `recipient_roles` are both optional but at least one must resolve to someone, or the workflow exits with nothing to do. `recipient_roles` exists because a lot of ops notifications aren't addressed to named people — "notify the Surveillance shift supervisors at this property" — and the calling module shouldn't have to hand-write that lookup every time it fires an event.
 
 Logic:
 1. Look up the event type by `event_code`. If it isn't found, or `is_active` is no, exit silently and log — a missing event must never break the calling module's workflow.
-2. Search `notification_subscription` for `entity_type` + `entity_id` where `muted` is no, and add those users to the recipient list.
-3. Remove the actor from the list. Nobody gets notified about their own action.
-4. `:unique elements` on the list.
-5. Schedule `deliver_to_user` on that list — use "Schedule API workflow on a list", not a recursive workflow. Schedule-on-a-list runs in parallel, finishes faster, and costs less workload because it doesn't pay a rescheduling action per item. Recursive is only correct when you need sequential order or per-cycle state, and this doesn't.
+2. If `recipient_roles` is non-empty, search `User` where `property = property` and the user's role (via the `permission_groups` Role relationship) is in `recipient_roles`, and add those to the recipient list alongside any explicit `recipients`. This is a same-property search only — role-based targeting never crosses properties, same as everything else in this app.
+3. Search `notification_subscription` for `entity_type` + `entity_id` where `muted` is no, and add those users to the recipient list.
+4. Remove the actor from the list. Nobody gets notified about their own action.
+5. `:unique elements` on the list.
+6. Schedule `deliver_to_user` on that list — use "Schedule API workflow on a list", not a recursive workflow. Schedule-on-a-list runs in parallel, finishes faster, and costs less workload because it doesn't pay a rescheduling action per item. Recursive is only correct when you need sequential order or per-cycle state, and this doesn't.
 
-That's the whole contract. Every module calls exactly this, with the same eight-ish parameters, forever.
+That's the whole contract. Every module calls exactly this, with the same parameters, forever.
 
 ### `deliver_to_user` — one run per recipient
 
-1. Load the recipient's `notification_preferences`. If it doesn't exist, create it with defaults, then continue.
-2. Work out the active channels: if `allow_opt_out` is no, force in-app + email regardless of preferences. Otherwise — global channel toggle off → drop that channel; event's module in `muted_modules` → drop everything; a matching `notification_event_preference` exists → use its per-channel values; otherwise use the event's defaults.
+1. Load the recipient's `notification_preferences`. If it doesn't exist, create it with defaults, then continue. Load the recipient's company's `notification_company_policy`, if one exists.
+2. Work out the active channels using the precedence order from the architecture section above: mandatory event → company-forced-on → company-disabled-channel → user's per-event override → user's global toggle / muted module → event default.
 3. If no channels survive, exit **without creating a row.** A muted user shouldn't accumulate invisible database records.
 4. Build the `dedupe_key`. Search for an existing notification with that key that is still `unread`. If one exists, append `entity_id` to `related_entity_ids`, increment `group_count`, refresh the modified date, **and do not reschedule the email.** Exit.
 5. Otherwise create the notification. Set `state = unread`, denormalize `module` and `severity` from the event type, render `title` and `body_preview` (actor-verb-object; nothing sensitive), build `cta_url` from the entity type's `app_route` plus `entity_id`.
 6. Increment the recipient's `unread_notification_count` by 1.
-7. If email is an active channel: set `email_status = scheduled`, set `email_scheduled_send_date` to `now + batch_window_minutes`, and schedule `send_notification_email` for that time.
-8. If push is an active channel: search `notification_device` for `user = recipient` and `is_active = yes`. If none exist, skip — nothing to do yet, this is the normal case until the mobile app ships. If any exist, schedule `send_notification_push` for the same time as the email (or immediately if `batch_window_minutes = 0`).
+7. If the event type has `compliance_relevant = yes`, also create a `notification_delivery_record`: recipient, event_type, entity_type, entity_id, `delivered_date = now`. No title, no content.
+8. If email is an active channel: set `email_status = scheduled`, set `email_scheduled_send_date` to `now + batch_window_minutes`, and schedule `send_notification_email` for that time.
+9. If push is an active channel: search `notification_device` for `user = recipient` and `is_active = yes`. If none exist, skip — nothing to do yet, this is the normal case until the mobile app ships. If any exist, schedule `send_notification_push` for the same time as the email (or immediately if `batch_window_minutes = 0`).
 
 Put a condition on the **event step** rather than on each action wherever you can — halting at the event is cheaper than evaluating conditions action by action, and conditions cost workload even when they return false.
 
@@ -318,11 +360,17 @@ Build this now even though the email provider isn't wired yet, because once it i
 
 Neither endpoint requires the email/push provider to exist. They're pure bookkeeping and cost nothing to have ready — build them so the mobile app, whenever it ships, has a stable contract to call into on day one instead of waiting on a backend change.
 
+### `trigger_company_announcement` — admin broadcast, gated by permission
+
+Parameters: `company` · `property` (optional — empty means every property in the company, set means one property only) · `title` · `body` · `severity` (default warning).
+
+Callable only by a user holding `send_system_announcement`. Resolves recipients as every active User in scope (property, or every property in the company), then calls `trigger_notification` with `event_code = system.announcement`, `actor` = the sending admin. This is the concrete workflow behind the `system.announcement` event already in the seed catalog — a company admin broadcasting to their whole team, not a mass-marketing tool. Don't build a scheduling/campaign layer on top of this; it's a one-shot "notify everyone now" action.
+
 ---
 
 ## Privacy rules
 
-Right now `notification` has no privacy rules and is publicly readable. Fix all five types:
+Right now `notification` has no privacy rules and is publicly readable. Fix all eight types:
 
 - **notification** — view only when `This Notification's recipient = Current User`. No admin override, none. If someone needs an audit trail, that's the ActivityLog's job, not this table; an admin reading "your permission request was rejected because…" out of someone else's inbox is a privacy incident. Create is backend-only. The recipient may edit `state`, `read_date`, `seen_date`, `archived_date` and nothing else.
 - **notification_preferences** — view/edit only when `This Thing's user = Current User`. Created by backend on signup.
@@ -330,8 +378,10 @@ Right now `notification` has no privacy rules and is publicly readable. Fix all 
 - **notification_subscription** — view/edit when `This Thing's user = Current User`. Admins with a suitable permission may view (not edit) subscriptions within their own company and property, so "who is watching this record" is answerable.
 - **notification_email_template** — readable by any logged-in user of the matching company (or where company is empty), since sends need to render it. Editable only by users holding `manage_notification_templates`.
 - **notification_device** — view/edit only when `This Thing's user = Current User`. Create via the register endpoint (backend, ignoring privacy rules since the device isn't authenticated as a full session yet at registration time) or by the owning user directly. A push token is a credential — treat this table with the same care as a password field, never expose it in any search result other than the owner's own.
+- **notification_company_policy** — view for any logged-in user of the matching company (so `deliver_to_user` and the preferences UI can show "your admin requires this" messaging without a privacy-rule workaround). Edit only by users holding `manage_notification_events` **and** matching company — this is tenant-level configuration, not personal settings, so it needs its own explicit gate. No `property` clause on this one (see the data model note — it's intentionally company-scoped only).
+- **notification_delivery_record** — view for users holding a new permission `view_notification_delivery_records`, scoped to their own company + property. No content fields exist on this type to leak, but it still shouldn't be open to every logged-in user — delivery metadata (who was notified, when) is itself sensitive in an HR/compliance context. Create is backend-only.
 
-Every one of these rules gets the company + property clause as its first condition, per Pattern A. Also add the company/property clause to the recipient rules — recipient alone is sufficient logically, but the tenancy clause is the project standard and it costs nothing.
+Every one of these rules gets the company + property clause as its first condition, per Pattern A, except the two noted above where property genuinely doesn't apply. Also add the company/property clause to the recipient rules — recipient alone is sufficient logically, but the tenancy clause is the project standard and it costs nothing.
 
 Note as you go: backend workflows in this app widely run with "ignore privacy rules". That's expected for the delivery pipeline — it must write rows for users who can't yet see them — but do **not** turn that flag on for anything that reads notifications back out.
 
@@ -392,7 +442,7 @@ Duplicate it as a new reusable named `# Notifications`. Then:
 - Filters become: module (from `OS - Module`), event type, state, date range.
 - Bulk actions: Mark all read, Archive selected, Delete archived.
 - Row anatomy: severity dot, module icon (from the module's `icon_code`), title, snippet, relative timestamp (the Relative Time with Moment.js plugin is already installed — use it), unread indicator. When `group_count > 1`, show "and N more".
-- Clicking a row marks it read, decrements the counter, verifies the target still exists and is visible, then navigates to `cta_url` — or shows the unavailable message.
+- Clicking a row marks it read, decrements the counter, verifies the target still exists and is visible, then navigates to `cta_url` — or shows the unavailable message. If a matching `notification_delivery_record` exists (compliance-relevant event), also stamp its `read_date` here — that's the field an auditor cares about, "was it actually opened," not just "was it sent."
 - Unread rows are distinguished by **more than colour** — a dot plus a weight change — so it works for colour-blind users and in both themes.
 
 Finally, repoint the `# notifications` custom element inside the `Pages` floating group at this new reusable instead of the `# dashboard` placeholder it currently references.
@@ -402,7 +452,7 @@ Finally, repoint the `# notifications` custom element inside the `Pages` floatin
 `GF - User Menu` (60 elements) is the app's existing dropdown-from-header pattern. Clone it as `# GR - Notification Bell` and place it in the same header area, beside the user menu.
 
 - Bell icon with an unread badge; cap the display at "99+".
-- The badge reads `Current User's unread_notification_count`. **Do not put a live search behind it.**
+- The badge reads `Current User's unread_notification_count`. **Do not put a live search behind it, and do not build a polling/refresh workflow for it either.** Bind the badge text directly to that field — Bubble syncs changes to the Current User's own fields to the page automatically without any refresh action. Binding directly gets you real-time-feeling updates for free; a "refresh every 30 seconds" workflow on top of that would be pure wasted workload.
 - Opening the dropdown sets every `unread` row that's currently displayed to `seen` and clears the badge — without marking them read.
 - Body: the 15 most recent notifications, newest first. Fifteen, hard-capped, so the query cost is constant no matter how many thousands the user has.
 - Tabs: Unread / All.
@@ -419,6 +469,8 @@ Layout:
 - Then one collapsible section per module — collapsed by default — showing the module name, its event count, and a mute-whole-module toggle.
 - Inside each section, one row per event: label, short description, and In-app / Email / Push checkboxes.
 - Events where `allow_opt_out` is no render with a lock icon and disabled, always-checked boxes.
+- Events forced on by the company's `notification_company_policy` render the same locked state, but the tooltip says "Required by your organization" instead of the generic lock — the user should be able to tell the difference between "this is inherently critical" and "your admin turned this on for everyone."
+- If a channel is disabled company-wide, hide that column entirely for the affected events rather than showing a checkbox the user can toggle and have silently ignored — a control that visibly does nothing is worse than no control.
 - **Auto-save on toggle** with an inline toast confirmation — no Save button. The app already has toast plugins installed (Ultimate Toast Notifications, Bubble Toast, Alert-Toast-Message-Notify-BEP); use whichever the app already uses elsewhere rather than adding a fourth.
 - A "Watching" tab listing the user's `notification_subscription` rows with an Unwatch action on each.
 - Only write an `notification_event_preference` row when a user actually deviates from a default. Absence means default.
@@ -444,26 +496,29 @@ Plan mode first — inventory, then this plan with your corrections, then wait f
 
 1. Create the five new option sets (State, Channel, Email Status, Digest Frequency, Device Platform).
 2. Add the attributes to `OS - Notification Event Type` and `OS - Notification Entity Type`, and seed the entity types.
-3. Seed the 17 starter event-type values.
+3. Seed the 17 starter event-type values, including the `compliance_relevant` flags and the reserved-but-zeroed escalation fields.
 4. Restructure the `notification` data type (add new fields, remove dead ones).
 5. Create `notification_preferences` and `notification_event_preference`.
 6. Create `notification_subscription`.
 7. Create `notification_email_template` and seed global `en` defaults for all 17 events.
 8. Create `notification_device`.
-9. Add `unread_notification_count` and `notification_preferences` to `User`; add the notification permissions to `OS - Permission`.
-10. Privacy rules on all six types.
-11. `trigger_notification`.
-12. `deliver_to_user`.
-13. `send_notification_email` + the `notification_unsubscribe` endpoint.
-14. `send_notification_push` (stubbed send) + `notification_register_device` + `notification_deregister_device`.
-15. `notification_nightly_maintenance`.
-16. The bell dropdown (clone `GF - User Menu`).
-17. The inbox (clone `# User Management`), and repoint the `# notifications` custom element.
-18. Preferences (clone `# Casino Settings`) — include the Push master toggle (disabled, tooltipped) alongside In-app/Email.
-19. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole in-app + email chain works. Push has nothing to prove yet since there's no device to register — confirm instead that `deliver_to_user` correctly finds zero active devices and skips cleanly, without erroring.
-20. Cleanup pass (the list above) and final report.
+9. Create `notification_company_policy`.
+10. Create `notification_delivery_record`.
+11. Add `unread_notification_count` and `notification_preferences` to `User`; add the notification permissions (including `view_notification_delivery_records`) to `OS - Permission`.
+12. Privacy rules on all eight types.
+13. `trigger_notification` (with role-based targeting).
+14. `deliver_to_user` (with the company-policy precedence and delivery-record write).
+15. `send_notification_email` + the `notification_unsubscribe` endpoint.
+16. `send_notification_push` (stubbed send) + `notification_register_device` + `notification_deregister_device`.
+17. `trigger_company_announcement`.
+18. `notification_nightly_maintenance`.
+19. The bell dropdown (clone `GF - User Menu`) — bind the badge directly to the counter field, no polling.
+20. The inbox (clone `# User Management`), and repoint the `# notifications` custom element.
+21. Preferences (clone `# Casino Settings`) — include the Push master toggle (disabled, tooltipped) alongside In-app/Email, and the company-policy-forced / company-disabled states.
+22. Wire **one** pilot module end to end — Tasks. Fire `task.assigned` from the existing task-assignment workflow and prove the whole in-app + email chain works. Push has nothing to prove yet since there's no device to register — confirm instead that `deliver_to_user` correctly finds zero active devices and skips cleanly, without erroring.
+23. Cleanup pass (the list above) and final report.
 
-Steps 1–10 are schema; 11–15 are logic; 16–18 are UI; 19–20 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
+Steps 1–12 are schema; 13–18 are logic; 19–21 are UI; 22–23 prove and tidy. If a step fails validation, stop and fix that step — don't carry a broken step forward.
 
 ---
 
@@ -472,9 +527,13 @@ Steps 1–10 are schema; 11–15 are logic; 16–18 are UI; 19–20 prove and ti
 Go through this list explicitly in your final report and mark each pass or fail:
 
 - [ ] A module can fire a notification with a single "Schedule API workflow" action and needs to know nothing about channels, preferences, batching, email, or push.
-- [ ] All six data types carry `company` and `property`, and every privacy rule checks both.
+- [ ] A module can also target a role (e.g. "Compliance Manager") instead of an explicit user list, and get the same recipient, dedupe, and preference handling.
+- [ ] All eight data types carry `company` and `property` except the two noted exceptions (`notification_email_template`, `notification_company_policy`), and every privacy rule checks both where it applies.
+- [ ] A company policy that forces an event on overrides a user's personal opt-out for that event. A company policy that disables a channel wins even over a mandatory event's channel list.
+- [ ] A `compliance_relevant` event produces a `notification_delivery_record` with no title/content, viewable only by someone holding `view_notification_delivery_records` — and its `read_date` gets stamped when the recipient actually opens it.
 - [ ] `notification_device` exists, is privacy-locked to its owner, and `deliver_to_user` / `send_notification_push` handle the zero-devices case (today's reality) without erroring.
 - [ ] `notification_register_device` and `notification_deregister_device` work end to end (create/reactivate a row, deactivate a row) even though nothing calls them yet.
+- [ ] `trigger_company_announcement` works, gated by `send_system_announcement`, and reaches every active user in scope (one property or the whole company).
 - [ ] `notification` is no longer publicly readable. Only the recipient can see their own rows. No admin override exists.
 - [ ] Firing the same event twice for the same recipient and entity inside the batch window produces **one** row with `group_count = 2`, not two rows.
 - [ ] A user who mutes a module gets **no row created at all** for that module's events — not a hidden one.
@@ -492,7 +551,7 @@ Then tell me:
 
 1. What you built, step by step, with the entity names you created or changed.
 2. Every decision you made where I hadn't specified one, and why.
-3. The deviations you were told to flag: the four-state lifecycle versus the spec's three, and the nullable `property` on `notification_email_template`.
+3. The deviations you were told to flag: the four-state lifecycle versus the spec's three, and the nullable `property` on `notification_email_template` and `notification_company_policy`.
 4. Anything you found broken or worrying **outside** this scope — list it, don't fix it.
-5. What's left before this can carry real traffic: the email provider swap, SPF/DKIM/DMARC, the FCM/APNs push provider integration once there's a mobile app, the remaining ~380 event types as modules land, and anything else you hit.
-6. The exact places I'll most likely want to adjust — copy, defaults, batching windows — so I know where to look first.
+5. What's left before this can carry real traffic: the email provider swap, SPF/DKIM/DMARC, the FCM/APNs push provider integration once there's a mobile app, the escalation workflow (fields are reserved, logic isn't built), the remaining ~380 event types as modules land, and anything else you hit.
+6. The exact places I'll most likely want to adjust — copy, defaults, batching windows, which events are flagged `compliance_relevant` — so I know where to look first.
